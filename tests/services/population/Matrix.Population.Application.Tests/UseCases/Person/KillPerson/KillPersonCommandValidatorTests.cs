@@ -1,27 +1,32 @@
+using FluentValidation.Results;
 using Matrix.Population.Application.UseCases.Person.KillPerson;
 using Xunit;
 
-namespace Matrix.Population.Application.Tests.UseCases.Person.KillPerson;
-
-public sealed class KillPersonCommandValidatorTests
+namespace Matrix.Population.Application.Tests.UseCases.Person.KillPerson
 {
-    private readonly KillPersonCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidCommand_ReturnsNoErrors()
+    public sealed class KillPersonCommandValidatorTests
     {
-        var result = _validator.Validate(new KillPersonCommand(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")));
+        private readonly KillPersonCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidCommand_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new KillPersonCommand(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")));
 
-    [Fact]
-    public void Validate_WithEmptyId_ReturnsError()
-    {
-        var result = _validator.Validate(new KillPersonCommand(Guid.Empty));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "Id");
+        [Fact]
+        public void Validate_WithEmptyId_ReturnsError()
+        {
+            ValidationResult? result = _validator.Validate(new KillPersonCommand(Guid.Empty));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Id");
+        }
     }
 }

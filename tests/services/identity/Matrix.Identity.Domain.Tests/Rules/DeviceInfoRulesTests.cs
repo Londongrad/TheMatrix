@@ -2,40 +2,53 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Identity.Domain.Rules;
 using Xunit;
 
-namespace Matrix.Identity.Domain.Tests.Rules;
-
-public sealed class DeviceInfoRulesTests
+namespace Matrix.Identity.Domain.Tests.Rules
 {
-    [Fact]
-    public void Validate_TrimsAndReturnsDeviceIdAndDeviceName()
+    public sealed class DeviceInfoRulesTests
     {
-        var (deviceId, deviceName) = DeviceInfoRules.Validate(
-            deviceId: "  device-1  ",
-            deviceName: "  Pixel  ");
+        [Fact]
+        public void Validate_TrimsAndReturnsDeviceIdAndDeviceName()
+        {
+            (string deviceId, string deviceName) = DeviceInfoRules.Validate(
+                deviceId: "  device-1  ",
+                deviceName: "  Pixel  ");
 
-        Assert.Equal("device-1", deviceId);
-        Assert.Equal("Pixel", deviceName);
-    }
+            Assert.Equal(
+                expected: "device-1",
+                actual: deviceId);
+            Assert.Equal(
+                expected: "Pixel",
+                actual: deviceName);
+        }
 
-    [Fact]
-    public void Validate_WithWhitespaceDeviceId_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => DeviceInfoRules.Validate(
-            deviceId: "   ",
-            deviceName: "Pixel"));
+        [Fact]
+        public void Validate_WithWhitespaceDeviceId_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => DeviceInfoRules.Validate(
+                deviceId: "   ",
+                deviceName: "Pixel"));
 
-        Assert.Equal("Identity.DeviceInfo.InvalidDeviceId", exception.Code);
-        Assert.Equal("deviceId", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "Identity.DeviceInfo.InvalidDeviceId",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "deviceId",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Validate_WithWhitespaceDeviceName_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => DeviceInfoRules.Validate(
-            deviceId: "device-1",
-            deviceName: "   "));
+        [Fact]
+        public void Validate_WithWhitespaceDeviceName_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => DeviceInfoRules.Validate(
+                deviceId: "device-1",
+                deviceName: "   "));
 
-        Assert.Equal("Identity.DeviceInfo.InvalidDeviceName", exception.Code);
-        Assert.Equal("deviceName", exception.PropertyName);
+            Assert.Equal(
+                expected: "Identity.DeviceInfo.InvalidDeviceName",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "deviceName",
+                actual: exception.PropertyName);
+        }
     }
 }

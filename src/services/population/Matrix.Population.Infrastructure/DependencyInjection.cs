@@ -10,7 +10,6 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
-using Matrix.Population.Infrastructure.Messaging;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Options;
 using Matrix.Population.Infrastructure.Outbox;
@@ -20,12 +19,12 @@ using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.SimulationCore;
 using Matrix.Population.Infrastructure.SimulationSystems;
-using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Population.Infrastructure
 {
@@ -79,7 +78,9 @@ namespace Matrix.Population.Infrastructure
             services.AddOutbox<PopulationDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityEconomySettlementOutboxWriter, CityEconomySettlementOutboxWriter>();
-            services.AddHttpClient<ICityRouteResolutionClient, CityRouteResolutionClient>((sp, client) =>
+            services.AddHttpClient<ICityRouteResolutionClient, CityRouteResolutionClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;
@@ -94,7 +95,9 @@ namespace Matrix.Population.Infrastructure
                .AddInternalServiceAuthentication(
                     identity: InternalServicePrincipals.Population,
                     SimulationCorePermissionKeys.SimulationCoreClassicCityRead);
-            services.AddHttpClient<ICityPopulationActiveTripClient, CityActiveTripClient>((sp, client) =>
+            services.AddHttpClient<ICityPopulationActiveTripClient, CityActiveTripClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;
@@ -110,7 +113,9 @@ namespace Matrix.Population.Infrastructure
                     identity: InternalServicePrincipals.Population,
                     SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
                     SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate);
-            services.AddHttpClient<ICityDistrictUtilityConditionsClient, CityDistrictUtilityConditionsClient>((sp, client) =>
+            services.AddHttpClient<ICityDistrictUtilityConditionsClient, CityDistrictUtilityConditionsClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;

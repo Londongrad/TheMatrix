@@ -10,52 +10,63 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard;
-
-public sealed class CityOperationsDashboardCompositionTests
+namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
 {
-    [Fact]
-    public void CityOperationsDashboardService_DoesNotDependOnExtractedDownstreamClients()
+    public sealed class CityOperationsDashboardCompositionTests
     {
-        Type[] forbiddenTypes =
-        [
-            typeof(IEconomyApiClient),
-            typeof(IPopulationApiClient),
-            typeof(IStockpilesApiClient),
-            typeof(ITripsApiClient),
-            typeof(IEnvironmentalConditionsApiClient),
-            typeof(HealthCheckService),
-            typeof(IHttpClientFactory),
-            typeof(IOptions<DownstreamServicesOptions>)
-        ];
-        Type[] constructorParameterTypes = GetConstructorParameterTypes();
+        [Fact]
+        public void CityOperationsDashboardService_DoesNotDependOnExtractedDownstreamClients()
+        {
+            Type[] forbiddenTypes =
+            [
+                typeof(IEconomyApiClient),
+                typeof(IPopulationApiClient),
+                typeof(IStockpilesApiClient),
+                typeof(ITripsApiClient),
+                typeof(IEnvironmentalConditionsApiClient),
+                typeof(HealthCheckService),
+                typeof(IHttpClientFactory),
+                typeof(IOptions<DownstreamServicesOptions>)
+            ];
+            Type[] constructorParameterTypes = GetConstructorParameterTypes();
 
-        foreach (Type forbiddenType in forbiddenTypes)
-            Assert.DoesNotContain(forbiddenType, constructorParameterTypes);
-    }
+            foreach (Type forbiddenType in forbiddenTypes)
+                Assert.DoesNotContain(
+                    expected: forbiddenType,
+                    collection: constructorParameterTypes);
+        }
 
-    [Fact]
-    public void CityOperationsDashboardService_DependsOnExtractedDashboardServices()
-    {
-        Type[] constructorParameterTypes = GetConstructorParameterTypes();
+        [Fact]
+        public void CityOperationsDashboardService_DependsOnExtractedDashboardServices()
+        {
+            Type[] constructorParameterTypes = GetConstructorParameterTypes();
 
-        Assert.Contains(typeof(ICityOperationsDashboardHealthProbe), constructorParameterTypes);
-        Assert.Contains(typeof(ICityOperationsDashboardSnapshotLoader), constructorParameterTypes);
-        Assert.Contains(typeof(ICityOperationsDashboardAlertBuilder), constructorParameterTypes);
-        Assert.Contains(typeof(ICityOperationsDashboardRecentEventsBuilder), constructorParameterTypes);
-    }
+            Assert.Contains(
+                expected: typeof(ICityOperationsDashboardHealthProbe),
+                collection: constructorParameterTypes);
+            Assert.Contains(
+                expected: typeof(ICityOperationsDashboardSnapshotLoader),
+                collection: constructorParameterTypes);
+            Assert.Contains(
+                expected: typeof(ICityOperationsDashboardAlertBuilder),
+                collection: constructorParameterTypes);
+            Assert.Contains(
+                expected: typeof(ICityOperationsDashboardRecentEventsBuilder),
+                collection: constructorParameterTypes);
+        }
 
-    private static Type[] GetConstructorParameterTypes()
-    {
-        ConstructorInfo constructor = Assert.Single(
-            typeof(CityOperationsDashboardService).GetConstructors(
-                BindingFlags.Instance |
-                BindingFlags.Public |
-                BindingFlags.NonPublic));
+        private static Type[] GetConstructorParameterTypes()
+        {
+            ConstructorInfo constructor = Assert.Single(
+                typeof(CityOperationsDashboardService).GetConstructors(
+                    BindingFlags.Instance |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic));
 
-        return constructor
-           .GetParameters()
-           .Select(parameter => parameter.ParameterType)
-           .ToArray();
+            return constructor
+               .GetParameters()
+               .Select(parameter => parameter.ParameterType)
+               .ToArray();
+        }
     }
 }

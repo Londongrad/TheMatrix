@@ -8,7 +8,8 @@ namespace Matrix.Identity.Api.Controllers.Internal
     [RequireInternalApiKey]
     [ApiController]
     [Route("api/internal/authorization")]
-    public sealed class InternalAuthorizationController(IDefaultUserAccessPolicyRepository defaultUserAccessPolicyRepository)
+    public sealed class InternalAuthorizationController(
+        IDefaultUserAccessPolicyRepository defaultUserAccessPolicyRepository)
         : ControllerBase
     {
         [HttpGet("default-user-access/version")]

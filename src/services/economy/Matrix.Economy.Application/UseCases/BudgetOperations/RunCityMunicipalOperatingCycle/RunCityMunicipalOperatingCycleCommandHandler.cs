@@ -19,25 +19,27 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalO
         {
             RunCityMunicipalOperatingCycleResultDto result = default!;
 
-            await unitOfWork.ExecuteInTransactionAsync(async ct =>
-            {
-                result = await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
-                    cityId: request.CityId,
-                    cancellationToken: ct);
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async ct =>
+                {
+                    result = await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
+                        cityId: request.CityId,
+                        cancellationToken: ct);
 
-                await unitOfWork.SaveChangesAsync(ct);
+                    await unitOfWork.SaveChangesAsync(ct);
 
-                CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
-                    cityId: request.CityId,
-                    cancellationToken: ct);
-                DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
-                await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
-                    snapshot: pressure,
-                    effectiveAtUtc: occurredAtUtc,
-                    occurredAtUtc: occurredAtUtc,
-                    cancellationToken: ct);
-                await unitOfWork.SaveChangesAsync(ct);
-            }, cancellationToken);
+                    CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
+                        cityId: request.CityId,
+                        cancellationToken: ct);
+                    DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
+                    await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                        snapshot: pressure,
+                        effectiveAtUtc: occurredAtUtc,
+                        occurredAtUtc: occurredAtUtc,
+                        cancellationToken: ct);
+                    await unitOfWork.SaveChangesAsync(ct);
+                },
+                cancellationToken: cancellationToken);
 
             return result;
         }

@@ -4,97 +4,124 @@ using Matrix.Identity.Application.Tests.UseCases.Admin.Roles;
 using Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.UpdateUserRoles;
-
-public sealed class UpdateUserRolesCommandHandlerFailureTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.UpdateUserRoles
 {
-    [Fact]
-    public async Task Handle_WhenUserDoesNotExist_ThrowsNotFound()
+    public sealed class UpdateUserRolesCommandHandlerFailureTests
     {
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenUserDoesNotExist_ThrowsNotFound()
         {
-            ExistsAsyncResult = false
-        };
-        var handler = new UpdateUserRolesCommandHandler(
-            userRepository,
-            new AdminUsersTestSupport.FakeUserRolesRepository(),
-            new AdminUsersTestSupport.FakeRoleIdsValidator(),
-            new AdminUsersTestSupport.FakeAdminUserGuard(),
-            new AdminRolesTestSupport.FakeUnitOfWork(),
-            new AdminRolesTestSupport.FakeSecurityStateChangeCollector());
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = false
+            };
+            var handler = new UpdateUserRolesCommandHandler(
+                userRepository: userRepository,
+                userRolesRepository: new AdminUsersTestSupport.FakeUserRolesRepository(),
+                roleIdsValidator: new AdminUsersTestSupport.FakeRoleIdsValidator(),
+                adminUserGuard: new AdminUsersTestSupport.FakeAdminUserGuard(),
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork(),
+                securityStateChangeCollector: new AdminRolesTestSupport.FakeSecurityStateChangeCollector());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new UpdateUserRolesCommand(Guid.NewGuid(), Array.Empty<Guid>()),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new UpdateUserRolesCommand(
+                        UserId: Guid.NewGuid(),
+                        RoleIds: Array.Empty<Guid>()),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.User.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-    }
+            Assert.Equal(
+                expected: "Identity.User.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+        }
 
-    [Fact]
-    public async Task Handle_WhenAdminGuardRejectsUser_StopsBeforeRoleValidation()
-    {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenAdminGuardRejectsUser_StopsBeforeRoleValidation()
         {
-            ExistsAsyncResult = true
-        };
-        var roleIdsValidator = new AdminUsersTestSupport.FakeRoleIdsValidator();
-        var adminUserGuard = new AdminUsersTestSupport.FakeAdminUserGuard
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = true
+            };
+            var roleIdsValidator = new AdminUsersTestSupport.FakeRoleIdsValidator();
+            var adminUserGuard = new AdminUsersTestSupport.FakeAdminUserGuard
+            {
+                ManageException = new MatrixApplicationException(
+                    code: "Identity.Admin.SelfActionForbidden",
+                    message: "Self action is forbidden.",
+                    errorType: ApplicationErrorType.Forbidden)
+            };
+            var handler = new UpdateUserRolesCommandHandler(
+                userRepository: userRepository,
+                userRolesRepository: new AdminUsersTestSupport.FakeUserRolesRepository(),
+                roleIdsValidator: roleIdsValidator,
+                adminUserGuard: adminUserGuard,
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork(),
+                securityStateChangeCollector: new AdminRolesTestSupport.FakeSecurityStateChangeCollector());
+
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new UpdateUserRolesCommand(
+                        UserId: userId,
+                        RoleIds: [Guid.NewGuid()]),
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal(
+                expected: "Identity.Admin.SelfActionForbidden",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: userId,
+                actual: adminUserGuard.RequestedTargetUserId);
+            Assert.Null(roleIdsValidator.ValidatedRoleIds);
+        }
+
+        [Fact]
+        public async Task Handle_WhenRoleValidationFails_PropagatesValidationError()
         {
-            ManageException = new MatrixApplicationException(
-                code: "Identity.Admin.SelfActionForbidden",
-                message: "Self action is forbidden.",
-                errorType: ApplicationErrorType.Forbidden)
-        };
-        var handler = new UpdateUserRolesCommandHandler(
-            userRepository,
-            new AdminUsersTestSupport.FakeUserRolesRepository(),
-            roleIdsValidator,
-            adminUserGuard,
-            new AdminRolesTestSupport.FakeUnitOfWork(),
-            new AdminRolesTestSupport.FakeSecurityStateChangeCollector());
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = true
+            };
+            Guid[] expectedRoleIds = new[]
+            {
+                Guid.NewGuid()
+            };
+            var roleIdsValidator = new AdminUsersTestSupport.FakeRoleIdsValidator
+            {
+                ValidateException = new MatrixApplicationException(
+                    code: "Identity.Role.NotFound",
+                    message: "Role not found.",
+                    errorType: ApplicationErrorType.NotFound)
+            };
+            var adminUserGuard = new AdminUsersTestSupport.FakeAdminUserGuard();
+            var handler = new UpdateUserRolesCommandHandler(
+                userRepository: userRepository,
+                userRolesRepository: new AdminUsersTestSupport.FakeUserRolesRepository(),
+                roleIdsValidator: roleIdsValidator,
+                adminUserGuard: adminUserGuard,
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork(),
+                securityStateChangeCollector: new AdminRolesTestSupport.FakeSecurityStateChangeCollector());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new UpdateUserRolesCommand(userId, [Guid.NewGuid()]),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new UpdateUserRolesCommand(
+                        UserId: userId,
+                        RoleIds: expectedRoleIds),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.Admin.SelfActionForbidden", exception.Code);
-        Assert.Equal(userId, adminUserGuard.RequestedTargetUserId);
-        Assert.Null(roleIdsValidator.ValidatedRoleIds);
-    }
-
-    [Fact]
-    public async Task Handle_WhenRoleValidationFails_PropagatesValidationError()
-    {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
-        {
-            ExistsAsyncResult = true
-        };
-        var expectedRoleIds = new[] { Guid.NewGuid() };
-        var roleIdsValidator = new AdminUsersTestSupport.FakeRoleIdsValidator
-        {
-            ValidateException = new MatrixApplicationException(
-                code: "Identity.Role.NotFound",
-                message: "Role not found.",
-                errorType: ApplicationErrorType.NotFound)
-        };
-        var adminUserGuard = new AdminUsersTestSupport.FakeAdminUserGuard();
-        var handler = new UpdateUserRolesCommandHandler(
-            userRepository,
-            new AdminUsersTestSupport.FakeUserRolesRepository(),
-            roleIdsValidator,
-            adminUserGuard,
-            new AdminRolesTestSupport.FakeUnitOfWork(),
-            new AdminRolesTestSupport.FakeSecurityStateChangeCollector());
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new UpdateUserRolesCommand(userId, expectedRoleIds),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.Role.NotFound", exception.Code);
-        Assert.Equal(userId, adminUserGuard.RequestedTargetUserId);
-        Assert.Equal(expectedRoleIds, roleIdsValidator.ValidatedRoleIds);
+            Assert.Equal(
+                expected: "Identity.Role.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: userId,
+                actual: adminUserGuard.RequestedTargetUserId);
+            Assert.Equal(
+                expected: expectedRoleIds,
+                actual: roleIdsValidator.ValidatedRoleIds);
+        }
     }
 }

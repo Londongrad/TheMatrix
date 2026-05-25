@@ -235,7 +235,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                     districtIndex: districtIndex);
 
                 for (int workplaceIndex = 0; workplaceIndex < workplaceCount; workplaceIndex++)
-                {
                     anchors.Add(
                         CreateWorkplaceBlueprint(
                             city: city,
@@ -243,20 +242,17 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                             districtIndex: districtIndex,
                             workplaceIndex: workplaceIndex,
                             random: random));
-                }
             }
 
             foreach ((District district, int hospitalIndex) in ResolveHospitalPlacements(
                          city: city,
                          districts: districts))
-            {
                 anchors.Add(
                     CreateHospitalBlueprint(
                         city: city,
                         district: district,
                         hospitalIndex: hospitalIndex,
                         random: random));
-            }
 
             return anchors;
         }
@@ -287,7 +283,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                     ? "Central Hub"
                     : $"{district.Name.Value} Hub";
 
-                RoadNode districtHub = RoadNode.Create(
+                var districtHub = RoadNode.Create(
                     cityId: city.Id,
                     districtId: district.Id,
                     name: hubName,
@@ -327,15 +323,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                         createdAtUtc: createdAtUtc));
             }
 
-            foreach (IGrouping<DistrictId, ResidentialBuildingBlueprint> districtBuildings in buildingBlueprints.GroupBy(
-                         x => x.District.Id))
+            foreach (IGrouping<DistrictId, ResidentialBuildingBlueprint> districtBuildings in
+                     buildingBlueprints.GroupBy(x => x.District.Id))
             {
                 RoadNode districtHub = districtHubByDistrictId[districtBuildings.Key];
                 int localSequence = 1;
 
                 foreach (ResidentialBuildingBlueprint blueprint in districtBuildings)
                 {
-                    RoadNode accessNode = RoadNode.Create(
+                    var accessNode = RoadNode.Create(
                         cityId: city.Id,
                         districtId: blueprint.District.Id,
                         name: $"{blueprint.Name} Access",
@@ -378,15 +374,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                 }
             }
 
-            foreach (IGrouping<DistrictId, CityAnchorBlueprint> districtAnchors in anchorBlueprints.GroupBy(
-                         x => x.District.Id))
+            foreach (IGrouping<DistrictId, CityAnchorBlueprint> districtAnchors in anchorBlueprints.GroupBy(x
+                         => x.District.Id))
             {
                 RoadNode districtHub = districtHubByDistrictId[districtAnchors.Key];
                 int localSequence = 1;
 
                 foreach (CityAnchorBlueprint blueprint in districtAnchors)
                 {
-                    RoadNode accessNode = RoadNode.Create(
+                    var accessNode = RoadNode.Create(
                         cityId: city.Id,
                         districtId: blueprint.District.Id,
                         name: $"{blueprint.Name} Access",
@@ -447,7 +443,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                 radialBand: 0,
                 random: random);
 
-            int capacity = 280 + (districtIndex == 0 ? 120 : 0) +
+            int capacity = 280 +
+                           (districtIndex == 0
+                               ? 120
+                               : 0) +
                            random.NextInt(
                                minInclusive: 0,
                                maxExclusive: 140);
@@ -489,10 +488,13 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                 CityDevelopmentLevel.Advanced => 35,
                 _ => 0
             };
-            baseCapacity += districtIndex == 0 ? 55 : 0;
-            int capacity = baseCapacity + random.NextInt(
-                minInclusive: 0,
-                maxExclusive: 90);
+            baseCapacity += districtIndex == 0
+                ? 55
+                : 0;
+            int capacity = baseCapacity +
+                           random.NextInt(
+                               minInclusive: 0,
+                               maxExclusive: 90);
 
             string workplaceName = workplaceIndex switch
             {
@@ -542,9 +544,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                     ? "Central General Hospital"
                     : $"{district.Name.Value} Clinic",
                 Type: CityAnchorType.Hospital,
-                Capacity: baseCapacity + random.NextInt(
-                    minInclusive: 0,
-                    maxExclusive: 50),
+                Capacity: baseCapacity +
+                          random.NextInt(
+                              minInclusive: 0,
+                              maxExclusive: 50),
                 PositionX: x,
                 PositionY: y,
                 CreatedAtUtc: district.CreatedAtUtc);
@@ -556,9 +559,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
         {
             int baseCount = city.GenerationProfile.SizeTier switch
             {
-                CitySizeTier.Small => districtIndex == 0 ? 2 : 1,
-                CitySizeTier.Large => districtIndex == 0 ? 5 : 3,
-                _ => districtIndex == 0 ? 3 : 2
+                CitySizeTier.Small => districtIndex == 0
+                    ? 2
+                    : 1,
+                CitySizeTier.Large => districtIndex == 0
+                    ? 5
+                    : 3,
+                _ => districtIndex == 0
+                    ? 3
+                    : 2
             };
 
             if (city.GenerationProfile.EconomyProfile == CityEconomyProfile.Affluent && districtIndex > 0)
@@ -595,7 +604,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
             {
                 District district = i == 0
                     ? districts[0]
-                    : districts[Math.Min(i, districts.Count - 1)];
+                    : districts[Math.Min(
+                        val1: i,
+                        val2: districts.Count - 1)];
                 placements.Add((district, i));
             }
 
@@ -608,7 +619,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
             int radialBand,
             DeterministicRandom random)
         {
-            decimal radius = 6.5m + (radialBand * 2.2m) +
+            decimal radius = 6.5m +
+                             (radialBand * 2.2m) +
                              random.NextDecimal(
                                  minInclusive: -0.55m,
                                  maxInclusive: 0.55m);
@@ -616,8 +628,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                            (double)random.NextDecimal(
                                minInclusive: -0.14m,
                                maxInclusive: 0.14m);
-            decimal x = district.AnchorX + (decimal)Math.Cos(angle) * radius;
-            decimal y = district.AnchorY + (decimal)Math.Sin(angle) * radius;
+            decimal x = district.AnchorX + ((decimal)Math.Cos(angle) * radius);
+            decimal y = district.AnchorY + ((decimal)Math.Sin(angle) * radius);
 
             return (
                 ClampCoordinate(x),
@@ -670,11 +682,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                            (double)random.NextDecimal(
                                minInclusive: -0.11m,
                                maxInclusive: 0.11m);
-            decimal radius = 28m + random.NextDecimal(
-                minInclusive: -2.75m,
-                maxInclusive: 2.75m);
-            decimal x = 50m + (decimal)Math.Cos(angle) * radius;
-            decimal y = 50m + (decimal)Math.Sin(angle) * radius;
+            decimal radius = 28m +
+                             random.NextDecimal(
+                                 minInclusive: -2.75m,
+                                 maxInclusive: 2.75m);
+            decimal x = 50m + ((decimal)Math.Cos(angle) * radius);
+            decimal y = 50m + ((decimal)Math.Sin(angle) * radius);
 
             return (
                 ClampCoordinate(x),
@@ -690,7 +703,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
 
             int ringIndex = placementIndex / maxPerRing;
             int slotIndex = placementIndex % maxPerRing;
-            decimal ringRadius = 4.5m + (ringIndex * 2.5m) +
+            decimal ringRadius = 4.5m +
+                                 (ringIndex * 2.5m) +
                                  random.NextDecimal(
                                      minInclusive: -0.45m,
                                      maxInclusive: 0.45m);
@@ -699,8 +713,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                            (double)random.NextDecimal(
                                minInclusive: -0.18m,
                                maxInclusive: 0.18m);
-            decimal x = district.AnchorX + (decimal)Math.Cos(angle) * ringRadius;
-            decimal y = district.AnchorY + (decimal)Math.Sin(angle) * ringRadius;
+            decimal x = district.AnchorX + ((decimal)Math.Cos(angle) * ringRadius);
+            decimal y = district.AnchorY + ((decimal)Math.Sin(angle) * ringRadius);
 
             return (
                 ClampCoordinate(x),

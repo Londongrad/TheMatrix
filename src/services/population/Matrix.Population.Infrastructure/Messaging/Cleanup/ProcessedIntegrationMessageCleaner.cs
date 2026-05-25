@@ -13,9 +13,9 @@ namespace Matrix.Population.Infrastructure.Messaging.Cleanup
             CancellationToken cancellationToken)
         {
             if (string.Equals(
-                    _dbContext.Database.ProviderName,
-                    "Microsoft.EntityFrameworkCore.Sqlite",
-                    StringComparison.Ordinal))
+                    a: _dbContext.Database.ProviderName,
+                    b: "Microsoft.EntityFrameworkCore.Sqlite",
+                    comparisonType: StringComparison.Ordinal))
                 return _dbContext.Database.ExecuteSqlInterpolatedAsync(
                     sql: $"""
                           DELETE FROM "ProcessedIntegrationMessages"

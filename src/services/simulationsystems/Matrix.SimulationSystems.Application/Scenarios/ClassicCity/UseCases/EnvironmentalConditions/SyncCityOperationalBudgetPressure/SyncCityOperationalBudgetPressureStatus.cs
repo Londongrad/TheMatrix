@@ -1,4 +1,5 @@
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.SyncCityOperationalBudgetPressure
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    SyncCityOperationalBudgetPressure
 {
     public enum SyncCityOperationalBudgetPressureStatus
     {

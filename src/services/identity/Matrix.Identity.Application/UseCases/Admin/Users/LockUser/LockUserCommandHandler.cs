@@ -35,7 +35,8 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
                         cancellationToken: token);
 
                     bool wasLocked = user.IsLocked;
-                    DateTime utcNow = timeProvider.GetUtcNow().UtcDateTime;
+                    DateTime utcNow = timeProvider.GetUtcNow()
+                       .UtcDateTime;
 
                     user.Lock();
                     user.RevokeAllRefreshTokens(

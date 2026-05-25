@@ -19,12 +19,12 @@ type RenderProtectedRouteOptions = {
 };
 
 function renderProtectedRoute({
-    permissions = ["secret.read"],
-    permissionMatchMode = "any",
-    userPermissions = [],
-    user,
-    isLoading = false,
-}: RenderProtectedRouteOptions = {}) {
+                                  permissions = ["secret.read"],
+                                  permissionMatchMode = "any",
+                                  userPermissions = [],
+                                  user,
+                                  isLoading = false,
+                              }: RenderProtectedRouteOptions = {}) {
     const resolvedUser = user === undefined
         ? createProfileResponse(userPermissions)
         : user;

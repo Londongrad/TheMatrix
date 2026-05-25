@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using AppPermissionKeys = Matrix.SimulationCore.Application.Authorization.Permissions.PermissionKeys;
 using MediatR;
+using AppPermissionKeys = Matrix.SimulationCore.Application.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World.DispatchCityTrip
 {

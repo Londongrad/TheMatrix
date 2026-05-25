@@ -1,7 +1,8 @@
 using FluentValidation;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.DispatchCitySnowRemovalMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.
+    DispatchCitySnowRemovalMaintenance
 {
     public sealed class DispatchCitySnowRemovalMaintenanceCommandValidator
         : AbstractValidator<DispatchCitySnowRemovalMaintenanceCommand>

@@ -1,66 +1,101 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityUtilityIncidentStatus;
 using Matrix.SimulationSystems.Application.Tests.TestSupport;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityUtilityIncidentStatus;
-
-public sealed class GetCityUtilityIncidentStatusQueryHandlerTests
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    GetCityUtilityIncidentStatus
 {
-    [Fact]
-    public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+    public sealed class GetCityUtilityIncidentStatusQueryHandlerTests
     {
-        var repository = new FakeCityEnvironmentalConditionRepository();
-        var handler = new GetCityUtilityIncidentStatusQueryHandler(
-            repository,
-            new ClassicCityWeatherPressureProfileFactory());
+        [Fact]
+        public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+        {
+            var repository = new FakeCityEnvironmentalConditionRepository();
+            var handler = new GetCityUtilityIncidentStatusQueryHandler(
+                repository: repository,
+                pressureProfileFactory: new ClassicCityWeatherPressureProfileFactory());
 
-        var result = await handler.Handle(
-            new GetCityUtilityIncidentStatusQuery(SimulationSystemsApplicationTestSupport.CityId),
-            CancellationToken.None);
+            CityUtilityIncidentStatusDto? result = await handler.Handle(
+                request: new GetCityUtilityIncidentStatusQuery(SimulationSystemsApplicationTestSupport.CityId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Null(result);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.CreateHostId(), repository.RequestedSimulationHostId);
-    }
+            Assert.Null(result);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.CreateHostId(),
+                actual: repository.RequestedSimulationHostId);
+        }
 
-    [Fact]
-    public async Task Handle_WhenStateExists_ReturnsMappedDto()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        state.ApplyWeatherPressure(new CityWeatherPressureProfile(
-            rainPressure: 0.23m,
-            snowPressure: 0.17m,
-            stormPressure: 0.35m,
-            freezePressure: 0.14m,
-            thawRelief: 0.05m));
-        state.ScheduleUtilityIncidentResponse(
-            focus: UtilityIncidentResponseFocus.PowerOutages,
-            intensity: UtilityIncidentResponseIntensity.Heavy,
-            focusDistrictId: Guid.Parse("74000000-0000-0000-0000-000000000001"),
-            readyAtTickId: 21);
+        [Fact]
+        public async Task Handle_WhenStateExists_ReturnsMappedDto()
+        {
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            state.ApplyWeatherPressure(
+                new CityWeatherPressureProfile(
+                    rainPressure: 0.23m,
+                    snowPressure: 0.17m,
+                    stormPressure: 0.35m,
+                    freezePressure: 0.14m,
+                    thawRelief: 0.05m));
+            state.ScheduleUtilityIncidentResponse(
+                focus: UtilityIncidentResponseFocus.PowerOutages,
+                intensity: UtilityIncidentResponseIntensity.Heavy,
+                focusDistrictId: Guid.Parse("74000000-0000-0000-0000-000000000001"),
+                readyAtTickId: 21);
 
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var profileFactory = new ClassicCityWeatherPressureProfileFactory();
-        var handler = new GetCityUtilityIncidentStatusQueryHandler(repository, profileFactory);
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            var profileFactory = new ClassicCityWeatherPressureProfileFactory();
+            var handler = new GetCityUtilityIncidentStatusQueryHandler(
+                repository: repository,
+                pressureProfileFactory: profileFactory);
 
-        var result = await handler.Handle(
-            new GetCityUtilityIncidentStatusQuery(SimulationSystemsApplicationTestSupport.CityId),
-            CancellationToken.None);
+            CityUtilityIncidentStatusDto? result = await handler.Handle(
+                request: new GetCityUtilityIncidentStatusQuery(SimulationSystemsApplicationTestSupport.CityId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.CityId, result!.CityId);
-        Assert.Equal(state.LastEvaluatedAtUtc, result.LastEvaluatedAtUtc);
-        Assert.Equal(state.UtilityContinuityIndex.Value, result.UtilityContinuityIndex);
-        Assert.Equal(state.UtilityIncidentInfrastructure.DispatchReadinessIndex, result.DispatchReadinessIndex);
-        Assert.Equal(state.UtilityIncidentInfrastructure.RestorationCoverageIndex, result.RestorationCoverageIndex);
-        Assert.Equal(state.UtilityIncidents.ServiceQualityIndex, result.System.ServiceQualityIndex);
-        Assert.Equal(profileFactory.Create(state).UtilityIncidentSupport, result.UtilityIncidentSupportIndex);
-        Assert.NotNull(result.PendingOperation);
-        Assert.Equal("PowerOutages", result.PendingOperation!.Focus);
-        Assert.Equal("Heavy", result.PendingOperation.Intensity);
-        Assert.Equal(21, result.PendingOperation.ReadyAtTickId);
-        Assert.Equal(Guid.Parse("74000000-0000-0000-0000-000000000001"), result.FocusDistrictId);
+            Assert.NotNull(result);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.CityId,
+                actual: result!.CityId);
+            Assert.Equal(
+                expected: state.LastEvaluatedAtUtc,
+                actual: result.LastEvaluatedAtUtc);
+            Assert.Equal(
+                expected: state.UtilityContinuityIndex.Value,
+                actual: result.UtilityContinuityIndex);
+            Assert.Equal(
+                expected: state.UtilityIncidentInfrastructure.DispatchReadinessIndex,
+                actual: result.DispatchReadinessIndex);
+            Assert.Equal(
+                expected: state.UtilityIncidentInfrastructure.RestorationCoverageIndex,
+                actual: result.RestorationCoverageIndex);
+            Assert.Equal(
+                expected: state.UtilityIncidents.ServiceQualityIndex,
+                actual: result.System.ServiceQualityIndex);
+            Assert.Equal(
+                expected: profileFactory.Create(state)
+                   .UtilityIncidentSupport,
+                actual: result.UtilityIncidentSupportIndex);
+            Assert.NotNull(result.PendingOperation);
+            Assert.Equal(
+                expected: "PowerOutages",
+                actual: result.PendingOperation!.Focus);
+            Assert.Equal(
+                expected: "Heavy",
+                actual: result.PendingOperation.Intensity);
+            Assert.Equal(
+                expected: 21,
+                actual: result.PendingOperation.ReadyAtTickId);
+            Assert.Equal(
+                expected: Guid.Parse("74000000-0000-0000-0000-000000000001"),
+                actual: result.FocusDistrictId);
+        }
     }
 }

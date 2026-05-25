@@ -12,11 +12,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
             CityAnchor? anchor)
         {
             if (string.Equals(
-                a: kind,
-                b: CityRouteMapPointKinds.RoadNode,
-                comparisonType: StringComparison.OrdinalIgnoreCase))
-            {
-                return roadNodeById.TryGetValue(entityId, out RoadNode? roadNode)
+                    a: kind,
+                    b: CityRouteMapPointKinds.RoadNode,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
+                return roadNodeById.TryGetValue(
+                    key: entityId,
+                    value: out RoadNode? roadNode)
                     ? new CityRoutePointDto(
                         Kind: CityRouteMapPointKinds.RoadNode,
                         EntityId: roadNode.Id.Value,
@@ -26,19 +27,16 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                         PositionX: roadNode.PositionX,
                         PositionY: roadNode.PositionY)
                     : null;
-            }
 
             if (string.Equals(
-                a: kind,
-                b: CityRouteMapPointKinds.ResidentialBuilding,
-                comparisonType: StringComparison.OrdinalIgnoreCase))
+                    a: kind,
+                    b: CityRouteMapPointKinds.ResidentialBuilding,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
             {
-                if (building is null
-                 || building.Id.Value != entityId
-                 || !roadNodeById.ContainsKey(building.AccessRoadNodeId.Value))
-                {
+                if (building is null ||
+                    building.Id.Value != entityId ||
+                    !roadNodeById.ContainsKey(building.AccessRoadNodeId.Value))
                     return null;
-                }
 
                 return new CityRoutePointDto(
                     Kind: CityRouteMapPointKinds.ResidentialBuilding,
@@ -51,16 +49,14 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
             }
 
             if (string.Equals(
-                a: kind,
-                b: CityRouteMapPointKinds.CityAnchor,
-                comparisonType: StringComparison.OrdinalIgnoreCase))
+                    a: kind,
+                    b: CityRouteMapPointKinds.CityAnchor,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
             {
-                if (anchor is null
-                 || anchor.Id.Value != entityId
-                 || !roadNodeById.ContainsKey(anchor.AccessRoadNodeId.Value))
-                {
+                if (anchor is null ||
+                    anchor.Id.Value != entityId ||
+                    !roadNodeById.ContainsKey(anchor.AccessRoadNodeId.Value))
                     return null;
-                }
 
                 return new CityRoutePointDto(
                     Kind: CityRouteMapPointKinds.CityAnchor,

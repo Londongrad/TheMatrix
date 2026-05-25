@@ -1,42 +1,63 @@
 using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Xunit;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Ledger.Common;
-
-public sealed class LedgerCommonTests
+namespace Matrix.Economy.Application.Tests.UseCases.Ledger.Common
 {
-    [Fact]
-    public void LedgerCursorCodec_RoundTripsValidCursor()
+    public sealed class LedgerCommonTests
     {
-        var cursor = new LedgerCursor(
-            UtcTicks: 638505180000000000,
-            EntryId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
+        [Fact]
+        public void LedgerCursorCodec_RoundTripsValidCursor()
+        {
+            var cursor = new LedgerCursor(
+                UtcTicks: 638505180000000000,
+                EntryId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
 
-        string encoded = LedgerCursorCodec.Encode(cursor);
-        bool decoded = LedgerCursorCodec.TryDecode(encoded, out LedgerCursor roundTripped);
+            string encoded = LedgerCursorCodec.Encode(cursor);
+            bool decoded = LedgerCursorCodec.TryDecode(
+                rawCursor: encoded,
+                cursor: out LedgerCursor roundTripped);
 
-        Assert.True(decoded);
-        Assert.Equal(cursor, roundTripped);
-    }
+            Assert.True(decoded);
+            Assert.Equal(
+                expected: cursor,
+                actual: roundTripped);
+        }
 
-    [Fact]
-    public void LedgerCursorCodec_RejectsMalformedCursor()
-    {
-        bool decoded = LedgerCursorCodec.TryDecode("bad-cursor", out LedgerCursor cursor);
+        [Fact]
+        public void LedgerCursorCodec_RejectsMalformedCursor()
+        {
+            bool decoded = LedgerCursorCodec.TryDecode(
+                rawCursor: "bad-cursor",
+                cursor: out LedgerCursor cursor);
 
-        Assert.False(decoded);
-        Assert.Equal(default, cursor);
-    }
+            Assert.False(decoded);
+            Assert.Equal(
+                expected: default(LedgerCursor),
+                actual: cursor);
+        }
 
-    [Theory]
-    [InlineData(0, 50)]
-    [InlineData(-5, 50)]
-    [InlineData(25, 25)]
-    [InlineData(250, 100)]
-    public void LedgerPageSizePolicy_NormalizesRequestedSize(int requested, int expected)
-    {
-        int normalized = LedgerPageSizePolicy.Normalize(requested);
+        [Theory]
+        [InlineData(
+            0,
+            50)]
+        [InlineData(
+            -5,
+            50)]
+        [InlineData(
+            25,
+            25)]
+        [InlineData(
+            250,
+            100)]
+        public void LedgerPageSizePolicy_NormalizesRequestedSize(
+            int requested,
+            int expected)
+        {
+            int normalized = LedgerPageSizePolicy.Normalize(requested);
 
-        Assert.Equal(expected, normalized);
+            Assert.Equal(
+                expected: expected,
+                actual: normalized);
+        }
     }
 }

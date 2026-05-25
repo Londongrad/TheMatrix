@@ -1,30 +1,50 @@
+using FluentValidation.Results;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCityEnvironment;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.UpdateCityEnvironment;
-
-public sealed class UpdateCityEnvironmentCommandValidatorTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.UpdateCityEnvironment
 {
-    private readonly UpdateCityEnvironmentCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidValues_ReturnsNoErrors()
+    public sealed class UpdateCityEnvironmentCommandValidatorTests
     {
-        var result = _validator.Validate(new UpdateCityEnvironmentCommand(Guid.NewGuid(), "Temperate", "Northern", 180));
+        private readonly UpdateCityEnvironmentCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidValues_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new UpdateCityEnvironmentCommand(
+                    CityId: Guid.NewGuid(),
+                    ClimateZone: "Temperate",
+                    Hemisphere: "Northern",
+                    UtcOffsetMinutes: 180));
 
-    [Fact]
-    public void Validate_WithInvalidValues_ReturnsErrors()
-    {
-        var result = _validator.Validate(new UpdateCityEnvironmentCommand(Guid.Empty, "Mars", "Up", 17));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.PropertyName == "CityId");
-        Assert.Contains(result.Errors, error => error.PropertyName == "ClimateZone");
-        Assert.Contains(result.Errors, error => error.PropertyName == "Hemisphere");
-        Assert.Contains(result.Errors, error => error.PropertyName == "UtcOffsetMinutes");
+        [Fact]
+        public void Validate_WithInvalidValues_ReturnsErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new UpdateCityEnvironmentCommand(
+                    CityId: Guid.Empty,
+                    ClimateZone: "Mars",
+                    Hemisphere: "Up",
+                    UtcOffsetMinutes: 17));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "CityId");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "ClimateZone");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "Hemisphere");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "UtcOffsetMinutes");
+        }
     }
 }

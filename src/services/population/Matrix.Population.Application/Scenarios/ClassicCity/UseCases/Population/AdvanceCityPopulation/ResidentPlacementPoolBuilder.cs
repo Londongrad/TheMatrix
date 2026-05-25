@@ -7,8 +7,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 {
     internal static class ResidentPlacementPoolBuilder
     {
-        internal static Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> BuildEducationInstitutionPools(
-            IEnumerable<PersonEntity> persons)
+        internal static Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>
+            BuildEducationInstitutionPools(IEnumerable<PersonEntity> persons)
         {
             var pools = new Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>();
             foreach (PersonEntity person in persons)

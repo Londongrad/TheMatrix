@@ -3,7 +3,8 @@ using Matrix.SimulationSystems.Application.Authorization.Permissions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.Common;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.DispatchCityWaterDistributionMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    DispatchCityWaterDistributionMaintenance
 {
     public sealed record DispatchCityWaterDistributionMaintenanceCommand(
         Guid CityId,

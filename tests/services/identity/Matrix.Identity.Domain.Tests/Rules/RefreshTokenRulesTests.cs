@@ -2,28 +2,40 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Identity.Domain.Rules;
 using Xunit;
 
-namespace Matrix.Identity.Domain.Tests.Rules;
-
-public sealed class RefreshTokenRulesTests
+namespace Matrix.Identity.Domain.Tests.Rules
 {
-    private static readonly DateTime CreatedAtUtc = new(2046, 2, 3, 4, 5, 6, DateTimeKind.Utc);
-
-    [Fact]
-    public void Validate_WhenExpirationIsInTheFuture_Succeeds()
+    public sealed class RefreshTokenRulesTests
     {
-        RefreshTokenRules.Validate(
-            expiresAtUtc: CreatedAtUtc.AddMinutes(30),
-            nowUtc: CreatedAtUtc);
-    }
+        private static readonly DateTime CreatedAtUtc = new(
+            year: 2046,
+            month: 2,
+            day: 3,
+            hour: 4,
+            minute: 5,
+            second: 6,
+            kind: DateTimeKind.Utc);
 
-    [Fact]
-    public void Validate_WhenExpirationIsNotInTheFuture_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => RefreshTokenRules.Validate(
-            expiresAtUtc: CreatedAtUtc,
-            nowUtc: CreatedAtUtc));
+        [Fact]
+        public void Validate_WhenExpirationIsInTheFuture_Succeeds()
+        {
+            RefreshTokenRules.Validate(
+                expiresAtUtc: CreatedAtUtc.AddMinutes(30),
+                nowUtc: CreatedAtUtc);
+        }
 
-        Assert.Equal("Identity.User.RefreshToken.InvalidExpireDate", exception.Code);
-        Assert.Equal("expiresAtUtc", exception.PropertyName);
+        [Fact]
+        public void Validate_WhenExpirationIsNotInTheFuture_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => RefreshTokenRules.Validate(
+                expiresAtUtc: CreatedAtUtc,
+                nowUtc: CreatedAtUtc));
+
+            Assert.Equal(
+                expected: "Identity.User.RefreshToken.InvalidExpireDate",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "expiresAtUtc",
+                actual: exception.PropertyName);
+        }
     }
 }

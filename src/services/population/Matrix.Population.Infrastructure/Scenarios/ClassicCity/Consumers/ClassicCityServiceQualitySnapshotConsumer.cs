@@ -25,8 +25,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
             CancellationToken cancellationToken)
         {
             if (messageId is null)
-                throw new InvalidOperationException(
-                    "ClassicCityServiceQualitySnapshot message must have a MessageId.");
+                throw new InvalidOperationException("ClassicCityServiceQualitySnapshot message must have a MessageId.");
 
             ApplyCityServiceQualitySnapshotResult result = await mediator.Send(
                 request: new ApplyCityServiceQualitySnapshotCommand(

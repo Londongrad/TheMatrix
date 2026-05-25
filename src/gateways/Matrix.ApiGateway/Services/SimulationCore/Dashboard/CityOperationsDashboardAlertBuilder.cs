@@ -14,12 +14,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 {
     internal sealed class CityOperationsDashboardAlertBuilder : ICityOperationsDashboardAlertBuilder
     {
-        private sealed record ServicePhaseState(
-            string Service,
-            long TickId,
-            string Phase,
-            int PhaseRank);
-
         public CityOperationsDashboardAlerts Build(IReadOnlyList<CityOperationalSnapshot> snapshots)
         {
             ArgumentNullException.ThrowIfNull(snapshots);
@@ -80,8 +74,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .ToArray();
         }
 
-        private static DashboardMobilityView[] BuildMobilityAlerts(
-            IReadOnlyList<CityOperationalSnapshot> snapshots)
+        private static DashboardMobilityView[] BuildMobilityAlerts(IReadOnlyList<CityOperationalSnapshot> snapshots)
         {
             return snapshots
                .Select(BuildMobilityAlert)
@@ -238,18 +231,28 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityDistrictUtilityIncidentConditionView? incidents = snapshot.DistrictUtilityIncidents?.Districts
                .FirstOrDefault(x => x.DistrictId == district.DistrictId);
             decimal utilityIncidentPressure = incidents?.IncidentPressureIndex ?? district.UtilityIncidentPressureIndex;
-            decimal serviceDisruptionIndex = ClampUnit(Max(
-                heating is null ? 0m : 1m - heating.HeatingCoverageIndex,
-                water is null ? 0m : 1m - water.WaterCoverageIndex,
-                power is null ? 0m : 1m - power.PowerCoverageIndex,
-                sanitation is null ? 0m : 1m - sanitation.SanitationCoverageIndex,
-                1m - ClampUnit(district.UtilityContinuityIndex)));
-            decimal maintenancePriorityIndex = ClampUnit(Max(
-                heating?.MaintenancePriorityIndex ?? 0m,
-                water?.MaintenancePriorityIndex ?? 0m,
-                power?.MaintenancePriorityIndex ?? 0m,
-                sanitation?.MaintenancePriorityIndex ?? 0m,
-                incidents?.RestorationPriorityIndex ?? 0m));
+            decimal serviceDisruptionIndex = ClampUnit(
+                Max(
+                    heating is null
+                        ? 0m
+                        : 1m - heating.HeatingCoverageIndex,
+                    water is null
+                        ? 0m
+                        : 1m - water.WaterCoverageIndex,
+                    power is null
+                        ? 0m
+                        : 1m - power.PowerCoverageIndex,
+                    sanitation is null
+                        ? 0m
+                        : 1m - sanitation.SanitationCoverageIndex,
+                    1m - ClampUnit(district.UtilityContinuityIndex)));
+            decimal maintenancePriorityIndex = ClampUnit(
+                Max(
+                    heating?.MaintenancePriorityIndex ?? 0m,
+                    water?.MaintenancePriorityIndex ?? 0m,
+                    power?.MaintenancePriorityIndex ?? 0m,
+                    sanitation?.MaintenancePriorityIndex ?? 0m,
+                    incidents?.RestorationPriorityIndex ?? 0m));
             decimal priorityScore = decimal.Round(
                 d: ClampUnit(
                     (district.PopulationPressureIndex * 0.42m) +
@@ -325,8 +328,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 d: trips.Average(GetRemainingTravelMinutes),
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
-            decimal loadIndex = ClampUnit(
-                value: ((activeCommuteCount + (activeHealthcareTripCount * 1.5m)) / 18m));
+            decimal loadIndex = ClampUnit(value: (activeCommuteCount + (activeHealthcareTripCount * 1.5m)) / 18m);
             decimal healthcareLoadIndex = ClampUnit(activeHealthcareTripCount / 4m);
             decimal dynamicRoadExposure = ClampUnit(dynamicRoadTripCount / activeTripCount);
             decimal delayExposure = ClampUnit(delayedTripCount / activeTripCount);
@@ -719,17 +721,17 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         {
             ServicePhaseState[] states =
             [
-                new ServicePhaseState(
+                new(
                     Service: "SimulationSystems",
                     TickId: conditions.EffectiveTickId,
                     Phase: conditions.EffectivePhase,
                     PhaseRank: GetPhaseRank(conditions.EffectivePhase)),
-                new ServicePhaseState(
+                new(
                     Service: "Resources",
                     TickId: stockpiles.EffectiveTickId,
                     Phase: stockpiles.EffectivePhase,
                     PhaseRank: GetPhaseRank(stockpiles.EffectivePhase)),
-                new ServicePhaseState(
+                new(
                     Service: "Economy",
                     TickId: budget.EffectiveTickId,
                     Phase: budget.EffectivePhase,
@@ -751,17 +753,17 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         {
             ServicePhaseState[] states =
             [
-                new ServicePhaseState(
+                new(
                     Service: "SimulationSystems",
                     TickId: conditions.EffectiveTickId,
                     Phase: conditions.EffectivePhase,
                     PhaseRank: GetPhaseRank(conditions.EffectivePhase)),
-                new ServicePhaseState(
+                new(
                     Service: "Resources",
                     TickId: stockpiles.EffectiveTickId,
                     Phase: stockpiles.EffectivePhase,
                     PhaseRank: GetPhaseRank(stockpiles.EffectivePhase)),
-                new ServicePhaseState(
+                new(
                     Service: "Economy",
                     TickId: budget.EffectiveTickId,
                     Phase: budget.EffectivePhase,
@@ -810,16 +812,20 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 utilityFragility);
 
             if (severeIllnessBurden >= dominantPressure)
-                return "One district is carrying a severe illness burden and local recovery conditions are starting to thin out.";
+                return
+                    "One district is carrying a severe illness burden and local recovery conditions are starting to thin out.";
 
             if (homelessnessBurden >= dominantPressure || district.HousingFragilityIndex >= dominantPressure)
-                return "One district is showing housing fragility and is starting to push more residents into unstable living conditions.";
+                return
+                    "One district is showing housing fragility and is starting to push more residents into unstable living conditions.";
 
             if (utilityFragility >= dominantPressure)
-                return "One district is losing day-to-day utility continuity and basic living conditions are starting to fray.";
+                return
+                    "One district is losing day-to-day utility continuity and basic living conditions are starting to fray.";
 
             if (district.UtilityIncidentPressureIndex >= dominantPressure)
-                return "One district is stuck under sustained utility incident pressure and restoration is struggling to keep up.";
+                return
+                    "One district is stuck under sustained utility incident pressure and restoration is struggling to keep up.";
 
             return "One district is showing a compound mix of illness, housing stress, and unstable utilities.";
         }
@@ -834,10 +840,18 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             decimal serviceDisruptionIndex,
             decimal maintenancePriorityIndex)
         {
-            decimal heatingDisruption = heating is null ? 0m : 1m - heating.HeatingCoverageIndex;
-            decimal waterDisruption = water is null ? 0m : 1m - water.WaterCoverageIndex;
-            decimal powerDisruption = power is null ? 0m : 1m - power.PowerCoverageIndex;
-            decimal sanitationDisruption = sanitation is null ? 0m : 1m - sanitation.SanitationCoverageIndex;
+            decimal heatingDisruption = heating is null
+                ? 0m
+                : 1m - heating.HeatingCoverageIndex;
+            decimal waterDisruption = water is null
+                ? 0m
+                : 1m - water.WaterCoverageIndex;
+            decimal powerDisruption = power is null
+                ? 0m
+                : 1m - power.PowerCoverageIndex;
+            decimal sanitationDisruption = sanitation is null
+                ? 0m
+                : 1m - sanitation.SanitationCoverageIndex;
             decimal incidentPressure = incidents?.IncidentPressureIndex ?? district.UtilityIncidentPressureIndex;
             decimal dominantPressure = Max(
                 district.PopulationPressureIndex,
@@ -850,15 +864,19 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 sanitationDisruption);
 
             if (waterDisruption >= dominantPressure || sanitationDisruption >= dominantPressure)
-                return "This district is losing basic water and sanitation stability and needs rapid service recovery before living conditions slip further.";
+                return
+                    "This district is losing basic water and sanitation stability and needs rapid service recovery before living conditions slip further.";
 
             if (powerDisruption >= dominantPressure || heatingDisruption >= dominantPressure)
-                return "This district is carrying power and heating disruption that is starting to translate directly into social strain.";
+                return
+                    "This district is carrying power and heating disruption that is starting to translate directly into social strain.";
 
             if (incidentPressure >= dominantPressure || maintenancePriorityIndex >= dominantPressure)
-                return "This district is stuck in a hard restoration queue and should move up the operator response stack.";
+                return
+                    "This district is stuck in a hard restoration queue and should move up the operator response stack.";
 
-            return "This district is showing the strongest combined social and utility strain in the city and is the best next response target.";
+            return
+                "This district is showing the strongest combined social and utility strain in the city and is the best next response target.";
         }
 
         private static string BuildDistrictResponseFocus(
@@ -869,10 +887,18 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityDistrictSanitationConditionView? sanitation,
             CityDistrictUtilityIncidentConditionView? incidents)
         {
-            decimal heatingDisruption = heating is null ? 0m : 1m - heating.HeatingCoverageIndex;
-            decimal waterDisruption = water is null ? 0m : 1m - water.WaterCoverageIndex;
-            decimal powerDisruption = power is null ? 0m : 1m - power.PowerCoverageIndex;
-            decimal sanitationDisruption = sanitation is null ? 0m : 1m - sanitation.SanitationCoverageIndex;
+            decimal heatingDisruption = heating is null
+                ? 0m
+                : 1m - heating.HeatingCoverageIndex;
+            decimal waterDisruption = water is null
+                ? 0m
+                : 1m - water.WaterCoverageIndex;
+            decimal powerDisruption = power is null
+                ? 0m
+                : 1m - power.PowerCoverageIndex;
+            decimal sanitationDisruption = sanitation is null
+                ? 0m
+                : 1m - sanitation.SanitationCoverageIndex;
             decimal incidentPressure = incidents?.IncidentPressureIndex ?? district.UtilityIncidentPressureIndex;
             decimal dominantPressure = Max(
                 waterDisruption,
@@ -912,17 +938,21 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 dynamicRoadExposure * 10m,
                 averageRemainingTravelMinutes / 10m);
 
-            if ((activeHealthcareTripCount * 2) >= dominantPressure && delayExposure >= 0.3000m)
-                return "Healthcare access trips are staying active under slower road conditions and medical movement is starting to stretch across the city.";
+            if (activeHealthcareTripCount * 2 >= dominantPressure && delayExposure >= 0.3000m)
+                return
+                    "Healthcare access trips are staying active under slower road conditions and medical movement is starting to stretch across the city.";
 
-            if ((activeHealthcareTripCount * 2) >= dominantPressure)
-                return "Healthcare access trips are starting to accumulate and medical movement demand is rising across the city.";
+            if (activeHealthcareTripCount * 2 >= dominantPressure)
+                return
+                    "Healthcare access trips are starting to accumulate and medical movement demand is rising across the city.";
 
-            if ((delayExposure * 10m) >= dominantPressure || (dynamicRoadExposure * 10m) >= dominantPressure)
-                return "Active city trips are moving under degraded mobility conditions and commute flow is starting to stretch.";
+            if (delayExposure * 10m >= dominantPressure || dynamicRoadExposure * 10m >= dominantPressure)
+                return
+                    "Active city trips are moving under degraded mobility conditions and commute flow is starting to stretch.";
 
             if (averageRemainingTravelMinutes >= 75m)
-                return "Trips are staying active for longer than normal and the city is carrying heavier in-world movement load.";
+                return
+                    "Trips are staying active for longer than normal and the city is carrying heavier in-world movement load.";
 
             return "Commute movement is building up across the city and is becoming a new live operator signal.";
         }
@@ -954,8 +984,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
             return decimal.Round(
                 d: Math.Max(
-                    1m,
-                    trip.AdjustedTravelTimeMinutes / trip.PlannedTravelTimeMinutes),
+                    val1: 1m,
+                    val2: trip.AdjustedTravelTimeMinutes / trip.PlannedTravelTimeMinutes),
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
         }
@@ -965,7 +995,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             decimal minutes = (decimal)(trip.ExpectedArrivalAtSimTimeUtc - trip.LastAdvancedAtSimTimeUtc).TotalMinutes;
 
             return decimal.Round(
-                d: Math.Max(0m, minutes),
+                d: Math.Max(
+                    val1: 0m,
+                    val2: minutes),
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
         }
@@ -1040,7 +1072,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 return "Power coverage is slipping and substation resilience is starting to fragment across the city.";
 
             if (utilityDisruption >= dominantPressure)
-                return "Utility restoration continuity is slipping and incident queues are starting to cascade across the city.";
+                return
+                    "Utility restoration continuity is slipping and incident queues are starting to cascade across the city.";
 
             if (heatingDisruption >= dominantPressure)
                 return "Heating coverage is slipping and cold-weather strain is spreading through the city.";
@@ -1149,8 +1182,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     "Healthcare budget headroom is tightening and leaves less room for medical support surges.");
 
             decimal dominantOperationsExpense = Math.Max(
-                pressure.InfrastructureOperationsExpenses,
-                pressure.EmergencyOperationsExpenses);
+                val1: pressure.InfrastructureOperationsExpenses,
+                val2: pressure.EmergencyOperationsExpenses);
 
             if (pressure.Balance < 0m)
                 return "City budget is already underwater while municipal operations keep consuming funds.";
@@ -1171,17 +1204,19 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             string fallback)
         {
             string amount = decimal.Round(
-                d: Math.Max(
-                    val1: 0m,
-                    val2: availableAmount),
-                decimals: 2,
-                mode: MidpointRounding.AwayFromZero)
+                    d: Math.Max(
+                        val1: 0m,
+                        val2: availableAmount),
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero)
                .ToString("0.##");
 
             return authorizationLevel switch
             {
-                "None" => $"{category} budget authorization is exhausted and operators are down to minimum response depth.",
-                "Low" => $"{category} budget authorization is tight with only {amount} left for new operating decisions.",
+                "None" =>
+                    $"{category} budget authorization is exhausted and operators are down to minimum response depth.",
+                "Low" =>
+                    $"{category} budget authorization is tight with only {amount} left for new operating decisions.",
                 _ => fallback
             };
         }
@@ -1327,5 +1362,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     val1: 0m,
                     val2: value));
         }
+
+        private sealed record ServicePhaseState(
+            string Service,
+            long TickId,
+            string Phase,
+            int PhaseRank);
     }
 }

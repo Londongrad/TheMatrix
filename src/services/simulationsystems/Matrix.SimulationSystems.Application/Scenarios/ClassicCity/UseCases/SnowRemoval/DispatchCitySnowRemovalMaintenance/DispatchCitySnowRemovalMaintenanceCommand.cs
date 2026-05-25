@@ -3,7 +3,8 @@ using Matrix.SimulationSystems.Application.Authorization.Permissions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.Common;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.DispatchCitySnowRemovalMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.
+    DispatchCitySnowRemovalMaintenance
 {
     public sealed record DispatchCitySnowRemovalMaintenanceCommand(
         Guid CityId,

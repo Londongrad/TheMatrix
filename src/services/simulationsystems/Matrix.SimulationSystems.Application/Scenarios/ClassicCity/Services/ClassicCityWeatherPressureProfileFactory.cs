@@ -1,4 +1,5 @@
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.RecalculateCityEnvironmentalConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    RecalculateCityEnvironmentalConditions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
@@ -9,52 +10,76 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
         public CityWeatherPressureProfile CreateWeatherPressure(CityWeatherSystemInput weather)
         {
             decimal severity = MapSeverity(weather.Severity);
-            decimal humidity = Normalize(weather.HumidityPercent, 0m, 100m);
-            decimal cloudCoverage = Normalize(weather.CloudCoveragePercent, 0m, 100m);
-            decimal wind = Normalize(weather.WindSpeedKph, 0m, 120m);
-            decimal lowPressureInstability = Normalize(1015m - weather.PressureHpa, 0m, 35m);
-            decimal freezing = Normalize(-weather.TemperatureC, 0m, 25m);
-            decimal thawing = Normalize(weather.TemperatureC, 0m, 18m);
+            decimal humidity = Normalize(
+                value: weather.HumidityPercent,
+                min: 0m,
+                max: 100m);
+            decimal cloudCoverage = Normalize(
+                value: weather.CloudCoveragePercent,
+                min: 0m,
+                max: 100m);
+            decimal wind = Normalize(
+                value: weather.WindSpeedKph,
+                min: 0m,
+                max: 120m);
+            decimal lowPressureInstability = Normalize(
+                value: 1015m - weather.PressureHpa,
+                min: 0m,
+                max: 35m);
+            decimal freezing = Normalize(
+                value: -weather.TemperatureC,
+                min: 0m,
+                max: 25m);
+            decimal thawing = Normalize(
+                value: weather.TemperatureC,
+                min: 0m,
+                max: 18m);
 
             bool rainLike = MatchesAny(
-                weather.PrecipitationKind,
-                "Drizzle",
-                "Rain",
-                "Sleet",
-                "Hail") ||
+                                value: weather.PrecipitationKind,
+                                "Drizzle",
+                                "Rain",
+                                "Sleet",
+                                "Hail") ||
                             MatchesAny(
-                                weather.Type,
+                                value: weather.Type,
                                 "Rain",
                                 "Storm");
             bool snowLike = MatchesAny(
-                weather.PrecipitationKind,
-                "Snow",
-                "Sleet") ||
+                                value: weather.PrecipitationKind,
+                                "Snow",
+                                "Sleet") ||
                             MatchesAny(
-                                weather.Type,
+                                value: weather.Type,
                                 "Snow",
                                 "ColdSnap");
             bool stormLike = MatchesAny(
-                weather.Type,
-                "Storm",
-                "Windy") ||
+                                 value: weather.Type,
+                                 "Storm",
+                                 "Windy") ||
                              MatchesAny(
-                                 weather.PrecipitationKind,
+                                 value: weather.PrecipitationKind,
                                  "Hail");
 
             decimal rainPressure = Clamp(
-                value: (rainLike ? 0.28m : 0m) +
+                value: (rainLike
+                           ? 0.28m
+                           : 0m) +
                        (severity * 0.22m) +
                        (humidity * 0.18m) +
                        (cloudCoverage * 0.14m) +
                        (lowPressureInstability * 0.18m));
             decimal snowPressure = Clamp(
-                value: (snowLike ? 0.30m : 0m) +
+                value: (snowLike
+                           ? 0.30m
+                           : 0m) +
                        (severity * 0.18m) +
                        (cloudCoverage * 0.10m) +
                        (freezing * 0.28m));
             decimal stormPressure = Clamp(
-                value: (stormLike ? 0.34m : 0m) +
+                value: (stormLike
+                           ? 0.34m
+                           : 0m) +
                        (severity * 0.24m) +
                        (wind * 0.26m) +
                        (lowPressureInstability * 0.10m));
@@ -62,12 +87,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 value: (freezing * 0.60m) +
                        (severity * 0.10m) +
                        (wind * 0.12m) +
-                       (MatchesAny(weather.Type, "ColdSnap") ? 0.18m : 0m));
+                       (MatchesAny(
+                           value: weather.Type,
+                           "ColdSnap")
+                           ? 0.18m
+                           : 0m));
             decimal thawRelief = Clamp(
                 value: (thawing * 0.62m) +
                        ((1m - freezing) * 0.10m) +
-                       (rainLike ? 0.08m : 0m) -
-                       (snowLike ? 0.12m : 0m));
+                       (rainLike
+                           ? 0.08m
+                           : 0m) -
+                       (snowLike
+                           ? 0.12m
+                           : 0m));
 
             return new CityWeatherPressureProfile(
                 rainPressure: rainPressure,
@@ -437,8 +470,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             if (max <= min)
                 return 0m;
 
-            return Clamp(
-                value: (value - min) / (max - min));
+            return Clamp(value: (value - min) / (max - min));
         }
 
         private static decimal Clamp(decimal value)

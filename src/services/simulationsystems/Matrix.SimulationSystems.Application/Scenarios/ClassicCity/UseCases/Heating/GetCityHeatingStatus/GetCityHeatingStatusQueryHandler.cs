@@ -25,7 +25,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.He
             if (state is null)
                 return null;
 
-            decimal heatingSupport = pressureProfileFactory.Create(state).HeatingSupport;
+            decimal heatingSupport = pressureProfileFactory.Create(state)
+               .HeatingSupport;
 
             return CityHeatingStatusDto.FromState(
                 cityId: request.CityId,

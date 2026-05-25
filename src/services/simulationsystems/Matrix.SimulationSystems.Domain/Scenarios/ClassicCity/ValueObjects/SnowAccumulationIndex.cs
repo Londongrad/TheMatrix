@@ -4,7 +4,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects
 {
     /// <summary>
-    ///     Normalized snow accumulation pressure in the range [0..1], where 0 means clear ground and 1 means critical accumulation.
+    ///     Normalized snow accumulation pressure in the range [0..1], where 0 means clear ground and 1 means critical
+    ///     accumulation.
     /// </summary>
     public readonly record struct SnowAccumulationIndex
     {

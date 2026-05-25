@@ -40,7 +40,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Permissions.UpdateDefaultUs
                 permissionKeys: desiredKeys,
                 cancellationToken: cancellationToken);
 
-            HashSet<string> basePermissionKeys = (await rolePermissionsRepository.GetRolePermissionsAsync(
+            var basePermissionKeys = (await rolePermissionsRepository.GetRolePermissionsAsync(
                     roleId: userRole.Id,
                     cancellationToken: cancellationToken))
                .ToHashSet(StringComparer.Ordinal);
@@ -66,7 +66,9 @@ namespace Matrix.Identity.Application.UseCases.Admin.Permissions.UpdateDefaultUs
                         return;
 
                     DefaultUserAccessPolicy policy = await defaultUserAccessPolicyRepository.GetForUpdateAsync(token);
-                    policy.Touch(timeProvider.GetUtcNow().UtcDateTime);
+                    policy.Touch(
+                        timeProvider.GetUtcNow()
+                           .UtcDateTime);
                     securityStateChangeCollector.MarkDefaultUserAccessChanged();
                 },
                 cancellationToken: cancellationToken);

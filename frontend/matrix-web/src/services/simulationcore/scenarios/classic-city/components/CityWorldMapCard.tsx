@@ -3,9 +3,15 @@ import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import {useCityActiveTrips} from "@services/simulationcore/scenarios/classic-city/hooks/useCityActiveTrips";
 import {useCityMapTopology} from "@services/simulationcore/scenarios/classic-city/hooks/useCityMapTopology";
-import {useCityDistrictInfrastructure} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictInfrastructure";
-import {useCityDistrictOperatorActions} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictOperatorActions";
-import type {CityDistrictInfrastructureView} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
+import {
+    useCityDistrictInfrastructure
+} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictInfrastructure";
+import {
+    useCityDistrictOperatorActions
+} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictOperatorActions";
+import type {
+    CityDistrictInfrastructureView
+} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
 import type {
     CityActiveTripView,
     CityMapTopologyView,
@@ -195,14 +201,14 @@ function buildProjector(topology: CityMapTopologyView, trips: CityActiveTripView
 }
 
 function MapCanvas({
-    topology,
-    trips,
-    focusedTripId,
-    focusedAnchorIds,
-    focusedDistrictId,
-    onFocusDistrict,
-    onFocusTrip,
-}: {
+                       topology,
+                       trips,
+                       focusedTripId,
+                       focusedAnchorIds,
+                       focusedDistrictId,
+                       onFocusDistrict,
+                       onFocusTrip,
+                   }: {
     topology: CityMapTopologyView;
     trips: CityActiveTripView[];
     focusedTripId?: string;
@@ -473,10 +479,10 @@ function MapCanvas({
 }
 
 function TripItem({
-    trip,
-    isFocused = false,
-    onFocusTrip,
-}: {
+                      trip,
+                      isFocused = false,
+                      onFocusTrip,
+                  }: {
     trip: CityActiveTripView;
     isFocused?: boolean;
     onFocusTrip?: (tripId: string, tripSubject: string, districtId: string) => void;
@@ -548,19 +554,19 @@ function TripItem({
 }
 
 export function CityWorldMapCard({
-    cityId,
-    cityName,
-    isArchived = false,
-    focusTripId,
-    focusTripSubject,
-    focusTravellerId,
-    focusTravellerName,
-    focusDistrictId,
-    focusDistrictName,
-    focusAnchorIds = [],
-    onFocusDistrict,
-    onFocusTrip,
-}: Props) {
+                                     cityId,
+                                     cityName,
+                                     isArchived = false,
+                                     focusTripId,
+                                     focusTripSubject,
+                                     focusTravellerId,
+                                     focusTravellerName,
+                                     focusDistrictId,
+                                     focusDistrictName,
+                                     focusAnchorIds = [],
+                                     onFocusDistrict,
+                                     onFocusTrip,
+                                 }: Props) {
     const {can} = usePermissions();
     const topologyQuery = useCityMapTopology(cityId);
     const tripsQuery = useCityActiveTrips(cityId, isArchived ? 0 : 15000);
@@ -585,8 +591,8 @@ export function CityWorldMapCard({
         () => focusTripId
             ? trips.find((trip) => trip.tripId === focusTripId) ?? null
             : focusTravellerId
-            ? trips.find((trip) => trip.travellerEntityId?.toLowerCase() === focusTravellerId.toLowerCase()) ?? null
-            : null,
+                ? trips.find((trip) => trip.travellerEntityId?.toLowerCase() === focusTravellerId.toLowerCase()) ?? null
+                : null,
         [focusTravellerId, focusTripId, trips],
     );
     const displayedTrips = useMemo(() => {
@@ -769,7 +775,8 @@ export function CityWorldMapCard({
                                 </div>
                             ) : null}
                             {actions.notice?.districtId === focusDistrictId ? (
-                                <div className={`city-world-context__notice city-world-context__notice--${actions.notice.tone}`}>
+                                <div
+                                    className={`city-world-context__notice city-world-context__notice--${actions.notice.tone}`}>
                                     <strong>{actions.notice.title}</strong>
                                     <span>{actions.notice.detail}</span>
                                 </div>
@@ -814,9 +821,12 @@ export function CityWorldMapCard({
                             <div className="city-world-map__header">
                                 <h3 className="city-world-map__title">Topology canvas</h3>
                                 <div className="city-world-map__legend">
-                                    <span className="city-world-map__legend-item city-world-map__legend-item--district">District</span>
-                                    <span className="city-world-map__legend-item city-world-map__legend-item--anchor">Anchor</span>
-                                    <span className="city-world-map__legend-item city-world-map__legend-item--trip">Trip</span>
+                                    <span
+                                        className="city-world-map__legend-item city-world-map__legend-item--district">District</span>
+                                    <span
+                                        className="city-world-map__legend-item city-world-map__legend-item--anchor">Anchor</span>
+                                    <span
+                                        className="city-world-map__legend-item city-world-map__legend-item--trip">Trip</span>
                                 </div>
                             </div>
 
@@ -879,7 +889,8 @@ export function CityWorldMapCard({
                                     </div>
                                     <div className="city-world-surface-item">
                                         <span className="city-world-surface-item__label">Topology city id</span>
-                                        <strong className="city-world-surface-item__mono">{topology.cityId.slice(0, 8)}</strong>
+                                        <strong
+                                            className="city-world-surface-item__mono">{topology.cityId.slice(0, 8)}</strong>
                                     </div>
                                 </div>
                             </div>

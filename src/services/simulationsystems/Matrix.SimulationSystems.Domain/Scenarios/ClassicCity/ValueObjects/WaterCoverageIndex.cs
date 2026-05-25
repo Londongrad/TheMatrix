@@ -4,7 +4,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects
 {
     /// <summary>
-    ///     Normalized water-distribution coverage in the range [0..1], where 0 means broad delivery failure and 1 means stable citywide supply.
+    ///     Normalized water-distribution coverage in the range [0..1], where 0 means broad delivery failure and 1 means stable
+    ///     citywide supply.
     /// </summary>
     public readonly record struct WaterCoverageIndex
     {

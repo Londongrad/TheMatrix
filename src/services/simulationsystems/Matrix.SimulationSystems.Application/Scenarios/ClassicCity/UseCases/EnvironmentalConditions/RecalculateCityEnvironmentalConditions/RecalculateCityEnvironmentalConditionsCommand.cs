@@ -1,6 +1,7 @@
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.RecalculateCityEnvironmentalConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    RecalculateCityEnvironmentalConditions
 {
     public sealed record RecalculateCityEnvironmentalConditionsCommand(
         Guid CityId,

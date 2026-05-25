@@ -1,31 +1,33 @@
 using Microsoft.Extensions.Configuration;
 
-namespace Matrix.DatabaseMigrationRunner;
-
-internal static class ConnectionStringResolver
+namespace Matrix.DatabaseMigrationRunner
 {
-    public static string Resolve(
-        IConfiguration configuration,
-        MigrationTarget target,
-        MigrationRunnerOptions options)
+    internal static class ConnectionStringResolver
     {
-        if (!string.IsNullOrWhiteSpace(options.Connection))
+        public static string Resolve(
+            IConfiguration configuration,
+            MigrationTarget target,
+            MigrationRunnerOptions options)
         {
-            if (!string.Equals(target.Name, options.Service, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("--connection can only be used with a single --service value.");
+            if (!string.IsNullOrWhiteSpace(options.Connection))
+            {
+                if (!string.Equals(
+                        a: target.Name,
+                        b: options.Service,
+                        comparisonType: StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("--connection can only be used with a single --service value.");
 
-            return options.Connection;
+                return options.Connection;
+            }
+
+            string? connectionString = configuration.GetConnectionString(target.ConnectionStringName);
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException(
+                    $"Connection string '{target.ConnectionStringName}' is not configured. " +
+                    $"Provide ConnectionStrings__{target.ConnectionStringName} or use --connection for a single service.");
+
+            return connectionString;
         }
-
-        string? connectionString = configuration.GetConnectionString(target.ConnectionStringName);
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException(
-                $"Connection string '{target.ConnectionStringName}' is not configured. " +
-                $"Provide ConnectionStrings__{target.ConnectionStringName} or use --connection for a single service.");
-        }
-
-        return connectionString;
     }
 }

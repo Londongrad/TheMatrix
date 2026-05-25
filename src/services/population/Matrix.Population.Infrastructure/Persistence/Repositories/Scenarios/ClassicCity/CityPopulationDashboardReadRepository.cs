@@ -20,9 +20,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
         : ICityPopulationDashboardReadRepository
     {
         private readonly PopulationDbContext _dbContext = dbContext;
-        private readonly CityHouseholdEconomyPolicy _householdEconomyPolicy = householdEconomyPolicy;
-        private readonly CityHouseholdCashflowPolicy _householdCashflowPolicy = householdCashflowPolicy;
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
+        private readonly CityHouseholdCashflowPolicy _householdCashflowPolicy = householdCashflowPolicy;
+        private readonly CityHouseholdEconomyPolicy _householdEconomyPolicy = householdEconomyPolicy;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
 
         public async Task<CityPopulationDashboardSnapshotReadModel?> GetCurrentSnapshotAsync(
@@ -168,7 +168,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .SingleOrDefaultAsync(
                     predicate: x => x.CityId == cityId,
                     cancellationToken: cancellationToken);
-            CityPopulationLivingConditionsState? livingConditionsState = await _dbContext.CityPopulationLivingConditionsStates
+            CityPopulationLivingConditionsState? livingConditionsState = await _dbContext
+               .CityPopulationLivingConditionsStates
                .AsNoTracking()
                .SingleOrDefaultAsync(
                     predicate: x => x.CityId == cityId,
@@ -210,30 +211,34 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 foreach (Person resident in householdResidents)
                 {
                     DistrictId? districtId = placement.DistrictId;
-                    CityPopulationLivingConditionsContext districtLivingConditions = _districtImpactPolicy.ResolveLivingConditions(
-                        districtId: districtId,
-                        livingConditionsState: livingConditionsState);
+                    CityPopulationLivingConditionsContext districtLivingConditions =
+                        _districtImpactPolicy.ResolveLivingConditions(
+                            districtId: districtId,
+                            livingConditionsState: livingConditionsState);
                     CityPopulationEssentialsContext districtEssentials = _districtImpactPolicy.ResolveEssentials(
                         districtId: districtId,
                         essentialsState: essentialsState);
                     // The dashboard economy snapshot is a lightweight read model. Keep it
                     // deterministic and cheap by avoiding live route resolution per resident.
-                    decimal incomeMultiplier = resident.Employment.Status == Domain.Enums.EmploymentStatus.Employed
+                    decimal incomeMultiplier = resident.Employment.Status == EmploymentStatus.Employed
                         ? _participationPolicy.ResolveEmploymentProfile(
-                            person: resident,
-                            currentDate: currentDate,
-                            housingStatus: placement.HousingStatus,
-                            livingConditions: districtLivingConditions,
-                            essentials: districtEssentials,
-                            commute: CityPopulationCommuteContext.Neutral).PayrollMultiplier
+                                person: resident,
+                                currentDate: currentDate,
+                                housingStatus: placement.HousingStatus,
+                                livingConditions: districtLivingConditions,
+                                essentials: districtEssentials,
+                                commute: CityPopulationCommuteContext.Neutral)
+                           .PayrollMultiplier
                         : 1m;
 
                     adjustedNetDailyIncomeAmount += _householdCashflowPolicy.BuildResidentIncome(
-                        resident: resident,
-                        currentDate: currentDate,
-                        costOfLivingState: costOfLivingState,
-                        incomeMultiplier: incomeMultiplier).NetIncome.Amount;
+                            resident: resident,
+                            currentDate: currentDate,
+                            costOfLivingState: costOfLivingState,
+                            incomeMultiplier: incomeMultiplier)
+                       .NetIncome.Amount;
                 }
+
                 decimal adjustedDailyNetAmount = decimal.Round(
                     d: adjustedNetDailyIncomeAmount - economyProfile.DailyExpenseAmount,
                     decimals: 2,

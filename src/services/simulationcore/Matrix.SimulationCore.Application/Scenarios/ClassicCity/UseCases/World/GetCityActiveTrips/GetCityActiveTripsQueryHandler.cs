@@ -1,6 +1,7 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World.Common;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
 using MediatR;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World.GetCityActiveTrips
@@ -12,7 +13,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
             GetCityActiveTripsQuery request,
             CancellationToken cancellationToken)
         {
-            IReadOnlyList<Domain.Scenarios.ClassicCity.World.CityActiveTrip> activeTrips =
+            IReadOnlyList<CityActiveTrip> activeTrips =
                 await tripRepository.ListActiveByCityIdAsync(
                     cityId: new CityId(request.CityId),
                     cancellationToken: cancellationToken);

@@ -8,23 +8,38 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
 
         public static bool IsSupported(string value)
         {
-            return string.Equals(value, RoadNode, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, ResidentialBuilding, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, CityAnchor, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(
+                       a: value,
+                       b: RoadNode,
+                       comparisonType: StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(
+                       a: value,
+                       b: ResidentialBuilding,
+                       comparisonType: StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(
+                       a: value,
+                       b: CityAnchor,
+                       comparisonType: StringComparison.OrdinalIgnoreCase);
         }
 
         public static string Normalize(string value)
         {
-            return value.Replace("-", string.Empty, StringComparison.Ordinal)
-               .Replace("_", string.Empty, StringComparison.Ordinal)
-               .Trim()
-               .ToLowerInvariant() switch
-            {
-                "roadnode" => RoadNode,
-                "residentialbuilding" => ResidentialBuilding,
-                "cityanchor" => CityAnchor,
-                _ => value.Trim()
-            };
+            return value.Replace(
+                        oldValue: "-",
+                        newValue: string.Empty,
+                        comparisonType: StringComparison.Ordinal)
+                   .Replace(
+                        oldValue: "_",
+                        newValue: string.Empty,
+                        comparisonType: StringComparison.Ordinal)
+                   .Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "roadnode" => RoadNode,
+                    "residentialbuilding" => ResidentialBuilding,
+                    "cityanchor" => CityAnchor,
+                    _ => value.Trim()
+                };
         }
     }
 }

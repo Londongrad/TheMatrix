@@ -24,8 +24,8 @@ namespace Matrix.BuildingBlocks.Application.Events
             IDomainEvent[] domainEvents = [.. source.DomainEvents];
 
             await publish(
-                domainEvents,
-                cancellationToken);
+                arg1: domainEvents,
+                arg2: cancellationToken);
 
             source.ClearDomainEvents();
         }

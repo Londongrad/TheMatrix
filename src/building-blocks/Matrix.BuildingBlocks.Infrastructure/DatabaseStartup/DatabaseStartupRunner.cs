@@ -16,13 +16,20 @@ namespace Matrix.BuildingBlocks.Infrastructure.DatabaseStartup
         {
             await using AsyncServiceScope scope = services.CreateAsyncScope();
 
-            DatabaseStartupOptions options = scope.ServiceProvider.GetRequiredService<IOptions<DatabaseStartupOptions>>().Value;
+            DatabaseStartupOptions options = scope.ServiceProvider
+               .GetRequiredService<IOptions<DatabaseStartupOptions>>()
+               .Value;
             IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-            ILogger logger = CreateLogger(scope.ServiceProvider, serviceName);
+            ILogger logger = CreateLogger(
+                services: scope.ServiceProvider,
+                serviceName: serviceName);
 
-            if (!ShouldApplyMigrations(options, environment))
+            if (!ShouldApplyMigrations(
+                    options: options,
+                    environment: environment))
             {
                 logger.LogInformation(
+                    message:
                     "Skipping automatic database migrations for {ServiceName} in {EnvironmentName}. Set {Section}:{Setting}=true to opt in.",
                     serviceName,
                     environment.EnvironmentName,
@@ -33,10 +40,10 @@ namespace Matrix.BuildingBlocks.Infrastructure.DatabaseStartup
 
             TDbContext dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
             await DatabaseMigrationExecutor.ApplyMigrationsAsync(
-                dbContext,
-                logger,
-                serviceName,
-                cancellationToken);
+                dbContext: dbContext,
+                logger: logger,
+                serviceName: serviceName,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task RunSeedIfEnabledAsync(
@@ -48,13 +55,20 @@ namespace Matrix.BuildingBlocks.Infrastructure.DatabaseStartup
         {
             await using AsyncServiceScope scope = services.CreateAsyncScope();
 
-            DatabaseStartupOptions options = scope.ServiceProvider.GetRequiredService<IOptions<DatabaseStartupOptions>>().Value;
+            DatabaseStartupOptions options = scope.ServiceProvider
+               .GetRequiredService<IOptions<DatabaseStartupOptions>>()
+               .Value;
             IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-            ILogger logger = CreateLogger(scope.ServiceProvider, serviceName);
+            ILogger logger = CreateLogger(
+                services: scope.ServiceProvider,
+                serviceName: serviceName);
 
-            if (!ShouldRunSeed(options, environment))
+            if (!ShouldRunSeed(
+                    options: options,
+                    environment: environment))
             {
                 logger.LogInformation(
+                    message:
                     "Skipping automatic seed {SeedName} for {ServiceName} in {EnvironmentName}. Set {Section}:{Setting}=true to opt in.",
                     seedName,
                     serviceName,
@@ -64,23 +78,37 @@ namespace Matrix.BuildingBlocks.Infrastructure.DatabaseStartup
                 return;
             }
 
-            logger.LogInformation("Running startup seed {SeedName} for {ServiceName}.", seedName, serviceName);
-            await seedAction(scope.ServiceProvider, cancellationToken);
-            logger.LogInformation("Completed startup seed {SeedName} for {ServiceName}.", seedName, serviceName);
+            logger.LogInformation(
+                message: "Running startup seed {SeedName} for {ServiceName}.",
+                seedName,
+                serviceName);
+            await seedAction(
+                arg1: scope.ServiceProvider,
+                arg2: cancellationToken);
+            logger.LogInformation(
+                message: "Completed startup seed {SeedName} for {ServiceName}.",
+                seedName,
+                serviceName);
         }
 
-        private static ILogger CreateLogger(IServiceProvider services, string serviceName)
+        private static ILogger CreateLogger(
+            IServiceProvider services,
+            string serviceName)
         {
             ILoggerFactory loggerFactory = services.GetRequiredService<ILoggerFactory>();
             return loggerFactory.CreateLogger($"Matrix.DatabaseStartup.{serviceName}");
         }
 
-        private static bool ShouldApplyMigrations(DatabaseStartupOptions options, IHostEnvironment environment)
+        private static bool ShouldApplyMigrations(
+            DatabaseStartupOptions options,
+            IHostEnvironment environment)
         {
             return options.ApplyMigrationsOnStartup ?? environment.IsDevelopment();
         }
 
-        private static bool ShouldRunSeed(DatabaseStartupOptions options, IHostEnvironment environment)
+        private static bool ShouldRunSeed(
+            DatabaseStartupOptions options,
+            IHostEnvironment environment)
         {
             return options.RunSeedOnStartup ?? environment.IsDevelopment();
         }

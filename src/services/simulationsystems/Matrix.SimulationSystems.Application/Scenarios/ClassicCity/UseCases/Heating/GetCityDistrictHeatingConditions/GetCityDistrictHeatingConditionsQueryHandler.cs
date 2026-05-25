@@ -35,7 +35,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.He
             if (topology is null)
                 return null;
 
-            decimal heatingSupportIndex = pressureProfileFactory.Create(state).HeatingSupport;
+            decimal heatingSupportIndex = pressureProfileFactory.Create(state)
+               .HeatingSupport;
             IReadOnlyList<CityDistrictHeatingConditionDto> districts = projectionPolicy.Project(
                 topology: topology,
                 state: state,

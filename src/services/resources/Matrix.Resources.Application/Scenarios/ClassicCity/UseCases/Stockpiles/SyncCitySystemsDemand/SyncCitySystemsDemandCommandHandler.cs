@@ -25,26 +25,22 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 cancellationToken: cancellationToken);
 
             if (state is null)
-            {
                 return new SyncCitySystemsDemandResult(
                     Status: SyncCitySystemsDemandStatus.NotInitialized,
                     OverallDemandPressureIndex: 0m,
                     EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc);
-            }
 
             if (IsIncomingSnapshotStale(
                     effectiveTickId: request.EffectiveTickId,
                     effectiveAtUtc: request.EffectiveAtUtc,
                     currentEffectiveTickId: state.SystemsDemand.EffectiveTickId,
                     currentEffectiveAtUtc: state.SystemsDemand.EffectiveAtUtc))
-            {
                 return new SyncCitySystemsDemandResult(
                     Status: SyncCitySystemsDemandStatus.Stale,
                     OverallDemandPressureIndex: state.SystemsDemand.OverallDemandPressureIndex,
                     EffectiveTickId: state.SystemsDemand.EffectiveTickId,
                     EffectiveAtUtc: state.SystemsDemand.EffectiveAtUtc);
-            }
 
             CitySystemsResourceDemandSnapshot demandSnapshot = new(
                 FuelDemandPressureIndex: request.FuelDemandPressureIndex,

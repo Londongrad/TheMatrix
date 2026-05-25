@@ -108,8 +108,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 
         private bool TryTranslateKnownDbException(
             DbUpdateException exception,
-            [NotNullWhen(true)]
-            out MatrixApplicationException? translated)
+            [NotNullWhen(true)] out MatrixApplicationException? translated)
         {
             if (exception.InnerException is PostgresException
                 {

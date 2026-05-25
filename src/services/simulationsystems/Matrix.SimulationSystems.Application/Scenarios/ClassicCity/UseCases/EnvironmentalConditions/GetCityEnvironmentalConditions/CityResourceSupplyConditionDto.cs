@@ -1,6 +1,7 @@
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.GetCityEnvironmentalConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    GetCityEnvironmentalConditions
 {
     public sealed record CityResourceSupplyConditionDto(
         decimal SupplyStressIndex,

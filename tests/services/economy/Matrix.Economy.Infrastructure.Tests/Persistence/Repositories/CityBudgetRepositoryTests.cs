@@ -1,40 +1,46 @@
+using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
-using Matrix.Economy.Infrastructure.Tests.TestSupport;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityBudgetRepositoryTests
+namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task GetByCityAsync_ReturnsMatchingBudget()
+    public sealed class CityBudgetRepositoryTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task GetByCityAsync_ReturnsMatchingBudget()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        CityBudgetRepository repository = new(dbContext);
-        repository.Add(CreateBudget(cityId));
-        repository.Add(CreateBudget(Guid.Parse("11111111-2222-3333-4444-555555555555")));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            CityBudgetRepository repository = new(dbContext);
+            repository.Add(CreateBudget(cityId));
+            repository.Add(CreateBudget(Guid.Parse("11111111-2222-3333-4444-555555555555")));
+            await dbContext.SaveChangesAsync();
 
-        var budget = await repository.GetByCityAsync(cityId);
+            CityBudget? budget = await repository.GetByCityAsync(cityId);
 
-        Assert.NotNull(budget);
-        Assert.Equal(cityId, budget.CityId);
-    }
+            Assert.NotNull(budget);
+            Assert.Equal(
+                expected: cityId,
+                actual: budget.CityId);
+        }
 
-    [Fact]
-    public async Task ListAsync_ReturnsAllBudgets()
-    {
-        await using var dbContext = CreateDbContext();
-        CityBudgetRepository repository = new(dbContext);
-        repository.Add(CreateBudget(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")));
-        repository.Add(CreateBudget(Guid.Parse("11111111-2222-3333-4444-555555555555")));
-        await dbContext.SaveChangesAsync();
+        [Fact]
+        public async Task ListAsync_ReturnsAllBudgets()
+        {
+            await using EconomyDbContext dbContext = CreateDbContext();
+            CityBudgetRepository repository = new(dbContext);
+            repository.Add(CreateBudget(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")));
+            repository.Add(CreateBudget(Guid.Parse("11111111-2222-3333-4444-555555555555")));
+            await dbContext.SaveChangesAsync();
 
-        var budgets = await repository.ListAsync();
+            IReadOnlyList<CityBudget> budgets = await repository.ListAsync();
 
-        Assert.Equal(2, budgets.Count);
+            Assert.Equal(
+                expected: 2,
+                actual: budgets.Count);
+        }
     }
 }

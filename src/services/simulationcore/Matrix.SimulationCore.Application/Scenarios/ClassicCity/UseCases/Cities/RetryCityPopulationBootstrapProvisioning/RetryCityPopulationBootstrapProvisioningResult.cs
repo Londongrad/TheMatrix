@@ -1,6 +1,8 @@
-using CityProvisioningView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityProvisioningModel;
+using CityProvisioningView =
+    Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityProvisioningModel;
 
-namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RetryCityPopulationBootstrapProvisioning
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.
+    RetryCityPopulationBootstrapProvisioning
 {
     public enum RetryCityPopulationBootstrapProvisioningStatus
     {

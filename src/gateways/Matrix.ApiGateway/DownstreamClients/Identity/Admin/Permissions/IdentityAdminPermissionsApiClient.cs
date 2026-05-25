@@ -2,7 +2,6 @@ using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Admin.Permissions.Requests;
 using Matrix.Identity.Contracts.Admin.Permissions.Responses;
-using System.Net.Http.Json;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions
 {

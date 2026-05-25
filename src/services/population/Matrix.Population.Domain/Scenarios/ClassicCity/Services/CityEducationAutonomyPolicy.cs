@@ -7,8 +7,7 @@ using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
-    public sealed class CityEducationAutonomyPolicy(
-        CityPopulationAnchorSelectionPolicy anchorSelectionPolicy)
+    public sealed class CityEducationAutonomyPolicy(CityPopulationAnchorSelectionPolicy anchorSelectionPolicy)
     {
         private readonly CityPopulationAnchorSelectionPolicy _anchorSelectionPolicy = anchorSelectionPolicy;
 
@@ -29,8 +28,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (!person.IsAlive)
                 return false;
 
-            int previousAgeYears = person.GetAge(previousDate).Years;
-            int currentAgeYears = person.GetAge(currentDate).Years;
+            int previousAgeYears = person.GetAge(previousDate)
+               .Years;
+            int currentAgeYears = person.GetAge(currentDate)
+               .Years;
             bool changed = false;
 
             EducationLevel? targetFloor = ResolveMandatoryEducationFloor(
@@ -237,7 +238,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (person.Employment.Status is not (EmploymentStatus.None or EmploymentStatus.Unemployed))
                 return false;
 
-            int currentAgeYears = person.GetAge(currentDate).Years;
+            int currentAgeYears = person.GetAge(currentDate)
+               .Years;
             if (currentAgeYears is < 18 or > 23 || person.EducationLevel != EducationLevel.UpperSecondary)
                 return false;
 
@@ -333,8 +335,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (continuationLevel == EducationLevel.Higher)
                 chance += 0.008d;
-            else if (continuationLevel == EducationLevel.Postgraduate)
-                chance += 0.004d;
+            else
+                if (continuationLevel == EducationLevel.Postgraduate)
+                    chance += 0.004d;
 
             return Math.Clamp(
                 value: chance,
@@ -406,9 +409,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int salt)
         {
             int hash = HashCode.Combine(
-                personId.Value,
-                currentDate.DayNumber,
-                salt);
+                value1: personId.Value,
+                value2: currentDate.DayNumber,
+                value3: salt);
             uint normalized = unchecked((uint)hash);
             return normalized / (double)uint.MaxValue;
         }
@@ -436,10 +439,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (levelPool.Count == 0)
             {
                 CityAnchorId? schoolAnchorId = _anchorSelectionPolicy.SelectSchoolAnchor(
-                    anchors: schoolAnchors,
-                    preferredDistrictId: preferredDistrictId,
-                    stableKey: person.Id.Value,
-                    preferredAnchorIds: preferredInstitutionAnchorIds)?.CityAnchorId;
+                        anchors: schoolAnchors,
+                        preferredDistrictId: preferredDistrictId,
+                        stableKey: person.Id.Value,
+                        preferredAnchorIds: preferredInstitutionAnchorIds)
+                  ?.CityAnchorId;
                 var created = new CityEducationInstitutionBinding(
                     InstitutionId: EducationInstitutionId.New(),
                     InstitutionAnchorId: schoolAnchorId);
@@ -460,28 +464,31 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<CityEducationInstitutionBinding> bindings,
             IReadOnlyCollection<CityAnchorId>? preferredInstitutionAnchorIds)
         {
-            List<CityEducationInstitutionBinding> orderedBindings = bindings.ToList();
+            var orderedBindings = bindings.ToList();
             if (preferredInstitutionAnchorIds is null || preferredInstitutionAnchorIds.Count == 0)
                 return orderedBindings;
 
             var preferredOrder = preferredInstitutionAnchorIds
-               .Select(
-                    (anchorId, index) => new
-                    {
-                        anchorId,
-                        index
-                    })
+               .Select((
+                    anchorId,
+                    index) => new
+                {
+                    anchorId,
+                    index
+                })
                .ToDictionary(
                     keySelector: x => x.anchorId,
                     elementSelector: x => x.index);
 
             return orderedBindings
-               .OrderBy(x => x.InstitutionAnchorId is not null && preferredOrder.ContainsKey(x.InstitutionAnchorId.Value)
+               .OrderBy(x => x.InstitutionAnchorId is not null &&
+                             preferredOrder.ContainsKey(x.InstitutionAnchorId.Value)
                     ? 0
                     : 1)
-               .ThenBy(x => x.InstitutionAnchorId is not null && preferredOrder.TryGetValue(
-                    key: x.InstitutionAnchorId.Value,
-                    value: out int order)
+               .ThenBy(x => x.InstitutionAnchorId is not null &&
+                            preferredOrder.TryGetValue(
+                                key: x.InstitutionAnchorId.Value,
+                                value: out int order)
                     ? order
                     : int.MaxValue)
                .ToList();

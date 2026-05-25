@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Domain.Simulation;
@@ -41,11 +42,11 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     SupplyStressIndex: existing.SupplyStressIndex,
                     EmergencyRationingEnabled: existing.EmergencyRationingEnabled);
 
-            var seed = policy.CreateSeed(
+            CityStockpileSnapshot seed = policy.CreateSeed(
                 developmentLevel: request.DevelopmentLevel,
                 createdAtUtc: request.CreatedAtUtc);
 
-            CityStockpileState state = CityStockpileState.Create(
+            var state = CityStockpileState.Create(
                 simulationHostId: simulationHostId,
                 seed: seed);
 

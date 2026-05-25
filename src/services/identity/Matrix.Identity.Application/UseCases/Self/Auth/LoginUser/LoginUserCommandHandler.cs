@@ -137,7 +137,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                     ipAddress: request.IpAddress,
                     cancellationToken: cancellationToken);
 
-            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime utcNow = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             UserSession? session = await userSessionRepository.GetActiveByUserIdAndDeviceIdAsync(
                 userId: user.Id,

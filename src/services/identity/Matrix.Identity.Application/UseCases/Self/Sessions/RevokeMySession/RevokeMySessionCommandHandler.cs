@@ -38,7 +38,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
             if (session is null || session.UserId != userId)
                 return;
 
-            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime utcNow = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             session.Revoke(
                 reason: RefreshTokenRevocationReason.UserRevoked,

@@ -100,7 +100,8 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             CityTickPhase phase,
             CancellationToken cancellationToken)
         {
-            DateTime occurredOnUtc = timeProvider.GetUtcNow().UtcDateTime;
+            DateTime occurredOnUtc = timeProvider.GetUtcNow()
+               .UtcDateTime;
             string correlationId = BuildTickCorrelationId(
                 simulationId: simulationId,
                 cityId: cityId,
@@ -147,7 +148,8 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             CityTickPhase phase,
             CancellationToken cancellationToken)
         {
-            DateTime occurredOnUtc = timeProvider.GetUtcNow().UtcDateTime;
+            DateTime occurredOnUtc = timeProvider.GetUtcNow()
+               .UtcDateTime;
             string correlationId = BuildTickCorrelationId(
                 simulationId: simulationId,
                 cityId: cityId,
@@ -183,38 +185,6 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             return Task.CompletedTask;
         }
 
-        private static string BuildTickCorrelationId(
-            SimulationId simulationId,
-            CityId cityId,
-            TickId tickId)
-        {
-            return $"simulation:{simulationId.Value:N}:city:{cityId.Value:N}:tick:{tickId.Value}";
-        }
-
-        private static string BuildTickCausationId(
-            string correlationId,
-            CityTickPhase phase)
-        {
-            return $"{correlationId}:phase:{phase}";
-        }
-
-        private static CityTickPhaseV1 MapPhase(CityTickPhase phase)
-        {
-            return phase switch
-            {
-                CityTickPhase.AdvanceTime => CityTickPhaseV1.AdvanceTime,
-                CityTickPhase.SystemsDegradation => CityTickPhaseV1.SystemsDegradation,
-                CityTickPhase.IncidentGeneration => CityTickPhaseV1.IncidentGeneration,
-                CityTickPhase.DispatchExecution => CityTickPhaseV1.DispatchExecution,
-                CityTickPhase.ResourceSettlement => CityTickPhaseV1.ResourceSettlement,
-                CityTickPhase.BudgetSettlement => CityTickPhaseV1.BudgetSettlement,
-                CityTickPhase.PopulationReaction => CityTickPhaseV1.PopulationReaction,
-                CityTickPhase.Projection => CityTickPhaseV1.Projection,
-                CityTickPhase.TickCompleted => CityTickPhaseV1.TickCompleted,
-                _ => throw new InvalidOperationException($"Unsupported city tick phase '{phase}'.")
-            };
-        }
-
         public Task AddWeatherEventsAsync(
             IReadOnlyCollection<IDomainEvent> domainEvents,
             CancellationToken cancellationToken)
@@ -222,7 +192,8 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             if (domainEvents.Count == 0)
                 return Task.CompletedTask;
 
-            DateTime occurredOnUtc = timeProvider.GetUtcNow().UtcDateTime;
+            DateTime occurredOnUtc = timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             foreach (IDomainEvent domainEvent in domainEvents)
             {
@@ -292,6 +263,38 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             }
 
             return Task.CompletedTask;
+        }
+
+        private static string BuildTickCorrelationId(
+            SimulationId simulationId,
+            CityId cityId,
+            TickId tickId)
+        {
+            return $"simulation:{simulationId.Value:N}:city:{cityId.Value:N}:tick:{tickId.Value}";
+        }
+
+        private static string BuildTickCausationId(
+            string correlationId,
+            CityTickPhase phase)
+        {
+            return $"{correlationId}:phase:{phase}";
+        }
+
+        private static CityTickPhaseV1 MapPhase(CityTickPhase phase)
+        {
+            return phase switch
+            {
+                CityTickPhase.AdvanceTime => CityTickPhaseV1.AdvanceTime,
+                CityTickPhase.SystemsDegradation => CityTickPhaseV1.SystemsDegradation,
+                CityTickPhase.IncidentGeneration => CityTickPhaseV1.IncidentGeneration,
+                CityTickPhase.DispatchExecution => CityTickPhaseV1.DispatchExecution,
+                CityTickPhase.ResourceSettlement => CityTickPhaseV1.ResourceSettlement,
+                CityTickPhase.BudgetSettlement => CityTickPhaseV1.BudgetSettlement,
+                CityTickPhase.PopulationReaction => CityTickPhaseV1.PopulationReaction,
+                CityTickPhase.Projection => CityTickPhaseV1.Projection,
+                CityTickPhase.TickCompleted => CityTickPhaseV1.TickCompleted,
+                _ => throw new InvalidOperationException($"Unsupported city tick phase '{phase}'.")
+            };
         }
 
         private static WeatherStateV1 ToWeatherState(WeatherState state)

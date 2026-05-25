@@ -197,10 +197,10 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres
 
             int prefixLength = MaxStoredErrorLength - TruncationSuffix.Length;
             return string.Concat(
-                error.AsSpan(
+                str0: error.AsSpan(
                     start: 0,
                     length: prefixLength),
-                TruncationSuffix);
+                str1: TruncationSuffix);
         }
     }
 }

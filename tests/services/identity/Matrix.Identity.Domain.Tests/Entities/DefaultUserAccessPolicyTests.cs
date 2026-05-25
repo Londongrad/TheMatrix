@@ -1,34 +1,63 @@
 using Matrix.Identity.Domain.Entities;
 using Xunit;
 
-namespace Matrix.Identity.Domain.Tests.Entities;
-
-public sealed class DefaultUserAccessPolicyTests
+namespace Matrix.Identity.Domain.Tests.Entities
 {
-    [Fact]
-    public void CreateDefault_SetsSingletonIdentityAndInitialVersion()
+    public sealed class DefaultUserAccessPolicyTests
     {
-        var nowUtc = new DateTime(2047, 5, 7, 8, 9, 10, DateTimeKind.Utc);
+        [Fact]
+        public void CreateDefault_SetsSingletonIdentityAndInitialVersion()
+        {
+            var nowUtc = new DateTime(
+                year: 2047,
+                month: 5,
+                day: 7,
+                hour: 8,
+                minute: 9,
+                second: 10,
+                kind: DateTimeKind.Utc);
 
-        var policy = DefaultUserAccessPolicy.CreateDefault(nowUtc);
+            var policy = DefaultUserAccessPolicy.CreateDefault(nowUtc);
 
-        Assert.Equal(DefaultUserAccessPolicy.SingletonId, policy.Id);
-        Assert.Equal(1, policy.Version);
-        Assert.Equal(nowUtc, policy.CreatedAtUtc);
-        Assert.Equal(nowUtc, policy.UpdatedAtUtc);
-    }
+            Assert.Equal(
+                expected: DefaultUserAccessPolicy.SingletonId,
+                actual: policy.Id);
+            Assert.Equal(
+                expected: 1,
+                actual: policy.Version);
+            Assert.Equal(
+                expected: nowUtc,
+                actual: policy.CreatedAtUtc);
+            Assert.Equal(
+                expected: nowUtc,
+                actual: policy.UpdatedAtUtc);
+        }
 
-    [Fact]
-    public void Touch_IncrementsVersionAndUpdatesTimestamp()
-    {
-        var createdAtUtc = new DateTime(2047, 5, 7, 8, 9, 10, DateTimeKind.Utc);
-        var updatedAtUtc = createdAtUtc.AddHours(1);
-        var policy = DefaultUserAccessPolicy.CreateDefault(createdAtUtc);
+        [Fact]
+        public void Touch_IncrementsVersionAndUpdatesTimestamp()
+        {
+            var createdAtUtc = new DateTime(
+                year: 2047,
+                month: 5,
+                day: 7,
+                hour: 8,
+                minute: 9,
+                second: 10,
+                kind: DateTimeKind.Utc);
+            DateTime updatedAtUtc = createdAtUtc.AddHours(1);
+            var policy = DefaultUserAccessPolicy.CreateDefault(createdAtUtc);
 
-        policy.Touch(updatedAtUtc);
+            policy.Touch(updatedAtUtc);
 
-        Assert.Equal(2, policy.Version);
-        Assert.Equal(createdAtUtc, policy.CreatedAtUtc);
-        Assert.Equal(updatedAtUtc, policy.UpdatedAtUtc);
+            Assert.Equal(
+                expected: 2,
+                actual: policy.Version);
+            Assert.Equal(
+                expected: createdAtUtc,
+                actual: policy.CreatedAtUtc);
+            Assert.Equal(
+                expected: updatedAtUtc,
+                actual: policy.UpdatedAtUtc);
+        }
     }
 }

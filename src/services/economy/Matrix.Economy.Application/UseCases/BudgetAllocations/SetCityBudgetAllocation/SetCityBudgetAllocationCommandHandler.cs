@@ -26,59 +26,61 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
         {
             CityBudgetAllocationDto result = default!;
 
-            await unitOfWork.ExecuteInTransactionAsync(async ct =>
-            {
-                CityBudgetUnitProfile requestedUnit = ResolveRequestedUnit(request);
-
-                CityBudget budget = await budgetRepository.GetByCityAsync(
-                                        cityId: request.CityId,
-                                        cancellationToken: ct) ??
-                                    CreateBudget(
-                                        cityId: request.CityId,
-                                        requestedUnit: requestedUnit,
-                                        budgetRepository: budgetRepository);
-                budget.EnsureCompatibleUnit(requestedUnit);
-
-                DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
-                CityBudgetAllocation? allocation = await allocationRepository.GetByCityAndCategoryAsync(
-                    cityId: request.CityId,
-                    category: request.Category,
-                    cancellationToken: ct);
-
-                if (allocation is null)
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async ct =>
                 {
-                    allocation = new CityBudgetAllocation(
-                        id: Guid.NewGuid(),
+                    CityBudgetUnitProfile requestedUnit = ResolveRequestedUnit(request);
+
+                    CityBudget budget = await budgetRepository.GetByCityAsync(
+                                            cityId: request.CityId,
+                                            cancellationToken: ct) ??
+                                        CreateBudget(
+                                            cityId: request.CityId,
+                                            requestedUnit: requestedUnit,
+                                            budgetRepository: budgetRepository);
+                    budget.EnsureCompatibleUnit(requestedUnit);
+
+                    DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
+                    CityBudgetAllocation? allocation = await allocationRepository.GetByCityAndCategoryAsync(
                         cityId: request.CityId,
                         category: request.Category,
-                        createdAtUtc: updatedAtUtc,
-                        unitProfile: budget.GetUnitProfile(),
-                        targetAmount: Money.FromDecimal(request.TargetAmount));
+                        cancellationToken: ct);
 
-                    allocationRepository.Add(allocation);
-                }
-                else
-                {
-                    allocation.EnsureCompatibleUnit(budget.GetUnitProfile());
-                    allocation.SetTargetAmount(
-                        targetAmount: Money.FromDecimal(request.TargetAmount),
-                        updatedAtUtc: updatedAtUtc);
-                }
+                    if (allocation is null)
+                    {
+                        allocation = new CityBudgetAllocation(
+                            id: Guid.NewGuid(),
+                            cityId: request.CityId,
+                            category: request.Category,
+                            createdAtUtc: updatedAtUtc,
+                            unitProfile: budget.GetUnitProfile(),
+                            targetAmount: Money.FromDecimal(request.TargetAmount));
 
-                await unitOfWork.SaveChangesAsync(ct);
+                        allocationRepository.Add(allocation);
+                    }
+                    else
+                    {
+                        allocation.EnsureCompatibleUnit(budget.GetUnitProfile());
+                        allocation.SetTargetAmount(
+                            targetAmount: Money.FromDecimal(request.TargetAmount),
+                            updatedAtUtc: updatedAtUtc);
+                    }
 
-                CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
-                    cityId: request.CityId,
-                    cancellationToken: ct);
-                await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
-                    snapshot: pressure,
-                    effectiveAtUtc: updatedAtUtc,
-                    occurredAtUtc: timeProvider.GetUtcNow(),
-                    cancellationToken: ct);
-                await unitOfWork.SaveChangesAsync(ct);
+                    await unitOfWork.SaveChangesAsync(ct);
 
-                result = GetCityBudgetAllocationsQueryHandler.Map(allocation);
-            }, cancellationToken);
+                    CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
+                        cityId: request.CityId,
+                        cancellationToken: ct);
+                    await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                        snapshot: pressure,
+                        effectiveAtUtc: updatedAtUtc,
+                        occurredAtUtc: timeProvider.GetUtcNow(),
+                        cancellationToken: ct);
+                    await unitOfWork.SaveChangesAsync(ct);
+
+                    result = GetCityBudgetAllocationsQueryHandler.Map(allocation);
+                },
+                cancellationToken: cancellationToken);
 
             return result;
         }

@@ -2,66 +2,89 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Identity.Domain.ValueObjects;
 using Xunit;
 
-namespace Matrix.Identity.Domain.Tests.ValueObjects;
-
-public sealed class DeviceInfoTests
+namespace Matrix.Identity.Domain.Tests.ValueObjects
 {
-    [Fact]
-    public void Create_TrimsValidatedFields_AndNormalizesNullUserAgent()
+    public sealed class DeviceInfoTests
     {
-        var deviceInfo = DeviceInfo.Create(
-            deviceId: "  device-1  ",
-            deviceName: "  Pixel  ",
-            userAgent: null!,
-            ipAddress: "127.0.0.1");
+        [Fact]
+        public void Create_TrimsValidatedFields_AndNormalizesNullUserAgent()
+        {
+            var deviceInfo = DeviceInfo.Create(
+                deviceId: "  device-1  ",
+                deviceName: "  Pixel  ",
+                userAgent: null!,
+                ipAddress: "127.0.0.1");
 
-        Assert.Equal("device-1", deviceInfo.DeviceId);
-        Assert.Equal("Pixel", deviceInfo.DeviceName);
-        Assert.Equal(string.Empty, deviceInfo.UserAgent);
-        Assert.Equal("127.0.0.1", deviceInfo.IpAddress);
-    }
+            Assert.Equal(
+                expected: "device-1",
+                actual: deviceInfo.DeviceId);
+            Assert.Equal(
+                expected: "Pixel",
+                actual: deviceInfo.DeviceName);
+            Assert.Equal(
+                expected: string.Empty,
+                actual: deviceInfo.UserAgent);
+            Assert.Equal(
+                expected: "127.0.0.1",
+                actual: deviceInfo.IpAddress);
+        }
 
-    [Fact]
-    public void Create_TrimsUserAgent()
-    {
-        var deviceInfo = DeviceInfo.Create(
-            deviceId: "device-1",
-            deviceName: "Pixel",
-            userAgent: "  Mozilla/5.0  ",
-            ipAddress: null);
+        [Fact]
+        public void Create_TrimsUserAgent()
+        {
+            var deviceInfo = DeviceInfo.Create(
+                deviceId: "device-1",
+                deviceName: "Pixel",
+                userAgent: "  Mozilla/5.0  ",
+                ipAddress: null);
 
-        Assert.Equal("Mozilla/5.0", deviceInfo.UserAgent);
-    }
+            Assert.Equal(
+                expected: "Mozilla/5.0",
+                actual: deviceInfo.UserAgent);
+        }
 
-    [Fact]
-    public void WithClientInfo_PreservesDeviceIdentity_AndUpdatesClientFields()
-    {
-        var deviceInfo = DeviceInfo.Create(
-            deviceId: "device-1",
-            deviceName: "Pixel",
-            userAgent: "Mozilla/5.0",
-            ipAddress: "127.0.0.1");
+        [Fact]
+        public void WithClientInfo_PreservesDeviceIdentity_AndUpdatesClientFields()
+        {
+            var deviceInfo = DeviceInfo.Create(
+                deviceId: "device-1",
+                deviceName: "Pixel",
+                userAgent: "Mozilla/5.0",
+                ipAddress: "127.0.0.1");
 
-        var updated = deviceInfo.WithClientInfo(
-            userAgent: "  Safari  ",
-            ipAddress: "10.0.0.1");
+            DeviceInfo updated = deviceInfo.WithClientInfo(
+                userAgent: "  Safari  ",
+                ipAddress: "10.0.0.1");
 
-        Assert.Equal(deviceInfo.DeviceId, updated.DeviceId);
-        Assert.Equal(deviceInfo.DeviceName, updated.DeviceName);
-        Assert.Equal("Safari", updated.UserAgent);
-        Assert.Equal("10.0.0.1", updated.IpAddress);
-    }
+            Assert.Equal(
+                expected: deviceInfo.DeviceId,
+                actual: updated.DeviceId);
+            Assert.Equal(
+                expected: deviceInfo.DeviceName,
+                actual: updated.DeviceName);
+            Assert.Equal(
+                expected: "Safari",
+                actual: updated.UserAgent);
+            Assert.Equal(
+                expected: "10.0.0.1",
+                actual: updated.IpAddress);
+        }
 
-    [Fact]
-    public void Create_WithInvalidDeviceId_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => DeviceInfo.Create(
-            deviceId: "   ",
-            deviceName: "Pixel",
-            userAgent: "Mozilla/5.0",
-            ipAddress: null));
+        [Fact]
+        public void Create_WithInvalidDeviceId_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => DeviceInfo.Create(
+                deviceId: "   ",
+                deviceName: "Pixel",
+                userAgent: "Mozilla/5.0",
+                ipAddress: null));
 
-        Assert.Equal("Identity.DeviceInfo.InvalidDeviceId", exception.Code);
-        Assert.Equal("deviceId", exception.PropertyName);
+            Assert.Equal(
+                expected: "Identity.DeviceInfo.InvalidDeviceId",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "deviceId",
+                actual: exception.PropertyName);
+        }
     }
 }

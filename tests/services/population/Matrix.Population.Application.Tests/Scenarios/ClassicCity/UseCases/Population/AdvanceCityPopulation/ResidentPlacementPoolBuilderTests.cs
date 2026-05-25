@@ -7,200 +7,280 @@ using Matrix.Population.Domain.ValueObjects;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
 
-namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
-
-public sealed class ResidentPlacementPoolBuilderTests
+namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
-    private static readonly DateOnly CurrentDate = new(2048, 5, 6);
-
-    [Fact]
-    public void BuildEducationInstitutionPools_WhenPersonsHaveNoInstitutions_ReturnsEmpty()
+    public sealed class ResidentPlacementPoolBuilderTests
     {
-        Person[] persons =
-        [
-            CreatePerson(personId: Guid.NewGuid()),
-            CreatePerson(personId: Guid.NewGuid())
-        ];
+        private static readonly DateOnly CurrentDate = new(
+            year: 2048,
+            month: 5,
+            day: 6);
 
-        Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
-            ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(persons);
+        [Fact]
+        public void BuildEducationInstitutionPools_WhenPersonsHaveNoInstitutions_ReturnsEmpty()
+        {
+            Person[] persons =
+            [
+                CreatePerson(personId: Guid.NewGuid()),
+                CreatePerson(personId: Guid.NewGuid())
+            ];
 
-        Assert.Empty(pools);
-    }
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
+                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(persons);
 
-    [Fact]
-    public void BuildEducationInstitutionPools_GroupsInstitutionsByEducationLevel()
-    {
-        EducationInstitutionId upperInstitution = EducationInstitutionId.From(
-            Guid.Parse("11111111-1111-1111-1111-111111111111"));
-        EducationInstitutionId higherInstitution = EducationInstitutionId.From(
-            Guid.Parse("22222222-2222-2222-2222-222222222222"));
-        Person upperStudent = CreateStudent(
-            level: EducationLevel.UpperSecondary,
-            institutionId: upperInstitution);
-        Person higherStudent = CreateStudent(
-            level: EducationLevel.Higher,
-            institutionId: higherInstitution);
+            Assert.Empty(pools);
+        }
 
-        Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
-            ResidentPlacementPoolBuilder.BuildEducationInstitutionPools([upperStudent, higherStudent]);
+        [Fact]
+        public void BuildEducationInstitutionPools_GroupsInstitutionsByEducationLevel()
+        {
+            var upperInstitution = EducationInstitutionId.From(Guid.Parse("11111111-1111-1111-1111-111111111111"));
+            var higherInstitution = EducationInstitutionId.From(Guid.Parse("22222222-2222-2222-2222-222222222222"));
+            Person upperStudent = CreateStudent(
+                level: EducationLevel.UpperSecondary,
+                institutionId: upperInstitution);
+            Person higherStudent = CreateStudent(
+                level: EducationLevel.Higher,
+                institutionId: higherInstitution);
 
-        Assert.Equal(2, pools.Count);
-        Assert.Equal(upperInstitution, Assert.Single(pools[EducationLevel.UpperSecondary]).InstitutionId);
-        Assert.Equal(higherInstitution, Assert.Single(pools[EducationLevel.Higher]).InstitutionId);
-    }
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
+                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(
+                [
+                    upperStudent,
+                    higherStudent
+                ]);
 
-    [Fact]
-    public void BuildEducationInstitutionPools_DeduplicatesInstitutionPerLevelAndKeepsFirstAnchor()
-    {
-        EducationInstitutionId institutionId = EducationInstitutionId.From(
-            Guid.Parse("33333333-3333-3333-3333-333333333333"));
-        CityAnchorId firstAnchorId = CityAnchorId.From(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
-        CityAnchorId secondAnchorId = CityAnchorId.From(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
-        Person firstStudent = CreateStudent(
-            level: EducationLevel.UpperSecondary,
-            institutionId: institutionId,
-            institutionAnchorId: firstAnchorId);
-        Person duplicateStudent = CreateStudent(
-            level: EducationLevel.UpperSecondary,
-            institutionId: institutionId,
-            institutionAnchorId: secondAnchorId);
+            Assert.Equal(
+                expected: 2,
+                actual: pools.Count);
+            Assert.Equal(
+                expected: upperInstitution,
+                actual: Assert.Single(pools[EducationLevel.UpperSecondary])
+                   .InstitutionId);
+            Assert.Equal(
+                expected: higherInstitution,
+                actual: Assert.Single(pools[EducationLevel.Higher])
+                   .InstitutionId);
+        }
 
-        Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
-            ResidentPlacementPoolBuilder.BuildEducationInstitutionPools([firstStudent, duplicateStudent]);
+        [Fact]
+        public void BuildEducationInstitutionPools_DeduplicatesInstitutionPerLevelAndKeepsFirstAnchor()
+        {
+            var institutionId = EducationInstitutionId.From(Guid.Parse("33333333-3333-3333-3333-333333333333"));
+            var firstAnchorId = CityAnchorId.From(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+            var secondAnchorId = CityAnchorId.From(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+            Person firstStudent = CreateStudent(
+                level: EducationLevel.UpperSecondary,
+                institutionId: institutionId,
+                institutionAnchorId: firstAnchorId);
+            Person duplicateStudent = CreateStudent(
+                level: EducationLevel.UpperSecondary,
+                institutionId: institutionId,
+                institutionAnchorId: secondAnchorId);
 
-        CityEducationInstitutionBinding binding = Assert.Single(pools[EducationLevel.UpperSecondary]);
-        Assert.Equal(institutionId, binding.InstitutionId);
-        Assert.Equal(firstAnchorId, binding.InstitutionAnchorId);
-    }
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
+                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(
+                [
+                    firstStudent,
+                    duplicateStudent
+                ]);
 
-    [Fact]
-    public void BuildEducationInstitutionPools_AllowsSameInstitutionAcrossDifferentLevels()
-    {
-        EducationInstitutionId institutionId = EducationInstitutionId.From(
-            Guid.Parse("44444444-4444-4444-4444-444444444444"));
-        Person upperStudent = CreateStudent(
-            level: EducationLevel.UpperSecondary,
-            institutionId: institutionId);
-        Person higherStudent = CreateStudent(
-            level: EducationLevel.Higher,
-            institutionId: institutionId);
+            CityEducationInstitutionBinding binding = Assert.Single(pools[EducationLevel.UpperSecondary]);
+            Assert.Equal(
+                expected: institutionId,
+                actual: binding.InstitutionId);
+            Assert.Equal(
+                expected: firstAnchorId,
+                actual: binding.InstitutionAnchorId);
+        }
 
-        Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
-            ResidentPlacementPoolBuilder.BuildEducationInstitutionPools([upperStudent, higherStudent]);
+        [Fact]
+        public void BuildEducationInstitutionPools_AllowsSameInstitutionAcrossDifferentLevels()
+        {
+            var institutionId = EducationInstitutionId.From(Guid.Parse("44444444-4444-4444-4444-444444444444"));
+            Person upperStudent = CreateStudent(
+                level: EducationLevel.UpperSecondary,
+                institutionId: institutionId);
+            Person higherStudent = CreateStudent(
+                level: EducationLevel.Higher,
+                institutionId: institutionId);
 
-        Assert.Equal(institutionId, Assert.Single(pools[EducationLevel.UpperSecondary]).InstitutionId);
-        Assert.Equal(institutionId, Assert.Single(pools[EducationLevel.Higher]).InstitutionId);
-    }
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
+                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(
+                [
+                    upperStudent,
+                    higherStudent
+                ]);
 
-    [Fact]
-    public void BuildWorkplacePools_WhenPersonsAreNotEmployed_ReturnsEmpty()
-    {
-        Person unemployed = CreatePerson(personId: Guid.NewGuid());
-        Person student = CreateStudent(
-            level: EducationLevel.UpperSecondary,
-            institutionId: EducationInstitutionId.From(Guid.Parse("55555555-5555-5555-5555-555555555555")));
-        Person retired = CreatePerson(
-            personId: Guid.NewGuid(),
-            birthDate: new DateOnly(1940, 1, 1),
-            currentDate: CurrentDate);
-        retired.Retire(CurrentDate);
+            Assert.Equal(
+                expected: institutionId,
+                actual: Assert.Single(pools[EducationLevel.UpperSecondary])
+                   .InstitutionId);
+            Assert.Equal(
+                expected: institutionId,
+                actual: Assert.Single(pools[EducationLevel.Higher])
+                   .InstitutionId);
+        }
 
-        Dictionary<string, List<Job>> pools =
-            ResidentPlacementPoolBuilder.BuildWorkplacePools([unemployed, student, retired]);
+        [Fact]
+        public void BuildWorkplacePools_WhenPersonsAreNotEmployed_ReturnsEmpty()
+        {
+            Person unemployed = CreatePerson(personId: Guid.NewGuid());
+            Person student = CreateStudent(
+                level: EducationLevel.UpperSecondary,
+                institutionId: EducationInstitutionId.From(Guid.Parse("55555555-5555-5555-5555-555555555555")));
+            Person retired = CreatePerson(
+                personId: Guid.NewGuid(),
+                birthDate: new DateOnly(
+                    year: 1940,
+                    month: 1,
+                    day: 1),
+                currentDate: CurrentDate);
+            retired.Retire(CurrentDate);
 
-        Assert.Empty(pools);
-    }
+            Dictionary<string, List<Job>> pools =
+                ResidentPlacementPoolBuilder.BuildWorkplacePools(
+                [
+                    unemployed,
+                    student,
+                    retired
+                ]);
 
-    [Fact]
-    public void BuildWorkplacePools_GroupsJobsByTitleCaseInsensitively()
-    {
-        WorkplaceId firstWorkplaceId = WorkplaceId.From(Guid.Parse("66666666-6666-6666-6666-666666666666"));
-        WorkplaceId secondWorkplaceId = WorkplaceId.From(Guid.Parse("77777777-7777-7777-7777-777777777777"));
-        Person firstEngineer = CreateEmployedPerson(CreateJob(firstWorkplaceId, "Engineer"));
-        Person secondEngineer = CreateEmployedPerson(CreateJob(secondWorkplaceId, "engineer"));
+            Assert.Empty(pools);
+        }
 
-        Dictionary<string, List<Job>> pools =
-            ResidentPlacementPoolBuilder.BuildWorkplacePools([firstEngineer, secondEngineer]);
+        [Fact]
+        public void BuildWorkplacePools_GroupsJobsByTitleCaseInsensitively()
+        {
+            var firstWorkplaceId = WorkplaceId.From(Guid.Parse("66666666-6666-6666-6666-666666666666"));
+            var secondWorkplaceId = WorkplaceId.From(Guid.Parse("77777777-7777-7777-7777-777777777777"));
+            Person firstEngineer = CreateEmployedPerson(
+                CreateJob(
+                    workplaceId: firstWorkplaceId,
+                    title: "Engineer"));
+            Person secondEngineer = CreateEmployedPerson(
+                CreateJob(
+                    workplaceId: secondWorkplaceId,
+                    title: "engineer"));
 
-        Assert.Single(pools);
-        Assert.True(pools.ContainsKey("ENGINEER"));
-        Assert.Equal(
-            [firstWorkplaceId, secondWorkplaceId],
-            pools["ENGINEER"].Select(job => job.WorkplaceId).ToArray());
-    }
+            Dictionary<string, List<Job>> pools =
+                ResidentPlacementPoolBuilder.BuildWorkplacePools(
+                [
+                    firstEngineer,
+                    secondEngineer
+                ]);
 
-    [Fact]
-    public void BuildWorkplacePools_DeduplicatesWorkplacePerTitleAndKeepsFirstJob()
-    {
-        WorkplaceId workplaceId = WorkplaceId.From(Guid.Parse("88888888-8888-8888-8888-888888888888"));
-        CityAnchorId firstAnchorId = CityAnchorId.From(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
-        CityAnchorId secondAnchorId = CityAnchorId.From(Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"));
-        Person firstEngineer = CreateEmployedPerson(CreateJob(
-            workplaceId: workplaceId,
-            title: "Engineer",
-            workplaceAnchorId: firstAnchorId));
-        Person duplicateEngineer = CreateEmployedPerson(CreateJob(
-            workplaceId: workplaceId,
-            title: "Engineer",
-            workplaceAnchorId: secondAnchorId));
+            Assert.Single(pools);
+            Assert.True(pools.ContainsKey("ENGINEER"));
+            Assert.Equal(
+                expectedSpan:
+                [
+                    firstWorkplaceId,
+                    secondWorkplaceId
+                ],
+                actualArray: pools["ENGINEER"]
+                   .Select(job => job.WorkplaceId)
+                   .ToArray());
+        }
 
-        Dictionary<string, List<Job>> pools =
-            ResidentPlacementPoolBuilder.BuildWorkplacePools([firstEngineer, duplicateEngineer]);
+        [Fact]
+        public void BuildWorkplacePools_DeduplicatesWorkplacePerTitleAndKeepsFirstJob()
+        {
+            var workplaceId = WorkplaceId.From(Guid.Parse("88888888-8888-8888-8888-888888888888"));
+            var firstAnchorId = CityAnchorId.From(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
+            var secondAnchorId = CityAnchorId.From(Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"));
+            Person firstEngineer = CreateEmployedPerson(
+                CreateJob(
+                    workplaceId: workplaceId,
+                    title: "Engineer",
+                    workplaceAnchorId: firstAnchorId));
+            Person duplicateEngineer = CreateEmployedPerson(
+                CreateJob(
+                    workplaceId: workplaceId,
+                    title: "Engineer",
+                    workplaceAnchorId: secondAnchorId));
 
-        Job job = Assert.Single(pools["Engineer"]);
-        Assert.Equal(workplaceId, job.WorkplaceId);
-        Assert.Equal(firstAnchorId, job.WorkplaceAnchorId);
-    }
+            Dictionary<string, List<Job>> pools =
+                ResidentPlacementPoolBuilder.BuildWorkplacePools(
+                [
+                    firstEngineer,
+                    duplicateEngineer
+                ]);
 
-    [Fact]
-    public void BuildWorkplacePools_AllowsSameWorkplaceAcrossDifferentTitles()
-    {
-        WorkplaceId workplaceId = WorkplaceId.From(Guid.Parse("99999999-9999-9999-9999-999999999999"));
-        Person engineer = CreateEmployedPerson(CreateJob(workplaceId, "Engineer"));
-        Person doctor = CreateEmployedPerson(CreateJob(workplaceId, "Doctor"));
+            Job job = Assert.Single(pools["Engineer"]);
+            Assert.Equal(
+                expected: workplaceId,
+                actual: job.WorkplaceId);
+            Assert.Equal(
+                expected: firstAnchorId,
+                actual: job.WorkplaceAnchorId);
+        }
 
-        Dictionary<string, List<Job>> pools =
-            ResidentPlacementPoolBuilder.BuildWorkplacePools([engineer, doctor]);
+        [Fact]
+        public void BuildWorkplacePools_AllowsSameWorkplaceAcrossDifferentTitles()
+        {
+            var workplaceId = WorkplaceId.From(Guid.Parse("99999999-9999-9999-9999-999999999999"));
+            Person engineer = CreateEmployedPerson(
+                CreateJob(
+                    workplaceId: workplaceId,
+                    title: "Engineer"));
+            Person doctor = CreateEmployedPerson(
+                CreateJob(
+                    workplaceId: workplaceId,
+                    title: "Doctor"));
 
-        Assert.Equal(workplaceId, Assert.Single(pools["Engineer"]).WorkplaceId);
-        Assert.Equal(workplaceId, Assert.Single(pools["Doctor"]).WorkplaceId);
-    }
+            Dictionary<string, List<Job>> pools =
+                ResidentPlacementPoolBuilder.BuildWorkplacePools(
+                [
+                    engineer,
+                    doctor
+                ]);
 
-    private static Person CreateStudent(
-        EducationLevel level,
-        EducationInstitutionId institutionId,
-        CityAnchorId? institutionAnchorId = null)
-    {
-        Person person = CreatePerson(personId: Guid.NewGuid());
+            Assert.Equal(
+                expected: workplaceId,
+                actual: Assert.Single(pools["Engineer"])
+                   .WorkplaceId);
+            Assert.Equal(
+                expected: workplaceId,
+                actual: Assert.Single(pools["Doctor"])
+                   .WorkplaceId);
+        }
 
-        if (person.EducationLevel != level)
-            person.GraduateTo(level);
+        private static Person CreateStudent(
+            EducationLevel level,
+            EducationInstitutionId institutionId,
+            CityAnchorId? institutionAnchorId = null)
+        {
+            Person person = CreatePerson(personId: Guid.NewGuid());
 
-        person.StartStudying(
-            currentDate: CurrentDate,
-            institutionId: institutionId,
-            institutionAnchorId: institutionAnchorId);
+            if (person.EducationLevel != level)
+                person.GraduateTo(level);
 
-        return person;
-    }
+            person.StartStudying(
+                currentDate: CurrentDate,
+                institutionId: institutionId,
+                institutionAnchorId: institutionAnchorId);
 
-    private static Person CreateEmployedPerson(Job job)
-    {
-        return CreatePerson(
-            personId: Guid.NewGuid(),
-            employmentStatus: EmploymentStatus.Employed,
-            job: job);
-    }
+            return person;
+        }
 
-    private static Job CreateJob(
-        WorkplaceId workplaceId,
-        string title,
-        CityAnchorId? workplaceAnchorId = null)
-    {
-        return new Job(
-            workplaceId: workplaceId,
-            title: title,
-            workplaceAnchorId: workplaceAnchorId);
+        private static Person CreateEmployedPerson(Job job)
+        {
+            return CreatePerson(
+                personId: Guid.NewGuid(),
+                employmentStatus: EmploymentStatus.Employed,
+                job: job);
+        }
+
+        private static Job CreateJob(
+            WorkplaceId workplaceId,
+            string title,
+            CityAnchorId? workplaceAnchorId = null)
+        {
+            return new Job(
+                workplaceId: workplaceId,
+                title: title,
+                workplaceAnchorId: workplaceAnchorId);
+        }
     }
 }

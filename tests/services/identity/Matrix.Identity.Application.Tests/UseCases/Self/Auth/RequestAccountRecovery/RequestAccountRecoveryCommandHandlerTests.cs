@@ -1,27 +1,34 @@
-using Matrix.Identity.Application.Tests.UseCases.Self;
+using Matrix.Identity.Application.UseCases.Self.Auth.RequestAccountRecovery;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RequestAccountRecovery;
-
-public sealed class RequestAccountRecoveryCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RequestAccountRecovery
 {
-    [Fact]
-    public async Task Handle_DelegatesToOneTimeTokenDeliveryService()
+    public sealed class RequestAccountRecoveryCommandHandlerTests
     {
-        var deliveryService = new SelfServiceHandlerTestSupport.FakeOneTimeTokenDeliveryService();
-        var handler = new Matrix.Identity.Application.UseCases.Self.Auth.RequestAccountRecovery.RequestAccountRecoveryCommandHandler(
-            deliveryService);
+        [Fact]
+        public async Task Handle_DelegatesToOneTimeTokenDeliveryService()
+        {
+            var deliveryService = new SelfServiceHandlerTestSupport.FakeOneTimeTokenDeliveryService();
+            var handler = new RequestAccountRecoveryCommandHandler(deliveryService);
 
-        await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateRequestAccountRecoveryCommand(
-                email: "neo@matrix.local",
-                ipAddress: "203.0.113.75",
-                userAgent: "Mozilla/5.0 (account-recovery)"),
-            CancellationToken.None);
+            await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateRequestAccountRecoveryCommand(
+                    email: "neo@matrix.local",
+                    ipAddress: "203.0.113.75",
+                    userAgent: "Mozilla/5.0 (account-recovery)"),
+                cancellationToken: CancellationToken.None);
 
-        var request = Assert.Single(deliveryService.AccountRecoveryRequests);
-        Assert.Equal("neo@matrix.local", request.Email);
-        Assert.Equal("203.0.113.75", request.IpAddress);
-        Assert.Equal("Mozilla/5.0 (account-recovery)", request.UserAgent);
+            (string Email, string? IpAddress, string? UserAgent) request =
+                Assert.Single(deliveryService.AccountRecoveryRequests);
+            Assert.Equal(
+                expected: "neo@matrix.local",
+                actual: request.Email);
+            Assert.Equal(
+                expected: "203.0.113.75",
+                actual: request.IpAddress);
+            Assert.Equal(
+                expected: "Mozilla/5.0 (account-recovery)",
+                actual: request.UserAgent);
+        }
     }
 }

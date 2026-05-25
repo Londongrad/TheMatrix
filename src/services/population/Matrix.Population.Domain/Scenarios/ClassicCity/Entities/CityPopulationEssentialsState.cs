@@ -23,17 +23,37 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             DateTimeOffset updatedAtUtc)
         {
             CityId = cityId;
-            SupplyStressIndex = ValidateIndex(supplyStressIndex, nameof(supplyStressIndex));
+            SupplyStressIndex = ValidateIndex(
+                value: supplyStressIndex,
+                paramName: nameof(supplyStressIndex));
             EmergencyRationingEnabled = emergencyRationingEnabled;
-            FoodStockLevelIndex = ValidateIndex(foodStockLevelIndex, nameof(foodStockLevelIndex));
-            FoodShortageRiskIndex = ValidateIndex(foodShortageRiskIndex, nameof(foodShortageRiskIndex));
-            MedicineStockLevelIndex = ValidateIndex(medicineStockLevelIndex, nameof(medicineStockLevelIndex));
-            MedicineShortageRiskIndex = ValidateIndex(medicineShortageRiskIndex, nameof(medicineShortageRiskIndex));
-            EmergencyWaterStockLevelIndex = ValidateIndex(emergencyWaterStockLevelIndex, nameof(emergencyWaterStockLevelIndex));
-            EmergencyWaterShortageRiskIndex = ValidateIndex(emergencyWaterShortageRiskIndex, nameof(emergencyWaterShortageRiskIndex));
-            EffectiveTickId = EnsureTickId(effectiveTickId, nameof(effectiveTickId));
-            EffectiveAtUtc = EnsureUtc(effectiveAtUtc, nameof(effectiveAtUtc));
-            UpdatedAtUtc = EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            FoodStockLevelIndex = ValidateIndex(
+                value: foodStockLevelIndex,
+                paramName: nameof(foodStockLevelIndex));
+            FoodShortageRiskIndex = ValidateIndex(
+                value: foodShortageRiskIndex,
+                paramName: nameof(foodShortageRiskIndex));
+            MedicineStockLevelIndex = ValidateIndex(
+                value: medicineStockLevelIndex,
+                paramName: nameof(medicineStockLevelIndex));
+            MedicineShortageRiskIndex = ValidateIndex(
+                value: medicineShortageRiskIndex,
+                paramName: nameof(medicineShortageRiskIndex));
+            EmergencyWaterStockLevelIndex = ValidateIndex(
+                value: emergencyWaterStockLevelIndex,
+                paramName: nameof(emergencyWaterStockLevelIndex));
+            EmergencyWaterShortageRiskIndex = ValidateIndex(
+                value: emergencyWaterShortageRiskIndex,
+                paramName: nameof(emergencyWaterShortageRiskIndex));
+            EffectiveTickId = EnsureTickId(
+                value: effectiveTickId,
+                paramName: nameof(effectiveTickId));
+            EffectiveAtUtc = EnsureUtc(
+                value: effectiveAtUtc,
+                paramName: nameof(effectiveAtUtc));
+            UpdatedAtUtc = EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
         }
 
         public CityId CityId { get; private set; }
@@ -91,28 +111,55 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             DateTimeOffset effectiveAtUtc,
             DateTimeOffset updatedAtUtc)
         {
-            SupplyStressIndex = ValidateIndex(supplyStressIndex, nameof(supplyStressIndex));
+            SupplyStressIndex = ValidateIndex(
+                value: supplyStressIndex,
+                paramName: nameof(supplyStressIndex));
             EmergencyRationingEnabled = emergencyRationingEnabled;
-            FoodStockLevelIndex = ValidateIndex(foodStockLevelIndex, nameof(foodStockLevelIndex));
-            FoodShortageRiskIndex = ValidateIndex(foodShortageRiskIndex, nameof(foodShortageRiskIndex));
-            MedicineStockLevelIndex = ValidateIndex(medicineStockLevelIndex, nameof(medicineStockLevelIndex));
-            MedicineShortageRiskIndex = ValidateIndex(medicineShortageRiskIndex, nameof(medicineShortageRiskIndex));
-            EmergencyWaterStockLevelIndex = ValidateIndex(emergencyWaterStockLevelIndex, nameof(emergencyWaterStockLevelIndex));
-            EmergencyWaterShortageRiskIndex = ValidateIndex(emergencyWaterShortageRiskIndex, nameof(emergencyWaterShortageRiskIndex));
-            EffectiveTickId = EnsureTickId(effectiveTickId, nameof(effectiveTickId));
-            EffectiveAtUtc = EnsureUtc(effectiveAtUtc, nameof(effectiveAtUtc));
-            UpdatedAtUtc = EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            FoodStockLevelIndex = ValidateIndex(
+                value: foodStockLevelIndex,
+                paramName: nameof(foodStockLevelIndex));
+            FoodShortageRiskIndex = ValidateIndex(
+                value: foodShortageRiskIndex,
+                paramName: nameof(foodShortageRiskIndex));
+            MedicineStockLevelIndex = ValidateIndex(
+                value: medicineStockLevelIndex,
+                paramName: nameof(medicineStockLevelIndex));
+            MedicineShortageRiskIndex = ValidateIndex(
+                value: medicineShortageRiskIndex,
+                paramName: nameof(medicineShortageRiskIndex));
+            EmergencyWaterStockLevelIndex = ValidateIndex(
+                value: emergencyWaterStockLevelIndex,
+                paramName: nameof(emergencyWaterStockLevelIndex));
+            EmergencyWaterShortageRiskIndex = ValidateIndex(
+                value: emergencyWaterShortageRiskIndex,
+                paramName: nameof(emergencyWaterShortageRiskIndex));
+            EffectiveTickId = EnsureTickId(
+                value: effectiveTickId,
+                paramName: nameof(effectiveTickId));
+            EffectiveAtUtc = EnsureUtc(
+                value: effectiveAtUtc,
+                paramName: nameof(effectiveAtUtc));
+            UpdatedAtUtc = EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
         }
 
-        private static decimal ValidateIndex(decimal value, string paramName)
+        private static decimal ValidateIndex(
+            decimal value,
+            string paramName)
         {
             if (value is < 0m or > 3m)
                 throw new ArgumentOutOfRangeException(paramName);
 
-            return decimal.Round(value, 4, MidpointRounding.AwayFromZero);
+            return decimal.Round(
+                d: value,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
         }
 
-        private static long EnsureTickId(long value, string paramName)
+        private static long EnsureTickId(
+            long value,
+            string paramName)
         {
             if (value < 0)
                 throw new ArgumentOutOfRangeException(paramName);
@@ -120,7 +167,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             return value;
         }
 
-        private static DateTimeOffset EnsureUtc(DateTimeOffset value, string paramName)
+        private static DateTimeOffset EnsureUtc(
+            DateTimeOffset value,
+            string paramName)
         {
             GuardHelper.Ensure(
                 condition: value.Offset == TimeSpan.Zero,

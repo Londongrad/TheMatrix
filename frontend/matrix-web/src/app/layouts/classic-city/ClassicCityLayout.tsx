@@ -5,18 +5,18 @@ import {filterNavItems} from "@shared/permissions/filterNavItems";
 import {usePermissions} from "@shared/permissions/usePermissions";
 import type {NavItem} from "@shared/navigation/Sidebar/types";
 import {
-    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_LIST_PATH,
+    type ClassicCityResidentSection,
+    type ClassicCityWorkspaceSection,
     getClassicCityCivilRegistryPath,
     getClassicCityDetailsPath,
     getClassicCityEducationPath,
     getClassicCityEmploymentPath,
     getClassicCityProvisioningPath,
-    getClassicCityResidentsPath,
     getClassicCityResidentDossierPath,
+    getClassicCityResidentsPath,
     getClassicCitySetupPath,
-    type ClassicCityResidentSection,
-    type ClassicCityWorkspaceSection,
+    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
 } from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 

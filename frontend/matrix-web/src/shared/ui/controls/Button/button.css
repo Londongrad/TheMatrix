@@ -22,10 +22,10 @@
     inset: 0;
     z-index: -1;
     background: linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.08) 38%,
-        transparent 72%
+            120deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.08) 38%,
+            transparent 72%
     );
     transform: translateX(-135%);
     transition: transform 0.55s ease;
@@ -102,9 +102,8 @@
 }
 
 html[data-theme="matrix"] .ui-button {
-    box-shadow:
-        0 0 0 1px rgba(var(--shell-accent-rgb), 0.05),
-        0 10px 28px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.05),
+    0 10px 28px rgba(0, 0, 0, 0.28);
 }
 
 html[data-theme="matrix"] .ui-button::after {
@@ -113,10 +112,10 @@ html[data-theme="matrix"] .ui-button::after {
     inset: auto 10px 7px;
     height: 1px;
     background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(var(--shell-accent-rgb), 0.5),
-        transparent
+            90deg,
+            transparent,
+            rgba(var(--shell-accent-rgb), 0.5),
+            transparent
     );
     opacity: 0.65;
     pointer-events: none;

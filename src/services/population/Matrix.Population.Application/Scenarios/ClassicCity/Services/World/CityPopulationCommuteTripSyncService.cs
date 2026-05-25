@@ -3,9 +3,9 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstr
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -114,13 +114,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         residentialBuildingId: residentialBuildingId.Value,
                         candidates: candidates,
                         cancellationToken: cancellationToken);
-                else if (phaseWindow.ShouldDispatchReturnCommutes &&
-                         !activeTripKeys.Contains(workTripKey))
-                    TryAddEmploymentReturnCandidate(
-                        tickId: tickId,
-                        resident: resident,
-                        residentialBuildingId: residentialBuildingId.Value,
-                        candidates: candidates);
+                else
+                    if (phaseWindow.ShouldDispatchReturnCommutes &&
+                        !activeTripKeys.Contains(workTripKey))
+                        TryAddEmploymentReturnCandidate(
+                            tickId: tickId,
+                            resident: resident,
+                            residentialBuildingId: residentialBuildingId.Value,
+                            candidates: candidates);
 
                 string educationTripKey = BuildTripConcurrencyKey(
                     travellerEntityId: resident.Id.Value,
@@ -134,13 +135,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         residentialBuildingId: residentialBuildingId.Value,
                         candidates: candidates,
                         cancellationToken: cancellationToken);
-                else if (phaseWindow.ShouldDispatchReturnCommutes &&
-                         !activeTripKeys.Contains(educationTripKey))
-                    TryAddEducationReturnCandidate(
-                        tickId: tickId,
-                        resident: resident,
-                        residentialBuildingId: residentialBuildingId.Value,
-                        candidates: candidates);
+                else
+                    if (phaseWindow.ShouldDispatchReturnCommutes &&
+                        !activeTripKeys.Contains(educationTripKey))
+                        TryAddEducationReturnCandidate(
+                            tickId: tickId,
+                            resident: resident,
+                            residentialBuildingId: residentialBuildingId.Value,
+                            candidates: candidates);
             }
 
             foreach (CommuteTripCandidate candidate in candidates
@@ -182,7 +184,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             CancellationToken cancellationToken)
         {
             if (resident.Employment.Status != EmploymentStatus.Employed ||
-                resident.Employment.Job?.WorkplaceAnchorId is not { } workplaceAnchorId)
+                resident.Employment.Job?.WorkplaceAnchorId is not
+                    { } workplaceAnchorId)
                 return;
 
             CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEmploymentCommuteAsync(
@@ -219,7 +222,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             ICollection<CommuteTripCandidate> candidates)
         {
             if (resident.Employment.Status != EmploymentStatus.Employed ||
-                resident.Employment.Job?.WorkplaceAnchorId is not { } workplaceAnchorId)
+                resident.Employment.Job?.WorkplaceAnchorId is not
+                    { } workplaceAnchorId)
                 return;
 
             candidates.Add(
@@ -308,7 +312,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             CancellationToken cancellationToken)
         {
             if (resident.Employment.Status != EmploymentStatus.Student ||
-                resident.Education.CurrentInstitutionAnchorId is not { } institutionAnchorId)
+                resident.Education.CurrentInstitutionAnchorId is not
+                    { } institutionAnchorId)
                 return;
 
             CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEducationCommuteAsync(
@@ -345,7 +350,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             ICollection<CommuteTripCandidate> candidates)
         {
             if (resident.Employment.Status != EmploymentStatus.Student ||
-                resident.Education.CurrentInstitutionAnchorId is not { } institutionAnchorId)
+                resident.Education.CurrentInstitutionAnchorId is not
+                    { } institutionAnchorId)
                 return;
 
             candidates.Add(
@@ -378,9 +384,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             Person resident,
             string purpose)
         {
-            decimal healthFactor = 0.52m + ((resident.Health.Value / 100m) * 0.58m);
-            decimal energyFactor = 0.58m + ((resident.Energy.Value / 100m) * 0.52m);
-            decimal stressFactor = 1.04m - ((resident.Stress.Value / 100m) * 0.22m);
+            decimal healthFactor = 0.52m + (resident.Health.Value / 100m * 0.58m);
+            decimal energyFactor = 0.58m + (resident.Energy.Value / 100m * 0.52m);
+            decimal stressFactor = 1.04m - (resident.Stress.Value / 100m * 0.22m);
             decimal illnessFactor = resident.CurrentIllnessSeverity switch
             {
                 IllnessSeverity.Severe => 0.58m,
@@ -406,7 +412,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                     b: HealthcareAccessPurpose,
                     comparisonType: StringComparison.Ordinal)
                     ? 0.93m
-                : 1.00m;
+                    : 1.00m;
 
             return decimal.Round(
                 d: Math.Clamp(
@@ -446,11 +452,32 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
 
         private static MobilityPhaseWindow ResolvePhaseWindow(DateTimeOffset currentSimTimeUtc)
         {
-            TimeOnly time = TimeOnly.FromDateTime(currentSimTimeUtc.UtcDateTime);
+            var time = TimeOnly.FromDateTime(currentSimTimeUtc.UtcDateTime);
 
-            bool shouldDispatchOutboundCommutes = time >= new TimeOnly(6, 0) && time < new TimeOnly(10, 30);
-            bool shouldDispatchReturnCommutes = time >= new TimeOnly(16, 0) && time < new TimeOnly(20, 30);
-            bool shouldDispatchHealthcare = time >= new TimeOnly(8, 0) && time < new TimeOnly(20, 0);
+            bool shouldDispatchOutboundCommutes = time >=
+                                                  new TimeOnly(
+                                                      hour: 6,
+                                                      minute: 0) &&
+                                                  time <
+                                                  new TimeOnly(
+                                                      hour: 10,
+                                                      minute: 30);
+            bool shouldDispatchReturnCommutes = time >=
+                                                new TimeOnly(
+                                                    hour: 16,
+                                                    minute: 0) &&
+                                                time <
+                                                new TimeOnly(
+                                                    hour: 20,
+                                                    minute: 30);
+            bool shouldDispatchHealthcare = time >=
+                                            new TimeOnly(
+                                                hour: 8,
+                                                minute: 0) &&
+                                            time <
+                                            new TimeOnly(
+                                                hour: 20,
+                                                minute: 0);
 
             return new MobilityPhaseWindow(
                 ShouldDispatchOutboundCommutes: shouldDispatchOutboundCommutes,

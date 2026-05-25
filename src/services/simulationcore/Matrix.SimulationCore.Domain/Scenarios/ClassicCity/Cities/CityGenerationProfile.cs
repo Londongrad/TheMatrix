@@ -29,11 +29,11 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             PlannedPeopleCount = plannedPeopleCount;
         }
 
-        public CitySizeTier SizeTier { get; private set; }
-        public UrbanDensity UrbanDensity { get; private set; }
-        public CityDevelopmentLevel DevelopmentLevel { get; private set; }
-        public CityEconomyProfile EconomyProfile { get; private set; }
-        public PopulationOccupancyProfile PopulationOccupancyProfile { get; private set; }
+        public CitySizeTier SizeTier { get; }
+        public UrbanDensity UrbanDensity { get; }
+        public CityDevelopmentLevel DevelopmentLevel { get; }
+        public CityEconomyProfile EconomyProfile { get; }
+        public PopulationOccupancyProfile PopulationOccupancyProfile { get; }
         public int? PlannedPeopleCount { get; private set; }
 
         public static CityGenerationProfile Create(

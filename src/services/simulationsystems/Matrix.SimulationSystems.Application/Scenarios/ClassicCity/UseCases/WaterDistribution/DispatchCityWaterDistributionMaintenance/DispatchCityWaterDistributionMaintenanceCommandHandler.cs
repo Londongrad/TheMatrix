@@ -8,9 +8,10 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.DispatchCityWaterDistributionMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    DispatchCityWaterDistributionMaintenance
 {
-public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
+    public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
@@ -36,9 +37,10 @@ public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
             WaterDistributionMaintenanceFocus focus = Enum.Parse<WaterDistributionMaintenanceFocus>(
                 value: request.Focus,
                 ignoreCase: true);
-            WaterDistributionMaintenanceIntensity requestedIntensity = Enum.Parse<WaterDistributionMaintenanceIntensity>(
-                value: request.Intensity,
-                ignoreCase: true);
+            WaterDistributionMaintenanceIntensity requestedIntensity =
+                Enum.Parse<WaterDistributionMaintenanceIntensity>(
+                    value: request.Intensity,
+                    ignoreCase: true);
             CityBudgetAuthorizationDecision authorizationDecision =
                 await budgetAuthorizationService.AuthorizeInfrastructureMaintenanceAsync(
                     cityId: request.CityId,
@@ -57,7 +59,8 @@ public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
 
             if (authorizationDecision.Denied)
             {
-                decimal deniedSupport = pressureProfileFactory.Create(state).WaterSupport;
+                decimal deniedSupport = pressureProfileFactory.Create(state)
+                   .WaterSupport;
 
                 return CityWaterDistributionStatusDto.FromState(
                     cityId: request.CityId,
@@ -73,14 +76,16 @@ public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
                     budgetAuthorizationSummary: authorizationDecision.Summary);
             }
 
-            WaterDistributionMaintenanceIntensity budgetAuthorizedIntensity = Enum.Parse<WaterDistributionMaintenanceIntensity>(
-                value: authorizationDecision.ApprovedIntensity ?? requestedIntensity.ToString(),
-                ignoreCase: true);
+            WaterDistributionMaintenanceIntensity budgetAuthorizedIntensity =
+                Enum.Parse<WaterDistributionMaintenanceIntensity>(
+                    value: authorizationDecision.ApprovedIntensity ?? requestedIntensity.ToString(),
+                    ignoreCase: true);
             CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
                 requestedIntensity: budgetAuthorizedIntensity.ToString(),
                 authorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
                 pressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                emergencyModeEnabled: state.WaterDistributionInfrastructure.EmergencyModeEnabled || request.EmergencyOverride);
+                emergencyModeEnabled: state.WaterDistributionInfrastructure.EmergencyModeEnabled ||
+                                      request.EmergencyOverride);
             WaterDistributionMaintenanceIntensity appliedIntensity = Enum.Parse<WaterDistributionMaintenanceIntensity>(
                 value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
@@ -102,7 +107,8 @@ public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal waterSupport = pressureProfileFactory.Create(state).WaterSupport;
+            decimal waterSupport = pressureProfileFactory.Create(state)
+               .WaterSupport;
 
             return CityWaterDistributionStatusDto.FromState(
                 cityId: request.CityId,
@@ -129,7 +135,9 @@ public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
                 ? 2
                 : 1;
 
-            return Math.Max(0, currentTickId + delay);
+            return Math.Max(
+                val1: 0,
+                val2: currentTickId + delay);
         }
     }
 }

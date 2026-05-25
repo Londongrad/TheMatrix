@@ -1,7 +1,8 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.DispatchCitySanitationMaintenance;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
+using
+    Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCitySanitationStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.SetCitySanitationEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
@@ -137,8 +138,8 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
                 SanitationSupportIndex: dto.SanitationSupportIndex,
                 Districts: dto.Districts
-                    .Select(MapToDistrictConditionView)
-                    .ToArray());
+                   .Select(MapToDistrictConditionView)
+                   .ToArray());
         }
 
         private static CityDistrictSanitationConditionView MapToDistrictConditionView(

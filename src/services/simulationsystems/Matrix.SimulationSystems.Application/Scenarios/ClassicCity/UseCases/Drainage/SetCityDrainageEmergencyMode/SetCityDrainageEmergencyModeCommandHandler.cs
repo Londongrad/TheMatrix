@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.Common;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
@@ -31,7 +32,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
 
             state.SetDrainageEmergencyMode(request.Enabled);
 
-            var refreshedSnapshot = policy.Recalculate(
+            CityEnvironmentalConditionSnapshot refreshedSnapshot = policy.Recalculate(
                 state: state,
                 pressure: pressureProfileFactory.Create(state),
                 asOfUtc: state.LastEvaluatedAtUtc);
@@ -39,7 +40,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
             state.ApplySnapshot(refreshedSnapshot);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal drainageSupport = pressureProfileFactory.Create(state).DrainageSupport;
+            decimal drainageSupport = pressureProfileFactory.Create(state)
+               .DrainageSupport;
 
             return CityDrainageStatusDto.FromState(
                 cityId: request.CityId,

@@ -1,8 +1,9 @@
 using MassTransit;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.AdvanceCityEnvironmentalConditions;
+using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    AdvanceCityEnvironmentalConditions;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Matrix.SimulationCore.Contracts.Events;
 
 namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumers
 {

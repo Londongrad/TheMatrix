@@ -180,7 +180,10 @@ namespace Matrix.Population.Application.Mapping
             this Person person,
             TimeProvider timeProvider)
         {
-            return person.ToDto(DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
+            return person.ToDto(
+                DateOnly.FromDateTime(
+                    timeProvider.GetUtcNow()
+                       .UtcDateTime));
         }
 
         /// <summary>
@@ -211,7 +214,10 @@ namespace Matrix.Population.Application.Mapping
             this IEnumerable<Person> persons,
             TimeProvider timeProvider)
         {
-            return persons.ToDtoCollection(DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
+            return persons.ToDtoCollection(
+                DateOnly.FromDateTime(
+                    timeProvider.GetUtcNow()
+                       .UtcDateTime));
         }
 
         /// <summary>

@@ -31,7 +31,9 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Models
                 InfrastructureAuthorizationLevel: "High",
                 HealthcareAuthorizationLevel: "High",
                 PressureIndex: 0m,
-                EffectiveTickId: Math.Max(0, effectiveTickId),
+                EffectiveTickId: Math.Max(
+                    val1: 0,
+                    val2: effectiveTickId),
                 EffectiveAtUtc: effectiveAtUtc.Offset == TimeSpan.Zero
                     ? effectiveAtUtc
                     : effectiveAtUtc.ToUniversalTime());

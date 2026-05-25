@@ -4,8 +4,8 @@ using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity
 {
-    public sealed class InternalIdentityApiKeyAuthenticationHandler(
-        IOptions<IdentityInternalOptions> options) : DelegatingHandler
+    public sealed class InternalIdentityApiKeyAuthenticationHandler(IOptions<IdentityInternalOptions> options)
+        : DelegatingHandler
     {
         public const string InternalApiKeyHeaderName = "X-Internal-Key";
         public const string InternalApiKeyIdHeaderName = "X-Internal-Key-Id";

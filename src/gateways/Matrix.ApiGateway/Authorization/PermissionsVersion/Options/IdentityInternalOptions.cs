@@ -8,10 +8,10 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion.Options
 
         public string BaseUrl { get; init; } = string.Empty;
 
+        public int RequestTimeoutSeconds { get; init; } = 10;
+
         public string ApiKey { get; init; } = string.Empty;
         public string? CurrentKeyId { get; init; }
         public IDictionary<string, string>? Keys { get; init; }
-
-        public int RequestTimeoutSeconds { get; init; } = 10;
     }
 }

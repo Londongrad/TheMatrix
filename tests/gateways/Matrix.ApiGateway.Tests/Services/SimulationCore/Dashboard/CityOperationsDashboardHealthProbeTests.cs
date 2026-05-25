@@ -7,192 +7,254 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard;
-
-public sealed class CityOperationsDashboardHealthProbeTests
+namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
 {
-    private static readonly DateTimeOffset FixedNow = new(
-        year: 2048,
-        month: 6,
-        day: 1,
-        hour: 12,
-        minute: 0,
-        second: 0,
-        offset: TimeSpan.Zero);
-
-    [Fact]
-    public async Task ProbeAsync_WhenGatewayAndDownstreamsAreHealthy_ReturnsHealthyServicesWithFixedTimestamp()
+    public sealed class CityOperationsDashboardHealthProbeTests
     {
-        var httpClientFactory = new RecordingHttpClientFactory((_, _) =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
-        CityOperationsDashboardHealthProbe probe = CreateProbe(
-            gatewayHealth: HealthCheckResult.Healthy("ready"),
-            httpClientFactory: httpClientFactory);
+        private static readonly DateTimeOffset FixedNow = new(
+            year: 2048,
+            month: 6,
+            day: 1,
+            hour: 12,
+            minute: 0,
+            second: 0,
+            offset: TimeSpan.Zero);
 
-        IReadOnlyList<DashboardServiceHealthView> result = await probe.ProbeAsync(CancellationToken.None);
-
-        Dictionary<string, DashboardServiceHealthView> byService = ToServiceDictionary(result);
-
-        Assert.Equal(7, result.Count);
-        Assert.Contains("Gateway", byService.Keys);
-        Assert.Contains("SimulationCore", byService.Keys);
-        Assert.Contains("SimulationSystems", byService.Keys);
-        Assert.Contains("Resources", byService.Keys);
-        Assert.Contains("Population", byService.Keys);
-        Assert.Contains("Economy", byService.Keys);
-        Assert.Contains("Identity", byService.Keys);
-        Assert.All(result, service =>
+        [Fact]
+        public async Task ProbeAsync_WhenGatewayAndDownstreamsAreHealthy_ReturnsHealthyServicesWithFixedTimestamp()
         {
-            Assert.Equal("healthy", service.Status);
-            Assert.Equal(FixedNow, service.CheckedAtUtc);
-        });
-        Assert.Equal("Ready endpoint is healthy.", byService["Gateway"].Detail);
-        Assert.All(
-            result.Where(service => !string.Equals(service.Service, "Gateway", StringComparison.Ordinal)),
-            service => Assert.Equal("Ready endpoint responded successfully.", service.Detail));
-        Assert.All(httpClientFactory.Requests, request =>
-        {
-            Assert.Equal(HttpMethod.Get, request.Method);
-            Assert.Equal("/health/ready", request.RequestUri?.AbsolutePath);
-        });
-    }
+            var httpClientFactory = new RecordingHttpClientFactory((
+                    _,
+                    _) =>
+                Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+            CityOperationsDashboardHealthProbe probe = CreateProbe(
+                gatewayHealth: HealthCheckResult.Healthy("ready"),
+                httpClientFactory: httpClientFactory);
 
-    [Fact]
-    public async Task ProbeAsync_WhenDownstreamReadyEndpointReturnsNonSuccess_MarksServiceUnhealthy()
-    {
-        var httpClientFactory = new RecordingHttpClientFactory((request, _) =>
-        {
-            HttpStatusCode statusCode = string.Equals(
-                request.RequestUri?.Host,
-                "simulation-core.test",
-                StringComparison.Ordinal)
-                ? HttpStatusCode.ServiceUnavailable
-                : HttpStatusCode.OK;
+            IReadOnlyList<DashboardServiceHealthView> result = await probe.ProbeAsync(CancellationToken.None);
 
-            return Task.FromResult(new HttpResponseMessage(statusCode));
-        });
-        CityOperationsDashboardHealthProbe probe = CreateProbe(
-            gatewayHealth: HealthCheckResult.Healthy("ready"),
-            httpClientFactory: httpClientFactory);
+            Dictionary<string, DashboardServiceHealthView> byService = ToServiceDictionary(result);
 
-        IReadOnlyList<DashboardServiceHealthView> result = await probe.ProbeAsync(CancellationToken.None);
-
-        Dictionary<string, DashboardServiceHealthView> byService = ToServiceDictionary(result);
-
-        Assert.Equal("unhealthy", byService["SimulationCore"].Status);
-        Assert.Equal(
-            "Ready endpoint responded with 503 ServiceUnavailable.",
-            byService["SimulationCore"].Detail);
-        Assert.Equal(FixedNow, byService["SimulationCore"].CheckedAtUtc);
-        Assert.Equal("healthy", byService["Identity"].Status);
-    }
-
-    [Fact]
-    public async Task ProbeAsync_WhenGatewayReadyCheckIsDegraded_ReturnsGatewayDegraded()
-    {
-        var httpClientFactory = new RecordingHttpClientFactory((_, _) =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
-        CityOperationsDashboardHealthProbe probe = CreateProbe(
-            gatewayHealth: HealthCheckResult.Degraded("cache warming"),
-            httpClientFactory: httpClientFactory);
-
-        IReadOnlyList<DashboardServiceHealthView> result = await probe.ProbeAsync(CancellationToken.None);
-
-        DashboardServiceHealthView gateway = ToServiceDictionary(result)["Gateway"];
-
-        Assert.Equal("degraded", gateway.Status);
-        Assert.Contains("cache warming", gateway.Detail, StringComparison.Ordinal);
-        Assert.Equal(FixedNow, gateway.CheckedAtUtc);
-    }
-
-    private static CityOperationsDashboardHealthProbe CreateProbe(
-        HealthCheckResult gatewayHealth,
-        RecordingHttpClientFactory httpClientFactory)
-    {
-        return new CityOperationsDashboardHealthProbe(
-            healthCheckService: CreateHealthCheckService(gatewayHealth),
-            httpClientFactory: httpClientFactory,
-            downstreamOptions: Options.Create(new DownstreamServicesOptions
-            {
-                SimulationCore = "https://simulation-core.test",
-                SimulationSystems = "https://simulation-systems.test",
-                Resources = "https://resources.test",
-                Population = "https://population.test",
-                Economy = "https://economy.test",
-                Identity = "https://identity.test"
-            }),
-            dashboardOptions: Options.Create(new CityOperationsDashboardOptions
-            {
-                HealthProbeTimeoutSeconds = 5,
-                PanelReadTimeoutSeconds = 4,
-                MaxConcurrentCitySnapshotLoads = 4
-            }),
-            timeProvider: new FixedTimeProvider(FixedNow));
-    }
-
-    private static HealthCheckService CreateHealthCheckService(HealthCheckResult result)
-    {
-        var services = new ServiceCollection();
-
-        services.AddLogging();
-        services
-           .AddHealthChecks()
-           .AddCheck(
-                name: "ready",
-                check: () => result,
-                tags: ["ready"]);
-
-        return services
-           .BuildServiceProvider()
-           .GetRequiredService<HealthCheckService>();
-    }
-
-    private static Dictionary<string, DashboardServiceHealthView> ToServiceDictionary(
-        IReadOnlyList<DashboardServiceHealthView> services)
-    {
-        return services.ToDictionary(
-            keySelector: service => service.Service,
-            elementSelector: service => service,
-            comparer: StringComparer.Ordinal);
-    }
-
-    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow()
-        {
-            return utcNow;
-        }
-    }
-
-    private sealed class RecordingHttpClientFactory(
-        Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) : IHttpClientFactory
-    {
-        private readonly object _syncRoot = new();
-
-        public List<HttpRequestMessage> Requests { get; } = [];
-
-        public HttpClient CreateClient(string name)
-        {
-            return new HttpClient(new RecordingHandler(async (request, cancellationToken) =>
-            {
-                lock (_syncRoot)
+            Assert.Equal(
+                expected: 7,
+                actual: result.Count);
+            Assert.Contains(
+                expected: "Gateway",
+                collection: byService.Keys);
+            Assert.Contains(
+                expected: "SimulationCore",
+                collection: byService.Keys);
+            Assert.Contains(
+                expected: "SimulationSystems",
+                collection: byService.Keys);
+            Assert.Contains(
+                expected: "Resources",
+                collection: byService.Keys);
+            Assert.Contains(
+                expected: "Population",
+                collection: byService.Keys);
+            Assert.Contains(
+                expected: "Economy",
+                collection: byService.Keys);
+            Assert.Contains(
+                expected: "Identity",
+                collection: byService.Keys);
+            Assert.All(
+                collection: result,
+                action: service =>
                 {
-                    Requests.Add(request);
-                }
-
-                return await handler(request, cancellationToken);
-            }));
+                    Assert.Equal(
+                        expected: "healthy",
+                        actual: service.Status);
+                    Assert.Equal(
+                        expected: FixedNow,
+                        actual: service.CheckedAtUtc);
+                });
+            Assert.Equal(
+                expected: "Ready endpoint is healthy.",
+                actual: byService["Gateway"].Detail);
+            Assert.All(
+                collection: result.Where(service => !string.Equals(
+                    a: service.Service,
+                    b: "Gateway",
+                    comparisonType: StringComparison.Ordinal)),
+                action: service => Assert.Equal(
+                    expected: "Ready endpoint responded successfully.",
+                    actual: service.Detail));
+            Assert.All(
+                collection: httpClientFactory.Requests,
+                action: request =>
+                {
+                    Assert.Equal(
+                        expected: HttpMethod.Get,
+                        actual: request.Method);
+                    Assert.Equal(
+                        expected: "/health/ready",
+                        actual: request.RequestUri?.AbsolutePath);
+                });
         }
-    }
 
-    private sealed class RecordingHandler(
-        Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
+        [Fact]
+        public async Task ProbeAsync_WhenDownstreamReadyEndpointReturnsNonSuccess_MarksServiceUnhealthy()
         {
-            return handler(request, cancellationToken);
+            var httpClientFactory = new RecordingHttpClientFactory((
+                request,
+                _) =>
+            {
+                HttpStatusCode statusCode = string.Equals(
+                    a: request.RequestUri?.Host,
+                    b: "simulation-core.test",
+                    comparisonType: StringComparison.Ordinal)
+                    ? HttpStatusCode.ServiceUnavailable
+                    : HttpStatusCode.OK;
+
+                return Task.FromResult(new HttpResponseMessage(statusCode));
+            });
+            CityOperationsDashboardHealthProbe probe = CreateProbe(
+                gatewayHealth: HealthCheckResult.Healthy("ready"),
+                httpClientFactory: httpClientFactory);
+
+            IReadOnlyList<DashboardServiceHealthView> result = await probe.ProbeAsync(CancellationToken.None);
+
+            Dictionary<string, DashboardServiceHealthView> byService = ToServiceDictionary(result);
+
+            Assert.Equal(
+                expected: "unhealthy",
+                actual: byService["SimulationCore"].Status);
+            Assert.Equal(
+                expected: "Ready endpoint responded with 503 ServiceUnavailable.",
+                actual: byService["SimulationCore"].Detail);
+            Assert.Equal(
+                expected: FixedNow,
+                actual: byService["SimulationCore"].CheckedAtUtc);
+            Assert.Equal(
+                expected: "healthy",
+                actual: byService["Identity"].Status);
+        }
+
+        [Fact]
+        public async Task ProbeAsync_WhenGatewayReadyCheckIsDegraded_ReturnsGatewayDegraded()
+        {
+            var httpClientFactory = new RecordingHttpClientFactory((
+                    _,
+                    _) =>
+                Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+            CityOperationsDashboardHealthProbe probe = CreateProbe(
+                gatewayHealth: HealthCheckResult.Degraded("cache warming"),
+                httpClientFactory: httpClientFactory);
+
+            IReadOnlyList<DashboardServiceHealthView> result = await probe.ProbeAsync(CancellationToken.None);
+
+            DashboardServiceHealthView gateway = ToServiceDictionary(result)["Gateway"];
+
+            Assert.Equal(
+                expected: "degraded",
+                actual: gateway.Status);
+            Assert.Contains(
+                expectedSubstring: "cache warming",
+                actualString: gateway.Detail,
+                comparisonType: StringComparison.Ordinal);
+            Assert.Equal(
+                expected: FixedNow,
+                actual: gateway.CheckedAtUtc);
+        }
+
+        private static CityOperationsDashboardHealthProbe CreateProbe(
+            HealthCheckResult gatewayHealth,
+            RecordingHttpClientFactory httpClientFactory)
+        {
+            return new CityOperationsDashboardHealthProbe(
+                healthCheckService: CreateHealthCheckService(gatewayHealth),
+                httpClientFactory: httpClientFactory,
+                downstreamOptions: Options.Create(
+                    new DownstreamServicesOptions
+                    {
+                        SimulationCore = "https://simulation-core.test",
+                        SimulationSystems = "https://simulation-systems.test",
+                        Resources = "https://resources.test",
+                        Population = "https://population.test",
+                        Economy = "https://economy.test",
+                        Identity = "https://identity.test"
+                    }),
+                dashboardOptions: Options.Create(
+                    new CityOperationsDashboardOptions
+                    {
+                        HealthProbeTimeoutSeconds = 5,
+                        PanelReadTimeoutSeconds = 4,
+                        MaxConcurrentCitySnapshotLoads = 4
+                    }),
+                timeProvider: new FixedTimeProvider(FixedNow));
+        }
+
+        private static HealthCheckService CreateHealthCheckService(HealthCheckResult result)
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+            services
+               .AddHealthChecks()
+               .AddCheck(
+                    name: "ready",
+                    check: () => result,
+                    tags: ["ready"]);
+
+            return services
+               .BuildServiceProvider()
+               .GetRequiredService<HealthCheckService>();
+        }
+
+        private static Dictionary<string, DashboardServiceHealthView> ToServiceDictionary(
+            IReadOnlyList<DashboardServiceHealthView> services)
+        {
+            return services.ToDictionary(
+                keySelector: service => service.Service,
+                elementSelector: service => service,
+                comparer: StringComparer.Ordinal);
+        }
+
+        private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
+        {
+            public override DateTimeOffset GetUtcNow()
+            {
+                return utcNow;
+            }
+        }
+
+        private sealed class RecordingHttpClientFactory(
+            Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) : IHttpClientFactory
+        {
+            private readonly object _syncRoot = new();
+
+            public List<HttpRequestMessage> Requests { get; } = [];
+
+            public HttpClient CreateClient(string name)
+            {
+                return new HttpClient(
+                    new RecordingHandler(async (
+                        request,
+                        cancellationToken) =>
+                    {
+                        lock (_syncRoot)
+                            Requests.Add(request);
+
+                        return await handler(
+                            arg1: request,
+                            arg2: cancellationToken);
+                    }));
+            }
+        }
+
+        private sealed class RecordingHandler(
+            Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                return handler(
+                    arg1: request,
+                    arg2: cancellationToken);
+            }
         }
     }
 }

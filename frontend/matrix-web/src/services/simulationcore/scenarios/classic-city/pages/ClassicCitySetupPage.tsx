@@ -34,7 +34,10 @@ import {
     CLASSIC_CITY_SIZE_TIER_OPTIONS,
     type SetupOption,
 } from "@services/simulationcore/scenarios/classic-city/setupOptions";
-import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso,} from "@services/simulationcore/simulation/utils/dateTime";
+import {
+    getNowLocalDateTimeInputValue,
+    localDateTimeToUtcIso,
+} from "@services/simulationcore/simulation/utils/dateTime";
 import {
     buildPopulationPlanningEstimate,
     formatOccupancyRateRange,
@@ -44,10 +47,10 @@ import {
     hasMeaningfulRangeValue,
 } from "@services/simulationcore/scenarios/classic-city/utils/populationPlanning";
 import {
-    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_SCENARIO,
     getClassicCitySetupProvisioningPath,
     getClassicCitySetupSessionPath,
+    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
 } from "@services/simulationcore/scenarios/registry";
 import "@services/simulationcore/scenarios/styles/scenario-setup.css";
 

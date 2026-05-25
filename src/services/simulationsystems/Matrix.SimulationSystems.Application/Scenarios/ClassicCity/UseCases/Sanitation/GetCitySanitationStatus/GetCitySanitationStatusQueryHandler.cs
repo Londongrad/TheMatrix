@@ -25,7 +25,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
             if (state is null)
                 return null;
 
-            decimal sanitationSupport = pressureProfileFactory.Create(state).SanitationSupport;
+            decimal sanitationSupport = pressureProfileFactory.Create(state)
+               .SanitationSupport;
 
             return CitySanitationStatusDto.FromState(
                 cityId: request.CityId,

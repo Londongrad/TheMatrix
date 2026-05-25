@@ -1,9 +1,13 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.Common;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.DispatchCityPowerDistributionMaintenance;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityDistrictPowerDistributionConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityPowerDistributionStatus;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.SetCityPowerDistributionEmergencyMode;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    DispatchCityPowerDistributionMaintenance;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityDistrictPowerDistributionConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityPowerDistributionStatus;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    SetCityPowerDistributionEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
@@ -137,8 +141,8 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
                 PowerSupportIndex: dto.PowerSupportIndex,
                 Districts: dto.Districts
-                    .Select(MapToDistrictConditionView)
-                    .ToArray());
+                   .Select(MapToDistrictConditionView)
+                   .ToArray());
         }
 
         private static CityDistrictPowerDistributionConditionView MapToDistrictConditionView(

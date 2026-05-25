@@ -188,10 +188,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 {
                     stressDelta += Math.Min(
                         val1: 2,
-                        val2: (int)Math.Round(accessibilityDeficit * 3d, MidpointRounding.AwayFromZero));
+                        val2: (int)Math.Round(
+                            value: accessibilityDeficit * 3d,
+                            mode: MidpointRounding.AwayFromZero));
                     energyDelta -= Math.Min(
                         val1: 2,
-                        val2: (int)Math.Round(travelFatigue * 2d, MidpointRounding.AwayFromZero));
+                        val2: (int)Math.Round(
+                            value: travelFatigue * 2d,
+                            mode: MidpointRounding.AwayFromZero));
 
                     if (commutePressureProfile.BlockedRouteCount > 0)
                     {
@@ -201,7 +205,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 }
 
                 if (commutePressureProfile.BlockedRouteCount > 0 &&
-                    (resident.HasActiveIllness || resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior))
+                    (resident.HasActiveIllness ||
+                     resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior))
                 {
                     stressDelta += 1;
                     happinessDelta -= 1;

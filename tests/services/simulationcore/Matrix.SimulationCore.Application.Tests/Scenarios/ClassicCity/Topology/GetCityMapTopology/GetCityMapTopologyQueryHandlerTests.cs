@@ -1,53 +1,119 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology.GetCityMapTopology;
-
-public sealed class GetCityMapTopologyQueryHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology.GetCityMapTopology
 {
-    [Fact]
-    public async Task Handle_ReturnsMappedTopologySlices()
+    public sealed class GetCityMapTopologyQueryHandlerTests
     {
-        var cityId = new CityId(Guid.NewGuid());
-        var district = TopologyTestSupport.CreateDistrict(cityId, "Central");
-        var roadNode = TopologyTestSupport.CreateRoadNode(cityId, district.Id, "Center Hub");
-        var secondRoadNode = TopologyTestSupport.CreateRoadNode(cityId, district.Id, "East Hub");
-        var roadSegment = TopologyTestSupport.CreateRoadSegment(cityId, district.Id, roadNode.Id, secondRoadNode.Id, "Center East");
-        var building = TopologyTestSupport.CreateResidentialBuilding(cityId, district.Id, "Sunrise Tower");
-        var anchor = TopologyTestSupport.CreateCityAnchor(cityId, district.Id, "City School");
+        [Fact]
+        public async Task Handle_ReturnsMappedTopologySlices()
+        {
+            var cityId = new CityId(Guid.NewGuid());
+            District district = TopologyTestSupport.CreateDistrict(
+                cityId: cityId,
+                name: "Central");
+            RoadNode roadNode = TopologyTestSupport.CreateRoadNode(
+                cityId: cityId,
+                districtId: district.Id,
+                name: "Center Hub");
+            RoadNode secondRoadNode = TopologyTestSupport.CreateRoadNode(
+                cityId: cityId,
+                districtId: district.Id,
+                name: "East Hub");
+            RoadSegment roadSegment = TopologyTestSupport.CreateRoadSegment(
+                cityId: cityId,
+                districtId: district.Id,
+                fromRoadNodeId: roadNode.Id,
+                toRoadNodeId: secondRoadNode.Id,
+                name: "Center East");
+            ResidentialBuilding building = TopologyTestSupport.CreateResidentialBuilding(
+                cityId: cityId,
+                districtId: district.Id,
+                name: "Sunrise Tower");
+            CityAnchor anchor = TopologyTestSupport.CreateCityAnchor(
+                cityId: cityId,
+                districtId: district.Id,
+                name: "City School");
 
-        var districtRepository = new TopologyTestSupport.FakeDistrictRepository { Districts = [district] };
-        var residentialBuildingRepository = new TopologyTestSupport.FakeResidentialBuildingRepository { Buildings = [building] };
-        var cityAnchorRepository = new TopologyTestSupport.FakeCityAnchorRepository { Anchors = [anchor] };
-        var roadNodeRepository = new TopologyTestSupport.FakeRoadNodeRepository { RoadNodes = [roadNode, secondRoadNode] };
-        var roadSegmentRepository = new TopologyTestSupport.FakeRoadSegmentRepository { RoadSegments = [roadSegment] };
-        var handler = new GetCityMapTopologyQueryHandler(
-            districtRepository,
-            residentialBuildingRepository,
-            cityAnchorRepository,
-            roadNodeRepository,
-            roadSegmentRepository);
+            var districtRepository = new TopologyTestSupport.FakeDistrictRepository
+            {
+                Districts = [district]
+            };
+            var residentialBuildingRepository = new TopologyTestSupport.FakeResidentialBuildingRepository
+            {
+                Buildings = [building]
+            };
+            var cityAnchorRepository = new TopologyTestSupport.FakeCityAnchorRepository
+            {
+                Anchors = [anchor]
+            };
+            var roadNodeRepository = new TopologyTestSupport.FakeRoadNodeRepository
+            {
+                RoadNodes =
+                [
+                    roadNode,
+                    secondRoadNode
+                ]
+            };
+            var roadSegmentRepository = new TopologyTestSupport.FakeRoadSegmentRepository
+            {
+                RoadSegments = [roadSegment]
+            };
+            var handler = new GetCityMapTopologyQueryHandler(
+                districtRepository: districtRepository,
+                residentialBuildingRepository: residentialBuildingRepository,
+                cityAnchorRepository: cityAnchorRepository,
+                roadNodeRepository: roadNodeRepository,
+                roadSegmentRepository: roadSegmentRepository);
 
-        var result = await handler.Handle(new GetCityMapTopologyQuery(cityId.Value), CancellationToken.None);
+            CityMapTopologyDto result = await handler.Handle(
+                request: new GetCityMapTopologyQuery(cityId.Value),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(cityId.Value, districtRepository.RequestedCityId!.Value.Value);
-        Assert.Equal(cityId.Value, residentialBuildingRepository.RequestedCityId!.Value.Value);
-        Assert.Equal(cityId.Value, cityAnchorRepository.RequestedCityId!.Value.Value);
-        Assert.Equal(cityId.Value, roadNodeRepository.RequestedCityId!.Value.Value);
-        Assert.Equal(cityId.Value, roadSegmentRepository.RequestedCityId!.Value.Value);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: districtRepository.RequestedCityId!.Value.Value);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: residentialBuildingRepository.RequestedCityId!.Value.Value);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: cityAnchorRepository.RequestedCityId!.Value.Value);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: roadNodeRepository.RequestedCityId!.Value.Value);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: roadSegmentRepository.RequestedCityId!.Value.Value);
 
-        Assert.Equal(cityId.Value, result.CityId);
-        Assert.Single(result.Districts);
-        Assert.Single(result.ResidentialBuildings);
-        Assert.Single(result.Anchors);
-        Assert.Equal(2, result.RoadNodes.Count);
-        Assert.Single(result.RoadSegments);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: result.CityId);
+            Assert.Single(result.Districts);
+            Assert.Single(result.ResidentialBuildings);
+            Assert.Single(result.Anchors);
+            Assert.Equal(
+                expected: 2,
+                actual: result.RoadNodes.Count);
+            Assert.Single(result.RoadSegments);
 
-        Assert.Equal("Central", result.Districts[0].Name);
-        Assert.Equal("Sunrise Tower", result.ResidentialBuildings[0].Name);
-        Assert.Equal("City School", result.Anchors[0].Name);
-        Assert.Equal("Center Hub", result.RoadNodes[0].Name);
-        Assert.Equal("Center East", result.RoadSegments[0].Name);
+            Assert.Equal(
+                expected: "Central",
+                actual: result.Districts[0].Name);
+            Assert.Equal(
+                expected: "Sunrise Tower",
+                actual: result.ResidentialBuildings[0].Name);
+            Assert.Equal(
+                expected: "City School",
+                actual: result.Anchors[0].Name);
+            Assert.Equal(
+                expected: "Center Hub",
+                actual: result.RoadNodes[0].Name);
+            Assert.Equal(
+                expected: "Center East",
+                actual: result.RoadSegments[0].Name);
+        }
     }
 }

@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Seed
@@ -11,9 +10,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             CancellationToken cancellationToken = default)
         {
             await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<IdentityDbContext>(
-                services,
+                services: services,
                 serviceName: "Identity",
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
 
         public static async Task SeedIdentityPermissionsAsync(
@@ -21,10 +20,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             CancellationToken cancellationToken = default)
         {
             await DatabaseStartupRunner.RunSeedIfEnabledAsync(
-                services,
+                services: services,
                 serviceName: "Identity",
                 seedName: "IdentityPermissions",
-                seedAction: async (serviceProvider, token) =>
+                seedAction: async (
+                    serviceProvider,
+                    token) =>
                 {
                     PermissionsSeeder permissionsSeeder = serviceProvider.GetRequiredService<PermissionsSeeder>();
                     await permissionsSeeder.SeedAsync(token);
@@ -40,7 +41,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                         serviceProvider.GetRequiredService<BootstrapSuperAdminSeeder>();
                     await bootstrapSuperAdminSeeder.EnsureAtLeastOneSuperAdminAsync(token);
                 },
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
     }
 }

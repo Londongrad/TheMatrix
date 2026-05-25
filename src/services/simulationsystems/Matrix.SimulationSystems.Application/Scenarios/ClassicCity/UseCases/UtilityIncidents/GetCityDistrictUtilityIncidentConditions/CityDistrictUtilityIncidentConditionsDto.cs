@@ -1,4 +1,5 @@
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityDistrictUtilityIncidentConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    GetCityDistrictUtilityIncidentConditions
 {
     public sealed record CityDistrictUtilityIncidentConditionsDto(
         Guid CityId,

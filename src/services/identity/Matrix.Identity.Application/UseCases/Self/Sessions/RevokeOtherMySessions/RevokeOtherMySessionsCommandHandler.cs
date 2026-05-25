@@ -35,7 +35,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeOtherMySessio
             IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
                 userId: userId,
                 cancellationToken: cancellationToken);
-            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime utcNow = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             int revokedSessionsCount = 0;
 

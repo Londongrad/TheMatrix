@@ -52,11 +52,15 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.Property(x => x.PositionX)
-               .HasPrecision(9, 3)
+               .HasPrecision(
+                    precision: 9,
+                    scale: 3)
                .IsRequired();
 
             builder.Property(x => x.PositionY)
-               .HasPrecision(9, 3)
+               .HasPrecision(
+                    precision: 9,
+                    scale: 3)
                .IsRequired();
 
             builder.Property(x => x.CreatedAtUtc)
@@ -67,8 +71,17 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => x.DistrictId);
             builder.HasIndex(x => x.AccessRoadNodeId);
-            builder.HasIndex(x => new { x.CityId, x.Type });
-            builder.HasIndex(x => new { x.CityId, x.Type, x.Name });
+            builder.HasIndex(x => new
+            {
+                x.CityId,
+                x.Type
+            });
+            builder.HasIndex(x => new
+            {
+                x.CityId,
+                x.Type,
+                x.Name
+            });
 
             builder
                .HasOne<City>()

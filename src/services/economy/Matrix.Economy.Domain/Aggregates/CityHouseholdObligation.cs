@@ -70,7 +70,7 @@ namespace Matrix.Economy.Domain.Aggregates
         public Guid HouseholdAccountId { get; private set; }
         public Guid ProviderBusinessId { get; private set; }
         public string Name { get; private set; } = string.Empty;
-        public CityHouseholdObligationKind Kind { get; private set; }
+        public CityHouseholdObligationKind Kind { get; }
         public CityHouseholdObligationBillingCadence BillingCadence { get; }
         public DateTimeOffset CreatedAtUtc { get; private set; }
         public bool IsActive { get; private set; }
@@ -78,8 +78,8 @@ namespace Matrix.Economy.Domain.Aggregates
         public string UnitCode { get; private set; } = string.Empty;
         public string UnitDisplayName { get; private set; } = string.Empty;
         public string UnitSymbol { get; private set; } = string.Empty;
-        public Money BaseChargeAmount { get; private set; } = null!;
-        public Money BaseTaxAmount { get; private set; } = null!;
+        public Money BaseChargeAmount { get; } = null!;
+        public Money BaseTaxAmount { get; } = null!;
         public Money ChargeAmount { get; private set; } = null!;
         public Money TaxAmount { get; private set; } = null!;
         public DateTimeOffset NextChargeDueAtUtc { get; private set; }
@@ -282,7 +282,8 @@ namespace Matrix.Economy.Domain.Aggregates
 
             while (AddCadence(
                        value: probe,
-                       periods: 1) <= asOfUtc)
+                       periods: 1) <=
+                   asOfUtc)
             {
                 probe = AddCadence(
                     value: probe,

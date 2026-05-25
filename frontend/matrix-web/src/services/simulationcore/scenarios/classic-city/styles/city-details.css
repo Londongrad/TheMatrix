@@ -9,9 +9,8 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background:
-        radial-gradient(circle at 12% 22%, rgba(var(--shell-accent-rgb), 0.06), transparent 18%),
-        radial-gradient(circle at top right, rgba(var(--shell-accent-rgb), 0.07), transparent 24%);
+    background: radial-gradient(circle at 12% 22%, rgba(var(--shell-accent-rgb), 0.06), transparent 18%),
+    radial-gradient(circle at top right, rgba(var(--shell-accent-rgb), 0.07), transparent 24%);
     opacity: 0.82;
 }
 
@@ -248,10 +247,10 @@
     inset: 0;
     pointer-events: none;
     background: linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.05) 42%,
-        transparent 72%
+            120deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 42%,
+            transparent 72%
     );
     transform: translateX(-130%);
     transition: transform 0.75s ease;
@@ -270,9 +269,8 @@
     .city-dashboard-metric-card:hover {
         transform: translateY(-2px);
         border-color: rgba(var(--shell-accent-rgb), 0.22);
-        box-shadow:
-            0 20px 54px rgba(0, 0, 0, 0.22),
-            0 0 0 1px rgba(var(--shell-accent-rgb), 0.08);
+        box-shadow: 0 20px 54px rgba(0, 0, 0, 0.22),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.08);
     }
 
     .city-dashboard-events-panel:hover::after,
@@ -422,10 +420,10 @@
     inset: 0;
     pointer-events: none;
     background: linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.05) 42%,
-        transparent 72%
+            120deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 42%,
+            transparent 72%
     );
     transform: translateX(-130%);
     transition: transform 0.75s ease;
@@ -456,9 +454,8 @@
     .city-infra-row:hover {
         transform: translateY(-2px);
         border-color: rgba(var(--shell-accent-rgb), 0.22);
-        box-shadow:
-            0 20px 54px rgba(0, 0, 0, 0.22),
-            0 0 0 1px rgba(var(--shell-accent-rgb), 0.08);
+        box-shadow: 0 20px 54px rgba(0, 0, 0, 0.22),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.08);
     }
 
     .city-world-map:hover::after,
@@ -988,13 +985,11 @@
 .city-world-map__frame {
     border-radius: 22px;
     border: 1px solid rgba(var(--shell-accent-rgb), 0.12);
-    background:
-        radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.12), transparent 28%),
-        linear-gradient(180deg, rgba(12, 18, 28, 0.92), rgba(7, 11, 18, 0.96));
+    background: radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(12, 18, 28, 0.92), rgba(7, 11, 18, 0.96));
     overflow: hidden;
-    box-shadow:
-        inset 0 0 0 1px rgba(var(--shell-accent-rgb), 0.06),
-        0 18px 44px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 0 0 1px rgba(var(--shell-accent-rgb), 0.06),
+    0 18px 44px rgba(0, 0, 0, 0.2);
     position: relative;
 }
 
@@ -1003,9 +998,8 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background:
-        linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.08), transparent 18%),
-        radial-gradient(circle at center, rgba(var(--shell-accent-rgb), 0.06), transparent 58%);
+    background: linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.08), transparent 18%),
+    radial-gradient(circle at center, rgba(var(--shell-accent-rgb), 0.06), transparent 58%);
 }
 
 .city-world-map__frame::after {
@@ -1014,11 +1008,11 @@
     inset: 0;
     pointer-events: none;
     background: repeating-linear-gradient(
-        180deg,
-        rgba(var(--shell-accent-rgb), 0.06) 0,
-        rgba(var(--shell-accent-rgb), 0.06) 1px,
-        transparent 1px,
-        transparent 12px
+            180deg,
+            rgba(var(--shell-accent-rgb), 0.06) 0,
+            rgba(var(--shell-accent-rgb), 0.06) 1px,
+            transparent 1px,
+            transparent 12px
     );
     opacity: 0.22;
     mask: linear-gradient(180deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.58));
@@ -1459,9 +1453,8 @@ html[data-theme="matrix"] .city-infra-loading::before,
 html[data-theme="matrix"] .city-infra-hero::before,
 html[data-theme="matrix"] .city-infra-summary-card::before,
 html[data-theme="matrix"] .city-infra-row::before {
-    background:
-        radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.1), transparent 38%),
-        linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.08), transparent 18%);
+    background: radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.1), transparent 38%),
+    linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.08), transparent 18%);
 }
 
 html[data-theme="matrix"] .city-world-focus::after,
@@ -1469,15 +1462,14 @@ html[data-theme="matrix"] .city-world-context::after,
 html[data-theme="matrix"] .city-world-map::after,
 html[data-theme="matrix"] .city-infra-row::after,
 html[data-theme="matrix"] .city-dashboard-events-panel::after {
-    background:
-        linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.05) 42%, transparent 72%),
-        repeating-linear-gradient(
+    background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.05) 42%, transparent 72%),
+    repeating-linear-gradient(
             180deg,
             rgba(var(--shell-accent-rgb), 0.06) 0,
             rgba(var(--shell-accent-rgb), 0.06) 1px,
             transparent 1px,
             transparent 10px
-        );
+    );
 }
 
 @media (max-width: 980px) {

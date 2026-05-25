@@ -1,5 +1,3 @@
-using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
-
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 {
     public sealed class CityMaintenanceBudgetGuard
@@ -13,20 +11,25 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             string normalizedRequestedIntensity = NormalizeIntensityName(requestedIntensity);
             int requestedLevel = MapIntensityToLevel(normalizedRequestedIntensity);
             int maxLevel = Math.Max(
-                1,
-                MapAuthorizationLevelToIntensityLevel(authorizationLevel));
+                val1: 1,
+                val2: MapAuthorizationLevelToIntensityLevel(authorizationLevel));
 
             if (emergencyModeEnabled)
                 maxLevel++;
 
-            maxLevel = Math.Clamp(maxLevel, 1, 3);
+            maxLevel = Math.Clamp(
+                value: maxLevel,
+                min: 1,
+                max: 3);
 
             return new CityMaintenanceBudgetDecision(
                 RequestedIntensity: MapLevelToIntensityName(
                     level: requestedLevel,
                     requestedIntensity: normalizedRequestedIntensity),
                 AppliedIntensity: MapLevelToIntensityName(
-                    level: Math.Min(requestedLevel, maxLevel),
+                    level: Math.Min(
+                        val1: requestedLevel,
+                        val2: maxLevel),
                     requestedIntensity: normalizedRequestedIntensity),
                 PressureIndex: pressureIndex);
         }
@@ -61,19 +64,21 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 
         private static string NormalizeIntensityName(string intensity)
         {
-            return (intensity ?? string.Empty).Trim().ToLowerInvariant();
+            return (intensity ?? string.Empty).Trim()
+               .ToLowerInvariant();
         }
 
         private static int MapAuthorizationLevelToIntensityLevel(string authorizationLevel)
         {
-            return authorizationLevel.Trim().ToLowerInvariant() switch
-            {
-                "none" => 0,
-                "low" => 1,
-                "medium" => 2,
-                "high" => 3,
-                _ => 3
-            };
+            return authorizationLevel.Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "none" => 0,
+                    "low" => 1,
+                    "medium" => 2,
+                    "high" => 3,
+                    _ => 3
+                };
         }
     }
 }

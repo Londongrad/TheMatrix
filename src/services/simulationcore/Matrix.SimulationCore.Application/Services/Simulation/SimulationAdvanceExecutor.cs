@@ -45,12 +45,12 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
                 {
                     clock.AccumulatePendingSimulationTime(realDelta);
 
-                    TimeSpan fixedStep = TimeSpan.FromSeconds(fixedStepSettings.FixedStepSeconds);
+                    var fixedStep = TimeSpan.FromSeconds(fixedStepSettings.FixedStepSeconds);
                     ISimulationScenarioAdvanceHandler? handler = scenarioAdvanceHandlers
                        .FirstOrDefault(x => x.HostKind == host.HostKind);
 
-                    while (stepsProcessed < fixedStepSettings.MaxStepsPerSimulationPerCycle
-                           && clock.TryAdvanceFixedStep(fixedStep))
+                    while (stepsProcessed < fixedStepSettings.MaxStepsPerSimulationPerCycle &&
+                           clock.TryAdvanceFixedStep(fixedStep))
                     {
                         SimulationTimeAdvancedDomainEvent advancedEvent = clock.DomainEvents
                            .OfType<SimulationTimeAdvancedDomainEvent>()
@@ -67,8 +67,8 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
                     }
 
                     remainingPendingSimulationTicks = clock.PendingSimulationTicks;
-                    hasRemainingBacklog = stepsProcessed == fixedStepSettings.MaxStepsPerSimulationPerCycle
-                                          && remainingPendingSimulationTicks >= fixedStep.Ticks;
+                    hasRemainingBacklog = stepsProcessed == fixedStepSettings.MaxStepsPerSimulationPerCycle &&
+                                          remainingPendingSimulationTicks >= fixedStep.Ticks;
 
                     clock.ClearDomainEvents();
                     await unitOfWork.SaveChangesAsync(ct);

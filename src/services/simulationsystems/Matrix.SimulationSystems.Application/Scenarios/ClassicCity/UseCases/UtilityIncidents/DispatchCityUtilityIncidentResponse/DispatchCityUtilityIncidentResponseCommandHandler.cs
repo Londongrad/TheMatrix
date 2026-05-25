@@ -8,7 +8,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.DispatchCityUtilityIncidentResponse
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    DispatchCityUtilityIncidentResponse
 {
     public sealed class DispatchCityUtilityIncidentResponseCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -58,7 +59,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
 
             if (authorizationDecision.Denied)
             {
-                decimal deniedSupport = pressureProfileFactory.Create(state).UtilityIncidentSupport;
+                decimal deniedSupport = pressureProfileFactory.Create(state)
+                   .UtilityIncidentSupport;
 
                 return CityUtilityIncidentStatusDto.FromState(
                     cityId: request.CityId,
@@ -81,7 +83,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 requestedIntensity: budgetAuthorizedIntensity.ToString(),
                 authorizationLevel: state.OperationalBudgetPressure.OperationsAuthorizationLevel,
                 pressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                emergencyModeEnabled: state.UtilityIncidentInfrastructure.EmergencyModeEnabled || request.EmergencyOverride);
+                emergencyModeEnabled: state.UtilityIncidentInfrastructure.EmergencyModeEnabled ||
+                                      request.EmergencyOverride);
             UtilityIncidentResponseIntensity appliedIntensity = Enum.Parse<UtilityIncidentResponseIntensity>(
                 value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
@@ -105,16 +108,15 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             if (request.FocusDistrictId.HasValue)
-            {
                 await operationalTripDispatcher.TryDispatchUtilityIncidentResponseAsync(
                     cityId: request.CityId,
                     focusDistrictId: request.FocusDistrictId.Value,
                     focus: request.Focus,
                     intensity: appliedIntensity.ToString(),
                     cancellationToken: cancellationToken);
-            }
 
-            decimal utilityIncidentSupport = pressureProfileFactory.Create(state).UtilityIncidentSupport;
+            decimal utilityIncidentSupport = pressureProfileFactory.Create(state)
+               .UtilityIncidentSupport;
 
             return CityUtilityIncidentStatusDto.FromState(
                 cityId: request.CityId,
@@ -143,9 +145,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 : 1;
 
             if (districtFocused)
-                delay = Math.Max(1, delay - 1);
+                delay = Math.Max(
+                    val1: 1,
+                    val2: delay - 1);
 
-            return Math.Max(0, currentTickId + delay);
+            return Math.Max(
+                val1: 0,
+                val2: currentTickId + delay);
         }
     }
 }

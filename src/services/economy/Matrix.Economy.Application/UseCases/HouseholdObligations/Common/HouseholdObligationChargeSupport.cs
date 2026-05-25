@@ -1,9 +1,9 @@
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
-using Matrix.BuildingBlocks.Domain.ValueObjects;
 
 namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
 {

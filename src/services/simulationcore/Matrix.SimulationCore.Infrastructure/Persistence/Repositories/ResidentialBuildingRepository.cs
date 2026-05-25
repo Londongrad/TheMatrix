@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
 {
-    public sealed class ResidentialBuildingRepository(SimulationCoreDbContext dbContext) : IResidentialBuildingRepository
+    public sealed class ResidentialBuildingRepository(SimulationCoreDbContext dbContext)
+        : IResidentialBuildingRepository
     {
         public Task<ResidentialBuilding?> GetByIdAsync(
             ResidentialBuildingId buildingId,

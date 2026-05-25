@@ -308,9 +308,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return false;
 
             double combinedChance = 1d -
-                Math.Pow(
-                    x: 1d - chancePerReview,
-                    y: reviewWindows);
+                                    Math.Pow(
+                                        x: 1d - chancePerReview,
+                                        y: reviewWindows);
             return GetStableFraction(
                        residentId: residentId,
                        currentDate: currentDate,

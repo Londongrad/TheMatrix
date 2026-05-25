@@ -7,7 +7,6 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.ValueObjects;
 using Matrix.Population.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,13 +23,13 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         ILogger<CityPopulationSummaryProjectionService> logger)
         : ICityPopulationSummaryProjectionService
     {
+        private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
         private readonly PopulationDbContext _dbContext = dbContext;
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
-        private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
         private readonly CityPopulationHealthcarePressurePolicy _healthcarePressurePolicy = healthcarePressurePolicy;
-        private readonly TimeProvider _timeProvider = timeProvider;
-        private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
         private readonly ILogger<CityPopulationSummaryProjectionService> _logger = logger;
+        private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public Task UpdateAsync(
             CityId cityId,
@@ -117,6 +116,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                     return;
 
                 _logger.LogWarning(
+                    message:
                     "Repairing zeroed city population summary projection for cityId={CityId}. Actual residents={ResidentCount}, households={HouseholdCount}.",
                     cityId.Value,
                     actualResidentCount,
@@ -194,6 +194,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             if ((persons.Count == 0 || householdPlacements?.Count == 0) &&
                 (resolvedPersons.Count > 0 || resolvedPlacements.Count > 0))
                 _logger.LogWarning(
+                    message:
                     "Recovered missing city population summary inputs for cityId={CityId}. Incoming residents={IncomingResidentCount}, incoming households={IncomingHouseholdCount}, resolved residents={ResolvedResidentCount}, resolved households={ResolvedHouseholdCount}.",
                     cityId.Value,
                     persons.Count,
@@ -201,7 +202,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                     resolvedPersons.Count,
                     resolvedPlacements.Count);
 
-            CityPopulationLivingConditionsState? livingConditionsState = await _dbContext.CityPopulationLivingConditionsStates
+            CityPopulationLivingConditionsState? livingConditionsState = await _dbContext
+               .CityPopulationLivingConditionsStates
                .AsNoTracking()
                .SingleOrDefaultAsync(
                     predicate: x => x.CityId == cityId,
@@ -249,7 +251,10 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             IReadOnlyCollection<ClassicCityHouseholdPlacement>? householdPlacements,
             CancellationToken cancellationToken)
         {
-            if (householdPlacements is { Count: > 0 })
+            if (householdPlacements is
+                {
+                    Count: > 0
+                })
                 return householdPlacements;
 
             ClassicCityHouseholdPlacement[] trackedPlacements = _dbContext.ChangeTracker
@@ -280,7 +285,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             if (householdPlacements.Count == 0)
                 return persons;
 
-            HashSet<HouseholdId> householdIds = householdPlacements
+            var householdIds = householdPlacements
                .Select(x => x.HouseholdId)
                .ToHashSet();
             Person[] trackedPersons = _dbContext.ChangeTracker
@@ -301,7 +306,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                        .Where(x => x.CityId == cityId),
                     outerKeySelector: person => person.HouseholdId,
                     innerKeySelector: placement => placement.HouseholdId,
-                    resultSelector: (person, _) => person)
+                    resultSelector: (
+                        person,
+                        _) => person)
                .ToListAsync(cancellationToken);
         }
 
@@ -375,9 +382,10 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                         value: out ResidentialBuildingId? resolvedResidentialBuildingId)
                         ? resolvedResidentialBuildingId
                         : null;
-                    CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
-                        districtId: districtId,
-                        livingConditionsState: livingConditionsState);
+                    CityPopulationLivingConditionsContext districtLivingConditions =
+                        districtImpactPolicy.ResolveLivingConditions(
+                            districtId: districtId,
+                            livingConditionsState: livingConditionsState);
                     CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                         districtId: districtId,
                         essentialsState: essentialsState);
@@ -415,9 +423,10 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                         value: out ResidentialBuildingId? resolvedResidentialBuildingId)
                         ? resolvedResidentialBuildingId
                         : null;
-                    CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
-                        districtId: districtId,
-                        livingConditionsState: livingConditionsState);
+                    CityPopulationLivingConditionsContext districtLivingConditions =
+                        districtImpactPolicy.ResolveLivingConditions(
+                            districtId: districtId,
+                            livingConditionsState: livingConditionsState);
                     CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                         districtId: districtId,
                         essentialsState: essentialsState);
@@ -645,7 +654,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                        .Where(x => x.CityId == cityId),
                     outerKeySelector: person => person.HouseholdId,
                     innerKeySelector: placement => placement.HouseholdId,
-                    resultSelector: (person, _) => person)
+                    resultSelector: (
+                        person,
+                        _) => person)
                .CountAsync(cancellationToken);
 
             return (residentCount, householdCount);
@@ -708,7 +719,19 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
 
             return deletedAtUtc.HasValue
                 ? DateOnly.FromDateTime(deletedAtUtc.Value.UtcDateTime)
-                : DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
+                : DateOnly.FromDateTime(
+                    _timeProvider.GetUtcNow()
+                       .UtcDateTime);
+        }
+
+        private static decimal? AverageMetric(IReadOnlyCollection<decimal> values)
+        {
+            return values.Count == 0
+                ? null
+                : decimal.Round(
+                    d: values.Average(),
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero);
         }
 
         private sealed record CityPopulationSummarySnapshotValues(
@@ -744,15 +767,5 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             decimal? WorkforceProductivityIndex,
             decimal? StudentCommuteAccessibilityIndex,
             decimal? StudentAttendanceIndex);
-
-        private static decimal? AverageMetric(IReadOnlyCollection<decimal> values)
-        {
-            return values.Count == 0
-                ? null
-                : decimal.Round(
-                    d: values.Average(),
-                    decimals: 4,
-                    mode: MidpointRounding.AwayFromZero);
-        }
     }
 }

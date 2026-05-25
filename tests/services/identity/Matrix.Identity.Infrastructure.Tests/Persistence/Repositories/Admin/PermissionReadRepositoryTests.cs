@@ -1,44 +1,75 @@
+using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
 using Matrix.Identity.Infrastructure.Persistence.Repositories.Admin;
-using Xunit;
 using Matrix.Identity.Infrastructure.Tests.TestSupport;
+using Xunit;
 using static Matrix.Identity.Infrastructure.Tests.TestSupport.IdentityInfrastructureTestSupport;
 
-namespace Matrix.Identity.Infrastructure.Tests.Persistence.Repositories.Admin;
-
-public sealed class PermissionReadRepositoryTests
+namespace Matrix.Identity.Infrastructure.Tests.Persistence.Repositories.Admin
 {
-    [Fact]
-    public async Task GetPermissionsAsync_ReturnsOrderedCatalogItems()
+    public sealed class PermissionReadRepositoryTests
     {
-        await using IdentityTestDatabase database = CreateDbContext();
-        var repository = new PermissionReadRepository(database.DbContext);
+        [Fact]
+        public async Task GetPermissionsAsync_ReturnsOrderedCatalogItems()
+        {
+            await using IdentityTestDatabase database = CreateDbContext();
+            var repository = new PermissionReadRepository(database.DbContext);
 
-        await database.DbContext.Permissions.AddRangeAsync(
-            CreatePermission("identity.users.write", "Identity", "Users", "Write users"),
-            CreatePermission("identity.audit.read", "Identity", "Audit", "Read audit"),
-            CreatePermission("population.city.read", "Population", "Cities", "Read cities"));
-        await database.DbContext.SaveChangesAsync();
+            await database.DbContext.Permissions.AddRangeAsync(
+                CreatePermission(
+                    key: "identity.users.write",
+                    service: "Identity",
+                    group: "Users",
+                    description: "Write users"),
+                CreatePermission(
+                    key: "identity.audit.read",
+                    service: "Identity",
+                    group: "Audit",
+                    description: "Read audit"),
+                CreatePermission(
+                    key: "population.city.read",
+                    service: "Population",
+                    group: "Cities",
+                    description: "Read cities"));
+            await database.DbContext.SaveChangesAsync();
 
-        var items = await repository.GetPermissionsAsync(CancellationToken.None);
+            IReadOnlyCollection<PermissionCatalogItemResult> items =
+                await repository.GetPermissionsAsync(CancellationToken.None);
 
-        Assert.Equal(
-            ["identity.audit.read", "identity.users.write", "population.city.read"],
-            items.Select(x => x.Key).ToArray());
-    }
+            Assert.Equal(
+                expectedSpan:
+                [
+                    "identity.audit.read",
+                    "identity.users.write",
+                    "population.city.read"
+                ],
+                actualArray: items.Select(x => x.Key)
+                   .ToArray());
+        }
 
-    [Fact]
-    public async Task GetPermissionAsync_WhenPermissionExists_ReturnsProjection()
-    {
-        await using IdentityTestDatabase database = CreateDbContext();
-        var repository = new PermissionReadRepository(database.DbContext);
-        await database.DbContext.Permissions.AddAsync(
-            CreatePermission("identity.users.read", "Identity", "Users", "Read users"));
-        await database.DbContext.SaveChangesAsync();
+        [Fact]
+        public async Task GetPermissionAsync_WhenPermissionExists_ReturnsProjection()
+        {
+            await using IdentityTestDatabase database = CreateDbContext();
+            var repository = new PermissionReadRepository(database.DbContext);
+            await database.DbContext.Permissions.AddAsync(
+                CreatePermission(
+                    key: "identity.users.read",
+                    service: "Identity",
+                    group: "Users",
+                    description: "Read users"));
+            await database.DbContext.SaveChangesAsync();
 
-        var item = await repository.GetPermissionAsync("identity.users.read", CancellationToken.None);
+            PermissionCatalogItemResult? item = await repository.GetPermissionAsync(
+                permissionKey: "identity.users.read",
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(item);
-        Assert.Equal("Identity", item.Service);
-        Assert.Equal("Users", item.Group);
+            Assert.NotNull(item);
+            Assert.Equal(
+                expected: "Identity",
+                actual: item.Service);
+            Assert.Equal(
+                expected: "Users",
+                actual: item.Group);
+        }
     }
 }

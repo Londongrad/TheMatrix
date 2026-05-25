@@ -2,34 +2,51 @@ using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.UseCases.Simulation.AdvanceRunningSimulations;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.AdvanceRunningSimulations;
-
-public sealed class AdvanceRunningSimulationsCommandHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.AdvanceRunningSimulations
 {
-    [Fact]
-    public async Task Handle_MapsBatchAdvanceResult()
+    public sealed class AdvanceRunningSimulationsCommandHandlerTests
     {
-        TimeSpan realDelta = TimeSpan.FromMilliseconds(500);
-        var executor = new SimulationTestSupport.FakeSimulationBatchAdvanceExecutor
+        [Fact]
+        public async Task Handle_MapsBatchAdvanceResult()
         {
-            Result = new SimulationBatchAdvanceResult(
-                ProcessedCount: 7,
-                AdvancedCount: 5,
-                NoStepDueCount: 1,
-                LaggingCount: 2,
-                FailedCount: 1,
-                TotalStepsProcessed: 12)
-        };
-        var handler = new AdvanceRunningSimulationsCommandHandler(executor);
+            var realDelta = TimeSpan.FromMilliseconds(500);
+            var executor = new SimulationTestSupport.FakeSimulationBatchAdvanceExecutor
+            {
+                Result = new SimulationBatchAdvanceResult(
+                    ProcessedCount: 7,
+                    AdvancedCount: 5,
+                    NoStepDueCount: 1,
+                    LaggingCount: 2,
+                    FailedCount: 1,
+                    TotalStepsProcessed: 12)
+            };
+            var handler = new AdvanceRunningSimulationsCommandHandler(executor);
 
-        var result = await handler.Handle(new AdvanceRunningSimulationsCommand(realDelta), CancellationToken.None);
+            AdvanceRunningSimulationsResult result = await handler.Handle(
+                request: new AdvanceRunningSimulationsCommand(realDelta),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(realDelta, executor.RequestedRealDelta);
-        Assert.Equal(7, result.ProcessedCount);
-        Assert.Equal(5, result.AdvancedCount);
-        Assert.Equal(1, result.NoStepDueCount);
-        Assert.Equal(2, result.LaggingCount);
-        Assert.Equal(1, result.FailedCount);
-        Assert.Equal(12, result.TotalStepsProcessed);
+            Assert.Equal(
+                expected: realDelta,
+                actual: executor.RequestedRealDelta);
+            Assert.Equal(
+                expected: 7,
+                actual: result.ProcessedCount);
+            Assert.Equal(
+                expected: 5,
+                actual: result.AdvancedCount);
+            Assert.Equal(
+                expected: 1,
+                actual: result.NoStepDueCount);
+            Assert.Equal(
+                expected: 2,
+                actual: result.LaggingCount);
+            Assert.Equal(
+                expected: 1,
+                actual: result.FailedCount);
+            Assert.Equal(
+                expected: 12,
+                actual: result.TotalStepsProcessed);
+        }
     }
 }

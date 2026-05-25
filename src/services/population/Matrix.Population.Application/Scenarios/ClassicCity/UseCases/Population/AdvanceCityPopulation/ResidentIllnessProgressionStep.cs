@@ -1,7 +1,6 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -27,7 +26,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             CityPopulationLivingConditionsState? livingConditionsState,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationServiceQualityState? serviceQualityState,
             CityPopulationHealthcarePressureProfile healthcarePressureProfile,
@@ -60,10 +60,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
                     districtId: districtId,
                     districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId);
-            CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
-                districtId: districtId,
-                livingConditionsState: livingConditionsState,
-                districtUtilityConditions: districtUtilityConditions);
+            CityPopulationLivingConditionsContext districtLivingConditions =
+                districtImpactPolicy.ResolveLivingConditions(
+                    districtId: districtId,
+                    livingConditionsState: livingConditionsState,
+                    districtUtilityConditions: districtUtilityConditions);
             CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                 districtId: districtId,
                 essentialsState: essentialsState);
@@ -82,22 +83,23 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 healthcareAnchorId: primaryCareAnchor?.CityAnchorId,
                 cancellationToken: cancellationToken);
             double healthcareSupportStrength = healthcareAutonomyPolicy.ResolveSupportStrength(
-                resident: person,
-                householdResidents: householdResidents,
-                housingStatus: housingStatus,
-                currentDate: currentDate,
-                hasPrimaryCareAccess: primaryCareAnchor is not null,
-                hasDistrictPrimaryCareAccess: primaryCareAnchor?.DistrictId == districtId,
-                districtUtilityConditions: districtUtilityConditions,
-                healthcareCommute: healthcareCommute,
-                serviceQualityState: serviceQualityState,
-                healthcarePressureProfile: healthcarePressureProfile) *
-                  livingConditionsPressurePolicy.ResolveMedicineAccessStrength(
-                      livingConditions: districtLivingConditions,
-                      essentials: districtEssentials);
+                                                   resident: person,
+                                                   householdResidents: householdResidents,
+                                                   housingStatus: housingStatus,
+                                                   currentDate: currentDate,
+                                                   hasPrimaryCareAccess: primaryCareAnchor is not null,
+                                                   hasDistrictPrimaryCareAccess: primaryCareAnchor?.DistrictId ==
+                                                   districtId,
+                                                   districtUtilityConditions: districtUtilityConditions,
+                                                   healthcareCommute: healthcareCommute,
+                                                   serviceQualityState: serviceQualityState,
+                                                   healthcarePressureProfile: healthcarePressureProfile) *
+                                               livingConditionsPressurePolicy.ResolveMedicineAccessStrength(
+                                                   livingConditions: districtLivingConditions,
+                                                   essentials: districtEssentials);
             double publicHealthRiskStrength = livingConditionsPressurePolicy.ResolvePublicHealthRiskStrength(
-                  livingConditions: districtLivingConditions,
-                  essentials: districtEssentials);
+                livingConditions: districtLivingConditions,
+                essentials: districtEssentials);
 
             bool changed = illnessAutonomyPolicy.Apply(
                 person: person,

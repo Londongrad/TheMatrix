@@ -22,16 +22,36 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             DateTimeOffset updatedAtUtc)
         {
             CityId = cityId;
-            FloodingIndex = ValidateIndex(floodingIndex, nameof(floodingIndex));
-            RoadAccessibilityIndex = ValidateIndex(roadAccessibilityIndex, nameof(roadAccessibilityIndex));
-            PowerCoverageIndex = ValidateIndex(powerCoverageIndex, nameof(powerCoverageIndex));
-            UtilityContinuityIndex = ValidateIndex(utilityContinuityIndex, nameof(utilityContinuityIndex));
-            HeatingCoverageIndex = ValidateIndex(heatingCoverageIndex, nameof(heatingCoverageIndex));
-            WaterCoverageIndex = ValidateIndex(waterCoverageIndex, nameof(waterCoverageIndex));
-            SanitationCoverageIndex = ValidateIndex(sanitationCoverageIndex, nameof(sanitationCoverageIndex));
-            EffectiveTickId = EnsureTickId(effectiveTickId, nameof(effectiveTickId));
-            EffectiveAtUtc = EnsureUtc(effectiveAtUtc, nameof(effectiveAtUtc));
-            UpdatedAtUtc = EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            FloodingIndex = ValidateIndex(
+                value: floodingIndex,
+                paramName: nameof(floodingIndex));
+            RoadAccessibilityIndex = ValidateIndex(
+                value: roadAccessibilityIndex,
+                paramName: nameof(roadAccessibilityIndex));
+            PowerCoverageIndex = ValidateIndex(
+                value: powerCoverageIndex,
+                paramName: nameof(powerCoverageIndex));
+            UtilityContinuityIndex = ValidateIndex(
+                value: utilityContinuityIndex,
+                paramName: nameof(utilityContinuityIndex));
+            HeatingCoverageIndex = ValidateIndex(
+                value: heatingCoverageIndex,
+                paramName: nameof(heatingCoverageIndex));
+            WaterCoverageIndex = ValidateIndex(
+                value: waterCoverageIndex,
+                paramName: nameof(waterCoverageIndex));
+            SanitationCoverageIndex = ValidateIndex(
+                value: sanitationCoverageIndex,
+                paramName: nameof(sanitationCoverageIndex));
+            EffectiveTickId = EnsureTickId(
+                value: effectiveTickId,
+                paramName: nameof(effectiveTickId));
+            EffectiveAtUtc = EnsureUtc(
+                value: effectiveAtUtc,
+                paramName: nameof(effectiveAtUtc));
+            UpdatedAtUtc = EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
         }
 
         public CityId CityId { get; private set; }
@@ -85,27 +105,54 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             DateTimeOffset effectiveAtUtc,
             DateTimeOffset updatedAtUtc)
         {
-            FloodingIndex = ValidateIndex(floodingIndex, nameof(floodingIndex));
-            RoadAccessibilityIndex = ValidateIndex(roadAccessibilityIndex, nameof(roadAccessibilityIndex));
-            PowerCoverageIndex = ValidateIndex(powerCoverageIndex, nameof(powerCoverageIndex));
-            UtilityContinuityIndex = ValidateIndex(utilityContinuityIndex, nameof(utilityContinuityIndex));
-            HeatingCoverageIndex = ValidateIndex(heatingCoverageIndex, nameof(heatingCoverageIndex));
-            WaterCoverageIndex = ValidateIndex(waterCoverageIndex, nameof(waterCoverageIndex));
-            SanitationCoverageIndex = ValidateIndex(sanitationCoverageIndex, nameof(sanitationCoverageIndex));
-            EffectiveTickId = EnsureTickId(effectiveTickId, nameof(effectiveTickId));
-            EffectiveAtUtc = EnsureUtc(effectiveAtUtc, nameof(effectiveAtUtc));
-            UpdatedAtUtc = EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            FloodingIndex = ValidateIndex(
+                value: floodingIndex,
+                paramName: nameof(floodingIndex));
+            RoadAccessibilityIndex = ValidateIndex(
+                value: roadAccessibilityIndex,
+                paramName: nameof(roadAccessibilityIndex));
+            PowerCoverageIndex = ValidateIndex(
+                value: powerCoverageIndex,
+                paramName: nameof(powerCoverageIndex));
+            UtilityContinuityIndex = ValidateIndex(
+                value: utilityContinuityIndex,
+                paramName: nameof(utilityContinuityIndex));
+            HeatingCoverageIndex = ValidateIndex(
+                value: heatingCoverageIndex,
+                paramName: nameof(heatingCoverageIndex));
+            WaterCoverageIndex = ValidateIndex(
+                value: waterCoverageIndex,
+                paramName: nameof(waterCoverageIndex));
+            SanitationCoverageIndex = ValidateIndex(
+                value: sanitationCoverageIndex,
+                paramName: nameof(sanitationCoverageIndex));
+            EffectiveTickId = EnsureTickId(
+                value: effectiveTickId,
+                paramName: nameof(effectiveTickId));
+            EffectiveAtUtc = EnsureUtc(
+                value: effectiveAtUtc,
+                paramName: nameof(effectiveAtUtc));
+            UpdatedAtUtc = EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
         }
 
-        private static decimal ValidateIndex(decimal value, string paramName)
+        private static decimal ValidateIndex(
+            decimal value,
+            string paramName)
         {
             if (value is < 0m or > 3m)
                 throw new ArgumentOutOfRangeException(paramName);
 
-            return decimal.Round(value, 4, MidpointRounding.AwayFromZero);
+            return decimal.Round(
+                d: value,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
         }
 
-        private static long EnsureTickId(long value, string paramName)
+        private static long EnsureTickId(
+            long value,
+            string paramName)
         {
             if (value < 0)
                 throw new ArgumentOutOfRangeException(paramName);
@@ -113,7 +160,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             return value;
         }
 
-        private static DateTimeOffset EnsureUtc(DateTimeOffset value, string paramName)
+        private static DateTimeOffset EnsureUtc(
+            DateTimeOffset value,
+            string paramName)
         {
             GuardHelper.Ensure(
                 condition: value.Offset == TimeSpan.Zero,

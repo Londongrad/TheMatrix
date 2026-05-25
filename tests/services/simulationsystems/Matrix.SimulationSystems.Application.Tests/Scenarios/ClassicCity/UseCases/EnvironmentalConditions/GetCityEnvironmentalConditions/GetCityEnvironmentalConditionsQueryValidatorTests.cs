@@ -1,29 +1,35 @@
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.GetCityEnvironmentalConditions;
+using FluentValidation.Results;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    GetCityEnvironmentalConditions;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.GetCityEnvironmentalConditions;
-
-public sealed class GetCityEnvironmentalConditionsQueryValidatorTests
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    GetCityEnvironmentalConditions
 {
-    [Fact]
-    public void Validate_WhenCityIdIsPresent_ReturnsNoErrors()
+    public sealed class GetCityEnvironmentalConditionsQueryValidatorTests
     {
-        var validator = new GetCityEnvironmentalConditionsQueryValidator();
+        [Fact]
+        public void Validate_WhenCityIdIsPresent_ReturnsNoErrors()
+        {
+            var validator = new GetCityEnvironmentalConditionsQueryValidator();
 
-        var result = validator.Validate(new GetCityEnvironmentalConditionsQuery(
-            CityId: Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff")));
+            ValidationResult? result = validator.Validate(
+                new GetCityEnvironmentalConditionsQuery(CityId: Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff")));
 
-        Assert.True(result.IsValid);
-    }
+            Assert.True(result.IsValid);
+        }
 
-    [Fact]
-    public void Validate_WhenCityIdIsEmpty_ReturnsError()
-    {
-        var validator = new GetCityEnvironmentalConditionsQueryValidator();
+        [Fact]
+        public void Validate_WhenCityIdIsEmpty_ReturnsError()
+        {
+            var validator = new GetCityEnvironmentalConditionsQueryValidator();
 
-        var result = validator.Validate(new GetCityEnvironmentalConditionsQuery(Guid.Empty));
+            ValidationResult? result = validator.Validate(new GetCityEnvironmentalConditionsQuery(Guid.Empty));
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "CityId");
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "CityId");
+        }
     }
 }

@@ -55,8 +55,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             cancellationToken: ct);
 
                     if (state is not null && occurredAtUtc < state.LastEvaluatedAtUtc)
-                        return new ApplyCityServiceQualitySnapshotResult(
-                            ApplyCityServiceQualitySnapshotStatus.Stale);
+                        return new ApplyCityServiceQualitySnapshotResult(ApplyCityServiceQualitySnapshotStatus.Stale);
 
                     DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
 
@@ -84,8 +83,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     await unitOfWork.SaveChangesAsync(ct);
 
-                    return new ApplyCityServiceQualitySnapshotResult(
-                        ApplyCityServiceQualitySnapshotStatus.Applied);
+                    return new ApplyCityServiceQualitySnapshotResult(ApplyCityServiceQualitySnapshotStatus.Applied);
                 },
                 cancellationToken: cancellationToken);
         }

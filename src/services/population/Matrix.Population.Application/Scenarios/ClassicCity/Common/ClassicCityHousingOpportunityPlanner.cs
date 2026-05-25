@@ -15,7 +15,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
     {
         public static CityDistrictUtilityConditionsSnapshot? ResolveDistrictUtilityConditions(
             DistrictId? districtId,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId)
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId)
         {
             if (!districtId.HasValue)
                 return null;
@@ -27,8 +28,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 : null;
         }
 
-        public static List<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> BuildHousingOpportunityPool(
-            IEnumerable<ClassicCityHouseholdPlacement> placements)
+        public static List<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)>
+            BuildHousingOpportunityPool(IEnumerable<ClassicCityHouseholdPlacement> placements)
         {
             return placements
                .Where(x => x.HousingStatus == HousingStatus.Housed &&
@@ -51,17 +52,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                .First();
         }
 
-        public static async Task<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> SelectHousingOpportunityAsync(
-            CityId cityId,
-            HouseholdId householdId,
-            DateOnly currentDate,
-            IReadOnlyList<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> housingPool,
-            IReadOnlyCollection<Person> householdResidents,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
-            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
-            ICityPopulationCommuteRoutingService commuteRoutingService,
-            CancellationToken cancellationToken)
+        public static async Task<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)>
+            SelectHousingOpportunityAsync(
+                CityId cityId,
+                HouseholdId householdId,
+                DateOnly currentDate,
+                IReadOnlyList<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> housingPool,
+                IReadOnlyCollection<Person> householdResidents,
+                IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
+                IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                    districtUtilityConditionsByDistrictId,
+                CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+                ICityPopulationCommuteRoutingService commuteRoutingService,
+                CancellationToken cancellationToken)
         {
             int startIndex = GetStableInt(
                 householdId: householdId,
@@ -73,12 +76,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 val2: 12);
             decimal bestScore = decimal.MinValue;
             int bestIndex = startIndex;
-            List<(int CandidateIndex, DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> candidates = [];
+            List<(int CandidateIndex, DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> candidates =
+                [];
 
             for (int offset = 0; offset < candidateCount; offset++)
             {
                 int candidateIndex = (startIndex + offset) % housingPool.Count;
-                (DistrictId districtId, ResidentialBuildingId residentialBuildingId) candidate = housingPool[candidateIndex];
+                (DistrictId districtId, ResidentialBuildingId residentialBuildingId) candidate =
+                    housingPool[candidateIndex];
                 candidates.Add((candidateIndex, candidate.districtId, candidate.residentialBuildingId));
             }
 
@@ -92,7 +97,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                     anchorSelectionPolicy: anchorSelectionPolicy),
                 cancellationToken: cancellationToken);
 
-            foreach ((int candidateIndex, DistrictId districtId, ResidentialBuildingId residentialBuildingId) in candidates)
+            foreach ((int candidateIndex, DistrictId districtId, ResidentialBuildingId residentialBuildingId) in
+                     candidates)
             {
                 decimal candidateScore = await EvaluateHousingOpportunityScoreAsync(
                     cityId: cityId,
@@ -117,7 +123,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
         }
 
         private static IReadOnlyCollection<CityPopulationCommuteRouteRequest> BuildPreloadRequests(
-            IReadOnlyCollection<(int CandidateIndex, DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> candidates,
+            IReadOnlyCollection<(int CandidateIndex, DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId
+                )> candidates,
             DateOnly currentDate,
             IReadOnlyCollection<Person> householdResidents,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
@@ -126,44 +133,44 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             List<CityPopulationCommuteRouteRequest> requests = [];
 
             foreach ((_, DistrictId districtId, ResidentialBuildingId residentialBuildingId) in candidates)
+            foreach (Person resident in householdResidents)
             {
-                foreach (Person resident in householdResidents)
-                {
-                    if (!resident.IsAlive)
-                        continue;
+                if (!resident.IsAlive)
+                    continue;
 
-                    if (resident.Employment.Job?.WorkplaceAnchorId is { } workplaceAnchorId)
-                        requests.Add(
-                            new CityPopulationCommuteRouteRequest(
-                                ResidentialBuildingId: residentialBuildingId,
-                                DestinationAnchorId: workplaceAnchorId,
-                                Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
-
-                    if (resident.Education.CurrentInstitutionAnchorId is { } institutionAnchorId)
-                        requests.Add(
-                            new CityPopulationCommuteRouteRequest(
-                                ResidentialBuildingId: residentialBuildingId,
-                                DestinationAnchorId: institutionAnchorId,
-                                Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
-
-                    bool needsHealthcarePriority = resident.HasActiveIllness ||
-                                                   resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
-                    if (!needsHealthcarePriority)
-                        continue;
-
-                    CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
-                        anchors: hospitalAnchors,
-                        preferredDistrictId: districtId,
-                        stableKey: resident.Id.Value);
-                    if (primaryCareAnchor is null)
-                        continue;
-
+                if (resident.Employment.Job?.WorkplaceAnchorId is
+                    { } workplaceAnchorId)
                     requests.Add(
                         new CityPopulationCommuteRouteRequest(
                             ResidentialBuildingId: residentialBuildingId,
-                            DestinationAnchorId: primaryCareAnchor.CityAnchorId,
+                            DestinationAnchorId: workplaceAnchorId,
                             Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
-                }
+
+                if (resident.Education.CurrentInstitutionAnchorId is
+                    { } institutionAnchorId)
+                    requests.Add(
+                        new CityPopulationCommuteRouteRequest(
+                            ResidentialBuildingId: residentialBuildingId,
+                            DestinationAnchorId: institutionAnchorId,
+                            Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
+
+                bool needsHealthcarePriority = resident.HasActiveIllness ||
+                                               resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
+                if (!needsHealthcarePriority)
+                    continue;
+
+                CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
+                    anchors: hospitalAnchors,
+                    preferredDistrictId: districtId,
+                    stableKey: resident.Id.Value);
+                if (primaryCareAnchor is null)
+                    continue;
+
+                requests.Add(
+                    new CityPopulationCommuteRouteRequest(
+                        ResidentialBuildingId: residentialBuildingId,
+                        DestinationAnchorId: primaryCareAnchor.CityAnchorId,
+                        Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
             }
 
             return requests;
@@ -176,7 +183,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             DateOnly currentDate,
             IReadOnlyCollection<Person> householdResidents,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId,
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
@@ -189,7 +197,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 if (!resident.IsAlive)
                     continue;
 
-                if (resident.Employment.Job?.WorkplaceAnchorId is { } workplaceAnchorId)
+                if (resident.Employment.Job?.WorkplaceAnchorId is
+                    { } workplaceAnchorId)
                 {
                     CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
                         cityId: cityId.Value,
@@ -202,7 +211,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                     totalWeight += 1.20m;
                 }
 
-                if (resident.Education.CurrentInstitutionAnchorId is { } institutionAnchorId)
+                if (resident.Education.CurrentInstitutionAnchorId is
+                    { } institutionAnchorId)
                 {
                     CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
                         cityId: cityId.Value,

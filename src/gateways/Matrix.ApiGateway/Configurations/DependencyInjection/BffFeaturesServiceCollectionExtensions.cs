@@ -8,10 +8,9 @@ using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Identity;
-using Matrix.BuildingBlocks.Infrastructure.Messaging;
-using Matrix.BuildingBlocks.Application.Security.InternalApiKey;
-using Matrix.BuildingBlocks.Api.OptionsValidation;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
+using Matrix.BuildingBlocks.Api.OptionsValidation;
+using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
@@ -50,8 +49,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: o => Uri.TryCreate(
                         uriString: o.BaseUrl,
-                    uriKind: UriKind.Absolute,
-                    result: out _),
+                        uriKind: UriKind.Absolute,
+                        result: out _),
                     failureMessage: "IdentityInternal:BaseUrl must be an absolute URI.")
                .Validate(
                     validation: o => o.RequestTimeoutSeconds > 0,
@@ -149,17 +148,17 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddTransient<InternalIdentityApiKeyAuthenticationHandler>();
 
             services.AddHttpClient<IIdentityInternalUsersClient, IdentityInternalUsersClient>((
-                sp,
-                client) =>
-            {
-                IdentityInternalOptions options = sp.GetRequiredService<IOptions<IdentityInternalOptions>>()
-                   .Value;
+                    sp,
+                    client) =>
+                {
+                    IdentityInternalOptions options = sp.GetRequiredService<IOptions<IdentityInternalOptions>>()
+                       .Value;
 
-                client.BaseAddress = new Uri(
-                    uriString: options.BaseUrl,
-                    uriKind: UriKind.Absolute);
-                client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
-            })
+                    client.BaseAddress = new Uri(
+                        uriString: options.BaseUrl,
+                        uriKind: UriKind.Absolute);
+                    client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
+                })
                .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>();
 

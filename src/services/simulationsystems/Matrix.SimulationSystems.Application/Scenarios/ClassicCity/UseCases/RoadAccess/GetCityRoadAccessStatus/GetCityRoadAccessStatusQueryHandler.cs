@@ -25,7 +25,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ro
             if (state is null)
                 return null;
 
-            decimal roadSupport = pressureProfileFactory.Create(state).RoadSupport;
+            decimal roadSupport = pressureProfileFactory.Create(state)
+               .RoadSupport;
 
             return CityRoadAccessStatusDto.FromState(
                 cityId: request.CityId,

@@ -1,11 +1,7 @@
 // src/shared/components/ConfirmDialog.tsx
 import React, {type ReactNode, useCallback, useRef, useState,} from "react";
 import ReactDOM from "react-dom";
-import {
-    ConfirmContext,
-    type ConfirmFn,
-    type ConfirmOptions,
-} from "./confirmDialogContext";
+import {ConfirmContext, type ConfirmFn, type ConfirmOptions,} from "./confirmDialogContext";
 import "./confirm-dialog.css";
 
 interface DialogState extends ConfirmOptions {

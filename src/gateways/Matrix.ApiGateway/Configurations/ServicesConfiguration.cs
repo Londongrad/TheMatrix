@@ -1,7 +1,7 @@
 using Matrix.ApiGateway.Configurations.DependencyInjection;
+using Matrix.BuildingBlocks.Api.Forwarding;
 using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
-using Matrix.BuildingBlocks.Api.Forwarding;
 
 namespace Matrix.ApiGateway.Configurations
 {
@@ -14,7 +14,9 @@ namespace Matrix.ApiGateway.Configurations
             builder.Services
                .AddOperationalHealthChecks(builder.Configuration)
                .AddTrustedForwardedHeaders(builder.Configuration)
-               .AddGatewayCore(builder.Configuration, builder.Environment)
+               .AddGatewayCore(
+                    configuration: builder.Configuration,
+                    environment: builder.Environment)
                .AddGatewayAuth(builder.Configuration)
                .AddDownstreamServices(builder.Configuration)
                .AddBffFeatures(builder.Configuration);

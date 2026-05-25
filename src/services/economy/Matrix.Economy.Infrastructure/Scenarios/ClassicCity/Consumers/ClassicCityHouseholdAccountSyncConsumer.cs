@@ -190,17 +190,17 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
             decimal chargeAmount = kind switch
             {
                 CityHouseholdObligationKind.Rent => 96m +
-                (memberCount * 26m) +
-                (Math.Max(
-                     val1: 0,
-                     val2: memberCount - 3) *
-                 18m),
+                                                    (memberCount * 26m) +
+                                                    (Math.Max(
+                                                         val1: 0,
+                                                         val2: memberCount - 3) *
+                                                     18m),
                 CityHouseholdObligationKind.Utilities => 18m +
-                (memberCount * 9m) +
-                (Math.Max(
-                     val1: 0,
-                     val2: memberCount - 2) *
-                 4m),
+                                                         (memberCount * 9m) +
+                                                         (Math.Max(
+                                                              val1: 0,
+                                                              val2: memberCount - 2) *
+                                                          4m),
                 _ => 24m + (memberCount * 8m)
             };
             decimal taxAmount = kind == CityHouseholdObligationKind.Utilities

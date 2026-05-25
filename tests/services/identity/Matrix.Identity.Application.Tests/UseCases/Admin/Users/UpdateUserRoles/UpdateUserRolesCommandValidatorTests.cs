@@ -1,27 +1,37 @@
+using FluentValidation.Results;
 using Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.UpdateUserRoles;
-
-public sealed class UpdateUserRolesCommandValidatorTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.UpdateUserRoles
 {
-    private readonly UpdateUserRolesCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidUserId_ReturnsNoErrors()
+    public sealed class UpdateUserRolesCommandValidatorTests
     {
-        var result = _validator.Validate(new UpdateUserRolesCommand(Guid.NewGuid(), Array.Empty<Guid>()));
+        private readonly UpdateUserRolesCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidUserId_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new UpdateUserRolesCommand(
+                    UserId: Guid.NewGuid(),
+                    RoleIds: Array.Empty<Guid>()));
 
-    [Fact]
-    public void Validate_WithEmptyUserId_ReturnsExpectedError()
-    {
-        var result = _validator.Validate(new UpdateUserRolesCommand(Guid.Empty, Array.Empty<Guid>()));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "UserId" && x.ErrorMessage == "UserId must not be empty");
+        [Fact]
+        public void Validate_WithEmptyUserId_ReturnsExpectedError()
+        {
+            ValidationResult? result = _validator.Validate(
+                new UpdateUserRolesCommand(
+                    UserId: Guid.Empty,
+                    RoleIds: Array.Empty<Guid>()));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "UserId" && x.ErrorMessage == "UserId must not be empty");
+        }
     }
 }

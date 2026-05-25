@@ -3,35 +3,39 @@ using Matrix.Identity.Api.Controllers.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
-namespace Matrix.Identity.Api.Tests.Controllers.Internal;
-
-public sealed class InternalControllerSecurityConventionTests
+namespace Matrix.Identity.Api.Tests.Controllers.Internal
 {
-    [Fact]
-    public void InternalControllers_RequireInternalApiKeyAttribute()
+    public sealed class InternalControllerSecurityConventionTests
     {
-        Type[] controllerTypes = typeof(InternalUsersController)
-            .Assembly
-            .GetTypes()
-            .Where(type =>
-                type is { IsClass: true, IsAbstract: false } &&
-                typeof(ControllerBase).IsAssignableFrom(type) &&
-                string.Equals(
-                    type.Namespace,
-                    "Matrix.Identity.Api.Controllers.Internal",
-                    StringComparison.Ordinal))
-            .OrderBy(
-                keySelector: type => type.Name,
-                comparer: StringComparer.Ordinal)
-            .ToArray();
+        [Fact]
+        public void InternalControllers_RequireInternalApiKeyAttribute()
+        {
+            Type[] controllerTypes = typeof(InternalUsersController)
+               .Assembly
+               .GetTypes()
+               .Where(type =>
+                    type is
+                    {
+                        IsClass: true, IsAbstract: false
+                    } &&
+                    typeof(ControllerBase).IsAssignableFrom(type) &&
+                    string.Equals(
+                        a: type.Namespace,
+                        b: "Matrix.Identity.Api.Controllers.Internal",
+                        comparisonType: StringComparison.Ordinal))
+               .OrderBy(
+                    keySelector: type => type.Name,
+                    comparer: StringComparer.Ordinal)
+               .ToArray();
 
-        Assert.NotEmpty(controllerTypes);
+            Assert.NotEmpty(controllerTypes);
 
-        foreach (Type controllerType in controllerTypes)
-            Assert.True(
-                controllerType.IsDefined(
-                    attributeType: typeof(RequireInternalApiKeyAttribute),
-                    inherit: true),
-                $"{controllerType.FullName} must be decorated with [RequireInternalApiKey].");
+            foreach (Type controllerType in controllerTypes)
+                Assert.True(
+                    condition: controllerType.IsDefined(
+                        attributeType: typeof(RequireInternalApiKeyAttribute),
+                        inherit: true),
+                    userMessage: $"{controllerType.FullName} must be decorated with [RequireInternalApiKey].");
+        }
     }
 }

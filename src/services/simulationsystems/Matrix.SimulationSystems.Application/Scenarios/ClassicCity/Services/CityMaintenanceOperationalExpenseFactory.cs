@@ -1,3 +1,4 @@
+using System.Text;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
@@ -152,7 +153,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             if (string.IsNullOrWhiteSpace(value))
                 return string.Empty;
 
-            var builder = new System.Text.StringBuilder(capacity: value.Length + 4);
+            var builder = new StringBuilder(capacity: value.Length + 4);
 
             for (int index = 0; index < value.Length; index++)
             {

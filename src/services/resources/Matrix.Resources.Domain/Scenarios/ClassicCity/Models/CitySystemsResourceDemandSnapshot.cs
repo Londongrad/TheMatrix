@@ -19,7 +19,9 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Models
                 FiltersDemandPressureIndex: 0m,
                 EmergencyWaterDemandPressureIndex: 0m,
                 OverallDemandPressureIndex: 0m,
-                EffectiveTickId: Math.Max(0, effectiveTickId),
+                EffectiveTickId: Math.Max(
+                    val1: 0,
+                    val2: effectiveTickId),
                 EffectiveAtUtc: effectiveAtUtc.Offset == TimeSpan.Zero
                     ? effectiveAtUtc
                     : effectiveAtUtc.ToUniversalTime());

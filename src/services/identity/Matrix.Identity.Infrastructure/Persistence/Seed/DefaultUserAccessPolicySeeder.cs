@@ -21,7 +21,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             if (exists)
                 return;
 
-            DefaultUserAccessPolicy policy = DefaultUserAccessPolicy.CreateDefault(_timeProvider.GetUtcNow().UtcDateTime);
+            var policy = DefaultUserAccessPolicy.CreateDefault(
+                _timeProvider.GetUtcNow()
+                   .UtcDateTime);
             await _db.DefaultUserAccessPolicies.AddAsync(
                 entity: policy,
                 cancellationToken: cancellationToken);

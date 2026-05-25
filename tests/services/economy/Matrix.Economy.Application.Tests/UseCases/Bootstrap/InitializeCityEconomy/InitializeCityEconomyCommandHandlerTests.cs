@@ -1,28 +1,39 @@
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
-using Matrix.Economy.Application.Tests.TestSupport;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEconomy;
-
-public sealed class InitializeCityEconomyCommandHandlerTests
+namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEconomy
 {
-    [Fact]
-    public async Task Handle_ForwardsCommandToBootstrapService()
+    public sealed class InitializeCityEconomyCommandHandlerTests
     {
-        var bootstrapService = new FakeCityEconomyBootstrapService();
-        var handler = new InitializeCityEconomyCommandHandler(bootstrapService);
-        var command = new InitializeCityEconomyCommand(
-            CityId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-            SimulationKind: "ClassicCity",
-            EconomyProfile: "baseline",
-            CreatedAtUtc: new DateTimeOffset(2048, 5, 6, 11, 0, 0, TimeSpan.Zero));
+        [Fact]
+        public async Task Handle_ForwardsCommandToBootstrapService()
+        {
+            var bootstrapService = new FakeCityEconomyBootstrapService();
+            var handler = new InitializeCityEconomyCommandHandler(bootstrapService);
+            var command = new InitializeCityEconomyCommand(
+                CityId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+                SimulationKind: "ClassicCity",
+                EconomyProfile: "baseline",
+                CreatedAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 11,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero));
 
-        CityEconomyBootstrapResultDto result = await handler.Handle(command, CancellationToken.None);
+            CityEconomyBootstrapResultDto result = await handler.Handle(
+                request: command,
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(bootstrapService.Result, result);
-        Assert.Equal(
-            (command.CityId, command.SimulationKind, command.EconomyProfile, command.CreatedAtUtc),
-            bootstrapService.Request);
+            Assert.Equal(
+                expected: bootstrapService.Result,
+                actual: result);
+            Assert.Equal(
+                expected: (command.CityId, command.SimulationKind, command.EconomyProfile, command.CreatedAtUtc),
+                actual: bootstrapService.Request);
+        }
     }
 }

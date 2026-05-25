@@ -13,7 +13,9 @@ import type {
     CityActiveTripView,
     CityMapTopologyView,
 } from "@services/simulationcore/scenarios/classic-city/contracts/worldContracts";
-import type {CityDistrictInfrastructureView} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
+import type {
+    CityDistrictInfrastructureView
+} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
 import type {
     CityUtilityIncidentStatusView,
     DispatchCityResupplyRequest,

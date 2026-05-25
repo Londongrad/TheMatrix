@@ -4,29 +4,31 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Matrix.BuildingBlocks.Application.Tests.DependencyInjection;
-
-public sealed class ApplicationPipelineServiceCollectionExtensionsTests
+namespace Matrix.BuildingBlocks.Application.Tests.DependencyInjection
 {
-    [Fact]
-    public void AddDefaultApplicationPipeline_WhenCalled_RegistersDefaultBehaviors()
+    public sealed class ApplicationPipelineServiceCollectionExtensionsTests
     {
-        ServiceCollection services = new();
+        [Fact]
+        public void AddDefaultApplicationPipeline_WhenCalled_RegistersDefaultBehaviors()
+        {
+            ServiceCollection services = new();
 
-        services.AddDefaultApplicationPipeline();
+            services.AddDefaultApplicationPipeline();
 
-        Type[] implementations = services
-            .Where(descriptor => descriptor.ServiceType == typeof(IPipelineBehavior<,>))
-            .Select(descriptor => descriptor.ImplementationType)
-            .OfType<Type>()
-            .ToArray();
+            Type[] implementations = services
+               .Where(descriptor => descriptor.ServiceType == typeof(IPipelineBehavior<,>))
+               .Select(descriptor => descriptor.ImplementationType)
+               .OfType<Type>()
+               .ToArray();
 
-        Assert.Equal(
-            [
-                typeof(LoggingBehavior<,>),
-                typeof(PermissionBehavior<,>),
-                typeof(ValidationBehavior<,>)
-            ],
-            implementations);
+            Assert.Equal(
+                expected:
+                [
+                    typeof(LoggingBehavior<,>),
+                    typeof(PermissionBehavior<,>),
+                    typeof(ValidationBehavior<,>)
+                ],
+                actual: implementations);
+        }
     }
 }

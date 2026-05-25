@@ -1,7 +1,6 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity

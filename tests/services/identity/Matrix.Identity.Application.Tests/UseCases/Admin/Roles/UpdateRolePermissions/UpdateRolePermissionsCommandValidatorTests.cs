@@ -1,27 +1,37 @@
+using FluentValidation.Results;
 using Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.UpdateRolePermissions;
-
-public sealed class UpdateRolePermissionsCommandValidatorTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.UpdateRolePermissions
 {
-    private readonly UpdateRolePermissionsCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidRoleId_ReturnsNoErrors()
+    public sealed class UpdateRolePermissionsCommandValidatorTests
     {
-        var result = _validator.Validate(new UpdateRolePermissionsCommand(Guid.NewGuid(), Array.Empty<string>()));
+        private readonly UpdateRolePermissionsCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidRoleId_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new UpdateRolePermissionsCommand(
+                    RoleId: Guid.NewGuid(),
+                    RolePermissionKeys: Array.Empty<string>()));
 
-    [Fact]
-    public void Validate_WithEmptyRoleId_ReturnsExpectedError()
-    {
-        var result = _validator.Validate(new UpdateRolePermissionsCommand(Guid.Empty, Array.Empty<string>()));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "RoleId" && x.ErrorMessage == "RoleId must not be empty");
+        [Fact]
+        public void Validate_WithEmptyRoleId_ReturnsExpectedError()
+        {
+            ValidationResult? result = _validator.Validate(
+                new UpdateRolePermissionsCommand(
+                    RoleId: Guid.Empty,
+                    RolePermissionKeys: Array.Empty<string>()));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "RoleId" && x.ErrorMessage == "RoleId must not be empty");
+        }
     }
 }

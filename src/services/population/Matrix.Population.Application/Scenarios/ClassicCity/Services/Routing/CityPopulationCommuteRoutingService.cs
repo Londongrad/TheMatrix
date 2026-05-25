@@ -9,8 +9,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
     public sealed class CityPopulationCommuteRoutingService(ICityRouteResolutionClient routeResolutionClient)
         : ICityPopulationCommuteRoutingService
     {
-        private readonly ICityRouteResolutionClient _routeResolutionClient = routeResolutionClient;
         private readonly Dictionary<CommuteRouteCacheKey, CityPopulationCommuteContext> _cache = [];
+        private readonly ICityRouteResolutionClient _routeResolutionClient = routeResolutionClient;
 
         public async Task PreloadAnchorCommutesAsync(
             Guid cityId,
@@ -46,14 +46,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
                     requests: missingRoutesByCacheKey.Values.ToArray(),
                     cancellationToken: cancellationToken);
 
-            foreach ((CommuteRouteCacheKey cacheKey, CityRouteResolutionBatchRequestItem request) in missingRoutesByCacheKey)
-            {
+            foreach ((CommuteRouteCacheKey cacheKey, CityRouteResolutionBatchRequestItem request) in
+                     missingRoutesByCacheKey)
                 _cache[cacheKey] = resolvedRoutes.TryGetValue(
                     key: request,
                     value: out CityPopulationCommuteContext? routeContext)
                     ? routeContext ?? CityPopulationCommuteContext.Neutral
                     : CityPopulationCommuteContext.Neutral;
-            }
         }
 
         public Task<CityPopulationCommuteContext> ResolveAnchorCommuteAsync(
@@ -136,9 +135,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
             if (_cache.TryGetValue(
                     key: cacheKey,
                     value: out CityPopulationCommuteContext? cached))
-            {
                 return cached;
-            }
 
             CityPopulationCommuteContext routeContext =
                 await _routeResolutionClient.ResolveResidentialToAnchorAsync(
@@ -146,8 +143,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
                     residentialBuildingId: residentialBuildingId.Value,
                     cityAnchorId: destinationAnchorId.Value,
                     profile: profile,
-                    cancellationToken: cancellationToken)
-                ?? CityPopulationCommuteContext.Neutral;
+                    cancellationToken: cancellationToken) ??
+                CityPopulationCommuteContext.Neutral;
 
             _cache[cacheKey] = routeContext;
             return routeContext;

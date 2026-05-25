@@ -32,7 +32,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.Common
                     cancellationToken: cancellationToken))
                 return null;
 
-            CityBudgetUnitProfile unitProfile = CityBudgetUnitProfile.DefaultMoney();
+            var unitProfile = CityBudgetUnitProfile.DefaultMoney();
             CityBudget budget = await budgetRepository.GetByCityAsync(
                                     cityId: cityId,
                                     cancellationToken: cancellationToken) ??

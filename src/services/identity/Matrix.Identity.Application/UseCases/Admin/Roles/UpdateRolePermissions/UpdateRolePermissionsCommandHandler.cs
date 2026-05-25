@@ -52,11 +52,9 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions
                         return;
 
                     await foreach (Guid userId in userRepository.StreamUserIdsByRoleAsync(
-                        roleId: request.RoleId,
-                        cancellationToken: token))
-                    {
+                                       roleId: request.RoleId,
+                                       cancellationToken: token))
                         securityStateChangeCollector.MarkUserChanged(userId);
-                    }
                 },
                 cancellationToken: cancellationToken);
         }

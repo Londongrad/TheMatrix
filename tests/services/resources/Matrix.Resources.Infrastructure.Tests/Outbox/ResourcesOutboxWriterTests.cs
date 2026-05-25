@@ -1,66 +1,92 @@
 using System.Text.Json;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Persistence;
-using Matrix.Resources.Infrastructure.Tests.TestSupport;
 using Xunit;
 using static Matrix.Resources.Infrastructure.Tests.TestSupport.ResourcesInfrastructureTestSupport;
 
-namespace Matrix.Resources.Infrastructure.Tests.Outbox;
-
-public sealed class ResourcesOutboxWriterTests
+namespace Matrix.Resources.Infrastructure.Tests.Outbox
 {
-    [Fact]
-    public void OutboxEventTypeMap_ContainsKnownResourcesEvents()
+    public sealed class ResourcesOutboxWriterTests
     {
-        Assert.Equal(typeof(ClassicCityStockpileSnapshotV1), OutboxEventTypeMap.Map[ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1]);
-        Assert.Equal(typeof(ClassicCityOperationalExpenseIncurredV1), OutboxEventTypeMap.Map[ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1]);
-    }
+        [Fact]
+        public void OutboxEventTypeMap_ContainsKnownResourcesEvents()
+        {
+            Assert.Equal(
+                expected: typeof(ClassicCityStockpileSnapshotV1),
+                actual: OutboxEventTypeMap.Map[ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1]);
+            Assert.Equal(
+                expected: typeof(ClassicCityOperationalExpenseIncurredV1),
+                actual: OutboxEventTypeMap.Map[ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1]);
+        }
 
-    [Fact]
-    public async Task CityStockpileSnapshotOutboxWriter_AddsSerializedOutboxMessage()
-    {
-        await using var dbContext = CreateDbContext();
-        var writer = new CityStockpileSnapshotOutboxWriter(dbContext);
-        ClassicCityStockpileSnapshotV1 snapshot = CreateStockpileSnapshotEvent();
+        [Fact]
+        public async Task CityStockpileSnapshotOutboxWriter_AddsSerializedOutboxMessage()
+        {
+            await using ResourcesDbContext dbContext = CreateDbContext();
+            var writer = new CityStockpileSnapshotOutboxWriter(dbContext);
+            ClassicCityStockpileSnapshotV1 snapshot = CreateStockpileSnapshotEvent();
 
-        await writer.AddClassicCityStockpileSnapshotAsync(snapshot, CancellationToken.None);
-        await dbContext.SaveChangesAsync();
+            await writer.AddClassicCityStockpileSnapshotAsync(
+                snapshot: snapshot,
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
 
-        var message = Assert.Single(dbContext.OutboxMessages);
-        Assert.Equal(ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1, message.Type);
-        Assert.Equal(snapshot.OccurredAtUtc.UtcDateTime, message.OccurredOnUtc);
+            OutboxMessage message = Assert.Single(dbContext.OutboxMessages);
+            Assert.Equal(
+                expected: ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1,
+                actual: message.Type);
+            Assert.Equal(
+                expected: snapshot.OccurredAtUtc.UtcDateTime,
+                actual: message.OccurredOnUtc);
 
-        ClassicCityStockpileSnapshotV1? payload = JsonSerializer.Deserialize<ClassicCityStockpileSnapshotV1>(
-            message.PayloadJson,
-            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            ClassicCityStockpileSnapshotV1? payload = JsonSerializer.Deserialize<ClassicCityStockpileSnapshotV1>(
+                json: message.PayloadJson,
+                options: new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-        Assert.NotNull(payload);
-        Assert.Equal(snapshot.CityId, payload!.CityId);
-        Assert.Equal(snapshot.EffectiveTickId, payload.EffectiveTickId);
-    }
+            Assert.NotNull(payload);
+            Assert.Equal(
+                expected: snapshot.CityId,
+                actual: payload!.CityId);
+            Assert.Equal(
+                expected: snapshot.EffectiveTickId,
+                actual: payload.EffectiveTickId);
+        }
 
-    [Fact]
-    public async Task CityOperationalExpenseOutboxWriter_AddsSerializedOutboxMessage()
-    {
-        await using var dbContext = CreateDbContext();
-        var writer = new CityOperationalExpenseOutboxWriter(dbContext);
-        ClassicCityOperationalExpenseIncurredV1 expense = CreateOperationalExpenseEvent();
+        [Fact]
+        public async Task CityOperationalExpenseOutboxWriter_AddsSerializedOutboxMessage()
+        {
+            await using ResourcesDbContext dbContext = CreateDbContext();
+            var writer = new CityOperationalExpenseOutboxWriter(dbContext);
+            ClassicCityOperationalExpenseIncurredV1 expense = CreateOperationalExpenseEvent();
 
-        await writer.AddClassicCityOperationalExpenseAsync(expense, CancellationToken.None);
-        await dbContext.SaveChangesAsync();
+            await writer.AddClassicCityOperationalExpenseAsync(
+                expense: expense,
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
 
-        var message = Assert.Single(dbContext.OutboxMessages);
-        Assert.Equal(ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1, message.Type);
-        Assert.Equal(expense.OccurredAtUtc.UtcDateTime, message.OccurredOnUtc);
+            OutboxMessage message = Assert.Single(dbContext.OutboxMessages);
+            Assert.Equal(
+                expected: ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1,
+                actual: message.Type);
+            Assert.Equal(
+                expected: expense.OccurredAtUtc.UtcDateTime,
+                actual: message.OccurredOnUtc);
 
-        ClassicCityOperationalExpenseIncurredV1? payload = JsonSerializer.Deserialize<ClassicCityOperationalExpenseIncurredV1>(
-            message.PayloadJson,
-            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            ClassicCityOperationalExpenseIncurredV1? payload =
+                JsonSerializer.Deserialize<ClassicCityOperationalExpenseIncurredV1>(
+                    json: message.PayloadJson,
+                    options: new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-        Assert.NotNull(payload);
-        Assert.Equal(expense.CityId, payload!.CityId);
-        Assert.Equal(expense.OperationKind, payload.OperationKind);
+            Assert.NotNull(payload);
+            Assert.Equal(
+                expected: expense.CityId,
+                actual: payload!.CityId);
+            Assert.Equal(
+                expected: expense.OperationKind,
+                actual: payload.OperationKind);
+        }
     }
 }

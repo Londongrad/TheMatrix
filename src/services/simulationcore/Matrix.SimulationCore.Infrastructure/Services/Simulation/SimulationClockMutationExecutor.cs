@@ -46,7 +46,8 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
                             if (host.IsArchived && !allowArchivedHost)
                                 throw new MatrixApplicationException(
                                     code: "SimulationCore.Simulation.ArchivedHost",
-                                    message: "Archived simulation hosts are read-only. Simulation controls are unavailable.",
+                                    message:
+                                    "Archived simulation hosts are read-only. Simulation controls are unavailable.",
                                     errorType: ApplicationErrorType.Conflict);
 
                             CityId cityId = new(host.HostId.Value);

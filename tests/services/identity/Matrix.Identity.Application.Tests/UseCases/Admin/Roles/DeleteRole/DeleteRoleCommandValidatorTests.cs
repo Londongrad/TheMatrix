@@ -1,27 +1,31 @@
+using FluentValidation.Results;
 using Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.DeleteRole;
-
-public sealed class DeleteRoleCommandValidatorTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.DeleteRole
 {
-    private readonly DeleteRoleCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidRoleId_ReturnsNoErrors()
+    public sealed class DeleteRoleCommandValidatorTests
     {
-        var result = _validator.Validate(new DeleteRoleCommand(Guid.NewGuid()));
+        private readonly DeleteRoleCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidRoleId_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(new DeleteRoleCommand(Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_WithEmptyRoleId_ReturnsExpectedError()
-    {
-        var result = _validator.Validate(new DeleteRoleCommand(Guid.Empty));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "RoleId" && x.ErrorMessage == "RoleId must not be empty.");
+        [Fact]
+        public void Validate_WithEmptyRoleId_ReturnsExpectedError()
+        {
+            ValidationResult? result = _validator.Validate(new DeleteRoleCommand(Guid.Empty));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "RoleId" && x.ErrorMessage == "RoleId must not be empty.");
+        }
     }
 }

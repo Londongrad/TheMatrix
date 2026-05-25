@@ -1,46 +1,77 @@
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Common;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetCity;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.GetCity;
-
-public sealed class GetCityQueryHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.GetCity
 {
-    [Fact]
-    public async Task Handle_WhenCityDoesNotExist_ReturnsNull()
+    public sealed class GetCityQueryHandlerTests
     {
-        var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
-        var handler = new GetCityQueryHandler(cityRepository);
-
-        var result = await handler.Handle(new GetCityQuery(Guid.NewGuid()), CancellationToken.None);
-
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task Handle_WhenCityExists_ReturnsMappedDto()
-    {
-        var city = ClassicCityTestSupport.CreateCity("Neo Tokyo");
-        var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+        [Fact]
+        public async Task Handle_WhenCityDoesNotExist_ReturnsNull()
         {
-            CityById = city
-        };
-        var handler = new GetCityQueryHandler(cityRepository);
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
+            var handler = new GetCityQueryHandler(cityRepository);
 
-        var result = await handler.Handle(new GetCityQuery(city.Id.Value), CancellationToken.None);
+            CityDto? result = await handler.Handle(
+                request: new GetCityQuery(Guid.NewGuid()),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.Equal(city.Id.Value, result.CityId);
-        Assert.Equal(city.Id.Value, result.SimulationId);
-        Assert.Equal(city.Name.Value, result.Name);
-        Assert.Equal(city.SimulationKind.ToString(), result.SimulationKind);
-        Assert.Equal(city.Status.ToString(), result.Status);
-        Assert.Equal(city.Environment.ClimateZone.ToString(), result.ClimateZone);
-        Assert.Equal(city.Environment.Hemisphere.ToString(), result.Hemisphere);
-        Assert.Equal(city.Environment.UtcOffset.TotalMinutes, result.UtcOffsetMinutes);
-        Assert.Equal(city.GenerationProfile.PlannedPeopleCount, result.PlannedPeopleCount);
-        Assert.Equal(city.PopulationBootstrapOperationId, result.PopulationBootstrapOperationId);
-        Assert.Equal(city.EconomyBootstrapOperationId, result.EconomyBootstrapOperationId);
-        Assert.Equal(city.CreatedAtUtc, result.CreatedAtUtc);
-        Assert.False(result.IsArchived);
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task Handle_WhenCityExists_ReturnsMappedDto()
+        {
+            City city = ClassicCityTestSupport.CreateCity("Neo Tokyo");
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+            {
+                CityById = city
+            };
+            var handler = new GetCityQueryHandler(cityRepository);
+
+            CityDto? result = await handler.Handle(
+                request: new GetCityQuery(city.Id.Value),
+                cancellationToken: CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.Equal(
+                expected: city.Id.Value,
+                actual: result.CityId);
+            Assert.Equal(
+                expected: city.Id.Value,
+                actual: result.SimulationId);
+            Assert.Equal(
+                expected: city.Name.Value,
+                actual: result.Name);
+            Assert.Equal(
+                expected: city.SimulationKind.ToString(),
+                actual: result.SimulationKind);
+            Assert.Equal(
+                expected: city.Status.ToString(),
+                actual: result.Status);
+            Assert.Equal(
+                expected: city.Environment.ClimateZone.ToString(),
+                actual: result.ClimateZone);
+            Assert.Equal(
+                expected: city.Environment.Hemisphere.ToString(),
+                actual: result.Hemisphere);
+            Assert.Equal(
+                expected: city.Environment.UtcOffset.TotalMinutes,
+                actual: result.UtcOffsetMinutes);
+            Assert.Equal(
+                expected: city.GenerationProfile.PlannedPeopleCount,
+                actual: result.PlannedPeopleCount);
+            Assert.Equal(
+                expected: city.PopulationBootstrapOperationId,
+                actual: result.PopulationBootstrapOperationId);
+            Assert.Equal(
+                expected: city.EconomyBootstrapOperationId,
+                actual: result.EconomyBootstrapOperationId);
+            Assert.Equal(
+                expected: city.CreatedAtUtc,
+                actual: result.CreatedAtUtc);
+            Assert.False(result.IsArchived);
+        }
     }
 }

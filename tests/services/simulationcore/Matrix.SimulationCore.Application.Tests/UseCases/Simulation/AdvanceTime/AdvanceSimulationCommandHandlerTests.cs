@@ -3,44 +3,57 @@ using Matrix.SimulationCore.Application.UseCases.Simulation.AdvanceTime;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.AdvanceTime;
-
-public sealed class AdvanceSimulationCommandHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.AdvanceTime
 {
-    [Fact]
-    public async Task Handle_WhenExecutorFindsSimulation_ReturnsTrue()
+    public sealed class AdvanceSimulationCommandHandlerTests
     {
-        Guid simulationId = Guid.NewGuid();
-        TimeSpan realDelta = TimeSpan.FromSeconds(2);
-        var executor = new SimulationTestSupport.FakeSimulationAdvanceExecutor
+        [Fact]
+        public async Task Handle_WhenExecutorFindsSimulation_ReturnsTrue()
         {
-            Result = new SimulationAdvanceExecutionResult(
-                new SimulationId(simulationId),
-                SimulationAdvanceExecutionStatus.Advanced)
-        };
-        var handler = new AdvanceSimulationCommandHandler(executor);
+            var simulationId = Guid.NewGuid();
+            var realDelta = TimeSpan.FromSeconds(2);
+            var executor = new SimulationTestSupport.FakeSimulationAdvanceExecutor
+            {
+                Result = new SimulationAdvanceExecutionResult(
+                    SimulationId: new SimulationId(simulationId),
+                    Status: SimulationAdvanceExecutionStatus.Advanced)
+            };
+            var handler = new AdvanceSimulationCommandHandler(executor);
 
-        var result = await handler.Handle(new AdvanceSimulationCommand(simulationId, realDelta), CancellationToken.None);
+            bool result = await handler.Handle(
+                request: new AdvanceSimulationCommand(
+                    SimulationId: simulationId,
+                    RealDelta: realDelta),
+                cancellationToken: CancellationToken.None);
 
-        Assert.True(result);
-        Assert.Equal(simulationId, executor.RequestedSimulationId!.Value.Value);
-        Assert.Equal(realDelta, executor.RequestedRealDelta);
-    }
+            Assert.True(result);
+            Assert.Equal(
+                expected: simulationId,
+                actual: executor.RequestedSimulationId!.Value.Value);
+            Assert.Equal(
+                expected: realDelta,
+                actual: executor.RequestedRealDelta);
+        }
 
-    [Fact]
-    public async Task Handle_WhenExecutorReturnsNotFound_ReturnsFalse()
-    {
-        Guid simulationId = Guid.NewGuid();
-        var executor = new SimulationTestSupport.FakeSimulationAdvanceExecutor
+        [Fact]
+        public async Task Handle_WhenExecutorReturnsNotFound_ReturnsFalse()
         {
-            Result = new SimulationAdvanceExecutionResult(
-                new SimulationId(simulationId),
-                SimulationAdvanceExecutionStatus.NotFound)
-        };
-        var handler = new AdvanceSimulationCommandHandler(executor);
+            var simulationId = Guid.NewGuid();
+            var executor = new SimulationTestSupport.FakeSimulationAdvanceExecutor
+            {
+                Result = new SimulationAdvanceExecutionResult(
+                    SimulationId: new SimulationId(simulationId),
+                    Status: SimulationAdvanceExecutionStatus.NotFound)
+            };
+            var handler = new AdvanceSimulationCommandHandler(executor);
 
-        var result = await handler.Handle(new AdvanceSimulationCommand(simulationId, TimeSpan.FromSeconds(1)), CancellationToken.None);
+            bool result = await handler.Handle(
+                request: new AdvanceSimulationCommand(
+                    SimulationId: simulationId,
+                    RealDelta: TimeSpan.FromSeconds(1)),
+                cancellationToken: CancellationToken.None);
 
-        Assert.False(result);
+            Assert.False(result);
+        }
     }
 }

@@ -10,7 +10,6 @@ using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.Services;
 using Matrix.Identity.Application.Services.Identity;
 using Matrix.Identity.Application.Services.SecurityState;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Identity.Application

@@ -1,5 +1,3 @@
-using Matrix.BuildingBlocks.Api.HealthChecks;
-using Matrix.BuildingBlocks.Api.Middleware;
 using Matrix.BuildingBlocks.Api.Defaults;
 
 namespace Matrix.Economy.Api.Configurations

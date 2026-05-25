@@ -2,22 +2,26 @@ import {useMemo, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import CityList from "@services/simulationcore/scenarios/classic-city/components/CityList";
 import SetupSessionList from "@services/simulationcore/scenarios/classic-city/components/SetupSessionList";
-import {
-    deleteClassicCitySetupSession,
-} from "@services/simulationcore/scenarios/classic-city/api/setupSessionsApi";
+import {deleteClassicCitySetupSession,} from "@services/simulationcore/scenarios/classic-city/api/setupSessionsApi";
 import {CitiesToolbar} from "@services/simulationcore/scenarios/classic-city/components/CitiesToolbar";
 import type {CityListItemView} from "@services/simulationcore/scenarios/classic-city/contracts/citiesContracts";
-import type {ClassicCitySetupSessionView} from "@services/simulationcore/scenarios/classic-city/contracts/setupSessionContracts";
-import {useClassicCitySetupSessionsQuery} from "@services/simulationcore/scenarios/classic-city/hooks/useClassicCitySetupSessionsQuery";
+import type {
+    ClassicCitySetupSessionView
+} from "@services/simulationcore/scenarios/classic-city/contracts/setupSessionContracts";
+import {
+    useClassicCitySetupSessionsQuery
+} from "@services/simulationcore/scenarios/classic-city/hooks/useClassicCitySetupSessionsQuery";
 import {useCitiesQuery} from "@services/simulationcore/scenarios/classic-city/hooks/useCitiesQuery";
-import {useProvisioningCitiesQuery} from "@services/simulationcore/scenarios/classic-city/hooks/useProvisioningCitiesQuery";
+import {
+    useProvisioningCitiesQuery
+} from "@services/simulationcore/scenarios/classic-city/hooks/useProvisioningCitiesQuery";
 import {getCityStatusTone} from "@services/simulationcore/scenarios/classic-city/utils/presentation";
 import {
-    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
     getClassicCityDetailsPath,
     getClassicCityProvisioningPath,
     getClassicCitySetupPath,
     getClassicCitySetupSessionPath,
+    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
 } from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";

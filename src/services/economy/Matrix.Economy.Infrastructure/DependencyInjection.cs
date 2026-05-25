@@ -40,7 +40,9 @@ namespace Matrix.Economy.Infrastructure
             string effectiveConnectionString = connectionStringBuilder.ConnectionString;
             services.AddPostgresResilienceOptions(configuration);
 
-            services.AddDbContext<EconomyDbContext>((sp, options) =>
+            services.AddDbContext<EconomyDbContext>((
+                sp,
+                options) =>
             {
                 PostgresResilienceOptions resilience = sp.GetRequiredService<IOptions<PostgresResilienceOptions>>()
                    .Value;
@@ -90,7 +92,9 @@ namespace Matrix.Economy.Infrastructure
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
                 x.AddClassicCityScenarioConsumers();
 
-                x.UsingRabbitMq((context, cfg) =>
+                x.UsingRabbitMq((
+                    context,
+                    cfg) =>
                 {
                     RabbitMqOptions rmq = context.GetRequiredService<IOptions<RabbitMqOptions>>()
                        .Value;

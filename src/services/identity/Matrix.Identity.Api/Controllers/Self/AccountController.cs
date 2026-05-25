@@ -1,4 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Identity.Api.Authorization.Internal;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeDisplayName;
@@ -10,13 +12,11 @@ using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
 using Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ResendPendingEmailChange;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Matrix.Identity.Api.Authorization.Internal;
 
 namespace Matrix.Identity.Api.Controllers.Self
 {
@@ -27,8 +27,8 @@ namespace Matrix.Identity.Api.Controllers.Self
         ISender sender,
         IAvatarStorage avatarStorage) : ControllerBase
     {
-        private readonly ISender _sender = sender;
         private readonly IAvatarStorage _avatarStorage = avatarStorage;
+        private readonly ISender _sender = sender;
 
         private string GetUserAgent()
         {
@@ -250,7 +250,9 @@ namespace Matrix.Identity.Api.Controllers.Self
 
             await using Stream stream = avatar.Content;
             using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms, cancellationToken);
+            await stream.CopyToAsync(
+                destination: ms,
+                cancellationToken: cancellationToken);
 
             return File(
                 fileContents: ms.ToArray(),

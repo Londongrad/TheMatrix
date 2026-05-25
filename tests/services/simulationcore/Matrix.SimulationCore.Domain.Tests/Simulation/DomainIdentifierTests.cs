@@ -3,63 +3,76 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Simulation;
-
-public sealed class DomainIdentifierTests
+namespace Matrix.SimulationCore.Domain.Tests.Simulation
 {
-    private const string EmptyGuidErrorCode = "Domain.Guard.EmptyGuid";
-
-    [Fact]
-    public void CityId_WhenGuidIsNotEmpty_CreatesIdentifier()
+    public sealed class DomainIdentifierTests
     {
-        var guid = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        private const string EmptyGuidErrorCode = "Domain.Guard.EmptyGuid";
 
-        var id = new CityId(guid);
+        [Fact]
+        public void CityId_WhenGuidIsNotEmpty_CreatesIdentifier()
+        {
+            var guid = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        Assert.Equal(guid, id.Value);
-    }
+            var id = new CityId(guid);
 
-    [Fact]
-    public void CityId_WhenGuidIsEmpty_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => new CityId(Guid.Empty));
+            Assert.Equal(
+                expected: guid,
+                actual: id.Value);
+        }
 
-        Assert.Equal(EmptyGuidErrorCode, exception.Code);
-    }
+        [Fact]
+        public void CityId_WhenGuidIsEmpty_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new CityId(Guid.Empty));
 
-    [Fact]
-    public void SimulationId_WhenGuidIsNotEmpty_CreatesIdentifier()
-    {
-        var guid = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            Assert.Equal(
+                expected: EmptyGuidErrorCode,
+                actual: exception.Code);
+        }
 
-        var id = new SimulationId(guid);
+        [Fact]
+        public void SimulationId_WhenGuidIsNotEmpty_CreatesIdentifier()
+        {
+            var guid = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
-        Assert.Equal(guid, id.Value);
-    }
+            var id = new SimulationId(guid);
 
-    [Fact]
-    public void SimulationId_WhenGuidIsEmpty_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => new SimulationId(Guid.Empty));
+            Assert.Equal(
+                expected: guid,
+                actual: id.Value);
+        }
 
-        Assert.Equal(EmptyGuidErrorCode, exception.Code);
-    }
+        [Fact]
+        public void SimulationId_WhenGuidIsEmpty_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new SimulationId(Guid.Empty));
 
-    [Fact]
-    public void SimulationHostId_WhenGuidIsNotEmpty_CreatesIdentifier()
-    {
-        var guid = Guid.Parse("33333333-3333-3333-3333-333333333333");
+            Assert.Equal(
+                expected: EmptyGuidErrorCode,
+                actual: exception.Code);
+        }
 
-        var id = new SimulationHostId(guid);
+        [Fact]
+        public void SimulationHostId_WhenGuidIsNotEmpty_CreatesIdentifier()
+        {
+            var guid = Guid.Parse("33333333-3333-3333-3333-333333333333");
 
-        Assert.Equal(guid, id.Value);
-    }
+            var id = new SimulationHostId(guid);
 
-    [Fact]
-    public void SimulationHostId_WhenGuidIsEmpty_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => new SimulationHostId(Guid.Empty));
+            Assert.Equal(
+                expected: guid,
+                actual: id.Value);
+        }
 
-        Assert.Equal(EmptyGuidErrorCode, exception.Code);
+        [Fact]
+        public void SimulationHostId_WhenGuidIsEmpty_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new SimulationHostId(Guid.Empty));
+
+            Assert.Equal(
+                expected: EmptyGuidErrorCode,
+                actual: exception.Code);
+        }
     }
 }

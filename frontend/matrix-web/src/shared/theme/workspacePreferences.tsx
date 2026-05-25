@@ -3,10 +3,10 @@ import {
     applyDocumentPreferences,
     persistWorkspacePreferences,
     readStoredWorkspacePreferences,
-    type WorkspacePreferences,
-    type WorkspacePreferencesContextValue,
     WORKSPACE_PREFERENCES_STORAGE_KEY,
+    type WorkspacePreferences,
     WorkspacePreferencesContext,
+    type WorkspacePreferencesContextValue,
 } from "./workspacePreferencesContext";
 
 export function WorkspacePreferencesProvider({

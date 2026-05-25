@@ -85,37 +85,49 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
             ExpectedArrivalAtSimTimeUtc = expectedArrivalAtSimTimeUtc;
             ArrivedAtSimTimeUtc = arrivedAtSimTimeUtc;
             LastAdvancedTickId = lastAdvancedTickId;
-            TotalDistanceMeters = NormalizeDistance(totalDistanceMeters, nameof(TotalDistanceMeters));
+            TotalDistanceMeters = NormalizeDistance(
+                value: totalDistanceMeters,
+                propertyName: nameof(TotalDistanceMeters));
             PlannedTravelTimeMinutes = NormalizeTravelTime(
-                plannedTravelTimeMinutes,
-                nameof(PlannedTravelTimeMinutes));
+                value: plannedTravelTimeMinutes,
+                propertyName: nameof(PlannedTravelTimeMinutes));
             AdjustedTravelTimeMinutes = NormalizeTravelTime(
-                adjustedTravelTimeMinutes,
-                nameof(AdjustedTravelTimeMinutes));
-            ProgressIndex = NormalizeProgress(progressIndex, nameof(ProgressIndex));
+                value: adjustedTravelTimeMinutes,
+                propertyName: nameof(AdjustedTravelTimeMinutes));
+            ProgressIndex = NormalizeProgress(
+                value: progressIndex,
+                propertyName: nameof(ProgressIndex));
             DistanceTravelledMeters = NormalizeDistance(
-                distanceTravelledMeters,
-                nameof(DistanceTravelledMeters));
-            FromKind = NormalizePointKind(fromKind, nameof(FromKind));
+                value: distanceTravelledMeters,
+                propertyName: nameof(DistanceTravelledMeters));
+            FromKind = NormalizePointKind(
+                value: fromKind,
+                propertyName: nameof(FromKind));
             FromEntityId = GuardHelper.AgainstEmptyGuid(
                 id: fromEntityId,
                 propertyName: nameof(FromEntityId));
             FromDistrictId = fromDistrictId;
             FromRoadNodeId = fromRoadNodeId;
-            FromName = NormalizePointName(fromName, nameof(FromName));
+            FromName = NormalizePointName(
+                value: fromName,
+                propertyName: nameof(FromName));
             FromPositionX = TopologyMapRules.NormalizeCoordinate(
                 value: fromPositionX,
                 propertyName: nameof(FromPositionX));
             FromPositionY = TopologyMapRules.NormalizeCoordinate(
                 value: fromPositionY,
                 propertyName: nameof(FromPositionY));
-            ToKind = NormalizePointKind(toKind, nameof(ToKind));
+            ToKind = NormalizePointKind(
+                value: toKind,
+                propertyName: nameof(ToKind));
             ToEntityId = GuardHelper.AgainstEmptyGuid(
                 id: toEntityId,
                 propertyName: nameof(ToEntityId));
             ToDistrictId = toDistrictId;
             ToRoadNodeId = toRoadNodeId;
-            ToName = NormalizePointName(toName, nameof(ToName));
+            ToName = NormalizePointName(
+                value: toName,
+                propertyName: nameof(ToName));
             ToPositionX = TopologyMapRules.NormalizeCoordinate(
                 value: toPositionX,
                 propertyName: nameof(ToPositionX));
@@ -125,8 +137,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
             CurrentDistrictId = currentDistrictId;
             CurrentRoadSegmentId = currentRoadSegmentId;
             CurrentSegmentProgressIndex = NormalizeProgress(
-                currentSegmentProgressIndex,
-                nameof(CurrentSegmentProgressIndex));
+                value: currentSegmentProgressIndex,
+                propertyName: nameof(CurrentSegmentProgressIndex));
             CurrentPositionX = TopologyMapRules.NormalizeCoordinate(
                 value: currentPositionX,
                 propertyName: nameof(CurrentPositionX));
@@ -167,29 +179,33 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
         public DateTimeOffset ExpectedArrivalAtSimTimeUtc { get; private set; }
         public DateTimeOffset? ArrivedAtSimTimeUtc { get; private set; }
         public long LastAdvancedTickId { get; private set; }
-        public decimal TotalDistanceMeters { get; private set; }
+        public decimal TotalDistanceMeters { get; }
         public decimal PlannedTravelTimeMinutes { get; private set; }
-        public decimal AdjustedTravelTimeMinutes { get; private set; }
+        public decimal AdjustedTravelTimeMinutes { get; }
         public decimal ProgressIndex { get; private set; }
         public decimal DistanceTravelledMeters { get; private set; }
+
         public decimal RemainingDistanceMeters => decimal.Round(
-            d: Math.Max(0m, TotalDistanceMeters - DistanceTravelledMeters),
+            d: Math.Max(
+                val1: 0m,
+                val2: TotalDistanceMeters - DistanceTravelledMeters),
             decimals: 2,
             mode: MidpointRounding.AwayFromZero);
+
         public string FromKind { get; private set; }
         public Guid FromEntityId { get; private set; }
-        public DistrictId FromDistrictId { get; private set; }
+        public DistrictId FromDistrictId { get; }
         public RoadNodeId FromRoadNodeId { get; private set; }
         public string FromName { get; private set; }
-        public decimal FromPositionX { get; private set; }
-        public decimal FromPositionY { get; private set; }
+        public decimal FromPositionX { get; }
+        public decimal FromPositionY { get; }
         public string ToKind { get; private set; }
         public Guid ToEntityId { get; private set; }
-        public DistrictId ToDistrictId { get; private set; }
+        public DistrictId ToDistrictId { get; }
         public RoadNodeId ToRoadNodeId { get; private set; }
         public string ToName { get; private set; }
-        public decimal ToPositionX { get; private set; }
-        public decimal ToPositionY { get; private set; }
+        public decimal ToPositionX { get; }
+        public decimal ToPositionY { get; }
         public DistrictId CurrentDistrictId { get; private set; }
         public RoadSegmentId? CurrentRoadSegmentId { get; private set; }
         public decimal CurrentSegmentProgressIndex { get; private set; }
@@ -232,20 +248,21 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
             EnsureUtc(startedAtSimTimeUtc);
 
             decimal normalizedDistance = NormalizeDistance(
-                totalDistanceMeters,
-                nameof(totalDistanceMeters));
+                value: totalDistanceMeters,
+                propertyName: nameof(totalDistanceMeters));
             decimal normalizedPlannedTravelTime = NormalizeTravelTime(
-                plannedTravelTimeMinutes,
-                nameof(plannedTravelTimeMinutes));
+                value: plannedTravelTimeMinutes,
+                propertyName: nameof(plannedTravelTimeMinutes));
             decimal adjustedTravelTimeMinutes = ResolveAdjustedTravelTimeMinutes(
                 plannedTravelTimeMinutes: normalizedPlannedTravelTime,
                 movementCapabilityIndex: movementCapabilityIndex,
                 purpose: purpose);
-            bool arrivesImmediately = normalizedDistance <= 0m
-                || adjustedTravelTimeMinutes <= 0.01m
-                || segments.Count == 0;
+            bool arrivesImmediately =
+                normalizedDistance <= 0m || adjustedTravelTimeMinutes <= 0.01m || segments.Count == 0;
             DateTimeOffset expectedArrivalAtSimTimeUtc = startedAtSimTimeUtc.AddMinutes(
-                minutes: (double)Math.Max(0.01m, adjustedTravelTimeMinutes));
+                minutes: (double)Math.Max(
+                    val1: 0.01m,
+                    val2: adjustedTravelTimeMinutes));
 
             return new CityActiveTrip(
                 id: CityActiveTripId.New(),
@@ -293,7 +310,9 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
                     : fromDistrictId,
                 currentRoadSegmentId: arrivesImmediately
                     ? null
-                    : segments.OrderBy(x => x.Sequence).First().RoadSegmentId,
+                    : segments.OrderBy(x => x.Sequence)
+                       .First()
+                       .RoadSegmentId,
                 currentSegmentProgressIndex: arrivesImmediately
                     ? 1m
                     : 0m,
@@ -325,8 +344,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
 
             decimal nextProgress = NormalizeProgress(
                 value: Math.Min(
-                    1m,
-                    ProgressIndex + (deltaMinutes / AdjustedTravelTimeMinutes)),
+                    val1: 1m,
+                    val2: ProgressIndex + (deltaMinutes / AdjustedTravelTimeMinutes)),
                 propertyName: nameof(ProgressIndex));
 
             ProgressIndex = nextProgress;
@@ -396,7 +415,10 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
             {
                 decimal segmentEnd = cumulativeMinutes + segment.EstimatedTraversalMinutes;
 
-                if (travelledRouteMinutes <= segmentEnd || ReferenceEquals(segment, _segments[^1]))
+                if (travelledRouteMinutes <= segmentEnd ||
+                    ReferenceEquals(
+                        objA: segment,
+                        objB: _segments[^1]))
                 {
                     decimal localProgress = segment.EstimatedTraversalMinutes <= 0m
                         ? 1m
@@ -443,11 +465,13 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
             };
 
             decimal effectiveSpeedFactor = Math.Max(
-                0.15m,
-                movementCapabilityIndex * purposeSpeedFactor);
+                val1: 0.15m,
+                val2: movementCapabilityIndex * purposeSpeedFactor);
 
             return decimal.Round(
-                d: Math.Max(0.01m, plannedTravelTimeMinutes / effectiveSpeedFactor),
+                d: Math.Max(
+                    val1: 0.01m,
+                    val2: plannedTravelTimeMinutes / effectiveSpeedFactor),
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
         }

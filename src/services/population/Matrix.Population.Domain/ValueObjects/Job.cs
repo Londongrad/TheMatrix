@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Domain;
-
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.Population.Domain.ValueObjects

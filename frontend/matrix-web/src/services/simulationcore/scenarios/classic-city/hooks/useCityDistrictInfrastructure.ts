@@ -1,6 +1,8 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getCityDistrictInfrastructure} from "@services/simulationcore/scenarios/classic-city/api/citiesApi";
-import type {CityDistrictInfrastructureView} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
+import type {
+    CityDistrictInfrastructureView
+} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0

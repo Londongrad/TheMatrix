@@ -4,7 +4,8 @@ using IdentityPermissionsCatalog = Matrix.Identity.Contracts.Authorization.Permi
 using PopulationPermissionsCatalog = Matrix.Population.Contracts.Authorization.Permissions.PermissionsCatalog;
 using EconomyPermissionsCatalog = Matrix.Economy.Contracts.Authorization.Permissions.PermissionsCatalog;
 using ResourcesPermissionsCatalog = Matrix.Resources.Contracts.Authorization.Permissions.PermissionsCatalog;
-using SimulationSystemsPermissionsCatalog = Matrix.SimulationSystems.Contracts.Authorization.Permissions.PermissionsCatalog;
+using SimulationSystemsPermissionsCatalog =
+    Matrix.SimulationSystems.Contracts.Authorization.Permissions.PermissionsCatalog;
 
 namespace Matrix.PermissionCatalog
 {

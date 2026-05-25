@@ -1,8 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Contracts.Budget.Requests;
-using Matrix.Economy.Contracts.Budget.Views;
-using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation;
+using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.UseCases.BudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAllocation;
@@ -15,6 +13,8 @@ using Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOpera
 using Matrix.Economy.Application.UseCases.GetBudgetSummary;
 using Matrix.Economy.Application.UseCases.GetCityBudgetSummary;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Contracts.Budget.Requests;
+using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -70,21 +70,21 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: result.UnitCode,
                     UnitDisplayName: result.UnitDisplayName,
                     UnitSymbol: result.UnitSymbol,
-                Balance: result.Balance,
-                TotalCityExpenses: result.TotalCityExpenses,
-                MunicipalOperationsExpenses: result.MunicipalOperationsExpenses,
-                InfrastructureOperationsExpenses: result.InfrastructureOperationsExpenses,
-                EmergencyOperationsExpenses: result.EmergencyOperationsExpenses,
-                GeneralAvailableAmount: result.GeneralAvailableAmount,
-                OperationsAvailableAmount: result.OperationsAvailableAmount,
-                InfrastructureAvailableAmount: result.InfrastructureAvailableAmount,
-                HealthcareAvailableAmount: result.HealthcareAvailableAmount,
-                GeneralAuthorizationLevel: result.GeneralAuthorizationLevel,
-                OperationsAuthorizationLevel: result.OperationsAuthorizationLevel,
-                InfrastructureAuthorizationLevel: result.InfrastructureAuthorizationLevel,
-                HealthcareAuthorizationLevel: result.HealthcareAuthorizationLevel,
-                LastMunicipalExpenseAtUtc: result.LastMunicipalExpenseAtUtc,
-                PressureIndex: result.PressureIndex));
+                    Balance: result.Balance,
+                    TotalCityExpenses: result.TotalCityExpenses,
+                    MunicipalOperationsExpenses: result.MunicipalOperationsExpenses,
+                    InfrastructureOperationsExpenses: result.InfrastructureOperationsExpenses,
+                    EmergencyOperationsExpenses: result.EmergencyOperationsExpenses,
+                    GeneralAvailableAmount: result.GeneralAvailableAmount,
+                    OperationsAvailableAmount: result.OperationsAvailableAmount,
+                    InfrastructureAvailableAmount: result.InfrastructureAvailableAmount,
+                    HealthcareAvailableAmount: result.HealthcareAvailableAmount,
+                    GeneralAuthorizationLevel: result.GeneralAuthorizationLevel,
+                    OperationsAuthorizationLevel: result.OperationsAuthorizationLevel,
+                    InfrastructureAuthorizationLevel: result.InfrastructureAuthorizationLevel,
+                    HealthcareAuthorizationLevel: result.HealthcareAuthorizationLevel,
+                    LastMunicipalExpenseAtUtc: result.LastMunicipalExpenseAtUtc,
+                    PressureIndex: result.PressureIndex));
         }
 
         [HttpPost("cities/{cityId:guid}/operation-authorizations")]

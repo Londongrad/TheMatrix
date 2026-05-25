@@ -47,10 +47,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                 expectedEducationLevel: resident.EducationLevel,
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
                 cancellationToken: cancellationToken);
-            CityResidentHousingSnapshot? housing = await cityPopulationPersonReadRepository.FindHousingSnapshotByPersonIdAsync(
-                cityId: CityId.From(request.CityId),
-                personId: resident.Id,
-                cancellationToken: cancellationToken);
+            CityResidentHousingSnapshot? housing =
+                await cityPopulationPersonReadRepository.FindHousingSnapshotByPersonIdAsync(
+                    cityId: CityId.From(request.CityId),
+                    personId: resident.Id,
+                    cancellationToken: cancellationToken);
             CityEducationInstitutionBinding institutionBinding =
                 await CityEducationOperationSupport.CreateInstitutionBindingAsync(
                     cityId: request.CityId,

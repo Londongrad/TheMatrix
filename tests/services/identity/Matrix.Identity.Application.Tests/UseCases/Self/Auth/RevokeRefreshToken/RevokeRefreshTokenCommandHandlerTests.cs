@@ -1,127 +1,172 @@
-using Matrix.Identity.Application.Tests.UseCases.Self;
 using Matrix.Identity.Application.Abstractions.Services.Security;
+using Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Xunit;
 using DomainRefreshToken = Matrix.Identity.Domain.Entities.RefreshToken;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RevokeRefreshToken;
-
-public sealed class RevokeRefreshTokenCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RevokeRefreshToken
 {
-    [Fact]
-    public async Task Handle_WhenRefreshTokenUnknown_ReturnsWithoutChanges()
+    public sealed class RevokeRefreshTokenCommandHandlerTests
     {
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository();
-        var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository();
-        var refreshTokenProvider = new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var handler = SelfServiceHandlerTestSupport.CreateRevokeRefreshHandler(
-            userRepository,
-            userSessionRepository,
-            refreshTokenProvider,
-            unitOfWork,
-            securityAuditService);
-
-        await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateRevokeRefreshTokenCommand(refreshToken: "presented-token"),
-            CancellationToken.None);
-
-        Assert.Equal(new[] { "presented-token" }, refreshTokenProvider.ComputeHashInputs);
-        Assert.Equal(refreshTokenProvider.ComputedHash, userRepository.RequestedRefreshTokenHash);
-        Assert.Equal(0, unitOfWork.SaveChangesCalls);
-        Assert.Empty(securityAuditService.Entries);
-    }
-
-    [Fact]
-    public async Task Handle_WhenRefreshTokenAlreadyRevoked_ReturnsWithoutAudit()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser();
-        var session = SelfServiceHandlerTestSupport.CreateSession(user);
-        DomainRefreshToken token = SelfServiceHandlerTestSupport.SeedRefreshToken(
-            user,
-            sessionId: session.Id,
-            tokenHash: "incoming-refresh-token-hash",
-            isRevoked: true);
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenRefreshTokenUnknown_ReturnsWithoutChanges()
         {
-            UserByRefreshTokenHash = user
-        };
-        var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository();
+            var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository();
+            var refreshTokenProvider = new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            RevokeRefreshTokenCommandHandler handler = SelfServiceHandlerTestSupport.CreateRevokeRefreshHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                refreshTokenProvider: refreshTokenProvider,
+                unitOfWork: unitOfWork,
+                securityAuditService: securityAuditService);
+
+            await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateRevokeRefreshTokenCommand(refreshToken: "presented-token"),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: new[]
+                {
+                    "presented-token"
+                },
+                actual: refreshTokenProvider.ComputeHashInputs);
+            Assert.Equal(
+                expected: refreshTokenProvider.ComputedHash,
+                actual: userRepository.RequestedRefreshTokenHash);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCalls);
+            Assert.Empty(securityAuditService.Entries);
+        }
+
+        [Fact]
+        public async Task Handle_WhenRefreshTokenAlreadyRevoked_ReturnsWithoutAudit()
         {
-            Sessions = { session }
-        };
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var handler = SelfServiceHandlerTestSupport.CreateRevokeRefreshHandler(
-            userRepository,
-            userSessionRepository,
-            new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
-            unitOfWork,
-            securityAuditService);
+            User user = SelfServiceHandlerTestSupport.CreateUser();
+            UserSession session = SelfServiceHandlerTestSupport.CreateSession(user);
+            DomainRefreshToken token = SelfServiceHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: session.Id,
+                tokenHash: "incoming-refresh-token-hash",
+                isRevoked: true);
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+            {
+                UserByRefreshTokenHash = user
+            };
+            var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository
+            {
+                Sessions =
+                {
+                    session
+                }
+            };
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            RevokeRefreshTokenCommandHandler handler = SelfServiceHandlerTestSupport.CreateRevokeRefreshHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                refreshTokenProvider: new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
+                unitOfWork: unitOfWork,
+                securityAuditService: securityAuditService);
 
-        await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateRevokeRefreshTokenCommand(),
-            CancellationToken.None);
+            await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateRevokeRefreshTokenCommand(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.True(token.IsRevoked);
-        Assert.Equal(0, unitOfWork.SaveChangesCalls);
-        Assert.Empty(securityAuditService.Entries);
-        Assert.False(session.IsRevoked);
-    }
+            Assert.True(token.IsRevoked);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCalls);
+            Assert.Empty(securityAuditService.Entries);
+            Assert.False(session.IsRevoked);
+        }
 
-    [Fact]
-    public async Task Handle_WhenRefreshTokenActive_RevokesTokenAndSessionWritesLogoutAudit()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser();
-        var session = SelfServiceHandlerTestSupport.CreateSession(user);
-        DomainRefreshToken token = SelfServiceHandlerTestSupport.SeedRefreshToken(
-            user,
-            sessionId: session.Id,
-            tokenHash: "incoming-refresh-token-hash",
-            deviceId: "device-1",
-            deviceName: "Phone");
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenRefreshTokenActive_RevokesTokenAndSessionWritesLogoutAudit()
         {
-            UserByRefreshTokenHash = user
-        };
-        var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository
-        {
-            Sessions = { session }
-        };
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var handler = SelfServiceHandlerTestSupport.CreateRevokeRefreshHandler(
-            userRepository,
-            userSessionRepository,
-            new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
-            unitOfWork,
-            securityAuditService);
+            User user = SelfServiceHandlerTestSupport.CreateUser();
+            UserSession session = SelfServiceHandlerTestSupport.CreateSession(user);
+            DomainRefreshToken token = SelfServiceHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: session.Id,
+                tokenHash: "incoming-refresh-token-hash",
+                deviceId: "device-1",
+                deviceName: "Phone");
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+            {
+                UserByRefreshTokenHash = user
+            };
+            var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository
+            {
+                Sessions =
+                {
+                    session
+                }
+            };
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            RevokeRefreshTokenCommandHandler handler = SelfServiceHandlerTestSupport.CreateRevokeRefreshHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                refreshTokenProvider: new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
+                unitOfWork: unitOfWork,
+                securityAuditService: securityAuditService);
 
-        await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateRevokeRefreshTokenCommand(
-                ipAddress: "203.0.113.15",
-                userAgent: "Mozilla/5.0 (logout)"),
-            CancellationToken.None);
+            await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateRevokeRefreshTokenCommand(
+                    ipAddress: "203.0.113.15",
+                    userAgent: "Mozilla/5.0 (logout)"),
+                cancellationToken: CancellationToken.None);
 
-        Assert.True(token.IsRevoked);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, token.RevokedAtUtc);
-        Assert.Equal(RefreshTokenRevocationReason.UserRevoked, token.RevokedReason);
-        Assert.True(session.IsRevoked);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, session.RevokedAtUtc);
-        Assert.Equal(RefreshTokenRevocationReason.UserRevoked, session.RevokedReason);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
+            Assert.True(token.IsRevoked);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: token.RevokedAtUtc);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.UserRevoked,
+                actual: token.RevokedReason);
+            Assert.True(session.IsRevoked);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: session.RevokedAtUtc);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.UserRevoked,
+                actual: session.RevokedReason);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
 
-        SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
-        Assert.Equal(SecurityAuditEventType.Logout, audit.EventType);
-        Assert.True(audit.IsSuccessful);
-        Assert.Equal(user.Id, audit.UserId);
-        Assert.Equal(session.Id, audit.SessionId);
-        Assert.Equal(user.Email.Value, audit.Subject);
-        Assert.Equal("203.0.113.15", audit.IpAddress);
-        Assert.Equal("Mozilla/5.0 (logout)", audit.UserAgent);
-        Assert.Equal("device-1", audit.DeviceId);
-        Assert.Equal("Phone", audit.DeviceName);
-        Assert.Null(audit.Details);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.Equal(
+                expected: SecurityAuditEventType.Logout,
+                actual: audit.EventType);
+            Assert.True(audit.IsSuccessful);
+            Assert.Equal(
+                expected: user.Id,
+                actual: audit.UserId);
+            Assert.Equal(
+                expected: session.Id,
+                actual: audit.SessionId);
+            Assert.Equal(
+                expected: user.Email.Value,
+                actual: audit.Subject);
+            Assert.Equal(
+                expected: "203.0.113.15",
+                actual: audit.IpAddress);
+            Assert.Equal(
+                expected: "Mozilla/5.0 (logout)",
+                actual: audit.UserAgent);
+            Assert.Equal(
+                expected: "device-1",
+                actual: audit.DeviceId);
+            Assert.Equal(
+                expected: "Phone",
+                actual: audit.DeviceName);
+            Assert.Null(audit.Details);
+        }
     }
 }

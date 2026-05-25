@@ -23,13 +23,13 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
             return new CityRoadGraphTopologyDto(
                 CityId: payload.CityId,
                 Districts: payload.Districts
-                    .Select(x => new CityDistrictTopologyDto(
+                   .Select(x => new CityDistrictTopologyDto(
                         DistrictId: x.DistrictId,
                         AnchorX: x.AnchorX,
                         AnchorY: x.AnchorY))
-                    .ToArray(),
+                   .ToArray(),
                 RoadSegments: payload.RoadSegments
-                    .Select(x => new CityRoadSegmentTopologyDto(
+                   .Select(x => new CityRoadSegmentTopologyDto(
                         RoadSegmentId: x.RoadSegmentId,
                         DistrictId: x.DistrictId,
                         FromRoadNodeId: x.FromRoadNodeId,
@@ -37,7 +37,7 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
                         Name: x.Name,
                         Type: x.Type,
                         LengthMeters: x.LengthMeters))
-                    .ToArray());
+                   .ToArray());
         }
     }
 }

@@ -100,12 +100,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             if (emergencyOverrideRequested || emergencyModeEnabled)
                 return true;
 
-            return requestedIntensity.Trim().ToLowerInvariant() switch
-            {
-                "high" => true,
-                "heavy" => true,
-                _ => false
-            };
+            return requestedIntensity.Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "high" => true,
+                    "heavy" => true,
+                    _ => false
+                };
         }
     }
 }

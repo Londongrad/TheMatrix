@@ -24,7 +24,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
             CancellationToken cancellationToken)
         {
             string hash = refreshTokenProvider.ComputeHash(request.RefreshToken);
-            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime utcNow = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             User? user = await userRepository.GetByRefreshTokenHashAsync(
                 tokenHash: hash,

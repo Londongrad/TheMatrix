@@ -22,7 +22,7 @@ namespace Matrix.ApiGateway.Configurations.Security
             if (IsExplicitCrossSite(context))
             {
                 await WriteRejectedResponseAsync(
-                    context,
+                    context: context,
                     code: "Gateway.CrossSiteCookieRequestRejected",
                     message: "Cross-site cookie request rejected.");
                 return;
@@ -33,7 +33,7 @@ namespace Matrix.ApiGateway.Configurations.Security
                     origin: out string? requestOrigin))
             {
                 await WriteRejectedResponseAsync(
-                    context,
+                    context: context,
                     code: "Gateway.UnverifiableCookieRequestOrigin",
                     message: "Cookie request origin could not be verified.");
                 return;
@@ -48,7 +48,7 @@ namespace Matrix.ApiGateway.Configurations.Security
             }
 
             await WriteRejectedResponseAsync(
-                context,
+                context: context,
                 code: "Gateway.UntrustedCookieRequestOrigin",
                 message: "Cookie request origin is not trusted.");
         }
@@ -67,7 +67,8 @@ namespace Matrix.ApiGateway.Configurations.Security
 
         private static bool IsExplicitCrossSite(HttpContext context)
         {
-            string? fetchSite = context.Request.Headers["Sec-Fetch-Site"].FirstOrDefault();
+            string? fetchSite = context.Request.Headers["Sec-Fetch-Site"]
+               .FirstOrDefault();
             return string.Equals(
                 a: fetchSite,
                 b: "cross-site",
@@ -82,19 +83,15 @@ namespace Matrix.ApiGateway.Configurations.Security
 
             string? requestOrigin = context.Request.Headers.Origin.FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(requestOrigin))
-            {
                 return TryNormalizeOrigin(
                     candidate: requestOrigin,
                     origin: out origin);
-            }
 
             string? referer = context.Request.Headers.Referer.FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(referer))
-            {
                 return TryNormalizeOrigin(
                     candidate: referer,
                     origin: out origin);
-            }
 
             return false;
         }
@@ -139,7 +136,10 @@ namespace Matrix.ApiGateway.Configurations.Security
             if (string.IsNullOrWhiteSpace(candidate))
                 return false;
 
-            if (!Uri.TryCreate(candidate, UriKind.Absolute, out Uri? uri))
+            if (!Uri.TryCreate(
+                    uriString: candidate,
+                    uriKind: UriKind.Absolute,
+                    result: out Uri? uri))
                 return false;
 
             origin = uri.GetLeftPart(UriPartial.Authority);

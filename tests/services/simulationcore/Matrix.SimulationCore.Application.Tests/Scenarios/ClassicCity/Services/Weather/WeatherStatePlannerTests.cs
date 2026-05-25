@@ -6,69 +6,82 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services.Weather;
-
-public sealed class WeatherStatePlannerTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services.Weather
 {
-    private readonly WeatherStatePlanner _planner = new();
-
-    [Fact]
-    public void PlanNaturalState_WithSameInputs_IsDeterministicAndAlignsToSixHourWindow()
+    public sealed class WeatherStatePlannerTests
     {
-        var environment = CityEnvironment.Create(
-            climateZone: ClimateZone.Temperate,
-            hemisphere: Hemisphere.Northern,
-            utcOffset: CityUtcOffset.FromMinutes(180));
-        WeatherClimateProfile climateProfile = WeatherTestSupport.CreateClimateProfile();
-        var generationSeed = new CityGenerationSeed("alpha-seed");
-        SimTime evaluatedAt = SimTime.FromUtc(DateTimeOffset.Parse("2048-06-01T10:34:00+00:00"));
+        private readonly WeatherStatePlanner _planner = new();
 
-        WeatherState first = _planner.PlanNaturalState(
-            environment: environment,
-            climateProfile: climateProfile,
-            generationSeed: generationSeed,
-            evaluatedAt: evaluatedAt);
-        WeatherState second = _planner.PlanNaturalState(
-            environment: environment,
-            climateProfile: climateProfile,
-            generationSeed: generationSeed,
-            evaluatedAt: evaluatedAt);
+        [Fact]
+        public void PlanNaturalState_WithSameInputs_IsDeterministicAndAlignsToSixHourWindow()
+        {
+            var environment = CityEnvironment.Create(
+                climateZone: ClimateZone.Temperate,
+                hemisphere: Hemisphere.Northern,
+                utcOffset: CityUtcOffset.FromMinutes(180));
+            WeatherClimateProfile climateProfile = WeatherTestSupport.CreateClimateProfile();
+            var generationSeed = new CityGenerationSeed("alpha-seed");
+            var evaluatedAt = SimTime.FromUtc(DateTimeOffset.Parse("2048-06-01T10:34:00+00:00"));
 
-        Assert.Equal(first, second);
-        Assert.Equal(DateTimeOffset.Parse("2048-06-01T09:00:00+00:00"), first.StartedAt.ValueUtc);
-        Assert.Equal(DateTimeOffset.Parse("2048-06-01T15:00:00+00:00"), first.ExpectedUntil.ValueUtc);
-        Assert.True(first.IsActiveAt(evaluatedAt));
-    }
+            WeatherState first = _planner.PlanNaturalState(
+                environment: environment,
+                climateProfile: climateProfile,
+                generationSeed: generationSeed,
+                evaluatedAt: evaluatedAt);
+            WeatherState second = _planner.PlanNaturalState(
+                environment: environment,
+                climateProfile: climateProfile,
+                generationSeed: generationSeed,
+                evaluatedAt: evaluatedAt);
 
-    [Fact]
-    public void PlanNaturalState_WithSouthernHemisphereInJanuary_IsWarmerThanNorthern()
-    {
-        WeatherClimateProfile climateProfile = WeatherTestSupport.CreateClimateProfile();
-        var generationSeed = new CityGenerationSeed("alpha-seed");
-        SimTime evaluatedAt = SimTime.FromUtc(DateTimeOffset.Parse("2048-01-15T12:00:00+00:00"));
-        var northernEnvironment = CityEnvironment.Create(
-            climateZone: ClimateZone.Temperate,
-            hemisphere: Hemisphere.Northern,
-            utcOffset: CityUtcOffset.FromMinutes(0));
-        var southernEnvironment = CityEnvironment.Create(
-            climateZone: ClimateZone.Temperate,
-            hemisphere: Hemisphere.Southern,
-            utcOffset: CityUtcOffset.FromMinutes(0));
+            Assert.Equal(
+                expected: first,
+                actual: second);
+            Assert.Equal(
+                expected: DateTimeOffset.Parse("2048-06-01T09:00:00+00:00"),
+                actual: first.StartedAt.ValueUtc);
+            Assert.Equal(
+                expected: DateTimeOffset.Parse("2048-06-01T15:00:00+00:00"),
+                actual: first.ExpectedUntil.ValueUtc);
+            Assert.True(first.IsActiveAt(evaluatedAt));
+        }
 
-        WeatherState northern = _planner.PlanNaturalState(
-            environment: northernEnvironment,
-            climateProfile: climateProfile,
-            generationSeed: generationSeed,
-            evaluatedAt: evaluatedAt);
-        WeatherState southern = _planner.PlanNaturalState(
-            environment: southernEnvironment,
-            climateProfile: climateProfile,
-            generationSeed: generationSeed,
-            evaluatedAt: evaluatedAt);
+        [Fact]
+        public void PlanNaturalState_WithSouthernHemisphereInJanuary_IsWarmerThanNorthern()
+        {
+            WeatherClimateProfile climateProfile = WeatherTestSupport.CreateClimateProfile();
+            var generationSeed = new CityGenerationSeed("alpha-seed");
+            var evaluatedAt = SimTime.FromUtc(DateTimeOffset.Parse("2048-01-15T12:00:00+00:00"));
+            var northernEnvironment = CityEnvironment.Create(
+                climateZone: ClimateZone.Temperate,
+                hemisphere: Hemisphere.Northern,
+                utcOffset: CityUtcOffset.FromMinutes(0));
+            var southernEnvironment = CityEnvironment.Create(
+                climateZone: ClimateZone.Temperate,
+                hemisphere: Hemisphere.Southern,
+                utcOffset: CityUtcOffset.FromMinutes(0));
 
-        Assert.True(southern.Temperature.Value > northern.Temperature.Value);
-        Assert.NotEqual(northern, southern);
-        Assert.Equal(DateTimeOffset.Parse("2048-01-15T12:00:00+00:00"), northern.StartedAt.ValueUtc);
-        Assert.Equal(DateTimeOffset.Parse("2048-01-15T18:00:00+00:00"), northern.ExpectedUntil.ValueUtc);
+            WeatherState northern = _planner.PlanNaturalState(
+                environment: northernEnvironment,
+                climateProfile: climateProfile,
+                generationSeed: generationSeed,
+                evaluatedAt: evaluatedAt);
+            WeatherState southern = _planner.PlanNaturalState(
+                environment: southernEnvironment,
+                climateProfile: climateProfile,
+                generationSeed: generationSeed,
+                evaluatedAt: evaluatedAt);
+
+            Assert.True(southern.Temperature.Value > northern.Temperature.Value);
+            Assert.NotEqual(
+                expected: northern,
+                actual: southern);
+            Assert.Equal(
+                expected: DateTimeOffset.Parse("2048-01-15T12:00:00+00:00"),
+                actual: northern.StartedAt.ValueUtc);
+            Assert.Equal(
+                expected: DateTimeOffset.Parse("2048-01-15T18:00:00+00:00"),
+                actual: northern.ExpectedUntil.ValueUtc);
+        }
     }
 }

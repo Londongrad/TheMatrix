@@ -2,10 +2,7 @@ import {useCallback, useEffect, useMemo} from "react";
 import {Link, Navigate, useParams, useSearchParams} from "react-router-dom";
 import {useCityDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityResidentDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityResidentDetails";
-import type {
-    CityResidentActiveTripDto,
-    CityResidentRouteAccessDto,
-} from "@services/population/person/api/personTypes";
+import type {CityResidentActiveTripDto, CityResidentRouteAccessDto,} from "@services/population/person/api/personTypes";
 import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityDetailsPath,
@@ -125,7 +122,8 @@ function renderRouteAccessCard(
                     <h4>{title}</h4>
                     <p>{anchorLabel ?? "No anchor assigned yet"}</p>
                 </div>
-                <span className={`city-resident-dossier__route-status city-resident-dossier__route-status--${statusTone}`}>
+                <span
+                    className={`city-resident-dossier__route-status city-resident-dossier__route-status--${statusTone}`}>
                     {statusLabel}
                 </span>
             </div>
@@ -384,7 +382,8 @@ const CityResidentDossierPage = () => {
 
                 {resident ? (
                     <div className="city-resident-dossier__panel" role="tabpanel">
-                        <div className="city-resident-dossier__tablist" role="tablist" aria-label="Resident dossier sections">
+                        <div className="city-resident-dossier__tablist" role="tablist"
+                             aria-label="Resident dossier sections">
                             {DOSSIER_TABS.map((tab) => (
                                 <button
                                     key={tab.key}

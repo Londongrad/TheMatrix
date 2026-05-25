@@ -24,13 +24,13 @@ namespace Matrix.Identity.Application.UseCases.Admin.Permissions.GetDefaultUserA
             if (userRole is null)
                 throw ApplicationErrorsFactory.RequiredSystemRoleMissing(SystemRoleNames.User);
 
-            HashSet<string> effective = (await rolePermissionsRepository.GetRolePermissionsAsync(
+            var effective = (await rolePermissionsRepository.GetRolePermissionsAsync(
                     roleId: userRole.Id,
                     cancellationToken: cancellationToken))
                .ToHashSet(StringComparer.Ordinal);
 
-            IReadOnlyDictionary<string, PermissionEffect> overrides = await defaultUserAccessPolicyRepository.GetOverridesAsync(
-                cancellationToken);
+            IReadOnlyDictionary<string, PermissionEffect> overrides =
+                await defaultUserAccessPolicyRepository.GetOverridesAsync(cancellationToken);
 
             foreach ((string permissionKey, PermissionEffect effect) in overrides)
                 if (effect == PermissionEffect.Deny)

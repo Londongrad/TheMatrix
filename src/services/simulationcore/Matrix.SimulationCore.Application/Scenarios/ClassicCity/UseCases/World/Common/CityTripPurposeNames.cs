@@ -15,29 +15,35 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
         {
             string normalized = Normalize(value);
 
-            return normalized == WorkCommute
-                || normalized == EducationCommute
-                || normalized == HealthcareAccess
-                || normalized == LeisureWalk
-                || normalized == ServiceResponse
-                || normalized == HouseholdRelocation;
+            return normalized == WorkCommute ||
+                   normalized == EducationCommute ||
+                   normalized == HealthcareAccess ||
+                   normalized == LeisureWalk ||
+                   normalized == ServiceResponse ||
+                   normalized == HouseholdRelocation;
         }
 
         public static string Normalize(string value)
         {
-            return value.Replace("-", string.Empty, StringComparison.Ordinal)
-               .Replace("_", string.Empty, StringComparison.Ordinal)
-               .Trim()
-               .ToLowerInvariant() switch
-            {
-                "workcommute" => WorkCommute,
-                "educationcommute" => EducationCommute,
-                "healthcareaccess" => HealthcareAccess,
-                "leisurewalk" => LeisureWalk,
-                "serviceresponse" => ServiceResponse,
-                "householdrelocation" => HouseholdRelocation,
-                _ => value.Trim()
-            };
+            return value.Replace(
+                        oldValue: "-",
+                        newValue: string.Empty,
+                        comparisonType: StringComparison.Ordinal)
+                   .Replace(
+                        oldValue: "_",
+                        newValue: string.Empty,
+                        comparisonType: StringComparison.Ordinal)
+                   .Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "workcommute" => WorkCommute,
+                    "educationcommute" => EducationCommute,
+                    "healthcareaccess" => HealthcareAccess,
+                    "leisurewalk" => LeisureWalk,
+                    "serviceresponse" => ServiceResponse,
+                    "householdrelocation" => HouseholdRelocation,
+                    _ => value.Trim()
+                };
         }
 
         public static CityTripPurpose ToDomain(string value)
@@ -50,7 +56,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
                 LeisureWalk => CityTripPurpose.LeisureWalk,
                 ServiceResponse => CityTripPurpose.ServiceResponse,
                 HouseholdRelocation => CityTripPurpose.HouseholdRelocation,
-                _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported city-trip purpose.")
+                _ => throw new ArgumentOutOfRangeException(
+                    paramName: nameof(value),
+                    actualValue: value,
+                    message: "Unsupported city-trip purpose.")
             };
         }
 

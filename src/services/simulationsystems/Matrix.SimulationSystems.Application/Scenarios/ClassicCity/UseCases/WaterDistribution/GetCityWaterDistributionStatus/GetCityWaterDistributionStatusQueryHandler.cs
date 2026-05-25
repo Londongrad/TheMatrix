@@ -5,7 +5,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityWaterDistributionStatus
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    GetCityWaterDistributionStatus
 {
     public sealed class GetCityWaterDistributionStatusQueryHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -25,7 +26,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
             if (state is null)
                 return null;
 
-            decimal waterSupport = pressureProfileFactory.Create(state).WaterSupport;
+            decimal waterSupport = pressureProfileFactory.Create(state)
+               .WaterSupport;
 
             return CityWaterDistributionStatusDto.FromState(
                 cityId: request.CityId,

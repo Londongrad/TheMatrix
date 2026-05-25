@@ -26,7 +26,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                             state.RoadAccessInfrastructure.EmergencyModeEnabled,
                             state.HeatingInfrastructure.EmergencyModeEnabled,
                             state.PowerDistributionInfrastructure.EmergencyModeEnabled,
-                            state.UtilityIncidentInfrastructure.EmergencyModeEnabled) * 0.0450m));
+                            state.UtilityIncidentInfrastructure.EmergencyModeEnabled) *
+                        0.0450m));
 
             decimal sparePartsDemand = Clamp(
                 value: 0.1000m +
@@ -38,7 +39,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                             state.WaterDistribution.BacklogIndex,
                             state.Sanitation.BacklogIndex,
                             state.PowerDistribution.BacklogIndex,
-                            state.UtilityIncidents.BacklogIndex) * 0.2600m) +
+                            state.UtilityIncidents.BacklogIndex) *
+                        0.2600m) +
                        (Average(
                             state.Drainage.FailureRiskIndex,
                             state.SnowRemoval.FailureRiskIndex,
@@ -47,7 +49,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                             state.WaterDistribution.FailureRiskIndex,
                             state.Sanitation.FailureRiskIndex,
                             state.PowerDistribution.FailureRiskIndex,
-                            state.UtilityIncidents.FailureRiskIndex) * 0.3200m) +
+                            state.UtilityIncidents.FailureRiskIndex) *
+                        0.3200m) +
                        (state.FloodingIndex.Value * 0.0600m) +
                        (state.SnowAccumulationIndex.Value * 0.0500m) +
                        (CountEnabledModes(
@@ -58,7 +61,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                             state.WaterDistributionInfrastructure.EmergencyModeEnabled,
                             state.SanitationInfrastructure.EmergencyModeEnabled,
                             state.PowerDistributionInfrastructure.EmergencyModeEnabled,
-                            state.UtilityIncidentInfrastructure.EmergencyModeEnabled) * 0.0300m));
+                            state.UtilityIncidentInfrastructure.EmergencyModeEnabled) *
+                        0.0300m));
 
             decimal filtersDemand = Clamp(
                 value: 0.1200m +
@@ -71,7 +75,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (state.FloodingIndex.Value * 0.0900m) +
                        (CountEnabledModes(
                             state.WaterDistributionInfrastructure.EmergencyModeEnabled,
-                            state.SanitationInfrastructure.EmergencyModeEnabled) * 0.0600m));
+                            state.SanitationInfrastructure.EmergencyModeEnabled) *
+                        0.0600m));
 
             decimal emergencyWaterDemand = Clamp(
                 value: 0.1000m +
@@ -84,7 +89,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (CountEnabledModes(
                             state.WaterDistributionInfrastructure.EmergencyModeEnabled,
                             state.UtilityIncidentInfrastructure.EmergencyModeEnabled,
-                            state.DrainageInfrastructure.EmergencyModeEnabled) * 0.0500m));
+                            state.DrainageInfrastructure.EmergencyModeEnabled) *
+                        0.0500m));
 
             decimal overallDemand = Clamp(
                 value: (fuelDemand * 0.3000m) +
@@ -122,10 +128,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             int count = 0;
 
             foreach (bool value in values)
-            {
                 if (value)
                     count++;
-            }
 
             return count;
         }

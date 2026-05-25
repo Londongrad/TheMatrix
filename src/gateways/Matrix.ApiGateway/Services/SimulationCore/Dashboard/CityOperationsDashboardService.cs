@@ -12,11 +12,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         ICityOperationsDashboardRecentEventsBuilder recentEventsBuilder,
         TimeProvider timeProvider) : ICityOperationsDashboardService
     {
+        private readonly ICityOperationsDashboardAlertBuilder _alertBuilder = alertBuilder;
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly ICityOperationsDashboardHealthProbe _healthProbe = healthProbe;
-        private readonly ICityOperationsDashboardSnapshotLoader _snapshotLoader = snapshotLoader;
-        private readonly ICityOperationsDashboardAlertBuilder _alertBuilder = alertBuilder;
         private readonly ICityOperationsDashboardRecentEventsBuilder _recentEventsBuilder = recentEventsBuilder;
+        private readonly ICityOperationsDashboardSnapshotLoader _snapshotLoader = snapshotLoader;
         private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task<CityOperationsDashboardView> GetAsync(CancellationToken cancellationToken)
@@ -391,6 +391,5 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 _ => 2
             };
         }
-
     }
 }

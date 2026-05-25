@@ -1,109 +1,176 @@
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
+using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
-using Matrix.Economy.Infrastructure.Tests.TestSupport;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityBudgetLedgerRepositoryTests
+namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task ExistsAsync_ReturnsTrueForMatchingReference()
+    public sealed class CityBudgetLedgerRepositoryTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task ExistsAsync_ReturnsTrueForMatchingReference()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityBudgetLedgerEntries.Add(
-            CreateBudgetLedgerEntry(
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityBudgetLedgerEntries.Add(
+                CreateBudgetLedgerEntry(
+                    cityId: cityId,
+                    kind: CityBudgetLedgerEntryKind.Revenue,
+                    referenceCode: "rev-001"));
+            await dbContext.SaveChangesAsync();
+
+            CityBudgetLedgerRepository repository = new(dbContext);
+
+            bool exists = await repository.ExistsAsync(
                 cityId: cityId,
                 kind: CityBudgetLedgerEntryKind.Revenue,
-                referenceCode: "rev-001"));
-        await dbContext.SaveChangesAsync();
+                referenceCode: "rev-001");
 
-        CityBudgetLedgerRepository repository = new(dbContext);
+            Assert.True(exists);
+        }
 
-        bool exists = await repository.ExistsAsync(cityId, CityBudgetLedgerEntryKind.Revenue, "rev-001");
+        [Fact]
+        public async Task GetSliceByCityAsync_ReturnsOrderedPageAndNextCursor()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityBudgetLedgerEntry entryA = CreateBudgetLedgerEntry(
+                cityId: cityId,
+                entryId: Guid.Parse("10000000-0000-0000-0000-000000000001"),
+                occurredAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 12,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                title: "Newest");
+            CityBudgetLedgerEntry entryB = CreateBudgetLedgerEntry(
+                cityId: cityId,
+                entryId: Guid.Parse("10000000-0000-0000-0000-000000000010"),
+                occurredAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 11,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                title: "Middle");
+            CityBudgetLedgerEntry entryC = CreateBudgetLedgerEntry(
+                cityId: cityId,
+                entryId: Guid.Parse("10000000-0000-0000-0000-000000000002"),
+                occurredAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 11,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                title: "OlderSameTime");
 
-        Assert.True(exists);
-    }
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityBudgetLedgerEntries.AddRange(
+                entryA,
+                entryB,
+                entryC);
+            await dbContext.SaveChangesAsync();
 
-    [Fact]
-    public async Task GetSliceByCityAsync_ReturnsOrderedPageAndNextCursor()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var entryA = CreateBudgetLedgerEntry(
-            cityId: cityId,
-            entryId: Guid.Parse("10000000-0000-0000-0000-000000000001"),
-            occurredAtUtc: new DateTimeOffset(2048, 5, 6, 12, 0, 0, TimeSpan.Zero),
-            title: "Newest");
-        var entryB = CreateBudgetLedgerEntry(
-            cityId: cityId,
-            entryId: Guid.Parse("10000000-0000-0000-0000-000000000010"),
-            occurredAtUtc: new DateTimeOffset(2048, 5, 6, 11, 0, 0, TimeSpan.Zero),
-            title: "Middle");
-        var entryC = CreateBudgetLedgerEntry(
-            cityId: cityId,
-            entryId: Guid.Parse("10000000-0000-0000-0000-000000000002"),
-            occurredAtUtc: new DateTimeOffset(2048, 5, 6, 11, 0, 0, TimeSpan.Zero),
-            title: "OlderSameTime");
+            CityBudgetLedgerRepository repository = new(dbContext);
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityBudgetLedgerEntries.AddRange(entryA, entryB, entryC);
-        await dbContext.SaveChangesAsync();
+            CursorPagedResult<CityBudgetLedgerEntry> result = await repository.GetSliceByCityAsync(
+                cityId: cityId,
+                cursor: null,
+                pageSize: 2);
 
-        CityBudgetLedgerRepository repository = new(dbContext);
+            Assert.Equal(
+                expected: 2,
+                actual: result.PageSize);
+            Assert.True(result.HasNext);
+            Assert.Collection(
+                collection: result.Items,
+                x => Assert.Equal(
+                    expected: "Newest",
+                    actual: x.Title),
+                x => Assert.Equal(
+                    expected: "Middle",
+                    actual: x.Title));
+            Assert.Equal(
+                expected: LedgerCursorCodec.Encode(
+                    new LedgerCursor(
+                        UtcTicks: entryB.OccurredAtUtc.UtcTicks,
+                        EntryId: entryB.Id)),
+                actual: result.NextCursor);
+        }
 
-        var result = await repository.GetSliceByCityAsync(cityId, null, 2);
+        [Fact]
+        public async Task GetSliceByCityAsync_WithCursor_ReturnsItemsAfterCursorBoundary()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityBudgetLedgerEntry newest = CreateBudgetLedgerEntry(
+                cityId: cityId,
+                entryId: Guid.Parse("10000000-0000-0000-0000-000000000030"),
+                occurredAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 15,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                title: "Newest");
+            CityBudgetLedgerEntry cursorItem = CreateBudgetLedgerEntry(
+                cityId: cityId,
+                entryId: Guid.Parse("10000000-0000-0000-0000-000000000020"),
+                occurredAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 14,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                title: "Cursor");
+            CityBudgetLedgerEntry older = CreateBudgetLedgerEntry(
+                cityId: cityId,
+                entryId: Guid.Parse("10000000-0000-0000-0000-000000000010"),
+                occurredAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 13,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                title: "Older");
 
-        Assert.Equal(2, result.PageSize);
-        Assert.True(result.HasNext);
-        Assert.Collection(
-            result.Items,
-            x => Assert.Equal("Newest", x.Title),
-            x => Assert.Equal("Middle", x.Title));
-        Assert.Equal(
-            LedgerCursorCodec.Encode(new LedgerCursor(entryB.OccurredAtUtc.UtcTicks, entryB.Id)),
-            result.NextCursor);
-    }
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityBudgetLedgerEntries.AddRange(
+                newest,
+                cursorItem,
+                older);
+            await dbContext.SaveChangesAsync();
 
-    [Fact]
-    public async Task GetSliceByCityAsync_WithCursor_ReturnsItemsAfterCursorBoundary()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var newest = CreateBudgetLedgerEntry(
-            cityId: cityId,
-            entryId: Guid.Parse("10000000-0000-0000-0000-000000000030"),
-            occurredAtUtc: new DateTimeOffset(2048, 5, 6, 15, 0, 0, TimeSpan.Zero),
-            title: "Newest");
-        var cursorItem = CreateBudgetLedgerEntry(
-            cityId: cityId,
-            entryId: Guid.Parse("10000000-0000-0000-0000-000000000020"),
-            occurredAtUtc: new DateTimeOffset(2048, 5, 6, 14, 0, 0, TimeSpan.Zero),
-            title: "Cursor");
-        var older = CreateBudgetLedgerEntry(
-            cityId: cityId,
-            entryId: Guid.Parse("10000000-0000-0000-0000-000000000010"),
-            occurredAtUtc: new DateTimeOffset(2048, 5, 6, 13, 0, 0, TimeSpan.Zero),
-            title: "Older");
+            CityBudgetLedgerRepository repository = new(dbContext);
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityBudgetLedgerEntries.AddRange(
-            newest,
-            cursorItem,
-            older);
-        await dbContext.SaveChangesAsync();
+            CursorPagedResult<CityBudgetLedgerEntry> result = await repository.GetSliceByCityAsync(
+                cityId: cityId,
+                cursor: new LedgerCursor(
+                    UtcTicks: cursorItem.OccurredAtUtc.UtcTicks,
+                    EntryId: cursorItem.Id),
+                pageSize: 10);
 
-        CityBudgetLedgerRepository repository = new(dbContext);
-
-        var result = await repository.GetSliceByCityAsync(
-            cityId,
-            new LedgerCursor(cursorItem.OccurredAtUtc.UtcTicks, cursorItem.Id),
-            10);
-
-        var item = Assert.Single(result.Items);
-        Assert.Equal("Older", item.Title);
-        Assert.False(result.HasNext);
+            CityBudgetLedgerEntry item = Assert.Single(result.Items);
+            Assert.Equal(
+                expected: "Older",
+                actual: item.Title);
+            Assert.False(result.HasNext);
+        }
     }
 }

@@ -1,46 +1,91 @@
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityRoadGraph;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology.GetCityRoadGraph;
-
-public sealed class GetCityRoadGraphQueryHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology.GetCityRoadGraph
 {
-    [Fact]
-    public async Task Handle_ReturnsMappedDistrictsAndRoadSegments()
+    public sealed class GetCityRoadGraphQueryHandlerTests
     {
-        var cityId = new CityId(Guid.NewGuid());
-        var district = TopologyTestSupport.CreateDistrict(cityId, "Industrial");
-        var fromRoadNode = TopologyTestSupport.CreateRoadNode(cityId, district.Id, "North Junction");
-        var toRoadNode = TopologyTestSupport.CreateRoadNode(cityId, district.Id, "South Junction");
-        var roadSegment = TopologyTestSupport.CreateRoadSegment(cityId, district.Id, fromRoadNode.Id, toRoadNode.Id, "Industrial Link");
-        var districtRepository = new TopologyTestSupport.FakeDistrictRepository
+        [Fact]
+        public async Task Handle_ReturnsMappedDistrictsAndRoadSegments()
         {
-            Districts = [district]
-        };
-        var roadSegmentRepository = new TopologyTestSupport.FakeRoadSegmentRepository
-        {
-            RoadSegments = [roadSegment]
-        };
-        var handler = new GetCityRoadGraphQueryHandler(districtRepository, roadSegmentRepository);
+            var cityId = new CityId(Guid.NewGuid());
+            District district = TopologyTestSupport.CreateDistrict(
+                cityId: cityId,
+                name: "Industrial");
+            RoadNode fromRoadNode = TopologyTestSupport.CreateRoadNode(
+                cityId: cityId,
+                districtId: district.Id,
+                name: "North Junction");
+            RoadNode toRoadNode = TopologyTestSupport.CreateRoadNode(
+                cityId: cityId,
+                districtId: district.Id,
+                name: "South Junction");
+            RoadSegment roadSegment = TopologyTestSupport.CreateRoadSegment(
+                cityId: cityId,
+                districtId: district.Id,
+                fromRoadNodeId: fromRoadNode.Id,
+                toRoadNodeId: toRoadNode.Id,
+                name: "Industrial Link");
+            var districtRepository = new TopologyTestSupport.FakeDistrictRepository
+            {
+                Districts = [district]
+            };
+            var roadSegmentRepository = new TopologyTestSupport.FakeRoadSegmentRepository
+            {
+                RoadSegments = [roadSegment]
+            };
+            var handler = new GetCityRoadGraphQueryHandler(
+                districtRepository: districtRepository,
+                roadSegmentRepository: roadSegmentRepository);
 
-        var result = await handler.Handle(new GetCityRoadGraphQuery(cityId.Value), CancellationToken.None);
+            CityRoadGraphDto result = await handler.Handle(
+                request: new GetCityRoadGraphQuery(cityId.Value),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(cityId.Value, districtRepository.RequestedCityId!.Value.Value);
-        Assert.Equal(cityId.Value, roadSegmentRepository.RequestedCityId!.Value.Value);
-        Assert.Equal(cityId.Value, result.CityId);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: districtRepository.RequestedCityId!.Value.Value);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: roadSegmentRepository.RequestedCityId!.Value.Value);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: result.CityId);
 
-        var districtDto = Assert.Single(result.Districts);
-        Assert.Equal(district.Id.Value, districtDto.DistrictId);
-        Assert.Equal("Industrial", districtDto.Name);
+            DistrictDto districtDto = Assert.Single(result.Districts);
+            Assert.Equal(
+                expected: district.Id.Value,
+                actual: districtDto.DistrictId);
+            Assert.Equal(
+                expected: "Industrial",
+                actual: districtDto.Name);
 
-        var roadSegmentDto = Assert.Single(result.RoadSegments);
-        Assert.Equal(roadSegment.Id.Value, roadSegmentDto.RoadSegmentId);
-        Assert.Equal(roadSegment.CityId.Value, roadSegmentDto.CityId);
-        Assert.Equal(roadSegment.DistrictId.Value, roadSegmentDto.DistrictId);
-        Assert.Equal(roadSegment.FromRoadNodeId.Value, roadSegmentDto.FromRoadNodeId);
-        Assert.Equal(roadSegment.ToRoadNodeId.Value, roadSegmentDto.ToRoadNodeId);
-        Assert.Equal("Industrial Link", roadSegmentDto.Name);
-        Assert.Equal(roadSegment.Type.ToString(), roadSegmentDto.Type);
+            RoadSegmentDto roadSegmentDto = Assert.Single(result.RoadSegments);
+            Assert.Equal(
+                expected: roadSegment.Id.Value,
+                actual: roadSegmentDto.RoadSegmentId);
+            Assert.Equal(
+                expected: roadSegment.CityId.Value,
+                actual: roadSegmentDto.CityId);
+            Assert.Equal(
+                expected: roadSegment.DistrictId.Value,
+                actual: roadSegmentDto.DistrictId);
+            Assert.Equal(
+                expected: roadSegment.FromRoadNodeId.Value,
+                actual: roadSegmentDto.FromRoadNodeId);
+            Assert.Equal(
+                expected: roadSegment.ToRoadNodeId.Value,
+                actual: roadSegmentDto.ToRoadNodeId);
+            Assert.Equal(
+                expected: "Industrial Link",
+                actual: roadSegmentDto.Name);
+            Assert.Equal(
+                expected: roadSegment.Type.ToString(),
+                actual: roadSegmentDto.Type);
+        }
     }
 }

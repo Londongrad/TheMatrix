@@ -1,75 +1,102 @@
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
+using Matrix.SimulationSystems.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
-using Matrix.SimulationSystems.Infrastructure.Tests.TestSupport;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using static Matrix.SimulationSystems.Infrastructure.Tests.TestSupport.SimulationSystemsInfrastructureTestSupport;
 
-namespace Matrix.SimulationSystems.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityEnvironmentalConditionRepositoryTests
+namespace Matrix.SimulationSystems.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task AddAsync_PersistsStateAndGetBySimulationHostIdReturnsIt()
+    public sealed class CityEnvironmentalConditionRepositoryTests
     {
-        await using var dbContext = CreateDbContext();
-        CityEnvironmentalConditionRepository repository = new(dbContext);
-        var state = CreateState();
+        [Fact]
+        public async Task AddAsync_PersistsStateAndGetBySimulationHostIdReturnsIt()
+        {
+            await using SimulationSystemsDbContext dbContext = CreateDbContext();
+            CityEnvironmentalConditionRepository repository = new(dbContext);
+            CityEnvironmentalConditionState state = CreateState();
 
-        await repository.AddAsync(state, CancellationToken.None);
-        await dbContext.SaveChangesAsync();
+            await repository.AddAsync(
+                state: state,
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
 
-        var loaded = await repository.GetBySimulationHostIdAsync(CreateHostId(), CancellationToken.None);
+            CityEnvironmentalConditionState? loaded = await repository.GetBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(loaded);
-        Assert.Equal(CreateHostId(), loaded!.SimulationHostId);
-        Assert.Equal(state.LastAppliedTickId, loaded.LastAppliedTickId);
-        Assert.Equal(state.UtilityContinuityIndex, loaded.UtilityContinuityIndex);
-    }
+            Assert.NotNull(loaded);
+            Assert.Equal(
+                expected: CreateHostId(),
+                actual: loaded!.SimulationHostId);
+            Assert.Equal(
+                expected: state.LastAppliedTickId,
+                actual: loaded.LastAppliedTickId);
+            Assert.Equal(
+                expected: state.UtilityContinuityIndex,
+                actual: loaded.UtilityContinuityIndex);
+        }
 
-    [Fact]
-    public async Task GetBySimulationHostIdAsync_ReturnsNullWhenStateDoesNotExist()
-    {
-        await using var dbContext = CreateDbContext();
-        CityEnvironmentalConditionRepository repository = new(dbContext);
+        [Fact]
+        public async Task GetBySimulationHostIdAsync_ReturnsNullWhenStateDoesNotExist()
+        {
+            await using SimulationSystemsDbContext dbContext = CreateDbContext();
+            CityEnvironmentalConditionRepository repository = new(dbContext);
 
-        var loaded = await repository.GetBySimulationHostIdAsync(CreateHostId(), CancellationToken.None);
+            CityEnvironmentalConditionState? loaded = await repository.GetBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Null(loaded);
-    }
+            Assert.Null(loaded);
+        }
 
-    [Fact]
-    public async Task GetFreshBySimulationHostIdAsync_ClearsTrackedChangesBeforeLoading()
-    {
-        const long persistedTickId = 4;
+        [Fact]
+        public async Task GetFreshBySimulationHostIdAsync_ClearsTrackedChangesBeforeLoading()
+        {
+            const long persistedTickId = 4;
 
-        await using var dbContext = CreateDbContext();
-        CityEnvironmentalConditionRepository repository = new(dbContext);
-        var state = CreateState(lastAppliedTickId: persistedTickId);
+            await using SimulationSystemsDbContext dbContext = CreateDbContext();
+            CityEnvironmentalConditionRepository repository = new(dbContext);
+            CityEnvironmentalConditionState state = CreateState(lastAppliedTickId: persistedTickId);
 
-        await repository.AddAsync(state, CancellationToken.None);
-        await dbContext.SaveChangesAsync();
+            await repository.AddAsync(
+                state: state,
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
 
-        state.MarkTickApplied(12);
+            state.MarkTickApplied(12);
 
-        var loaded = await repository.GetFreshBySimulationHostIdAsync(CreateHostId(), CancellationToken.None);
+            CityEnvironmentalConditionState? loaded = await repository.GetFreshBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(loaded);
-        Assert.Equal(persistedTickId, loaded!.LastAppliedTickId);
-    }
+            Assert.NotNull(loaded);
+            Assert.Equal(
+                expected: persistedTickId,
+                actual: loaded!.LastAppliedTickId);
+        }
 
-    [Fact]
-    public async Task GetBySimulationHostIdNoTrackingAsync_ReturnsDetachedEntity()
-    {
-        await using var dbContext = CreateDbContext();
-        CityEnvironmentalConditionRepository repository = new(dbContext);
-        var state = CreateState();
+        [Fact]
+        public async Task GetBySimulationHostIdNoTrackingAsync_ReturnsDetachedEntity()
+        {
+            await using SimulationSystemsDbContext dbContext = CreateDbContext();
+            CityEnvironmentalConditionRepository repository = new(dbContext);
+            CityEnvironmentalConditionState state = CreateState();
 
-        await repository.AddAsync(state, CancellationToken.None);
-        await dbContext.SaveChangesAsync();
+            await repository.AddAsync(
+                state: state,
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
 
-        var loaded = await repository.GetBySimulationHostIdNoTrackingAsync(CreateHostId(), CancellationToken.None);
+            CityEnvironmentalConditionState? loaded = await repository.GetBySimulationHostIdNoTrackingAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(loaded);
-        Assert.Equal(EntityState.Detached, dbContext.Entry(loaded!).State);
+            Assert.NotNull(loaded);
+            Assert.Equal(
+                expected: EntityState.Detached,
+                actual: dbContext.Entry(loaded!)
+                   .State);
+        }
     }
 }

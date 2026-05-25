@@ -93,7 +93,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange
                 throw ApplicationErrorsFactory.EmailAlreadyInUse(user.PendingEmail);
             }
 
-            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
             string previousEmail = user.Email.Value;
             string newEmail = user.PendingEmail;
 

@@ -29,13 +29,16 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         IOptions<CityOperationsDashboardOptions> dashboardOptions,
         ILogger<CityOperationsDashboardSnapshotLoader> logger) : ICityOperationsDashboardSnapshotLoader
     {
+        private readonly CityOperationsDashboardOptions _dashboardOptions = dashboardOptions.Value;
         private readonly IEconomyApiClient _economyClient = economyClient;
+
+        private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient =
+            environmentalConditionsClient;
+
+        private readonly ILogger<CityOperationsDashboardSnapshotLoader> _logger = logger;
         private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
         private readonly ITripsApiClient _tripsClient = tripsClient;
-        private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
-        private readonly CityOperationsDashboardOptions _dashboardOptions = dashboardOptions.Value;
-        private readonly ILogger<CityOperationsDashboardSnapshotLoader> _logger = logger;
 
         public async Task<IReadOnlyList<CityOperationalSnapshot>> LoadReadyClassicCitySnapshotsAsync(
             IReadOnlyList<CityListItemView> allCities,
@@ -54,7 +57,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 maxCount: _dashboardOptions.MaxConcurrentCitySnapshotLoads);
 
             Task[] snapshotTasks = readyClassicCities
-               .Select((city, index) => LoadReadyClassicCitySnapshotWithGateAsync(
+               .Select((
+                    city,
+                    index) => LoadReadyClassicCitySnapshotWithGateAsync(
                     city: city,
                     index: index,
                     snapshots: snapshots,
@@ -95,9 +100,10 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             Task<CityEnvironmentalConditionsView?> environmentalTask = TryLoadEnvironmentalConditionsAsync(
                 city: city,
                 cancellationToken: cancellationToken);
-            Task<CityPopulationDistrictPressureDto?> populationDistrictPressureTask = TryLoadPopulationDistrictPressureAsync(
-                city: city,
-                cancellationToken: cancellationToken);
+            Task<CityPopulationDistrictPressureDto?> populationDistrictPressureTask =
+                TryLoadPopulationDistrictPressureAsync(
+                    city: city,
+                    cancellationToken: cancellationToken);
             Task<CityDistrictHeatingConditionsView?> districtHeatingTask = TryLoadDistrictHeatingConditionsAsync(
                 city: city,
                 cancellationToken: cancellationToken);
@@ -107,12 +113,14 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             Task<CityDistrictPowerDistributionConditionsView?> districtPowerTask = TryLoadDistrictPowerConditionsAsync(
                 city: city,
                 cancellationToken: cancellationToken);
-            Task<CityDistrictSanitationConditionsView?> districtSanitationTask = TryLoadDistrictSanitationConditionsAsync(
-                city: city,
-                cancellationToken: cancellationToken);
-            Task<CityDistrictUtilityIncidentConditionsView?> districtUtilityIncidentsTask = TryLoadDistrictUtilityIncidentConditionsAsync(
-                city: city,
-                cancellationToken: cancellationToken);
+            Task<CityDistrictSanitationConditionsView?> districtSanitationTask =
+                TryLoadDistrictSanitationConditionsAsync(
+                    city: city,
+                    cancellationToken: cancellationToken);
+            Task<CityDistrictUtilityIncidentConditionsView?> districtUtilityIncidentsTask =
+                TryLoadDistrictUtilityIncidentConditionsAsync(
+                    city: city,
+                    cancellationToken: cancellationToken);
             Task<IReadOnlyList<CityActiveTripView>?> activeTripsTask = TryLoadActiveTripsAsync(
                 city: city,
                 cancellationToken: cancellationToken);
@@ -204,7 +212,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 load: token => _environmentalConditionsClient.GetCityDistrictHeatingConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
-                failureMessage: "Failed to attach district heating conditions to city operations dashboard for cityId={CityId}.",
+                failureMessage:
+                "Failed to attach district heating conditions to city operations dashboard for cityId={CityId}.",
                 skippedMessage:
                 "Skipped district heating conditions for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
                 cancellationToken: cancellationToken);
@@ -220,7 +229,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 load: token => _environmentalConditionsClient.GetCityDistrictWaterDistributionConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
-                failureMessage: "Failed to attach district water conditions to city operations dashboard for cityId={CityId}.",
+                failureMessage:
+                "Failed to attach district water conditions to city operations dashboard for cityId={CityId}.",
                 skippedMessage:
                 "Skipped district water conditions for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
                 cancellationToken: cancellationToken);
@@ -236,7 +246,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 load: token => _environmentalConditionsClient.GetCityDistrictPowerDistributionConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
-                failureMessage: "Failed to attach district power conditions to city operations dashboard for cityId={CityId}.",
+                failureMessage:
+                "Failed to attach district power conditions to city operations dashboard for cityId={CityId}.",
                 skippedMessage:
                 "Skipped district power conditions for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
                 cancellationToken: cancellationToken);
@@ -252,7 +263,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 load: token => _environmentalConditionsClient.GetCityDistrictSanitationConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
-                failureMessage: "Failed to attach district sanitation conditions to city operations dashboard for cityId={CityId}.",
+                failureMessage:
+                "Failed to attach district sanitation conditions to city operations dashboard for cityId={CityId}.",
                 skippedMessage:
                 "Skipped district sanitation conditions for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
                 cancellationToken: cancellationToken);

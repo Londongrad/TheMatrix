@@ -8,8 +8,8 @@ using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
@@ -161,9 +161,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                     type: CityAnchorType.School,
                     cancellationToken: cancellationToken);
             CityAnchorId? institutionAnchorId = anchorSelectionPolicy.SelectSchoolAnchor(
-                anchors: schoolAnchors,
-                preferredDistrictId: housing?.DistrictId,
-                stableKey: resident.Id.Value)?.CityAnchorId;
+                    anchors: schoolAnchors,
+                    preferredDistrictId: housing?.DistrictId,
+                    stableKey: resident.Id.Value)
+              ?.CityAnchorId;
 
             return new CityEducationInstitutionBinding(
                 InstitutionId: EducationInstitutionId.New(),

@@ -1,11 +1,11 @@
 using Matrix.BuildingBlocks.Application.Events;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.SimulationCore.Domain.Simulation;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation
@@ -48,15 +48,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                 cancellationToken: cancellationToken);
 
             if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
-            {
                 await DomainEventDispatchHelper.PublishAndClearAsync(
                     source: cityWeather,
                     publish: outboxWriter.AddWeatherEventsAsync,
                     cancellationToken: cancellationToken);
-            }
 
             foreach (CityTickPhase phase in GetClassicCityPhaseWatermarks())
-            {
                 await outboxWriter.AddCityTickPhaseReachedAsync(
                     cityId: cityId,
                     simulationId: host.SimulationId,
@@ -67,7 +64,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                     speed: advancedEvent.Speed,
                     phase: phase,
                     cancellationToken: cancellationToken);
-            }
         }
 
         private static IReadOnlyList<CityTickPhase> GetClassicCityPhaseWatermarks()

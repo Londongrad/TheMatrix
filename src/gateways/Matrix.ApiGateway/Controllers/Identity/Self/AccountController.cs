@@ -60,13 +60,11 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             CancellationToken cancellationToken)
         {
             if (avatar is null || avatar.Length == 0)
-            {
                 return ApiProblemDetailsFactory.CreateObjectResult(
                     context: HttpContext,
                     statusCode: StatusCodes.Status400BadRequest,
                     code: "Gateway.EmptyAvatar",
                     message: "Avatar file is required.");
-            }
 
             ChangeAvatarResponse dto =
                 await _identityAccountClient.ChangeAvatarAsync(

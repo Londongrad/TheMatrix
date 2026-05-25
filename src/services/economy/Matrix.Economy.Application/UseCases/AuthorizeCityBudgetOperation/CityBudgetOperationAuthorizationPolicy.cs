@@ -31,10 +31,11 @@ namespace Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation
                 pressure.PressureIndex < 0.9500m)
             {
                 int emergencyCeiling = Math.Min(
-                    3,
-                    Math.Max(
-                        1,
-                        approvedLevel) + 1);
+                    val1: 3,
+                    val2: Math.Max(
+                              val1: 1,
+                              val2: approvedLevel) +
+                          1);
 
                 if (emergencyCeiling > approvedLevel)
                 {
@@ -181,18 +182,18 @@ namespace Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation
                 ? "budget-sensitive action"
                 : operationKind;
             string availableAmountText = decimal.Round(
-                d: Math.Max(
-                    val1: 0m,
-                    val2: availableAmount),
-                decimals: 2,
-                mode: MidpointRounding.AwayFromZero)
+                    d: Math.Max(
+                        val1: 0m,
+                        val2: availableAmount),
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero)
                .ToString("0.##");
             string estimatedAmountText = decimal.Round(
-                d: Math.Max(
-                    val1: 0m,
-                    val2: estimatedAmount),
-                decimals: 2,
-                mode: MidpointRounding.AwayFromZero)
+                    d: Math.Max(
+                        val1: 0m,
+                        val2: estimatedAmount),
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero)
                .ToString("0.##");
 
             return status switch
@@ -210,14 +211,15 @@ namespace Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation
 
         private static int MapAuthorizationLevelToLevel(string authorizationLevel)
         {
-            return authorizationLevel.Trim().ToLowerInvariant() switch
-            {
-                "none" => 0,
-                "low" => 1,
-                "medium" => 2,
-                "high" => 3,
-                _ => 3
-            };
+            return authorizationLevel.Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "none" => 0,
+                    "low" => 1,
+                    "medium" => 2,
+                    "high" => 3,
+                    _ => 3
+                };
         }
 
         private static int MapIntensityToLevel(string intensity)
@@ -250,7 +252,8 @@ namespace Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation
 
         private static string NormalizeIntensityName(string intensity)
         {
-            return (intensity ?? string.Empty).Trim().ToLowerInvariant();
+            return (intensity ?? string.Empty).Trim()
+               .ToLowerInvariant();
         }
     }
 }

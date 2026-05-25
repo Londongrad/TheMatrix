@@ -36,10 +36,11 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 logOnMiss: true,
                 cancellationToken: cancellationToken);
 
-            int rawUserVersion = cachedUserVersion ?? await LoadUserVersionFromIdentityOrStaleAsync(
-                userId: userId,
-                staleCacheKey: userStaleCacheKey,
-                cancellationToken: cancellationToken);
+            int rawUserVersion = cachedUserVersion ??
+                                 await LoadUserVersionFromIdentityOrStaleAsync(
+                                     userId: userId,
+                                     staleCacheKey: userStaleCacheKey,
+                                     cancellationToken: cancellationToken);
 
             int defaultUserAccessVersion = await GetDefaultUserAccessVersionAsync(cancellationToken);
 
@@ -367,10 +368,11 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                             cacheKey,
                             cached);
                 }
-                else if (logOnMiss && logger.IsEnabled(LogLevel.Debug))
-                    logger.LogDebug(
-                        message: "Default user access version {CacheTier} cache miss.",
-                        cacheTier);
+                else
+                    if (logOnMiss && logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug(
+                            message: "Default user access version {CacheTier} cache miss.",
+                            cacheTier);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -525,7 +527,10 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
         {
             internal const string IdentityFallbackToStale = "pv.identity.fallback.stale";
             internal const string IdentityUnavailable = "pv.identity.unavailable";
-            internal const string DefaultUserAccessIdentityFallbackToStale = "pv.default-user-access.identity.fallback.stale";
+
+            internal const string DefaultUserAccessIdentityFallbackToStale =
+                "pv.default-user-access.identity.fallback.stale";
+
             internal const string DefaultUserAccessIdentityUnavailable = "pv.default-user-access.identity.unavailable";
         }
     }

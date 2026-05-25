@@ -1,45 +1,59 @@
+using FluentValidation.Results;
 using Matrix.Identity.Application.UseCases.Self.Auth.LoginUser;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.LoginUser;
-
-public sealed class LoginUserCommandValidatorTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.LoginUser
 {
-    private readonly LoginUserCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidCommand_ReturnsNoErrors()
+    public sealed class LoginUserCommandValidatorTests
     {
-        var result = _validator.Validate(new LoginUserCommand(
-            Login: "neo",
-            Password: "Pa$$w0rd",
-            DeviceId: "device-1",
-            DeviceName: "Phone",
-            UserAgent: "Mozilla/5.0",
-            IpAddress: "127.0.0.1",
-            RememberMe: true));
+        private readonly LoginUserCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidCommand_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new LoginUserCommand(
+                    Login: "neo",
+                    Password: "Pa$$w0rd",
+                    DeviceId: "device-1",
+                    DeviceName: "Phone",
+                    UserAgent: "Mozilla/5.0",
+                    IpAddress: "127.0.0.1",
+                    RememberMe: true));
 
-    [Fact]
-    public void Validate_WithMissingRequiredFields_ReturnsErrorsForEachField()
-    {
-        var result = _validator.Validate(new LoginUserCommand(
-            Login: "",
-            Password: "",
-            DeviceId: "",
-            DeviceName: "",
-            UserAgent: "",
-            IpAddress: null,
-            RememberMe: false));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "Login");
-        Assert.Contains(result.Errors, x => x.PropertyName == "Password");
-        Assert.Contains(result.Errors, x => x.PropertyName == "DeviceId");
-        Assert.Contains(result.Errors, x => x.PropertyName == "DeviceName");
-        Assert.Contains(result.Errors, x => x.PropertyName == "UserAgent");
+        [Fact]
+        public void Validate_WithMissingRequiredFields_ReturnsErrorsForEachField()
+        {
+            ValidationResult? result = _validator.Validate(
+                new LoginUserCommand(
+                    Login: "",
+                    Password: "",
+                    DeviceId: "",
+                    DeviceName: "",
+                    UserAgent: "",
+                    IpAddress: null,
+                    RememberMe: false));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Login");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Password");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "DeviceId");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "DeviceName");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "UserAgent");
+        }
     }
 }

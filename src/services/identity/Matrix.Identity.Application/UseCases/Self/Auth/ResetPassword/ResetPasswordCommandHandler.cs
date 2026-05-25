@@ -74,7 +74,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
                 throw DomainErrorsFactory.OneTimeTokenNotFound(nameof(request.Token));
             }
 
-            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             token.MarkUsed(nowUtc);
 

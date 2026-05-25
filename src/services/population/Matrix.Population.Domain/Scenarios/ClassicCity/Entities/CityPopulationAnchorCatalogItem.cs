@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
+using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
@@ -23,20 +24,22 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             GuardHelper.Ensure(
                 condition: createdAtUtc.Offset == TimeSpan.Zero,
                 value: createdAtUtc,
-                errorFactory: Domain.Errors.DomainErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(createdAtUtc));
+                errorFactory: DomainErrorsFactory.TimestampMustBeUtc);
 
             CityId = cityId;
             CityAnchorId = cityAnchorId;
             DistrictId = districtId;
             AccessRoadNodeId = accessRoadNodeId;
             Name = GuardHelper.AgainstNullOrWhiteSpace(
-                value: name,
-                propertyName: nameof(name)).Trim();
+                    value: name,
+                    propertyName: nameof(name))
+               .Trim();
             Type = GuardHelper.AgainstInvalidEnum(
                 value: type,
                 propertyName: nameof(type));
-            Capacity = Math.Max(0, capacity);
+            Capacity = Math.Max(
+                val1: 0,
+                val2: capacity);
             PositionX = decimal.Round(
                 d: positionX,
                 decimals: 4,

@@ -68,12 +68,23 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
         private static RoadNodeView? ResolveCentralHub(CityMapTopologyView topology)
         {
             return topology.RoadNodes.FirstOrDefault(x =>
-                       string.Equals(x.Type, DistrictHubType, StringComparison.OrdinalIgnoreCase) &&
-                       string.Equals(x.Name, "Central Hub", StringComparison.OrdinalIgnoreCase))
-                ?? topology.RoadNodes
-                   .Where(x => string.Equals(x.Type, DistrictHubType, StringComparison.OrdinalIgnoreCase))
-                   .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-                   .FirstOrDefault();
+                       string.Equals(
+                           a: x.Type,
+                           b: DistrictHubType,
+                           comparisonType: StringComparison.OrdinalIgnoreCase) &&
+                       string.Equals(
+                           a: x.Name,
+                           b: "Central Hub",
+                           comparisonType: StringComparison.OrdinalIgnoreCase)) ??
+                   topology.RoadNodes
+                      .Where(x => string.Equals(
+                           a: x.Type,
+                           b: DistrictHubType,
+                           comparisonType: StringComparison.OrdinalIgnoreCase))
+                      .OrderBy(
+                           keySelector: x => x.Name,
+                           comparer: StringComparer.OrdinalIgnoreCase)
+                      .FirstOrDefault();
         }
 
         private static RoadNodeView? ResolveDistrictHub(
@@ -82,18 +93,22 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
         {
             return topology.RoadNodes.FirstOrDefault(x =>
                        x.DistrictId == districtId &&
-                       string.Equals(x.Type, DistrictHubType, StringComparison.OrdinalIgnoreCase))
-                ?? topology.RoadNodes.FirstOrDefault(x => x.DistrictId == districtId);
+                       string.Equals(
+                           a: x.Type,
+                           b: DistrictHubType,
+                           comparisonType: StringComparison.OrdinalIgnoreCase)) ??
+                   topology.RoadNodes.FirstOrDefault(x => x.DistrictId == districtId);
         }
 
         private static decimal ResolveMovementCapabilityIndex(string intensity)
         {
-            return intensity.Trim().ToLowerInvariant() switch
-            {
-                "heavy" => 1.18m,
-                "standard" => 1.08m,
-                _ => 0.96m
-            };
+            return intensity.Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "heavy" => 1.18m,
+                    "standard" => 1.08m,
+                    _ => 0.96m
+                };
         }
     }
 }

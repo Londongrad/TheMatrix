@@ -3,6 +3,7 @@ namespace Matrix.ApiGateway.Configurations.Security
     public sealed class FrontendSecurityOptions
     {
         public const string SectionName = "FrontendSecurity";
+
         public static readonly string[] DevelopmentLocalAllowedOrigins =
         [
             "https://localhost:5173",

@@ -2,12 +2,14 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.SeedCityEnvironmentalConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    SeedCityEnvironmentalConditions
 {
     public sealed class SeedCityEnvironmentalConditionsCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -22,11 +24,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
             CancellationToken cancellationToken)
         {
             if (!ClassicCityScenario.IsMatch(request.SimulationKind))
-            {
                 return new SeedCityEnvironmentalConditionsResult(
                     Status: SeedCityEnvironmentalConditionsStatus.IgnoredSimulationKind,
                     LastEvaluatedAtUtc: request.CreatedAtUtc);
-            }
 
             var simulationHostId = new SimulationHostId(request.CityId);
 
@@ -35,13 +35,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 cancellationToken: cancellationToken);
 
             if (existing is not null)
-            {
                 return new SeedCityEnvironmentalConditionsResult(
                     Status: SeedCityEnvironmentalConditionsStatus.Duplicate,
                     LastEvaluatedAtUtc: existing.LastEvaluatedAtUtc);
-            }
 
-            var seed = policy.CreateSeed(
+            CityEnvironmentalConditionSnapshot seed = policy.CreateSeed(
                 cityId: request.CityId,
                 developmentLevel: request.DevelopmentLevel,
                 asOfUtc: request.CreatedAtUtc);

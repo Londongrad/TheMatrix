@@ -26,53 +26,55 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetR
         {
             BudgetLedgerEntryDto result = default!;
 
-            await unitOfWork.ExecuteInTransactionAsync(async ct =>
-            {
-                CityBudgetUnitProfile requestedUnit = ResolveRequestedUnit(request);
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async ct =>
+                {
+                    CityBudgetUnitProfile requestedUnit = ResolveRequestedUnit(request);
 
-                CityBudget budget = await budgetRepository.GetByCityAsync(
-                                        cityId: request.CityId,
-                                        cancellationToken: ct) ??
-                                    CreateBudget(
-                                        cityId: request.CityId,
-                                        requestedUnit: requestedUnit,
-                                        budgetRepository: budgetRepository);
-                budget.EnsureCompatibleUnit(requestedUnit);
+                    CityBudget budget = await budgetRepository.GetByCityAsync(
+                                            cityId: request.CityId,
+                                            cancellationToken: ct) ??
+                                        CreateBudget(
+                                            cityId: request.CityId,
+                                            requestedUnit: requestedUnit,
+                                            budgetRepository: budgetRepository);
+                    budget.EnsureCompatibleUnit(requestedUnit);
 
-                DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
+                    DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
 
-                var entry = new CityBudgetLedgerEntry(
-                    id: Guid.NewGuid(),
-                    cityId: request.CityId,
-                    occurredAtUtc: occurredAtUtc,
-                    kind: CityBudgetLedgerEntryKind.Revenue,
-                    category: request.Category,
-                    amount: Money.FromDecimal(request.Amount),
-                    title: request.Title,
-                    description: request.Description,
-                    source: CityBudgetLedgerEntrySource.Manual,
-                    referenceCode: null);
+                    var entry = new CityBudgetLedgerEntry(
+                        id: Guid.NewGuid(),
+                        cityId: request.CityId,
+                        occurredAtUtc: occurredAtUtc,
+                        kind: CityBudgetLedgerEntryKind.Revenue,
+                        category: request.Category,
+                        amount: Money.FromDecimal(request.Amount),
+                        title: request.Title,
+                        description: request.Description,
+                        source: CityBudgetLedgerEntrySource.Manual,
+                        referenceCode: null);
 
-                budget.ApplyLedgerEntry(entry);
-                await ledgerRepository.AddAsync(
-                    entry: entry,
-                    cancellationToken: ct);
-                await unitOfWork.SaveChangesAsync(ct);
+                    budget.ApplyLedgerEntry(entry);
+                    await ledgerRepository.AddAsync(
+                        entry: entry,
+                        cancellationToken: ct);
+                    await unitOfWork.SaveChangesAsync(ct);
 
-                CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
-                    cityId: request.CityId,
-                    cancellationToken: ct);
-                await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
-                    snapshot: pressure,
-                    effectiveAtUtc: entry.OccurredAtUtc,
-                    occurredAtUtc: timeProvider.GetUtcNow(),
-                    cancellationToken: ct);
-                await unitOfWork.SaveChangesAsync(ct);
+                    CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
+                        cityId: request.CityId,
+                        cancellationToken: ct);
+                    await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                        snapshot: pressure,
+                        effectiveAtUtc: entry.OccurredAtUtc,
+                        occurredAtUtc: timeProvider.GetUtcNow(),
+                        cancellationToken: ct);
+                    await unitOfWork.SaveChangesAsync(ct);
 
-                result = Map(
-                    entry: entry,
-                    unitProfile: budget.GetUnitProfile());
-            }, cancellationToken);
+                    result = Map(
+                        entry: entry,
+                        unitProfile: budget.GetUnitProfile());
+                },
+                cancellationToken: cancellationToken);
 
             return result;
         }

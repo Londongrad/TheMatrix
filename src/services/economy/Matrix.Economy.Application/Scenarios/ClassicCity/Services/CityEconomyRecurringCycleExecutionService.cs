@@ -277,7 +277,8 @@ namespace Matrix.Economy.Application.Scenarios.ClassicCity.Services
                 CityHouseholdObligation[] obligations = group
                    .Where(x => x.IsActive && x.ResolveDueInstallmentCount(asOfUtc) > 0)
                    .ToArray();
-                decimal overdueAmount = obligations.Sum(x => x.ResolveCurrentDueAmount(asOfUtc).Amount);
+                decimal overdueAmount = obligations.Sum(x => x.ResolveCurrentDueAmount(asOfUtc)
+                   .Amount);
                 int overdueRentCount = obligations.Count(x => x.Kind == CityHouseholdObligationKind.Rent);
                 int overdueUtilityCount = obligations.Count(x => x.Kind == CityHouseholdObligationKind.Utilities);
                 int arrearsObligationCount = obligations.Count(x =>

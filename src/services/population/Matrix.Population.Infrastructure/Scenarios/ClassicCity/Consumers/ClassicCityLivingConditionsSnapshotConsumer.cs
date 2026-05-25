@@ -29,7 +29,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     "ClassicCityLivingConditionsSnapshot message must have a MessageId.");
 
             ApplyCityLivingConditionsSnapshotResult result = await mediator.Send(
-                new ApplyCityLivingConditionsSnapshotCommand(
+                request: new ApplyCityLivingConditionsSnapshotCommand(
                     CityId: message.CityId,
                     IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityLivingConditionsSnapshotConsumerDefinition.EndpointNameValue,
@@ -42,36 +42,41 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     SanitationCoverageIndex: message.SanitationCoverageIndex,
                     EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
                 case ApplyCityLivingConditionsSnapshotStatus.Applied:
                     logger.LogInformation(
+                        message:
                         "Applied classic city living-conditions snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);
                     break;
                 case ApplyCityLivingConditionsSnapshotStatus.Duplicate:
                     logger.LogDebug(
+                        message:
                         "Skipped duplicate classic city living-conditions snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);
                     break;
                 case ApplyCityLivingConditionsSnapshotStatus.CityDeleted:
                     logger.LogDebug(
+                        message:
                         "Skipped classic city living-conditions snapshot for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);
                     break;
                 case ApplyCityLivingConditionsSnapshotStatus.CityArchived:
                     logger.LogDebug(
+                        message:
                         "Skipped classic city living-conditions snapshot for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);
                     break;
                 case ApplyCityLivingConditionsSnapshotStatus.Stale:
                     logger.LogDebug(
+                        message:
                         "Skipped stale classic city living-conditions snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);

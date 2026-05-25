@@ -34,26 +34,28 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cancellationToken: ct);
 
                     if (!markedAsProcessed)
-                        return new ApplyCityEssentialsSnapshotResult(
-                            ApplyCityEssentialsSnapshotStatus.Duplicate);
+                        return new ApplyCityEssentialsSnapshotResult(ApplyCityEssentialsSnapshotStatus.Duplicate);
 
-                    if (await cityPopulationDeletionStateRepository.GetByCityAsync(cityId, ct) is not null)
-                        return new ApplyCityEssentialsSnapshotResult(
-                            ApplyCityEssentialsSnapshotStatus.CityDeleted);
+                    if (await cityPopulationDeletionStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct) is not null)
+                        return new ApplyCityEssentialsSnapshotResult(ApplyCityEssentialsSnapshotStatus.CityDeleted);
 
-                    if (await cityPopulationArchiveStateRepository.GetByCityAsync(cityId, ct) is not null)
-                        return new ApplyCityEssentialsSnapshotResult(
-                            ApplyCityEssentialsSnapshotStatus.CityArchived);
+                    if (await cityPopulationArchiveStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct) is not null)
+                        return new ApplyCityEssentialsSnapshotResult(ApplyCityEssentialsSnapshotStatus.CityArchived);
 
                     CityPopulationEssentialsState? state =
-                        await cityPopulationEssentialsStateRepository.GetByCityAsync(cityId, ct);
+                        await cityPopulationEssentialsStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (state is not null &&
                         (request.EffectiveTickId < state.EffectiveTickId ||
-                         request.EffectiveTickId == state.EffectiveTickId &&
-                         effectiveAtUtc <= state.EffectiveAtUtc))
-                        return new ApplyCityEssentialsSnapshotResult(
-                            ApplyCityEssentialsSnapshotStatus.Stale);
+                         (request.EffectiveTickId == state.EffectiveTickId &&
+                          effectiveAtUtc <= state.EffectiveAtUtc)))
+                        return new ApplyCityEssentialsSnapshotResult(ApplyCityEssentialsSnapshotStatus.Stale);
 
                     DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
 
@@ -73,7 +75,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             effectiveAtUtc: effectiveAtUtc,
                             updatedAtUtc: updatedAtUtc);
 
-                        await cityPopulationEssentialsStateRepository.AddAsync(state, ct);
+                        await cityPopulationEssentialsStateRepository.AddAsync(
+                            state: state,
+                            cancellationToken: ct);
                     }
                     else
                         state.ApplySnapshot(
@@ -91,8 +95,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     await unitOfWork.SaveChangesAsync(ct);
 
-                    return new ApplyCityEssentialsSnapshotResult(
-                        ApplyCityEssentialsSnapshotStatus.Applied);
+                    return new ApplyCityEssentialsSnapshotResult(ApplyCityEssentialsSnapshotStatus.Applied);
                 },
                 cancellationToken: cancellationToken);
         }

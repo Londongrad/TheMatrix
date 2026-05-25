@@ -1,7 +1,8 @@
 using FluentValidation;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.DispatchCityPowerDistributionMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    DispatchCityPowerDistributionMaintenance
 {
     public sealed class DispatchCityPowerDistributionMaintenanceCommandValidator
         : AbstractValidator<DispatchCityPowerDistributionMaintenanceCommand>

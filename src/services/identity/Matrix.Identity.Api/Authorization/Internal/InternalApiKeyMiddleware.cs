@@ -13,6 +13,7 @@ namespace Matrix.Identity.Api.Authorization.Internal
     {
         public const string ApiKeyHeaderName = "X-Internal-Key";
         public const string ApiKeyIdHeaderName = "X-Internal-Key-Id";
+
         private readonly InternalApiKeyResolvedKeyRing _keyRing = InternalApiKeyRingPolicy.Resolve(
             options: options.Value,
             optionsPath: IdentityInternalOptions.SectionName);

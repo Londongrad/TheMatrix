@@ -22,7 +22,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
             CityPopulationLivingConditionsState? livingConditionsState,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
@@ -38,12 +39,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 value: out DistrictId? resolvedDistrictId)
                 ? resolvedDistrictId
                 : null;
-            CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
-                districtId: districtId,
-                livingConditionsState: livingConditionsState,
-                districtUtilityConditions: ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
+            CityPopulationLivingConditionsContext districtLivingConditions =
+                districtImpactPolicy.ResolveLivingConditions(
                     districtId: districtId,
-                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
+                    livingConditionsState: livingConditionsState,
+                    districtUtilityConditions: ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
+                        districtId: districtId,
+                        districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
             CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                 districtId: districtId,
                 essentialsState: essentialsState);

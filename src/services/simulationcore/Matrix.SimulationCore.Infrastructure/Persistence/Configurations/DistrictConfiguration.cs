@@ -33,11 +33,15 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.Property(x => x.AnchorX)
-               .HasPrecision(9, 3)
+               .HasPrecision(
+                    precision: 9,
+                    scale: 3)
                .IsRequired();
 
             builder.Property(x => x.AnchorY)
-               .HasPrecision(9, 3)
+               .HasPrecision(
+                    precision: 9,
+                    scale: 3)
                .IsRequired();
 
             builder.Property(x => x.CreatedAtUtc)
@@ -46,7 +50,11 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder.Ignore(x => x.DomainEvents);
 
             builder.HasIndex(x => x.CityId);
-            builder.HasIndex(x => new { x.CityId, x.Name });
+            builder.HasIndex(x => new
+            {
+                x.CityId,
+                x.Name
+            });
 
             builder
                .HasOne<City>()

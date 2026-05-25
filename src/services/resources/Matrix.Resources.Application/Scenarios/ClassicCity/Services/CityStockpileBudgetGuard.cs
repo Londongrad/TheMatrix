@@ -27,12 +27,17 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
             if (emergencyOverrideRequested && maxLevel < requestedLevel)
                 maxLevel++;
 
-            maxLevel = Math.Clamp(maxLevel, 0, 3);
+            maxLevel = Math.Clamp(
+                value: maxLevel,
+                min: 0,
+                max: 3);
 
             bool blocked = maxLevel <= 0;
             int effectiveLevel = blocked
                 ? 1
-                : Math.Min(requestedLevel, maxLevel);
+                : Math.Min(
+                    val1: requestedLevel,
+                    val2: maxLevel);
 
             return new CityStockpileBudgetDecision(
                 Blocked: blocked,
@@ -66,14 +71,15 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
 
         private static int MapAuthorizationLevelToIntensityLevel(string authorizationLevel)
         {
-            return authorizationLevel.Trim().ToLowerInvariant() switch
-            {
-                "none" => 0,
-                "low" => 1,
-                "medium" => 2,
-                "high" => 3,
-                _ => 3
-            };
+            return authorizationLevel.Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "none" => 0,
+                    "low" => 1,
+                    "medium" => 2,
+                    "high" => 3,
+                    _ => 3
+                };
         }
 
         private static (string AuthorizationLevel, decimal AvailableAmount) ResolveBudgetEnvelope(
@@ -84,9 +90,12 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
             {
                 ResupplyFocus.All => (budget.OperationsAuthorizationLevel, budget.OperationsAvailableAmount),
                 ResupplyFocus.Fuel => (budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
-                ResupplyFocus.SpareParts => (budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
-                ResupplyFocus.Filters => (budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
-                ResupplyFocus.EmergencyWater => (budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
+                ResupplyFocus.SpareParts => (budget.InfrastructureAuthorizationLevel,
+                                             budget.InfrastructureAvailableAmount),
+                ResupplyFocus.Filters => (budget.InfrastructureAuthorizationLevel,
+                                          budget.InfrastructureAvailableAmount),
+                ResupplyFocus.EmergencyWater => (
+                    budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
                 ResupplyFocus.Medicine => (budget.HealthcareAuthorizationLevel, budget.HealthcareAvailableAmount),
                 ResupplyFocus.Food => (budget.GeneralAuthorizationLevel, budget.GeneralAvailableAmount),
                 _ => (budget.OperationsAuthorizationLevel, budget.OperationsAvailableAmount)

@@ -1,7 +1,9 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityAnchors;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using MediatR;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology
@@ -21,24 +23,24 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
 
             // These repositories share the same scoped DbContext, so EF queries must
             // stay sequential inside a single request to avoid concurrency detector failures.
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.District> districts =
+            IReadOnlyList<District> districts =
                 await districtRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.ResidentialBuilding> buildings =
+            IReadOnlyList<ResidentialBuilding> buildings =
                 await residentialBuildingRepository.ListByCityIdAsync(
                     cityId: cityId,
                     districtId: null,
                     cancellationToken: cancellationToken);
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.CityAnchor> anchors =
+            IReadOnlyList<CityAnchor> anchors =
                 await cityAnchorRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadNode> roadNodes =
+            IReadOnlyList<RoadNode> roadNodes =
                 await roadNodeRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadSegment> roadSegments =
+            IReadOnlyList<RoadSegment> roadSegments =
                 await roadSegmentRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
@@ -52,7 +54,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                    .Select(ResidentialBuildingDto.FromDomain)
                    .ToArray(),
                 Anchors: anchors
-                   .Select(GetCityAnchors.CityAnchorDto.FromDomain)
+                   .Select(CityAnchorDto.FromDomain)
                    .ToArray(),
                 RoadNodes: roadNodes
                    .Select(RoadNodeDto.FromDomain)

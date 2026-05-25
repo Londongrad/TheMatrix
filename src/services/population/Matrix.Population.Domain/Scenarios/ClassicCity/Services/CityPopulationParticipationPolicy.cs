@@ -1,6 +1,5 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
@@ -32,16 +31,30 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double foodShortage = ResolvePressure(essentials.FoodShortageRiskIndex);
             double medicineShortage = ResolvePressure(essentials.MedicineShortageRiskIndex);
             double emergencyWaterShortage = ResolvePressure(essentials.EmergencyWaterShortageRiskIndex);
-            double rationingPressure = essentials.EmergencyRationingEnabled ? 0.18d : 0d;
+            double rationingPressure = essentials.EmergencyRationingEnabled
+                ? 0.18d
+                : 0d;
 
-            double energyPenalty = ResolveLowValuePenalty(person.Energy.Value, 35d);
-            double healthPenalty = ResolveLowValuePenalty(person.Health.Value, 45d);
-            double happinessPenalty = ResolveLowValuePenalty(person.Happiness.Value, 35d);
-            double stressPenalty = ResolveHighValuePenalty(person.Stress.Value, 55d);
+            double energyPenalty = ResolveLowValuePenalty(
+                currentValue: person.Energy.Value,
+                healthyThreshold: 35d);
+            double healthPenalty = ResolveLowValuePenalty(
+                currentValue: person.Health.Value,
+                healthyThreshold: 45d);
+            double happinessPenalty = ResolveLowValuePenalty(
+                currentValue: person.Happiness.Value,
+                healthyThreshold: 35d);
+            double stressPenalty = ResolveHighValuePenalty(
+                currentValue: person.Stress.Value,
+                toleranceThreshold: 55d);
             double illnessAttendancePenalty = ResolveIllnessAttendancePenalty(person);
             double illnessProductivityPenalty = ResolveIllnessProductivityPenalty(person);
-            double housingPenalty = housingStatus == HousingStatus.Homeless ? 0.12d : 0d;
-            double agePenalty = person.GetAgeGroup(currentDate) == AgeGroup.Senior ? 0.05d : 0d;
+            double housingPenalty = housingStatus == HousingStatus.Homeless
+                ? 0.12d
+                : 0d;
+            double agePenalty = person.GetAgeGroup(currentDate) == AgeGroup.Senior
+                ? 0.05d
+                : 0d;
             double commutePenalty = ResolveCommutePenalty(commute);
             double commuteAccessPenalty = ResolveCommuteAccessPenalty(commute);
 
@@ -80,12 +93,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                   illnessProductivityPenalty -
                                   (housingPenalty * 0.50d);
 
-            decimal attendanceIndex = RoundIndex(Math.Clamp(attendance, 0.20d, 1d));
-            decimal productivityIndex = RoundIndex(Math.Clamp(productivity, 0.25d, 1d));
-            decimal payrollMultiplier = RoundIndex(Math.Clamp(
-                (double)attendanceIndex * 0.60d + (double)productivityIndex * 0.40d,
-                0.25d,
-                1d));
+            decimal attendanceIndex = RoundIndex(
+                Math.Clamp(
+                    value: attendance,
+                    min: 0.20d,
+                    max: 1d));
+            decimal productivityIndex = RoundIndex(
+                Math.Clamp(
+                    value: productivity,
+                    min: 0.25d,
+                    max: 1d));
+            decimal payrollMultiplier = RoundIndex(
+                Math.Clamp(
+                    value: ((double)attendanceIndex * 0.60d) + ((double)productivityIndex * 0.40d),
+                    min: 0.25d,
+                    max: 1d));
 
             return new CityPopulationParticipationProfile(
                 AttendanceIndex: attendanceIndex,
@@ -113,14 +135,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double floodingPressure = ResolvePressure(livingConditions.FloodingIndex);
             double foodShortage = ResolvePressure(essentials.FoodShortageRiskIndex);
             double emergencyWaterShortage = ResolvePressure(essentials.EmergencyWaterShortageRiskIndex);
-            double rationingPressure = essentials.EmergencyRationingEnabled ? 0.15d : 0d;
+            double rationingPressure = essentials.EmergencyRationingEnabled
+                ? 0.15d
+                : 0d;
 
-            double energyPenalty = ResolveLowValuePenalty(person.Energy.Value, 35d);
-            double healthPenalty = ResolveLowValuePenalty(person.Health.Value, 45d);
-            double stressPenalty = ResolveHighValuePenalty(person.Stress.Value, 50d);
+            double energyPenalty = ResolveLowValuePenalty(
+                currentValue: person.Energy.Value,
+                healthyThreshold: 35d);
+            double healthPenalty = ResolveLowValuePenalty(
+                currentValue: person.Health.Value,
+                healthyThreshold: 45d);
+            double stressPenalty = ResolveHighValuePenalty(
+                currentValue: person.Stress.Value,
+                toleranceThreshold: 50d);
             double illnessAttendancePenalty = ResolveIllnessAttendancePenalty(person);
-            double housingPenalty = housingStatus == HousingStatus.Homeless ? 0.12d : 0d;
-            double agePenalty = person.GetAgeGroup(currentDate) == AgeGroup.Child ? -0.03d : 0d;
+            double housingPenalty = housingStatus == HousingStatus.Homeless
+                ? 0.12d
+                : 0d;
+            double agePenalty = person.GetAgeGroup(currentDate) == AgeGroup.Child
+                ? -0.03d
+                : 0d;
             double commutePenalty = ResolveCommutePenalty(commute);
             double commuteAccessPenalty = ResolveCommuteAccessPenalty(commute);
 
@@ -142,31 +176,51 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 housingPenalty -
                                 agePenalty;
 
-            return RoundIndex(Math.Clamp(attendance, 0.18d, 1d));
+            return RoundIndex(
+                Math.Clamp(
+                    value: attendance,
+                    min: 0.18d,
+                    max: 1d));
         }
 
         private static double ResolveCoverageDeficit(decimal value)
         {
-            return Math.Clamp((double)(1m - value), 0d, 1.50d);
+            return Math.Clamp(
+                value: (double)(1m - value),
+                min: 0d,
+                max: 1.50d);
         }
 
         private static double ResolvePressure(decimal value)
         {
-            return Math.Clamp((double)value, 0d, 1.50d);
+            return Math.Clamp(
+                value: (double)value,
+                min: 0d,
+                max: 1.50d);
         }
 
-        private static double ResolveLowValuePenalty(int currentValue, double healthyThreshold)
+        private static double ResolveLowValuePenalty(
+            int currentValue,
+            double healthyThreshold)
         {
             return currentValue >= healthyThreshold
                 ? 0d
-                : Math.Clamp((healthyThreshold - currentValue) / healthyThreshold, 0d, 1d);
+                : Math.Clamp(
+                    value: (healthyThreshold - currentValue) / healthyThreshold,
+                    min: 0d,
+                    max: 1d);
         }
 
-        private static double ResolveHighValuePenalty(int currentValue, double toleranceThreshold)
+        private static double ResolveHighValuePenalty(
+            int currentValue,
+            double toleranceThreshold)
         {
             return currentValue <= toleranceThreshold
                 ? 0d
-                : Math.Clamp((currentValue - toleranceThreshold) / (100d - toleranceThreshold), 0d, 1d);
+                : Math.Clamp(
+                    value: (currentValue - toleranceThreshold) / (100d - toleranceThreshold),
+                    min: 0d,
+                    max: 1d);
         }
 
         private static double ResolveIllnessAttendancePenalty(Person person)
@@ -204,12 +258,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (commute is null || !commute.HasRouteData)
                 return 0d;
 
-            return Math.Clamp((double)(1m - commute.AccessibilityIndex), 0d, 1d);
+            return Math.Clamp(
+                value: (double)(1m - commute.AccessibilityIndex),
+                min: 0d,
+                max: 1d);
         }
 
         private static double ResolveCommuteAccessPenalty(CityPopulationCommuteContext? commute)
         {
-            return commute is { HasRouteData: true, IsAccessible: false }
+            return commute is
+            {
+                HasRouteData: true, IsAccessible: false
+            }
                 ? 0.22d
                 : 0d;
         }

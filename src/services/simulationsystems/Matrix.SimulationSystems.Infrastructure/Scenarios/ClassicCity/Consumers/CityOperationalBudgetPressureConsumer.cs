@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.SyncCityOperationalBudgetPressure;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    SyncCityOperationalBudgetPressure;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

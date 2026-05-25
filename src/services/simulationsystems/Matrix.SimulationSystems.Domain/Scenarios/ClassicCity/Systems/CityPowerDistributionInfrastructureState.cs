@@ -124,7 +124,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SwitchingReadinessIndex = ClampAndRound(SwitchingReadinessIndex + (switchingBoost * intensityFactor));
             IncidentPressureIndex = ClampAndRound(IncidentPressureIndex - (incidentRelief * intensityFactor));
             CrewReadinessIndex = ClampAndRound(
-                CrewReadinessIndex + (crewDelta * intensityFactor) + (EmergencyModeEnabled ? -0.0200m : 0.0200m));
+                CrewReadinessIndex +
+                (crewDelta * intensityFactor) +
+                (EmergencyModeEnabled
+                    ? -0.0200m
+                    : 0.0200m));
         }
 
         public CityPowerDistributionInfrastructureSnapshot ToSnapshot()

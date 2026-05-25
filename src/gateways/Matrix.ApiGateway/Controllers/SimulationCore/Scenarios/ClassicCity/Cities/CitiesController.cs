@@ -1,17 +1,19 @@
 using System.Net;
 using System.Text.Json;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
@@ -26,8 +28,6 @@ using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
-using Matrix.Population.Contracts.Models;
-using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,7 +51,10 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
         private readonly IEconomyApiClient _economyClient = economyClient;
-        private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
+
+        private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient =
+            environmentalConditionsClient;
+
         private readonly ILogger<CitiesController> _logger = logger;
         private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ISimulationApiClient _simulationClient = simulationClient;
@@ -258,7 +261,9 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
             catch (DownstreamServiceException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
             {
                 CityUtilityIncidentStatusView? view = TryDeserializeConflict<CityUtilityIncidentStatusView>(exception);
-                return view is null ? Conflict() : Conflict(view);
+                return view is null
+                    ? Conflict()
+                    : Conflict(view);
             }
         }
 
@@ -280,7 +285,9 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
             catch (DownstreamServiceException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
             {
                 DispatchCityResupplyView? view = TryDeserializeConflict<DispatchCityResupplyView>(exception);
-                return view is null ? Conflict() : Conflict(view);
+                return view is null
+                    ? Conflict()
+                    : Conflict(view);
             }
         }
 

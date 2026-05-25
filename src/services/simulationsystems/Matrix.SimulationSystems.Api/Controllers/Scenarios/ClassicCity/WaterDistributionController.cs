@@ -1,9 +1,13 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.Common;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.DispatchCityWaterDistributionMaintenance;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityDistrictWaterDistributionConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityWaterDistributionStatus;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.SetCityWaterDistributionEmergencyMode;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    DispatchCityWaterDistributionMaintenance;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    GetCityDistrictWaterDistributionConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    GetCityWaterDistributionStatus;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    SetCityWaterDistributionEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
@@ -137,8 +141,8 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
                 WaterSupportIndex: dto.WaterSupportIndex,
                 Districts: dto.Districts
-                    .Select(MapToDistrictConditionView)
-                    .ToArray());
+                   .Select(MapToDistrictConditionView)
+                   .ToArray());
         }
 
         private static CityDistrictWaterDistributionConditionView MapToDistrictConditionView(

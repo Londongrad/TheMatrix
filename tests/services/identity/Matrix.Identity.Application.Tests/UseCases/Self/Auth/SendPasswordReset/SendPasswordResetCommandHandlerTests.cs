@@ -1,27 +1,34 @@
-using Matrix.Identity.Application.Tests.UseCases.Self;
+using Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.SendPasswordReset;
-
-public sealed class SendPasswordResetCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.SendPasswordReset
 {
-    [Fact]
-    public async Task Handle_DelegatesToOneTimeTokenDeliveryService()
+    public sealed class SendPasswordResetCommandHandlerTests
     {
-        var deliveryService = new SelfServiceHandlerTestSupport.FakeOneTimeTokenDeliveryService();
-        var handler = new Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset.SendPasswordResetCommandHandler(
-            deliveryService);
+        [Fact]
+        public async Task Handle_DelegatesToOneTimeTokenDeliveryService()
+        {
+            var deliveryService = new SelfServiceHandlerTestSupport.FakeOneTimeTokenDeliveryService();
+            var handler = new SendPasswordResetCommandHandler(deliveryService);
 
-        await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateSendPasswordResetCommand(
-                email: "neo@matrix.local",
-                ipAddress: "203.0.113.40",
-                userAgent: "Mozilla/5.0 (password-reset)"),
-            CancellationToken.None);
+            await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateSendPasswordResetCommand(
+                    email: "neo@matrix.local",
+                    ipAddress: "203.0.113.40",
+                    userAgent: "Mozilla/5.0 (password-reset)"),
+                cancellationToken: CancellationToken.None);
 
-        var request = Assert.Single(deliveryService.PasswordResetRequests);
-        Assert.Equal("neo@matrix.local", request.Email);
-        Assert.Equal("203.0.113.40", request.IpAddress);
-        Assert.Equal("Mozilla/5.0 (password-reset)", request.UserAgent);
+            (string Email, string? IpAddress, string? UserAgent) request =
+                Assert.Single(deliveryService.PasswordResetRequests);
+            Assert.Equal(
+                expected: "neo@matrix.local",
+                actual: request.Email);
+            Assert.Equal(
+                expected: "203.0.113.40",
+                actual: request.IpAddress);
+            Assert.Equal(
+                expected: "Mozilla/5.0 (password-reset)",
+                actual: request.UserAgent);
+        }
     }
 }

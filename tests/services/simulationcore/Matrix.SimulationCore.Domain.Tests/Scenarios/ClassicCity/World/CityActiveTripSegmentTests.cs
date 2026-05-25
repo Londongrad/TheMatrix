@@ -2,141 +2,192 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.World;
-
-public sealed class CityActiveTripSegmentTests
+namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.World
 {
-    [Fact]
-    public void Create_WithValidValues_TrimsStrings_AndNormalizesCoordinates()
+    public sealed class CityActiveTripSegmentTests
     {
-        var segment = WorldTestData.CreateFirstSegment();
+        [Fact]
+        public void Create_WithValidValues_TrimsStrings_AndNormalizesCoordinates()
+        {
+            CityActiveTripSegment segment = WorldTestData.CreateFirstSegment();
 
-        Assert.Equal(0, segment.Sequence);
-        Assert.Equal(WorldTestData.FirstRoadSegmentId, segment.RoadSegmentId);
-        Assert.Equal(WorldTestData.FromDistrictId, segment.DistrictId);
-        Assert.Equal(WorldTestData.FromRoadNodeId, segment.FromRoadNodeId);
-        Assert.Equal(WorldTestData.MidRoadNodeId, segment.ToRoadNodeId);
-        Assert.Equal("Segment A", segment.Name);
-        Assert.Equal("arterial", segment.Type);
-        Assert.Equal(120m, segment.LengthMeters);
-        Assert.Equal(6m, segment.EstimatedTraversalMinutes);
-        Assert.Equal(10.111m, segment.FromPositionX);
-        Assert.Equal(20.222m, segment.FromPositionY);
-        Assert.Equal(30.333m, segment.ToPositionX);
-        Assert.Equal(40.444m, segment.ToPositionY);
-    }
+            Assert.Equal(
+                expected: 0,
+                actual: segment.Sequence);
+            Assert.Equal(
+                expected: WorldTestData.FirstRoadSegmentId,
+                actual: segment.RoadSegmentId);
+            Assert.Equal(
+                expected: WorldTestData.FromDistrictId,
+                actual: segment.DistrictId);
+            Assert.Equal(
+                expected: WorldTestData.FromRoadNodeId,
+                actual: segment.FromRoadNodeId);
+            Assert.Equal(
+                expected: WorldTestData.MidRoadNodeId,
+                actual: segment.ToRoadNodeId);
+            Assert.Equal(
+                expected: "Segment A",
+                actual: segment.Name);
+            Assert.Equal(
+                expected: "arterial",
+                actual: segment.Type);
+            Assert.Equal(
+                expected: 120m,
+                actual: segment.LengthMeters);
+            Assert.Equal(
+                expected: 6m,
+                actual: segment.EstimatedTraversalMinutes);
+            Assert.Equal(
+                expected: 10.111m,
+                actual: segment.FromPositionX);
+            Assert.Equal(
+                expected: 20.222m,
+                actual: segment.FromPositionY);
+            Assert.Equal(
+                expected: 30.333m,
+                actual: segment.ToPositionX);
+            Assert.Equal(
+                expected: 40.444m,
+                actual: segment.ToPositionY);
+        }
 
-    [Fact]
-    public void Create_WhenSequenceIsOutOfRange_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
-            sequence: -1,
-            roadSegmentId: WorldTestData.FirstRoadSegmentId,
-            districtId: WorldTestData.FromDistrictId,
-            fromRoadNodeId: WorldTestData.FromRoadNodeId,
-            toRoadNodeId: WorldTestData.MidRoadNodeId,
-            name: "Segment A",
-            type: "arterial",
-            lengthMeters: 120m,
-            estimatedTraversalMinutes: 6m,
-            fromPositionX: 10m,
-            fromPositionY: 20m,
-            toPositionX: 30m,
-            toPositionY: 40m));
+        [Fact]
+        public void Create_WhenSequenceIsOutOfRange_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
+                sequence: -1,
+                roadSegmentId: WorldTestData.FirstRoadSegmentId,
+                districtId: WorldTestData.FromDistrictId,
+                fromRoadNodeId: WorldTestData.FromRoadNodeId,
+                toRoadNodeId: WorldTestData.MidRoadNodeId,
+                name: "Segment A",
+                type: "arterial",
+                lengthMeters: 120m,
+                estimatedTraversalMinutes: 6m,
+                fromPositionX: 10m,
+                fromPositionY: 20m,
+                toPositionX: 30m,
+                toPositionY: 40m));
 
-        Assert.Equal("SimulationCore.World.ActiveTripSegment.Sequence.OutOfRange", exception.Code);
-        Assert.Equal("Sequence", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "SimulationCore.World.ActiveTripSegment.Sequence.OutOfRange",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Sequence",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Create_WhenNameIsTooLong_ThrowsDomainException()
-    {
-        var tooLong = new string('s', CityActiveTrip.MaxSubjectLength + 1);
+        [Fact]
+        public void Create_WhenNameIsTooLong_ThrowsDomainException()
+        {
+            string tooLong = new(
+                c: 's',
+                count: CityActiveTrip.MaxSubjectLength + 1);
 
-        var exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
-            sequence: 0,
-            roadSegmentId: WorldTestData.FirstRoadSegmentId,
-            districtId: WorldTestData.FromDistrictId,
-            fromRoadNodeId: WorldTestData.FromRoadNodeId,
-            toRoadNodeId: WorldTestData.MidRoadNodeId,
-            name: tooLong,
-            type: "arterial",
-            lengthMeters: 120m,
-            estimatedTraversalMinutes: 6m,
-            fromPositionX: 10m,
-            fromPositionY: 20m,
-            toPositionX: 30m,
-            toPositionY: 40m));
+            DomainException exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
+                sequence: 0,
+                roadSegmentId: WorldTestData.FirstRoadSegmentId,
+                districtId: WorldTestData.FromDistrictId,
+                fromRoadNodeId: WorldTestData.FromRoadNodeId,
+                toRoadNodeId: WorldTestData.MidRoadNodeId,
+                name: tooLong,
+                type: "arterial",
+                lengthMeters: 120m,
+                estimatedTraversalMinutes: 6m,
+                fromPositionX: 10m,
+                fromPositionY: 20m,
+                toPositionX: 30m,
+                toPositionY: 40m));
 
-        Assert.Equal("SimulationCore.World.ActiveTripSegment.Name.TooLong", exception.Code);
-        Assert.Equal("Name", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "SimulationCore.World.ActiveTripSegment.Name.TooLong",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Name",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Create_WhenTypeIsTooLong_ThrowsDomainException()
-    {
-        var tooLong = new string('t', 65);
+        [Fact]
+        public void Create_WhenTypeIsTooLong_ThrowsDomainException()
+        {
+            string tooLong = new(
+                c: 't',
+                count: 65);
 
-        var exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
-            sequence: 0,
-            roadSegmentId: WorldTestData.FirstRoadSegmentId,
-            districtId: WorldTestData.FromDistrictId,
-            fromRoadNodeId: WorldTestData.FromRoadNodeId,
-            toRoadNodeId: WorldTestData.MidRoadNodeId,
-            name: "Segment A",
-            type: tooLong,
-            lengthMeters: 120m,
-            estimatedTraversalMinutes: 6m,
-            fromPositionX: 10m,
-            fromPositionY: 20m,
-            toPositionX: 30m,
-            toPositionY: 40m));
+            DomainException exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
+                sequence: 0,
+                roadSegmentId: WorldTestData.FirstRoadSegmentId,
+                districtId: WorldTestData.FromDistrictId,
+                fromRoadNodeId: WorldTestData.FromRoadNodeId,
+                toRoadNodeId: WorldTestData.MidRoadNodeId,
+                name: "Segment A",
+                type: tooLong,
+                lengthMeters: 120m,
+                estimatedTraversalMinutes: 6m,
+                fromPositionX: 10m,
+                fromPositionY: 20m,
+                toPositionX: 30m,
+                toPositionY: 40m));
 
-        Assert.Equal("SimulationCore.World.ActiveTripSegment.Type.TooLong", exception.Code);
-        Assert.Equal("Type", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "SimulationCore.World.ActiveTripSegment.Type.TooLong",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Type",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Create_WhenLengthIsOutOfRange_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
-            sequence: 0,
-            roadSegmentId: WorldTestData.FirstRoadSegmentId,
-            districtId: WorldTestData.FromDistrictId,
-            fromRoadNodeId: WorldTestData.FromRoadNodeId,
-            toRoadNodeId: WorldTestData.MidRoadNodeId,
-            name: "Segment A",
-            type: "arterial",
-            lengthMeters: 0m,
-            estimatedTraversalMinutes: 6m,
-            fromPositionX: 10m,
-            fromPositionY: 20m,
-            toPositionX: 30m,
-            toPositionY: 40m));
+        [Fact]
+        public void Create_WhenLengthIsOutOfRange_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
+                sequence: 0,
+                roadSegmentId: WorldTestData.FirstRoadSegmentId,
+                districtId: WorldTestData.FromDistrictId,
+                fromRoadNodeId: WorldTestData.FromRoadNodeId,
+                toRoadNodeId: WorldTestData.MidRoadNodeId,
+                name: "Segment A",
+                type: "arterial",
+                lengthMeters: 0m,
+                estimatedTraversalMinutes: 6m,
+                fromPositionX: 10m,
+                fromPositionY: 20m,
+                toPositionX: 30m,
+                toPositionY: 40m));
 
-        Assert.Equal("SimulationCore.World.ActiveTripSegment.Length.OutOfRange", exception.Code);
-        Assert.Equal("LengthMeters", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "SimulationCore.World.ActiveTripSegment.Length.OutOfRange",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "LengthMeters",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Create_WhenEstimatedTraversalIsOutOfRange_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
-            sequence: 0,
-            roadSegmentId: WorldTestData.FirstRoadSegmentId,
-            districtId: WorldTestData.FromDistrictId,
-            fromRoadNodeId: WorldTestData.FromRoadNodeId,
-            toRoadNodeId: WorldTestData.MidRoadNodeId,
-            name: "Segment A",
-            type: "arterial",
-            lengthMeters: 120m,
-            estimatedTraversalMinutes: 0m,
-            fromPositionX: 10m,
-            fromPositionY: 20m,
-            toPositionX: 30m,
-            toPositionY: 40m));
+        [Fact]
+        public void Create_WhenEstimatedTraversalIsOutOfRange_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => CityActiveTripSegment.Create(
+                sequence: 0,
+                roadSegmentId: WorldTestData.FirstRoadSegmentId,
+                districtId: WorldTestData.FromDistrictId,
+                fromRoadNodeId: WorldTestData.FromRoadNodeId,
+                toRoadNodeId: WorldTestData.MidRoadNodeId,
+                name: "Segment A",
+                type: "arterial",
+                lengthMeters: 120m,
+                estimatedTraversalMinutes: 0m,
+                fromPositionX: 10m,
+                fromPositionY: 20m,
+                toPositionX: 30m,
+                toPositionY: 40m));
 
-        Assert.Equal("SimulationCore.World.ActiveTripSegment.Traversal.OutOfRange", exception.Code);
-        Assert.Equal("EstimatedTraversalMinutes", exception.PropertyName);
+            Assert.Equal(
+                expected: "SimulationCore.World.ActiveTripSegment.Traversal.OutOfRange",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "EstimatedTraversalMinutes",
+                actual: exception.PropertyName);
+        }
     }
 }

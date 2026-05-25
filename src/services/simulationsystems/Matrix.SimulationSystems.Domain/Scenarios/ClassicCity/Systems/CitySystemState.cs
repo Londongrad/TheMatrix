@@ -26,7 +26,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             FailureRiskIndex = failureRiskIndex;
         }
 
-        public CitySystemKind Kind { get; private set; }
+        public CitySystemKind Kind { get; }
         public decimal LoadIndex { get; private set; }
         public decimal ServiceQualityIndex { get; private set; }
         public decimal BacklogIndex { get; private set; }

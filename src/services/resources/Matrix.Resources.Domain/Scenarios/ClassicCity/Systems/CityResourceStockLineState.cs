@@ -30,9 +30,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 propertyName: nameof(shortageRiskIndex));
         }
 
-        private CityResourceStockLineState()
-        {
-        }
+        private CityResourceStockLineState() { }
 
         public CityResourceKind Kind { get; private set; }
         public decimal StockLevelIndex { get; private set; }

@@ -4,7 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Domain\Matrix.BuildingBlocks.Domain.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Domain\Matrix.BuildingBlocks.Domain.csproj"/>
   </ItemGroup>
 
 </Project>

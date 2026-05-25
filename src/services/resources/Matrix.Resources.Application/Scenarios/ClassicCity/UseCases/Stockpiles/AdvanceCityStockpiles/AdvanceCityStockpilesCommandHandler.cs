@@ -66,7 +66,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
 
             long processedSimMinutes = (long)Math.Round(
                 value: (request.ToSimTimeUtc - effectiveFrom).TotalMinutes,
-                MidpointRounding.AwayFromZero);
+                mode: MidpointRounding.AwayFromZero);
 
             return CreateResult(
                 status: AdvanceCityStockpilesStatus.Applied,

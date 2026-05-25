@@ -15,7 +15,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq
             string payloadJson,
             CancellationToken cancellationToken)
         {
-            if (!OutboxEventTypeMap.Map.TryGetValue(type, out Type? eventType))
+            if (!OutboxEventTypeMap.Map.TryGetValue(
+                    key: type,
+                    value: out Type? eventType))
                 throw new NotSupportedException($"Outbox message type '{type}' is not supported.");
 
             object? message = JsonSerializer.Deserialize(
@@ -24,8 +26,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq
                 options: JsonOptions);
 
             if (message is null)
-                throw new InvalidOperationException(
-                    $"Failed to deserialize outbox payload for type '{type}'.");
+                throw new InvalidOperationException($"Failed to deserialize outbox payload for type '{type}'.");
 
             return publishEndpoint.Publish(
                 message: message,

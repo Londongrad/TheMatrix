@@ -6,7 +6,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityDistrictPowerDistributionConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityDistrictPowerDistributionConditions
 {
     public sealed class GetCityDistrictPowerDistributionConditionsQueryHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -35,7 +36,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
             if (topology is null)
                 return null;
 
-            decimal powerSupportIndex = pressureProfileFactory.Create(state).PowerSupport;
+            decimal powerSupportIndex = pressureProfileFactory.Create(state)
+               .PowerSupport;
             IReadOnlyList<CityDistrictPowerDistributionConditionDto> districts = projectionPolicy.Project(
                 topology: topology,
                 state: state,

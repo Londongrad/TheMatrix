@@ -31,27 +31,29 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
 
             BudgetLedgerEntryDto result = default!;
 
-            await unitOfWork.ExecuteInTransactionAsync(async ct =>
-            {
-                result = await disbursementSupport.DisburseAsync(
-                    business: business,
-                    category: request.Category,
-                    amount: request.Amount,
-                    title: request.Title,
-                    description: request.Description,
-                    cancellationToken: ct);
-                await unitOfWork.SaveChangesAsync(ct);
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async ct =>
+                {
+                    result = await disbursementSupport.DisburseAsync(
+                        business: business,
+                        category: request.Category,
+                        amount: request.Amount,
+                        title: request.Title,
+                        description: request.Description,
+                        cancellationToken: ct);
+                    await unitOfWork.SaveChangesAsync(ct);
 
-                CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
-                    cityId: request.CityId,
-                    cancellationToken: ct);
-                await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
-                    snapshot: pressure,
-                    effectiveAtUtc: DateTimeOffset.Parse(result.OccurredAtUtc),
-                    occurredAtUtc: timeProvider.GetUtcNow(),
-                    cancellationToken: ct);
-                await unitOfWork.SaveChangesAsync(ct);
-            }, cancellationToken);
+                    CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
+                        cityId: request.CityId,
+                        cancellationToken: ct);
+                    await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                        snapshot: pressure,
+                        effectiveAtUtc: DateTimeOffset.Parse(result.OccurredAtUtc),
+                        occurredAtUtc: timeProvider.GetUtcNow(),
+                        cancellationToken: ct);
+                    await unitOfWork.SaveChangesAsync(ct);
+                },
+                cancellationToken: cancellationToken);
 
             return result;
         }

@@ -2,20 +2,33 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.Population.Infrastructure.Outbox;
 using Xunit;
 
-namespace Matrix.Population.Infrastructure.Tests.Outbox;
-
-public sealed class OutboxEventTypeMapTests
+namespace Matrix.Population.Infrastructure.Tests.Outbox
 {
-    [Fact]
-    public void Map_ContainsAllSupportedPopulationOutboxEventTypes()
+    public sealed class OutboxEventTypeMapTests
     {
-        IReadOnlyDictionary<string, Type> map = OutboxEventTypeMap.Map;
+        [Fact]
+        public void Map_ContainsAllSupportedPopulationOutboxEventTypes()
+        {
+            IReadOnlyDictionary<string, Type> map = OutboxEventTypeMap.Map;
 
-        Assert.Equal(5, map.Count);
-        Assert.Equal(typeof(CityEconomyDailySettlementV1), map[PopulationOutboxEventTypes.CityEconomyDailySettlementV1]);
-        Assert.Equal(typeof(ClassicCityHouseholdAccountSyncBatchV1), map[PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1]);
-        Assert.Equal(typeof(ClassicCityWorkplaceBusinessSyncBatchV1), map[PopulationOutboxEventTypes.ClassicCityWorkplaceBusinessSyncBatchV1]);
-        Assert.Equal(typeof(ClassicCityWorkplacePayrollSettlementBatchV1), map[PopulationOutboxEventTypes.ClassicCityWorkplacePayrollSettlementBatchV1]);
-        Assert.Equal(typeof(ClassicCityHouseholdCashflowSettlementBatchV1), map[PopulationOutboxEventTypes.ClassicCityHouseholdCashflowSettlementBatchV1]);
+            Assert.Equal(
+                expected: 5,
+                actual: map.Count);
+            Assert.Equal(
+                expected: typeof(CityEconomyDailySettlementV1),
+                actual: map[PopulationOutboxEventTypes.CityEconomyDailySettlementV1]);
+            Assert.Equal(
+                expected: typeof(ClassicCityHouseholdAccountSyncBatchV1),
+                actual: map[PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1]);
+            Assert.Equal(
+                expected: typeof(ClassicCityWorkplaceBusinessSyncBatchV1),
+                actual: map[PopulationOutboxEventTypes.ClassicCityWorkplaceBusinessSyncBatchV1]);
+            Assert.Equal(
+                expected: typeof(ClassicCityWorkplacePayrollSettlementBatchV1),
+                actual: map[PopulationOutboxEventTypes.ClassicCityWorkplacePayrollSettlementBatchV1]);
+            Assert.Equal(
+                expected: typeof(ClassicCityHouseholdCashflowSettlementBatchV1),
+                actual: map[PopulationOutboxEventTypes.ClassicCityHouseholdCashflowSettlementBatchV1]);
+        }
     }
 }

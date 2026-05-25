@@ -6,7 +6,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityDistrictWaterDistributionConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    GetCityDistrictWaterDistributionConditions
 {
     public sealed class GetCityDistrictWaterDistributionConditionsQueryHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -35,7 +36,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
             if (topology is null)
                 return null;
 
-            decimal waterSupportIndex = pressureProfileFactory.Create(state).WaterSupport;
+            decimal waterSupportIndex = pressureProfileFactory.Create(state)
+               .WaterSupport;
             IReadOnlyList<CityDistrictWaterDistributionConditionDto> districts = projectionPolicy.Project(
                 topology: topology,
                 state: state,

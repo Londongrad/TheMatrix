@@ -2,8 +2,8 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
 using MassTransit;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
 using Matrix.ApiGateway.Authorization.InternalJwt;
@@ -11,11 +11,11 @@ using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.SetupSessions;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.Identity.Contracts.Internal.Responses;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions
@@ -112,7 +112,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 {
                     logger.LogWarning(
                         exception: ex,
-                        message: "Classic City setup session create-lock acquisition failed for ownerUserId={OwnerUserId}.",
+                        message:
+                        "Classic City setup session create-lock acquisition failed for ownerUserId={OwnerUserId}.",
                         ownerUserId);
                 }
 
@@ -1420,7 +1421,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             string requestedReuseSignature,
             DateTimeOffset now)
         {
-            TimeSpan reuseWindow = TimeSpan.FromSeconds(_options.RecentDraftReuseWindowSeconds);
+            var reuseWindow = TimeSpan.FromSeconds(_options.RecentDraftReuseWindowSeconds);
 
             return sessions.FirstOrDefault(session =>
                 string.Equals(
@@ -1451,11 +1452,12 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 GenerationSeed = string.Empty
             };
 
-            return JsonSerializer.Serialize(new
-            {
-                CurrentStepId = NormalizeStepId(currentStepId),
-                Draft = reuseComparableDraft
-            });
+            return JsonSerializer.Serialize(
+                new
+                {
+                    CurrentStepId = NormalizeStepId(currentStepId),
+                    Draft = reuseComparableDraft
+                });
         }
 
         private static ClassicCitySetupSessionMutationResult Updated(ClassicCitySetupSessionState session)

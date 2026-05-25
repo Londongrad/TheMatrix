@@ -5,133 +5,172 @@ using Matrix.Identity.Application.Tests.UseCases.Admin.Users;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.Services.Validation;
-
-public sealed class IdentityValidationServicesTests
+namespace Matrix.Identity.Application.Tests.Services.Validation
 {
-    [Fact]
-    public async Task PermissionKeysValidator_WhenPermissionIsMissing_ThrowsValidationError()
+    public sealed class IdentityValidationServicesTests
     {
-        var repository = new AdminUsersTestSupport.FakePermissionReadRepository
+        [Fact]
+        public async Task PermissionKeysValidator_WhenPermissionIsMissing_ThrowsValidationError()
         {
-            Permissions =
-            [
-                new PermissionCatalogItemResult
-                {
-                    Key = "users.read",
-                    Service = "Identity",
-                    Group = "Users",
-                    Description = "Read users",
-                    IsDeprecated = false
-                }
-            ]
-        };
-        var validator = new PermissionKeysValidator(repository);
+            var repository = new AdminUsersTestSupport.FakePermissionReadRepository
+            {
+                Permissions =
+                [
+                    new PermissionCatalogItemResult
+                    {
+                        Key = "users.read",
+                        Service = "Identity",
+                        Group = "Users",
+                        Description = "Read users",
+                        IsDeprecated = false
+                    }
+                ]
+            };
+            var validator = new PermissionKeysValidator(repository);
 
-        MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(
-            () => validator.ValidateAsync(["users.read", "roles.write"], CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => validator.ValidateAsync(
+                    permissionKeys:
+                    [
+                        "users.read",
+                        "roles.write"
+                    ],
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.ValidationFailed", exception.Code);
-        Assert.NotNull(exception.Errors);
-        Assert.Equal(
-            "Permissions not found: roles.write",
-            Assert.Single(exception.Errors!["permissionKeys"]));
-    }
+            Assert.Equal(
+                expected: "Identity.ValidationFailed",
+                actual: exception.Code);
+            Assert.NotNull(exception.Errors);
+            Assert.Equal(
+                expected: "Permissions not found: roles.write",
+                actual: Assert.Single(exception.Errors!["permissionKeys"]));
+        }
 
-    [Fact]
-    public async Task PermissionKeysValidator_WhenPermissionIsDeprecated_ThrowsValidationError()
-    {
-        var repository = new AdminUsersTestSupport.FakePermissionReadRepository
+        [Fact]
+        public async Task PermissionKeysValidator_WhenPermissionIsDeprecated_ThrowsValidationError()
         {
-            Permissions =
-            [
-                new PermissionCatalogItemResult
-                {
-                    Key = "users.read",
-                    Service = "Identity",
-                    Group = "Users",
-                    Description = "Read users",
-                    IsDeprecated = false
-                },
-                new PermissionCatalogItemResult
-                {
-                    Key = "legacy.write",
-                    Service = "Identity",
-                    Group = "Legacy",
-                    Description = "Legacy write",
-                    IsDeprecated = true
-                }
-            ]
-        };
-        var validator = new PermissionKeysValidator(repository);
+            var repository = new AdminUsersTestSupport.FakePermissionReadRepository
+            {
+                Permissions =
+                [
+                    new PermissionCatalogItemResult
+                    {
+                        Key = "users.read",
+                        Service = "Identity",
+                        Group = "Users",
+                        Description = "Read users",
+                        IsDeprecated = false
+                    },
+                    new PermissionCatalogItemResult
+                    {
+                        Key = "legacy.write",
+                        Service = "Identity",
+                        Group = "Legacy",
+                        Description = "Legacy write",
+                        IsDeprecated = true
+                    }
+                ]
+            };
+            var validator = new PermissionKeysValidator(repository);
 
-        MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(
-            () => validator.ValidateAsync(["users.read", "legacy.write"], CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => validator.ValidateAsync(
+                    permissionKeys:
+                    [
+                        "users.read",
+                        "legacy.write"
+                    ],
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.ValidationFailed", exception.Code);
-        Assert.NotNull(exception.Errors);
-        Assert.Equal(
-            "Deprecated permissions: legacy.write",
-            Assert.Single(exception.Errors!["permissionKeys"]));
-    }
+            Assert.Equal(
+                expected: "Identity.ValidationFailed",
+                actual: exception.Code);
+            Assert.NotNull(exception.Errors);
+            Assert.Equal(
+                expected: "Deprecated permissions: legacy.write",
+                actual: Assert.Single(exception.Errors!["permissionKeys"]));
+        }
 
-    [Fact]
-    public async Task PermissionKeysValidator_WhenAllPermissionsAreKnownAndActive_Completes()
-    {
-        var repository = new AdminUsersTestSupport.FakePermissionReadRepository
+        [Fact]
+        public async Task PermissionKeysValidator_WhenAllPermissionsAreKnownAndActive_Completes()
         {
-            Permissions =
-            [
-                new PermissionCatalogItemResult
-                {
-                    Key = "users.read",
-                    Service = "Identity",
-                    Group = "Users",
-                    Description = "Read users",
-                    IsDeprecated = false
-                },
-                new PermissionCatalogItemResult
-                {
-                    Key = "roles.write",
-                    Service = "Identity",
-                    Group = "Roles",
-                    Description = "Write roles",
-                    IsDeprecated = false
-                }
-            ]
-        };
-        var validator = new PermissionKeysValidator(repository);
+            var repository = new AdminUsersTestSupport.FakePermissionReadRepository
+            {
+                Permissions =
+                [
+                    new PermissionCatalogItemResult
+                    {
+                        Key = "users.read",
+                        Service = "Identity",
+                        Group = "Users",
+                        Description = "Read users",
+                        IsDeprecated = false
+                    },
+                    new PermissionCatalogItemResult
+                    {
+                        Key = "roles.write",
+                        Service = "Identity",
+                        Group = "Roles",
+                        Description = "Write roles",
+                        IsDeprecated = false
+                    }
+                ]
+            };
+            var validator = new PermissionKeysValidator(repository);
 
-        await validator.ValidateAsync(["users.read", "roles.write"], CancellationToken.None);
-    }
+            await validator.ValidateAsync(
+                permissionKeys:
+                [
+                    "users.read",
+                    "roles.write"
+                ],
+                cancellationToken: CancellationToken.None);
+        }
 
-    [Fact]
-    public async Task RoleIdsValidator_WhenRoleIdIsMissing_ThrowsValidationError()
-    {
-        Guid existingRoleId = Guid.NewGuid();
-        Guid missingRoleId = Guid.NewGuid();
-        var repository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        repository.RolesById[existingRoleId] = AdminRolesTestSupport.CreateRole();
-        var validator = new RoleIdsValidator(repository);
+        [Fact]
+        public async Task RoleIdsValidator_WhenRoleIdIsMissing_ThrowsValidationError()
+        {
+            var existingRoleId = Guid.NewGuid();
+            var missingRoleId = Guid.NewGuid();
+            var repository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            repository.RolesById[existingRoleId] = AdminRolesTestSupport.CreateRole();
+            var validator = new RoleIdsValidator(repository);
 
-        MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(
-            () => validator.ValidateExistAsync([existingRoleId, missingRoleId], CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => validator.ValidateExistAsync(
+                    roleIds:
+                    [
+                        existingRoleId,
+                        missingRoleId
+                    ],
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.ValidationFailed", exception.Code);
-        Assert.NotNull(exception.Errors);
-        Assert.Contains(missingRoleId.ToString(), Assert.Single(exception.Errors!["roleIds"]));
-    }
+            Assert.Equal(
+                expected: "Identity.ValidationFailed",
+                actual: exception.Code);
+            Assert.NotNull(exception.Errors);
+            Assert.Contains(
+                expectedSubstring: missingRoleId.ToString(),
+                actualString: Assert.Single(exception.Errors!["roleIds"]));
+        }
 
-    [Fact]
-    public async Task RoleIdsValidator_WhenAllRoleIdsExist_Completes()
-    {
-        Guid firstRoleId = Guid.NewGuid();
-        Guid secondRoleId = Guid.NewGuid();
-        var repository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        repository.RolesById[firstRoleId] = AdminRolesTestSupport.CreateRole("Operators");
-        repository.RolesById[secondRoleId] = AdminRolesTestSupport.CreateRole("Moderators");
-        var validator = new RoleIdsValidator(repository);
+        [Fact]
+        public async Task RoleIdsValidator_WhenAllRoleIdsExist_Completes()
+        {
+            var firstRoleId = Guid.NewGuid();
+            var secondRoleId = Guid.NewGuid();
+            var repository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            repository.RolesById[firstRoleId] = AdminRolesTestSupport.CreateRole();
+            repository.RolesById[secondRoleId] = AdminRolesTestSupport.CreateRole("Moderators");
+            var validator = new RoleIdsValidator(repository);
 
-        await validator.ValidateExistAsync([firstRoleId, secondRoleId], CancellationToken.None);
+            await validator.ValidateExistAsync(
+                roleIds:
+                [
+                    firstRoleId,
+                    secondRoleId
+                ],
+                cancellationToken: CancellationToken.None);
+        }
     }
 }

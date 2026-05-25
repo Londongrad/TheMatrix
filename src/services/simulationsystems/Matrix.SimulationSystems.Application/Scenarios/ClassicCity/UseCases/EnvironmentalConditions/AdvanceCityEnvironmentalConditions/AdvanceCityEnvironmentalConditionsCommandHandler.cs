@@ -2,12 +2,14 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.AdvanceCityEnvironmentalConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    AdvanceCityEnvironmentalConditions
 {
     public sealed class AdvanceCityEnvironmentalConditionsCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -30,14 +32,12 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 cancellationToken: cancellationToken);
 
             if (state is null)
-            {
                 return new AdvanceCityEnvironmentalConditionsResult(
                     Status: AdvanceCityEnvironmentalConditionsStatus.NotInitialized,
                     ProcessedSimMinutes: 0m,
                     FloodingIndex: 0m,
                     SnowAccumulationIndex: 0m,
                     RoadAccessibilityIndex: 0m);
-            }
 
             if (request.TickId < state.LastAppliedTickId || request.ToSimTimeUtc < state.LastEvaluatedAtUtc)
                 return CreateResult(
@@ -62,11 +62,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
 
             state.ApplyDuePendingOperations(request.TickId);
 
-            var pressure = pressureProfileFactory.Create(
+            CitySystemPressureProfile pressure = pressureProfileFactory.Create(
                 state: state,
                 asOfUtc: request.ToSimTimeUtc);
 
-            var snapshot = policy.Advance(
+            CityEnvironmentalConditionSnapshot snapshot = policy.Advance(
                 state: state,
                 pressure: pressure,
                 fromUtc: effectiveFrom,
@@ -90,7 +90,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
             {
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }
-            catch (Exception exception) when (exception.GetType().Name == "DbUpdateConcurrencyException")
+            catch (Exception exception) when (exception.GetType()
+                                                 .Name ==
+                                              "DbUpdateConcurrencyException")
             {
                 return CreateResult(
                     status: AdvanceCityEnvironmentalConditionsStatus.Duplicate,

@@ -1,220 +1,333 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
-using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Abstractions.Services;
-using Matrix.Identity.Application.Tests.UseCases.Self;
+using Matrix.Identity.Application.Abstractions.Services.Security;
+using Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Account.DeleteMyAccount;
-
-public sealed class DeleteMyAccountCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Account.DeleteMyAccount
 {
-    [Fact]
-    public async Task Handle_WhenUserMissing_ThrowsUserNotFound()
+    public sealed class DeleteMyAccountCommandHandlerTests
     {
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository();
-        var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository();
-        var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
-        var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var currentUser = new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+        [Fact]
+        public async Task Handle_WhenUserMissing_ThrowsUserNotFound()
         {
-            UserId = Guid.Parse("30000000-0000-0000-0000-000000000002")
-        };
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler(
-            userRepository,
-            userSessionRepository,
-            passwordHasher,
-            emailSender,
-            securityAuditService,
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            currentUser,
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository();
+            var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository();
+            var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
+            var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var currentUser = new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+            {
+                UserId = Guid.Parse("30000000-0000-0000-0000-000000000002")
+            };
+            var handler = new DeleteMyAccountCommandHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                passwordHasher: passwordHasher,
+                emailSender: emailSender,
+                securityAuditService: securityAuditService,
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: currentUser,
+                logger: NullLogger<DeleteMyAccountCommandHandler>.Instance);
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.User.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-        Assert.Equal(0, unitOfWork.SaveChangesCalls);
-        Assert.Empty(securityAuditService.Entries);
-        Assert.Empty(emailSender.AccountDeletedEmails);
-    }
+            Assert.Equal(
+                expected: "Identity.User.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCalls);
+            Assert.Empty(securityAuditService.Entries);
+            Assert.Empty(emailSender.AccountDeletedEmails);
+        }
 
-    [Fact]
-    public async Task Handle_WhenCurrentPasswordMissing_ThrowsValidation()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser();
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenCurrentPasswordMissing_ThrowsValidation()
         {
-            UserByIdWithRefreshTokens = user
-        };
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler(
-            userRepository,
-            new SelfServiceHandlerTestSupport.FakeUserSessionRepository(),
-            new SelfServiceHandlerTestSupport.FakePasswordHasher(),
-            new SelfServiceHandlerTestSupport.FakeEmailSender(),
-            new SelfServiceHandlerTestSupport.FakeSecurityAuditService(),
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            new SelfServiceHandlerTestSupport.FakeUnitOfWork(),
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(currentPassword: " "),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.AccountDeletionRequiresPassword", exception.Code);
-        Assert.Equal(ApplicationErrorType.Validation, exception.ErrorType);
-    }
-
-    [Fact]
-    public async Task Handle_WhenCurrentPasswordInvalid_WritesFailureAuditAndThrows()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser();
-        var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher
-        {
-            VerifyOutcome = PasswordVerificationOutcome.Failed
-        };
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler(
-            new SelfServiceHandlerTestSupport.FakeUserRepository
+            User user = SelfServiceHandlerTestSupport.CreateUser();
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
             {
                 UserByIdWithRefreshTokens = user
-            },
-            new SelfServiceHandlerTestSupport.FakeUserSessionRepository(),
-            passwordHasher,
-            new SelfServiceHandlerTestSupport.FakeEmailSender(),
-            securityAuditService,
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
+            };
+            var handler = new DeleteMyAccountCommandHandler(
+                userRepository: userRepository,
+                userSessionRepository: new SelfServiceHandlerTestSupport.FakeUserSessionRepository(),
+                passwordHasher: new SelfServiceHandlerTestSupport.FakePasswordHasher(),
+                emailSender: new SelfServiceHandlerTestSupport.FakeEmailSender(),
+                securityAuditService: new SelfServiceHandlerTestSupport.FakeSecurityAuditService(),
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: new SelfServiceHandlerTestSupport.FakeUnitOfWork(),
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<DeleteMyAccountCommandHandler>.Instance);
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(
-                currentPassword: "WrongPa$$w0rd",
-                ipAddress: "203.0.113.30",
-                userAgent: "Mozilla/5.0 (delete)"),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(currentPassword: " "),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.InvalidCurrentPassword", exception.Code);
-        Assert.Equal(ApplicationErrorType.Unauthorized, exception.ErrorType);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-        SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
-        Assert.Equal(SecurityAuditEventType.AccountDeleted, audit.EventType);
-        Assert.False(audit.IsSuccessful);
-        Assert.Equal(user.Id, audit.UserId);
-        Assert.Equal(user.Email.Value, audit.Subject);
-        Assert.Equal("InvalidCurrentPassword", audit.Details);
-        Assert.Equal("203.0.113.30", audit.IpAddress);
-        Assert.Equal("Mozilla/5.0 (delete)", audit.UserAgent);
-    }
+            Assert.Equal(
+                expected: "Identity.AccountDeletionRequiresPassword",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Validation,
+                actual: exception.ErrorType);
+        }
 
-    [Fact]
-    public async Task Handle_WhenUserAlreadyDeleted_WritesAuditAndReturnsWithoutSendingEmail()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser(isDeleted: true);
-        var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler(
-            new SelfServiceHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenCurrentPasswordInvalid_WritesFailureAuditAndThrows()
+        {
+            User user = SelfServiceHandlerTestSupport.CreateUser();
+            var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher
             {
-                UserByIdWithRefreshTokens = user
-            },
-            new SelfServiceHandlerTestSupport.FakeUserSessionRepository(),
-            new SelfServiceHandlerTestSupport.FakePasswordHasher(),
-            emailSender,
-            securityAuditService,
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
+                VerifyOutcome = PasswordVerificationOutcome.Failed
+            };
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var handler = new DeleteMyAccountCommandHandler(
+                userRepository: new SelfServiceHandlerTestSupport.FakeUserRepository
+                {
+                    UserByIdWithRefreshTokens = user
+                },
+                userSessionRepository: new SelfServiceHandlerTestSupport.FakeUserSessionRepository(),
+                passwordHasher: passwordHasher,
+                emailSender: new SelfServiceHandlerTestSupport.FakeEmailSender(),
+                securityAuditService: securityAuditService,
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<DeleteMyAccountCommandHandler>.Instance);
 
-        await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(),
-            CancellationToken.None);
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(
+                        currentPassword: "WrongPa$$w0rd",
+                        ipAddress: "203.0.113.30",
+                        userAgent: "Mozilla/5.0 (delete)"),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-        SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
-        Assert.True(audit.IsSuccessful);
-        Assert.Equal("AlreadyDeleted", audit.Details);
-        Assert.Empty(emailSender.AccountDeletedEmails);
-    }
+            Assert.Equal(
+                expected: "Identity.InvalidCurrentPassword",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Unauthorized,
+                actual: exception.ErrorType);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.Equal(
+                expected: SecurityAuditEventType.AccountDeleted,
+                actual: audit.EventType);
+            Assert.False(audit.IsSuccessful);
+            Assert.Equal(
+                expected: user.Id,
+                actual: audit.UserId);
+            Assert.Equal(
+                expected: user.Email.Value,
+                actual: audit.Subject);
+            Assert.Equal(
+                expected: "InvalidCurrentPassword",
+                actual: audit.Details);
+            Assert.Equal(
+                expected: "203.0.113.30",
+                actual: audit.IpAddress);
+            Assert.Equal(
+                expected: "Mozilla/5.0 (delete)",
+                actual: audit.UserAgent);
+        }
 
-    [Fact]
-    public async Task Handle_WhenPasswordValid_RevokesSessionsAndRefreshTokensDeletesUserAndSendsEmail()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser();
-        int originalPermissionsVersion = user.PermissionsVersion;
-        var activeSession = SelfServiceHandlerTestSupport.CreateSession(user, deviceId: "device-1");
-        var otherActiveSession = SelfServiceHandlerTestSupport.CreateSession(user, deviceId: "device-2");
-        var inactiveSession = SelfServiceHandlerTestSupport.CreateSession(user, deviceId: "device-3", isRevoked: true);
-        var activeToken = SelfServiceHandlerTestSupport.SeedRefreshToken(user, activeSession.Id, "active-token", deviceId: "device-1");
-        var otherActiveToken = SelfServiceHandlerTestSupport.SeedRefreshToken(user, otherActiveSession.Id, "other-active-token", deviceId: "device-2");
-        var inactiveToken = SelfServiceHandlerTestSupport.SeedRefreshToken(user, inactiveSession.Id, "inactive-token", deviceId: "device-3", isRevoked: true);
-        var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler(
-            new SelfServiceHandlerTestSupport.FakeUserRepository
-            {
-                UserByIdWithRefreshTokens = user
-            },
-            new SelfServiceHandlerTestSupport.FakeUserSessionRepository
-            {
-                Sessions = { activeSession, otherActiveSession, inactiveSession }
-            },
-            new SelfServiceHandlerTestSupport.FakePasswordHasher(),
-            emailSender,
-            securityAuditService,
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
+        [Fact]
+        public async Task Handle_WhenUserAlreadyDeleted_WritesAuditAndReturnsWithoutSendingEmail()
+        {
+            User user = SelfServiceHandlerTestSupport.CreateUser(isDeleted: true);
+            var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var handler = new DeleteMyAccountCommandHandler(
+                userRepository: new SelfServiceHandlerTestSupport.FakeUserRepository
+                {
+                    UserByIdWithRefreshTokens = user
+                },
+                userSessionRepository: new SelfServiceHandlerTestSupport.FakeUserSessionRepository(),
+                passwordHasher: new SelfServiceHandlerTestSupport.FakePasswordHasher(),
+                emailSender: emailSender,
+                securityAuditService: securityAuditService,
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<DeleteMyAccountCommandHandler>.Instance);
 
-        await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(
-                ipAddress: "203.0.113.31",
-                userAgent: "Mozilla/5.0 (delete-success)"),
-            CancellationToken.None);
+            await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.True(activeSession.IsRevoked);
-        Assert.True(otherActiveSession.IsRevoked);
-        Assert.True(inactiveSession.IsRevoked);
-        Assert.Equal(RefreshTokenRevocationReason.AccountDeleted, activeSession.RevokedReason);
-        Assert.Equal(RefreshTokenRevocationReason.AccountDeleted, otherActiveSession.RevokedReason);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, activeSession.RevokedAtUtc);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, otherActiveSession.RevokedAtUtc);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.True(audit.IsSuccessful);
+            Assert.Equal(
+                expected: "AlreadyDeleted",
+                actual: audit.Details);
+            Assert.Empty(emailSender.AccountDeletedEmails);
+        }
 
-        Assert.True(activeToken.IsRevoked);
-        Assert.True(otherActiveToken.IsRevoked);
-        Assert.True(inactiveToken.IsRevoked);
-        Assert.Equal(RefreshTokenRevocationReason.AccountDeleted, activeToken.RevokedReason);
-        Assert.Equal(RefreshTokenRevocationReason.AccountDeleted, otherActiveToken.RevokedReason);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, activeToken.RevokedAtUtc);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, otherActiveToken.RevokedAtUtc);
+        [Fact]
+        public async Task Handle_WhenPasswordValid_RevokesSessionsAndRefreshTokensDeletesUserAndSendsEmail()
+        {
+            User user = SelfServiceHandlerTestSupport.CreateUser();
+            int originalPermissionsVersion = user.PermissionsVersion;
+            UserSession activeSession = SelfServiceHandlerTestSupport.CreateSession(
+                user: user,
+                deviceId: "device-1");
+            UserSession otherActiveSession = SelfServiceHandlerTestSupport.CreateSession(
+                user: user,
+                deviceId: "device-2");
+            UserSession inactiveSession = SelfServiceHandlerTestSupport.CreateSession(
+                user: user,
+                deviceId: "device-3",
+                isRevoked: true);
+            RefreshToken activeToken = SelfServiceHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: activeSession.Id,
+                tokenHash: "active-token",
+                deviceId: "device-1");
+            RefreshToken otherActiveToken = SelfServiceHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: otherActiveSession.Id,
+                tokenHash: "other-active-token",
+                deviceId: "device-2");
+            RefreshToken inactiveToken = SelfServiceHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: inactiveSession.Id,
+                tokenHash: "inactive-token",
+                deviceId: "device-3",
+                isRevoked: true);
+            var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var handler = new DeleteMyAccountCommandHandler(
+                userRepository: new SelfServiceHandlerTestSupport.FakeUserRepository
+                {
+                    UserByIdWithRefreshTokens = user
+                },
+                userSessionRepository: new SelfServiceHandlerTestSupport.FakeUserSessionRepository
+                {
+                    Sessions =
+                    {
+                        activeSession,
+                        otherActiveSession,
+                        inactiveSession
+                    }
+                },
+                passwordHasher: new SelfServiceHandlerTestSupport.FakePasswordHasher(),
+                emailSender: emailSender,
+                securityAuditService: securityAuditService,
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<DeleteMyAccountCommandHandler>.Instance);
 
-        Assert.True(user.IsDeleted);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, user.DeletedAtUtc);
-        Assert.Equal(originalPermissionsVersion + 1, user.PermissionsVersion);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-        Assert.Equal(new[] { user.Email.Value }, emailSender.AccountDeletedEmails);
+            await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateDeleteMyAccountCommand(
+                    ipAddress: "203.0.113.31",
+                    userAgent: "Mozilla/5.0 (delete-success)"),
+                cancellationToken: CancellationToken.None);
 
-        SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
-        Assert.Equal(SecurityAuditEventType.AccountDeleted, audit.EventType);
-        Assert.True(audit.IsSuccessful);
-        Assert.Equal(user.Id, audit.UserId);
-        Assert.Equal(user.Email.Value, audit.Subject);
-        Assert.Equal("203.0.113.31", audit.IpAddress);
-        Assert.Equal("Mozilla/5.0 (delete-success)", audit.UserAgent);
-        Assert.Equal($"DeletedAtUtc:{SelfServiceHandlerTestSupport.UtcNow:O}", audit.Details);
+            Assert.True(activeSession.IsRevoked);
+            Assert.True(otherActiveSession.IsRevoked);
+            Assert.True(inactiveSession.IsRevoked);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.AccountDeleted,
+                actual: activeSession.RevokedReason);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.AccountDeleted,
+                actual: otherActiveSession.RevokedReason);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: activeSession.RevokedAtUtc);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: otherActiveSession.RevokedAtUtc);
+
+            Assert.True(activeToken.IsRevoked);
+            Assert.True(otherActiveToken.IsRevoked);
+            Assert.True(inactiveToken.IsRevoked);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.AccountDeleted,
+                actual: activeToken.RevokedReason);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.AccountDeleted,
+                actual: otherActiveToken.RevokedReason);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: activeToken.RevokedAtUtc);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: otherActiveToken.RevokedAtUtc);
+
+            Assert.True(user.IsDeleted);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: user.DeletedAtUtc);
+            Assert.Equal(
+                expected: originalPermissionsVersion + 1,
+                actual: user.PermissionsVersion);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+            Assert.Equal(
+                expected: new[]
+                {
+                    user.Email.Value
+                },
+                actual: emailSender.AccountDeletedEmails);
+
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.Equal(
+                expected: SecurityAuditEventType.AccountDeleted,
+                actual: audit.EventType);
+            Assert.True(audit.IsSuccessful);
+            Assert.Equal(
+                expected: user.Id,
+                actual: audit.UserId);
+            Assert.Equal(
+                expected: user.Email.Value,
+                actual: audit.Subject);
+            Assert.Equal(
+                expected: "203.0.113.31",
+                actual: audit.IpAddress);
+            Assert.Equal(
+                expected: "Mozilla/5.0 (delete-success)",
+                actual: audit.UserAgent);
+            Assert.Equal(
+                expected: $"DeletedAtUtc:{SelfServiceHandlerTestSupport.UtcNow:O}",
+                actual: audit.Details);
+        }
     }
 }

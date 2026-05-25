@@ -9,7 +9,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersi
         private const string ServiceName = DownstreamServiceNames.Identity;
         private const string PermissionsVersionEndpoint = "api/internal/users/{0}/permissions-version";
         private const string AuthContextEndpoint = "api/internal/users/{0}/auth-context";
-        private const string DefaultUserAccessVersionEndpoint = "api/internal/authorization/default-user-access/version";
+
+        private const string DefaultUserAccessVersionEndpoint =
+            "api/internal/authorization/default-user-access/version";
 
         private readonly HttpClient _httpClient;
 

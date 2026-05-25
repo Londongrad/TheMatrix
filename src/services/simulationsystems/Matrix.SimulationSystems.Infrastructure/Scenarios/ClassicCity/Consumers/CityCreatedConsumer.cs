@@ -1,7 +1,8 @@
 using MassTransit;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.SeedCityEnvironmentalConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    SeedCityEnvironmentalConditions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -25,7 +26,8 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
             if (!ClassicCityScenario.IsMatch(message.SimulationKind))
             {
                 logger.LogDebug(
-                    message: "Ignored city-created event for cityId={CityId} because simulationKind={SimulationKind} does not match ClassicCity.",
+                    message:
+                    "Ignored city-created event for cityId={CityId} because simulationKind={SimulationKind} does not match ClassicCity.",
                     message.CityId,
                     message.SimulationKind);
                 return;
@@ -57,7 +59,8 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
 
                 case SeedCityEnvironmentalConditionsStatus.IgnoredSimulationKind:
                     logger.LogDebug(
-                        message: "Skipped classic city environmental seed for cityId={CityId} because simulationKind={SimulationKind} is not handled by this scenario.",
+                        message:
+                        "Skipped classic city environmental seed for cityId={CityId} because simulationKind={SimulationKind} is not handled by this scenario.",
                         message.CityId,
                         message.SimulationKind);
                     break;

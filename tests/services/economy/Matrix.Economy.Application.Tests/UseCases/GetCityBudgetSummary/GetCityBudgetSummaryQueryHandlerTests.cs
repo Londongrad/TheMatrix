@@ -1,49 +1,85 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
-using Matrix.Economy.Application.UseCases.GetCityBudgetSummary;
 using Matrix.Economy.Application.UseCases.GetBudgetSummary;
-using Matrix.Economy.Application.Tests.TestSupport;
+using Matrix.Economy.Application.UseCases.GetCityBudgetSummary;
+using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.GetCityBudgetSummary;
-
-public sealed class GetCityBudgetSummaryQueryHandlerTests
+namespace Matrix.Economy.Application.Tests.UseCases.GetCityBudgetSummary
 {
-    [Fact]
-    public async Task Handle_WhenCityBudgetExists_ReturnsBudgetSummary()
+    public sealed class GetCityBudgetSummaryQueryHandlerTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var budget = CreateBudget(cityId);
-        budget.ApplyLedgerEntry(CreateBudgetEntry(cityId, Matrix.Economy.Domain.Enums.CityBudgetLedgerEntryKind.Revenue, 150m, "Grant"));
-        budget.ApplyLedgerEntry(CreateBudgetEntry(cityId, Matrix.Economy.Domain.Enums.CityBudgetLedgerEntryKind.Expense, 45m, "Ops"));
-        var budgetRepository = new FakeCityBudgetRepository
+        [Fact]
+        public async Task Handle_WhenCityBudgetExists_ReturnsBudgetSummary()
         {
-            BudgetByCity = budget
-        };
-        var handler = new GetCityBudgetSummaryQueryHandler(budgetRepository);
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityBudget budget = CreateBudget(cityId);
+            budget.ApplyLedgerEntry(
+                CreateBudgetEntry(
+                    cityId: cityId,
+                    kind: CityBudgetLedgerEntryKind.Revenue,
+                    amount: 150m,
+                    title: "Grant"));
+            budget.ApplyLedgerEntry(
+                CreateBudgetEntry(
+                    cityId: cityId,
+                    kind: CityBudgetLedgerEntryKind.Expense,
+                    amount: 45m,
+                    title: "Ops"));
+            var budgetRepository = new FakeCityBudgetRepository
+            {
+                BudgetByCity = budget
+            };
+            var handler = new GetCityBudgetSummaryQueryHandler(budgetRepository);
 
-        BudgetSummaryDto result = await handler.Handle(new GetCityBudgetSummaryQuery(cityId), CancellationToken.None);
+            BudgetSummaryDto result = await handler.Handle(
+                request: new GetCityBudgetSummaryQuery(cityId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(cityId, budgetRepository.RequestedCityId);
-        Assert.Equal("Currency", result.UnitKind);
-        Assert.Equal(Money.FromDecimal(105m), result.Balance);
-        Assert.Equal(Money.FromDecimal(150m), result.TotalDirectRevenue);
-        Assert.Equal(Money.FromDecimal(45m), result.TotalCityExpenses);
-    }
+            Assert.Equal(
+                expected: cityId,
+                actual: budgetRepository.RequestedCityId);
+            Assert.Equal(
+                expected: "Currency",
+                actual: result.UnitKind);
+            Assert.Equal(
+                expected: Money.FromDecimal(105m),
+                actual: result.Balance);
+            Assert.Equal(
+                expected: Money.FromDecimal(150m),
+                actual: result.TotalDirectRevenue);
+            Assert.Equal(
+                expected: Money.FromDecimal(45m),
+                actual: result.TotalCityExpenses);
+        }
 
-    [Fact]
-    public async Task Handle_WhenCityBudgetMissing_ReturnsZeroSummary()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var budgetRepository = new FakeCityBudgetRepository();
-        var handler = new GetCityBudgetSummaryQueryHandler(budgetRepository);
+        [Fact]
+        public async Task Handle_WhenCityBudgetMissing_ReturnsZeroSummary()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            var budgetRepository = new FakeCityBudgetRepository();
+            var handler = new GetCityBudgetSummaryQueryHandler(budgetRepository);
 
-        BudgetSummaryDto result = await handler.Handle(new GetCityBudgetSummaryQuery(cityId), CancellationToken.None);
+            BudgetSummaryDto result = await handler.Handle(
+                request: new GetCityBudgetSummaryQuery(cityId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(cityId, budgetRepository.RequestedCityId);
-        Assert.Equal("Currency", result.UnitKind);
-        Assert.Equal(Money.Zero, result.Balance);
-        Assert.Equal(Money.Zero, result.TotalDirectRevenue);
-        Assert.Equal(Money.Zero, result.TotalCityExpenses);
+            Assert.Equal(
+                expected: cityId,
+                actual: budgetRepository.RequestedCityId);
+            Assert.Equal(
+                expected: "Currency",
+                actual: result.UnitKind);
+            Assert.Equal(
+                expected: Money.Zero,
+                actual: result.Balance);
+            Assert.Equal(
+                expected: Money.Zero,
+                actual: result.TotalDirectRevenue);
+            Assert.Equal(
+                expected: Money.Zero,
+                actual: result.TotalCityExpenses);
+        }
     }
 }

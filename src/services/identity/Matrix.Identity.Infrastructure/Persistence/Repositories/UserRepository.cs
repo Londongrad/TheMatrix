@@ -8,6 +8,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
     public sealed class UserRepository(IdentityDbContext dbContext) : IUserRepository
     {
         private DbSet<User> Users => dbContext.Users;
+
         private IQueryable<User> UsersWithRefreshTokens => Users
            .Include(u => u.RefreshTokens)
            .AsSplitQuery();
@@ -143,14 +144,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await foreach (Guid userId in dbContext.UserRoles
-               .AsNoTracking()
-               .Where(ur => ur.RoleId == roleId)
-               .Select(ur => ur.UserId)
-               .AsAsyncEnumerable()
-               .WithCancellation(cancellationToken))
-            {
+                              .AsNoTracking()
+                              .Where(ur => ur.RoleId == roleId)
+                              .Select(ur => ur.UserId)
+                              .AsAsyncEnumerable()
+                              .WithCancellation(cancellationToken))
                 yield return userId;
-            }
         }
 
         public async Task<bool> BumpPermissionsVersionAsync(

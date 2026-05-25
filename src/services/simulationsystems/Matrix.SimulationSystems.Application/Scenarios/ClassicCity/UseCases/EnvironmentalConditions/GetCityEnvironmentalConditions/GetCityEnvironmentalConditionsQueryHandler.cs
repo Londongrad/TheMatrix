@@ -1,11 +1,12 @@
 using Matrix.SimulationSystems.Application.Abstractions;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.GetCityEnvironmentalConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    GetCityEnvironmentalConditions
 {
-    public sealed class GetCityEnvironmentalConditionsQueryHandler(
-        ICityEnvironmentalConditionRepository repository)
+    public sealed class GetCityEnvironmentalConditionsQueryHandler(ICityEnvironmentalConditionRepository repository)
         : IRequestHandler<GetCityEnvironmentalConditionsQuery, CityEnvironmentalConditionsDto?>
     {
         public async Task<CityEnvironmentalConditionsDto?> Handle(
@@ -14,7 +15,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         {
             var simulationHostId = new SimulationHostId(request.CityId);
 
-            var state = await repository.GetBySimulationHostIdAsync(
+            CityEnvironmentalConditionState? state = await repository.GetBySimulationHostIdAsync(
                 simulationHostId: simulationHostId,
                 cancellationToken: cancellationToken);
 

@@ -23,14 +23,15 @@ namespace Matrix.Economy.Infrastructure.Consumers
     {
         public async Task Consume(ConsumeContext<CityEconomyDailySettlementV1> context)
         {
-            await ConsumeAsync(context.Message, context.CancellationToken);
+            await ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
         }
 
         internal async Task ConsumeAsync(
             CityEconomyDailySettlementV1 message,
             CancellationToken cancellationToken)
         {
-
             if (await settlementRepository.ExistsAsync(
                     cityId: message.CityId,
                     tickId: message.TickId,

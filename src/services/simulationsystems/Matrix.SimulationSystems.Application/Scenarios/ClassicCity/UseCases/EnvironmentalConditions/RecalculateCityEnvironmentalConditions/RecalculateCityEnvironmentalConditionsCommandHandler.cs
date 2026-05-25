@@ -7,7 +7,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.RecalculateCityEnvironmentalConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    RecalculateCityEnvironmentalConditions
 {
     public sealed class RecalculateCityEnvironmentalConditionsCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -27,13 +28,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 cancellationToken: cancellationToken);
 
             if (state is null)
-            {
                 return new RecalculateCityEnvironmentalConditionsResult(
                     Status: RecalculateCityEnvironmentalConditionsStatus.NotInitialized,
                     FloodingIndex: 0m,
                     SnowAccumulationIndex: 0m,
                     RoadAccessibilityIndex: 0m);
-            }
 
             if (request.AtSimTimeUtc < state.LastEvaluatedAtUtc)
                 return CreateResult(
@@ -52,11 +51,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     state: state);
             }
 
-            var pressure = pressureProfileFactory.Create(
+            CitySystemPressureProfile pressure = pressureProfileFactory.Create(
                 state: state,
                 asOfUtc: request.AtSimTimeUtc);
 
-            var snapshot = policy.Recalculate(
+            CityEnvironmentalConditionSnapshot snapshot = policy.Recalculate(
                 state: state,
                 pressure: pressure,
                 asOfUtc: request.AtSimTimeUtc);

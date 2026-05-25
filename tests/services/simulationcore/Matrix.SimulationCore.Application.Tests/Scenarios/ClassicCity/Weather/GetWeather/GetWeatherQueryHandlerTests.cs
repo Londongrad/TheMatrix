@@ -1,69 +1,107 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weather.GetWeather;
+using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Weather.GetWeather;
-
-public sealed class GetWeatherQueryHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Weather.GetWeather
 {
-    [Fact]
-    public async Task Handle_WhenCityDoesNotExist_ReturnsNull()
+    public sealed class GetWeatherQueryHandlerTests
     {
-        Guid cityId = Guid.NewGuid();
-        var weatherRepository = new WeatherTestSupport.FakeCityWeatherRepository();
-        var cityRepository = new Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.ClassicCityTestSupport.FakeCityRepository();
-        var handler = new GetWeatherQueryHandler(weatherRepository, cityRepository);
-
-        var result = await handler.Handle(new GetWeatherQuery(cityId), CancellationToken.None);
-
-        Assert.Null(result);
-        Assert.Equal(cityId, cityRepository.RequestedCityId!.Value.Value);
-        Assert.Null(weatherRepository.RequestedCityId);
-    }
-
-    [Fact]
-    public async Task Handle_WhenCityExistsButWeatherDoesNotExist_ReturnsNull()
-    {
-        var city = Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.ClassicCityTestSupport.CreateCity();
-        var weatherRepository = new WeatherTestSupport.FakeCityWeatherRepository();
-        var cityRepository = new Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.ClassicCityTestSupport.FakeCityRepository
+        [Fact]
+        public async Task Handle_WhenCityDoesNotExist_ReturnsNull()
         {
-            CityById = city
-        };
-        var handler = new GetWeatherQueryHandler(weatherRepository, cityRepository);
+            var cityId = Guid.NewGuid();
+            var weatherRepository = new WeatherTestSupport.FakeCityWeatherRepository();
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
+            var handler = new GetWeatherQueryHandler(
+                repository: weatherRepository,
+                cityRepository: cityRepository);
 
-        var result = await handler.Handle(new GetWeatherQuery(city.Id.Value), CancellationToken.None);
+            CityWeatherDto? result = await handler.Handle(
+                request: new GetWeatherQuery(cityId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Null(result);
-        Assert.Equal(city.Id.Value, weatherRepository.RequestedCityId!.Value.Value);
-    }
+            Assert.Null(result);
+            Assert.Equal(
+                expected: cityId,
+                actual: cityRepository.RequestedCityId!.Value.Value);
+            Assert.Null(weatherRepository.RequestedCityId);
+        }
 
-    [Fact]
-    public async Task Handle_WhenWeatherExists_ReturnsMappedDto()
-    {
-        var city = Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.ClassicCityTestSupport.CreateCity();
-        var weather = WeatherTestSupport.CreateCityWeather(city.Id);
-        var weatherRepository = new WeatherTestSupport.FakeCityWeatherRepository
+        [Fact]
+        public async Task Handle_WhenCityExistsButWeatherDoesNotExist_ReturnsNull()
         {
-            WeatherByCityId = weather
-        };
-        var cityRepository = new Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.ClassicCityTestSupport.FakeCityRepository
+            City city = ClassicCityTestSupport.CreateCity();
+            var weatherRepository = new WeatherTestSupport.FakeCityWeatherRepository();
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+            {
+                CityById = city
+            };
+            var handler = new GetWeatherQueryHandler(
+                repository: weatherRepository,
+                cityRepository: cityRepository);
+
+            CityWeatherDto? result = await handler.Handle(
+                request: new GetWeatherQuery(city.Id.Value),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Null(result);
+            Assert.Equal(
+                expected: city.Id.Value,
+                actual: weatherRepository.RequestedCityId!.Value.Value);
+        }
+
+        [Fact]
+        public async Task Handle_WhenWeatherExists_ReturnsMappedDto()
         {
-            CityById = city
-        };
-        var handler = new GetWeatherQueryHandler(weatherRepository, cityRepository);
+            City city = ClassicCityTestSupport.CreateCity();
+            CityWeather weather = WeatherTestSupport.CreateCityWeather(city.Id);
+            var weatherRepository = new WeatherTestSupport.FakeCityWeatherRepository
+            {
+                WeatherByCityId = weather
+            };
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+            {
+                CityById = city
+            };
+            var handler = new GetWeatherQueryHandler(
+                repository: weatherRepository,
+                cityRepository: cityRepository);
 
-        var result = await handler.Handle(new GetWeatherQuery(city.Id.Value), CancellationToken.None);
+            CityWeatherDto? result = await handler.Handle(
+                request: new GetWeatherQuery(city.Id.Value),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.Equal(city.Id.Value, result!.CityId);
-        Assert.Equal(weather.ClimateProfile.ClimateZone.ToString(), result.ClimateZone);
-        Assert.Equal(city.Environment.Hemisphere.ToString(), result.Hemisphere);
-        Assert.Equal(city.Environment.UtcOffset.TotalMinutes, result.UtcOffsetMinutes);
-        Assert.Equal(weather.CurrentState.Type.ToString(), result.CurrentType);
-        Assert.Equal(weather.CurrentState.Severity.ToString(), result.Severity);
-        Assert.Equal(weather.CurrentState.PrecipitationKind.ToString(), result.PrecipitationKind);
-        Assert.Equal(weather.CurrentState.Temperature.Value, result.TemperatureC);
-        Assert.Equal(weather.LastEvaluatedAt.ValueUtc, result.LastEvaluatedAtUtc);
-        Assert.Null(result.ActiveOverride);
+            Assert.NotNull(result);
+            Assert.Equal(
+                expected: city.Id.Value,
+                actual: result!.CityId);
+            Assert.Equal(
+                expected: weather.ClimateProfile.ClimateZone.ToString(),
+                actual: result.ClimateZone);
+            Assert.Equal(
+                expected: city.Environment.Hemisphere.ToString(),
+                actual: result.Hemisphere);
+            Assert.Equal(
+                expected: city.Environment.UtcOffset.TotalMinutes,
+                actual: result.UtcOffsetMinutes);
+            Assert.Equal(
+                expected: weather.CurrentState.Type.ToString(),
+                actual: result.CurrentType);
+            Assert.Equal(
+                expected: weather.CurrentState.Severity.ToString(),
+                actual: result.Severity);
+            Assert.Equal(
+                expected: weather.CurrentState.PrecipitationKind.ToString(),
+                actual: result.PrecipitationKind);
+            Assert.Equal(
+                expected: weather.CurrentState.Temperature.Value,
+                actual: result.TemperatureC);
+            Assert.Equal(
+                expected: weather.LastEvaluatedAt.ValueUtc,
+                actual: result.LastEvaluatedAtUtc);
+            Assert.Null(result.ActiveOverride);
+        }
     }
 }

@@ -1,29 +1,39 @@
+using FluentValidation.Results;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSuggestedCityNames;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.GetSuggestedCityNames;
-
-public sealed class GetSuggestedCityNamesQueryValidatorTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.GetSuggestedCityNames
 {
-    private readonly GetSuggestedCityNamesQueryValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithCountWithinAllowedRange_ReturnsNoErrors()
+    public sealed class GetSuggestedCityNamesQueryValidatorTests
     {
-        var result = _validator.Validate(new GetSuggestedCityNamesQuery("alpha", 12));
+        private readonly GetSuggestedCityNamesQueryValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithCountWithinAllowedRange_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new GetSuggestedCityNamesQuery(
+                    Seed: "alpha",
+                    Count: 12));
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(26)]
-    public void Validate_WithCountOutsideAllowedRange_ReturnsError(int count)
-    {
-        var result = _validator.Validate(new GetSuggestedCityNamesQuery("alpha", count));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.PropertyName == "Count");
+        [Theory]
+        [InlineData(0)]
+        [InlineData(26)]
+        public void Validate_WithCountOutsideAllowedRange_ReturnsError(int count)
+        {
+            ValidationResult? result = _validator.Validate(
+                new GetSuggestedCityNamesQuery(
+                    Seed: "alpha",
+                    Count: count));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "Count");
+        }
     }
 }

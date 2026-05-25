@@ -442,19 +442,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             int grams = sex == Sex.Male
                 ? 3200 +
-                GetStableInt(
-                    firstResidentId: mother.Id,
-                    secondResidentId: father.Id,
-                    currentDate: currentDate,
-                    salt: 683,
-                    modulus: 1301)
+                  GetStableInt(
+                      firstResidentId: mother.Id,
+                      secondResidentId: father.Id,
+                      currentDate: currentDate,
+                      salt: 683,
+                      modulus: 1301)
                 : 3000 +
-                GetStableInt(
-                    firstResidentId: mother.Id,
-                    secondResidentId: father.Id,
-                    currentDate: currentDate,
-                    salt: 691,
-                    modulus: 1201);
+                  GetStableInt(
+                      firstResidentId: mother.Id,
+                      secondResidentId: father.Id,
+                      currentDate: currentDate,
+                      salt: 691,
+                      modulus: 1201);
 
             return BodyWeight.FromKilograms(grams / 1000m);
         }
@@ -483,9 +483,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return false;
 
             double combinedChance = 1d -
-                Math.Pow(
-                    x: 1d - chancePerReview,
-                    y: reviewWindows);
+                                    Math.Pow(
+                                        x: 1d - chancePerReview,
+                                        y: reviewWindows);
             return GetStableFraction(
                        firstResidentId: firstResidentId,
                        secondResidentId: secondResidentId,

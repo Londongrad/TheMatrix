@@ -28,7 +28,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weath
 
             return weather is null
                 ? null
-                : CityWeatherDto.FromDomain(weather, city);
+                : CityWeatherDto.FromDomain(
+                    weather: weather,
+                    city: city);
         }
     }
 }

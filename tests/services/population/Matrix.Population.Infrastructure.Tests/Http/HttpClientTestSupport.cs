@@ -1,45 +1,57 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 
-namespace Matrix.Population.Infrastructure.Tests.Http;
-
-internal static class HttpClientTestSupport
+namespace Matrix.Population.Infrastructure.Tests.Http
 {
-    internal static HttpClient CreateClient(
-        Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler)
+    internal static class HttpClientTestSupport
     {
-        return new HttpClient(new StubHttpMessageHandler(handler))
+        internal static HttpClient CreateClient(
+            Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler)
         {
-            BaseAddress = new Uri("https://population.test")
-        };
-    }
+            return new HttpClient(new StubHttpMessageHandler(handler))
+            {
+                BaseAddress = new Uri("https://population.test")
+            };
+        }
 
-    internal static HttpResponseMessage JsonResponse(string json, HttpStatusCode statusCode = HttpStatusCode.OK)
-    {
-        return new HttpResponseMessage(statusCode)
+        internal static HttpResponseMessage JsonResponse(
+            string json,
+            HttpStatusCode statusCode = HttpStatusCode.OK)
         {
-            Content = new StringContent(json, Encoding.UTF8, "application/json")
-        };
-    }
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(
+                    content: json,
+                    encoding: Encoding.UTF8,
+                    mediaType: "application/json")
+            };
+        }
 
-    internal static HttpResponseMessage EmptyResponse(HttpStatusCode statusCode = HttpStatusCode.OK)
-    {
-        return new HttpResponseMessage(statusCode)
+        internal static HttpResponseMessage EmptyResponse(HttpStatusCode statusCode = HttpStatusCode.OK)
         {
-            Content = new StringContent(string.Empty, Encoding.UTF8, "application/json")
-        };
-    }
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(
+                    content: string.Empty,
+                    encoding: Encoding.UTF8,
+                    mediaType: "application/json")
+            };
+        }
 
-    internal sealed class StubHttpMessageHandler(
-        Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) : HttpMessageHandler
-    {
-        public List<HttpRequestMessage> Requests { get; } = [];
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        internal sealed class StubHttpMessageHandler(
+            Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) : HttpMessageHandler
         {
-            Requests.Add(request);
-            return handler(request, cancellationToken);
+            public List<HttpRequestMessage> Requests { get; } = [];
+
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                Requests.Add(request);
+                return handler(
+                    arg1: request,
+                    arg2: cancellationToken);
+            }
         }
     }
 }

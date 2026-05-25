@@ -1,29 +1,39 @@
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Infrastructure.Persistence.Repositories.Admin;
-using Xunit;
 using Matrix.Identity.Infrastructure.Tests.TestSupport;
+using Xunit;
 using static Matrix.Identity.Infrastructure.Tests.TestSupport.IdentityInfrastructureTestSupport;
 
-namespace Matrix.Identity.Infrastructure.Tests.Persistence.Repositories.Admin;
-
-public sealed class RoleWriteRepositoryTests
+namespace Matrix.Identity.Infrastructure.Tests.Persistence.Repositories.Admin
 {
-    [Fact]
-    public async Task AddGetAndDeleteAsync_ManipulatesRoleEntities()
+    public sealed class RoleWriteRepositoryTests
     {
-        await using IdentityTestDatabase database = CreateDbContext();
-        var repository = new RoleWriteRepository(database.DbContext);
-        Role role = CreateRole("Moderator");
+        [Fact]
+        public async Task AddGetAndDeleteAsync_ManipulatesRoleEntities()
+        {
+            await using IdentityTestDatabase database = CreateDbContext();
+            var repository = new RoleWriteRepository(database.DbContext);
+            Role role = CreateRole("Moderator");
 
-        await repository.AddAsync(role, CancellationToken.None);
-        await database.DbContext.SaveChangesAsync();
+            await repository.AddAsync(
+                role: role,
+                cancellationToken: CancellationToken.None);
+            await database.DbContext.SaveChangesAsync();
 
-        Role? loaded = await repository.GetByIdForUpdateAsync(role.Id, CancellationToken.None);
-        Assert.NotNull(loaded);
+            Role? loaded = await repository.GetByIdForUpdateAsync(
+                roleId: role.Id,
+                cancellationToken: CancellationToken.None);
+            Assert.NotNull(loaded);
 
-        await repository.DeleteAsync(loaded, CancellationToken.None);
-        await database.DbContext.SaveChangesAsync();
+            await repository.DeleteAsync(
+                role: loaded,
+                cancellationToken: CancellationToken.None);
+            await database.DbContext.SaveChangesAsync();
 
-        Assert.Null(await repository.GetByIdForUpdateAsync(role.Id, CancellationToken.None));
+            Assert.Null(
+                await repository.GetByIdForUpdateAsync(
+                    roleId: role.Id,
+                    cancellationToken: CancellationToken.None));
+        }
     }
 }

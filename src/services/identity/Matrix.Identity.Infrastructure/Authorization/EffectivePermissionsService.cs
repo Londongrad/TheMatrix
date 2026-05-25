@@ -71,17 +71,18 @@ namespace Matrix.Identity.Infrastructure.Authorization
 
                 if (hasUserRole)
                 {
-                    var defaultUserOverrides = await (from policyOverride in _db.DefaultUserAccessOverrides.AsNoTracking()
-                                                      join permission in _db.Permissions.AsNoTracking()
-                                                          on policyOverride.PermissionKey equals permission.Key
-                                                      where policyOverride.PolicyId == DefaultUserAccessPolicy.SingletonId &&
-                                                            !permission.IsDeprecated
-                                                      select new
-                                                      {
-                                                          policyOverride.PermissionKey,
-                                                          policyOverride.Effect
-                                                      })
-                       .ToListAsync(cancellationToken);
+                    var defaultUserOverrides =
+                        await (from policyOverride in _db.DefaultUserAccessOverrides.AsNoTracking()
+                               join permission in _db.Permissions.AsNoTracking()
+                                   on policyOverride.PermissionKey equals permission.Key
+                               where policyOverride.PolicyId == DefaultUserAccessPolicy.SingletonId &&
+                                     !permission.IsDeprecated
+                               select new
+                               {
+                                   policyOverride.PermissionKey,
+                                   policyOverride.Effect
+                               })
+                           .ToListAsync(cancellationToken);
 
                     foreach (var policyOverride in defaultUserOverrides)
                         if (policyOverride.Effect == PermissionEffect.Deny)
@@ -119,10 +120,11 @@ namespace Matrix.Identity.Infrastructure.Authorization
                .SingleAsync(cancellationToken);
 
             int defaultUserAccessVersion = await _db.DefaultUserAccessPolicies
-               .AsNoTracking()
-               .Where(policy => policy.Id == DefaultUserAccessPolicy.SingletonId)
-               .Select(policy => (int?)policy.Version)
-               .FirstOrDefaultAsync(cancellationToken) ?? 1;
+                                              .AsNoTracking()
+                                              .Where(policy => policy.Id == DefaultUserAccessPolicy.SingletonId)
+                                              .Select(policy => (int?)policy.Version)
+                                              .FirstOrDefaultAsync(cancellationToken) ??
+                                           1;
 
             int permissionsVersion = PermissionsVersionComposer.Compose(
                 userPermissionsVersion: userPermissionsVersion,

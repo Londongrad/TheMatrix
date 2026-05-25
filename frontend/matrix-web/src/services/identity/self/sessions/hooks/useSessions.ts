@@ -7,10 +7,7 @@ import {
     revokeSession,
 } from "@services/identity/api/self/sessions/sessionsApi";
 import {getOrCreateDeviceId} from "@services/identity/api/self/auth/deviceInfo";
-import {
-    type ConfirmFn,
-    type ConfirmOptions,
-} from "@shared/ui/components/ConfirmDialog/confirmDialogContext";
+import {type ConfirmFn, type ConfirmOptions,} from "@shared/ui/components/ConfirmDialog/confirmDialogContext";
 import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 export function useSessions(options: {

@@ -110,7 +110,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             BlockageIndex = ClampAndRound(BlockageIndex - (blockageReduction * intensityFactor));
             IncidentPressureIndex = ClampAndRound(IncidentPressureIndex - (incidentRelief * intensityFactor));
             CrewReadinessIndex = ClampAndRound(
-                CrewReadinessIndex - (0.0550m * intensityFactor) + (EmergencyModeEnabled ? -0.0200m : 0.0150m));
+                CrewReadinessIndex -
+                (0.0550m * intensityFactor) +
+                (EmergencyModeEnabled
+                    ? -0.0200m
+                    : 0.0150m));
         }
 
         public CityDrainageInfrastructureSnapshot ToSnapshot()

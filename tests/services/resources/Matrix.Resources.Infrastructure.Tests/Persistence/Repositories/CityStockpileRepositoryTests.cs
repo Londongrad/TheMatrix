@@ -1,38 +1,52 @@
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
+using Matrix.Resources.Infrastructure.Persistence;
 using Matrix.Resources.Infrastructure.Persistence.Repositories;
-using Matrix.Resources.Infrastructure.Tests.TestSupport;
 using Xunit;
 using static Matrix.Resources.Infrastructure.Tests.TestSupport.ResourcesInfrastructureTestSupport;
 
-namespace Matrix.Resources.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityStockpileRepositoryTests
+namespace Matrix.Resources.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task AddAsync_PersistsStateAndGetBySimulationHostIdReturnsIt()
+    public sealed class CityStockpileRepositoryTests
     {
-        await using var dbContext = CreateDbContext();
-        var repository = new CityStockpileRepository(dbContext);
-        var state = CreateState();
+        [Fact]
+        public async Task AddAsync_PersistsStateAndGetBySimulationHostIdReturnsIt()
+        {
+            await using ResourcesDbContext dbContext = CreateDbContext();
+            var repository = new CityStockpileRepository(dbContext);
+            CityStockpileState state = CreateState();
 
-        await repository.AddAsync(state, CancellationToken.None);
-        await dbContext.SaveChangesAsync();
+            await repository.AddAsync(
+                state: state,
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
 
-        var loaded = await repository.GetBySimulationHostIdAsync(CreateHostId(), CancellationToken.None);
+            CityStockpileState? loaded = await repository.GetBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(loaded);
-        Assert.Equal(CreateHostId(), loaded!.SimulationHostId);
-        Assert.Equal(state.LastAppliedTickId, loaded.LastAppliedTickId);
-        Assert.Equal(state.SupplyStressIndex, loaded.SupplyStressIndex);
-    }
+            Assert.NotNull(loaded);
+            Assert.Equal(
+                expected: CreateHostId(),
+                actual: loaded!.SimulationHostId);
+            Assert.Equal(
+                expected: state.LastAppliedTickId,
+                actual: loaded.LastAppliedTickId);
+            Assert.Equal(
+                expected: state.SupplyStressIndex,
+                actual: loaded.SupplyStressIndex);
+        }
 
-    [Fact]
-    public async Task GetBySimulationHostIdAsync_ReturnsNullWhenStateDoesNotExist()
-    {
-        await using var dbContext = CreateDbContext();
-        var repository = new CityStockpileRepository(dbContext);
+        [Fact]
+        public async Task GetBySimulationHostIdAsync_ReturnsNullWhenStateDoesNotExist()
+        {
+            await using ResourcesDbContext dbContext = CreateDbContext();
+            var repository = new CityStockpileRepository(dbContext);
 
-        var loaded = await repository.GetBySimulationHostIdAsync(CreateHostId(), CancellationToken.None);
+            CityStockpileState? loaded = await repository.GetBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Null(loaded);
+            Assert.Null(loaded);
+        }
     }
 }

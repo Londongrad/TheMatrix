@@ -44,16 +44,16 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 request: new ResolveCityRoutesBatchQuery(
                     CityId: cityId,
                     Routes: (request.Routes ?? [])
-                       .Select((
-                            route,
-                            index) => new ResolveCityRoutesBatchQueryItem(
-                            Index: index,
-                            FromKind: route.From.Kind,
-                            FromId: route.From.Id,
-                            ToKind: route.To.Kind,
-                            ToId: route.To.Id,
-                            Profile: route.Profile))
-                       .ToArray()),
+                   .Select((
+                        route,
+                        index) => new ResolveCityRoutesBatchQueryItem(
+                        Index: index,
+                        FromKind: route.From.Kind,
+                        FromId: route.From.Id,
+                        ToKind: route.To.Kind,
+                        ToId: route.To.Id,
+                        Profile: route.Profile))
+                   .ToArray()),
                 cancellationToken: cancellationToken);
 
             return Results.Ok(

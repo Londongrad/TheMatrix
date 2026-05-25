@@ -5,58 +5,77 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities;
-
-public sealed class CityInitialWeatherProfileTests
+namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
 {
-    private const string InvalidEnumErrorCode = "Domain.Guard.InvalidEnum";
-
-    [Fact]
-    public void CreateRandom_SetsRandomModeWithoutManualValues()
+    public sealed class CityInitialWeatherProfileTests
     {
-        var profile = CityInitialWeatherProfile.CreateRandom();
+        private const string InvalidEnumErrorCode = "Domain.Guard.InvalidEnum";
 
-        Assert.Equal(InitialWeatherMode.Random, profile.Mode);
-        Assert.Null(profile.ManualType);
-        Assert.Null(profile.ManualSeverity);
-        Assert.Null(profile.ManualTemperature);
-    }
+        [Fact]
+        public void CreateRandom_SetsRandomModeWithoutManualValues()
+        {
+            var profile = CityInitialWeatherProfile.CreateRandom();
 
-    [Fact]
-    public void CreateManual_SetsManualModeAndValues()
-    {
-        var temperature = TemperatureC.From(12m);
+            Assert.Equal(
+                expected: InitialWeatherMode.Random,
+                actual: profile.Mode);
+            Assert.Null(profile.ManualType);
+            Assert.Null(profile.ManualSeverity);
+            Assert.Null(profile.ManualTemperature);
+        }
 
-        var profile = CityInitialWeatherProfile.CreateManual(
-            manualType: WeatherType.Rain,
-            manualSeverity: WeatherSeverity.Moderate,
-            manualTemperature: temperature);
+        [Fact]
+        public void CreateManual_SetsManualModeAndValues()
+        {
+            var temperature = TemperatureC.From(12m);
 
-        Assert.Equal(InitialWeatherMode.Manual, profile.Mode);
-        Assert.Equal(WeatherType.Rain, profile.ManualType);
-        Assert.Equal(WeatherSeverity.Moderate, profile.ManualSeverity);
-        Assert.Equal(temperature, profile.ManualTemperature);
-    }
+            var profile = CityInitialWeatherProfile.CreateManual(
+                manualType: WeatherType.Rain,
+                manualSeverity: WeatherSeverity.Moderate,
+                manualTemperature: temperature);
 
-    [Fact]
-    public void CreateManual_WithInvalidWeatherType_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => CityInitialWeatherProfile.CreateManual(
-            manualType: (WeatherType)999,
-            manualSeverity: WeatherSeverity.Moderate));
+            Assert.Equal(
+                expected: InitialWeatherMode.Manual,
+                actual: profile.Mode);
+            Assert.Equal(
+                expected: WeatherType.Rain,
+                actual: profile.ManualType);
+            Assert.Equal(
+                expected: WeatherSeverity.Moderate,
+                actual: profile.ManualSeverity);
+            Assert.Equal(
+                expected: temperature,
+                actual: profile.ManualTemperature);
+        }
 
-        Assert.Equal(InvalidEnumErrorCode, exception.Code);
-        Assert.Equal("manualType", exception.PropertyName);
-    }
+        [Fact]
+        public void CreateManual_WithInvalidWeatherType_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => CityInitialWeatherProfile.CreateManual(
+                manualType: (WeatherType)999,
+                manualSeverity: WeatherSeverity.Moderate));
 
-    [Fact]
-    public void CreateManual_WithInvalidWeatherSeverity_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => CityInitialWeatherProfile.CreateManual(
-            manualType: WeatherType.Rain,
-            manualSeverity: (WeatherSeverity)999));
+            Assert.Equal(
+                expected: InvalidEnumErrorCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "manualType",
+                actual: exception.PropertyName);
+        }
 
-        Assert.Equal(InvalidEnumErrorCode, exception.Code);
-        Assert.Equal("manualSeverity", exception.PropertyName);
+        [Fact]
+        public void CreateManual_WithInvalidWeatherSeverity_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => CityInitialWeatherProfile.CreateManual(
+                manualType: WeatherType.Rain,
+                manualSeverity: (WeatherSeverity)999));
+
+            Assert.Equal(
+                expected: InvalidEnumErrorCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "manualSeverity",
+                actual: exception.PropertyName);
+        }
     }
 }

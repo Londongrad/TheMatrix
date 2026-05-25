@@ -1,10 +1,10 @@
 import {useEffect} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import type {
-    DashboardBudgetPressureView,
-    DashboardEnvironmentalAlertView,
     CityOperationsDashboardView,
+    DashboardBudgetPressureView,
     DashboardDistrictResponsePriorityView,
+    DashboardEnvironmentalAlertView,
     DashboardMetricView,
     DashboardMobilityView,
     DashboardPeriodComparisonRowView,
@@ -14,7 +14,9 @@ import type {
     DashboardServiceHealthView,
     DashboardTickFreshnessView,
 } from "@services/simulationcore/dashboard/api/dashboardTypes";
-import {useCityOperationsDashboardQuery} from "@services/simulationcore/dashboard/hooks/useCityOperationsDashboardQuery";
+import {
+    useCityOperationsDashboardQuery
+} from "@services/simulationcore/dashboard/hooks/useCityOperationsDashboardQuery";
 import type {CityListItemView} from "@services/simulationcore/scenarios/classic-city/contracts/citiesContracts";
 import {
     describeCityLifecycle,
@@ -924,7 +926,8 @@ function DashboardContent({
                         <div>
                             <h2 className="dashboard-panel__title">Environmental fronts</h2>
                             <p className="dashboard-panel__subtitle">
-                                Cities where environmental and utility conditions are currently pushing the highest alert score.
+                                Cities where environmental and utility conditions are currently pushing the highest
+                                alert score.
                             </p>
                         </div>
                         <span className="settings-pill">{dashboard.environmentalCities.length}</span>
@@ -950,7 +953,8 @@ function DashboardContent({
                         <div>
                             <h2 className="dashboard-panel__title">District social pressure</h2>
                             <p className="dashboard-panel__subtitle">
-                                The hardest-hit districts by population wellbeing, illness load, housing fragility, and local utility continuity.
+                                The hardest-hit districts by population wellbeing, illness load, housing fragility, and
+                                local utility continuity.
                             </p>
                         </div>
                         <span className="settings-pill">{dashboard.populationDistrictCities.length}</span>

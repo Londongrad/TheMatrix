@@ -1,186 +1,311 @@
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
+using Matrix.Identity.Application.UseCases.Self.Auth.LoginUser;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.LoginUser;
-
-public sealed class LoginUserHandlerSuccessTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.LoginUser
 {
-    [Fact]
-    public async Task Handle_WhenNoActiveSession_CreatesSessionIssuesTokensAndWritesSuccessAudit()
+    public sealed class LoginUserHandlerSuccessTests
     {
-        var user = LoginUserHandlerTestSupport.CreateUser();
-        var userRepository = new LoginUserHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenNoActiveSession_CreatesSessionIssuesTokensAndWritesSuccessAudit()
         {
-            UserByEmail = user
-        };
-        var userSessionRepository = new LoginUserHandlerTestSupport.FakeUserSessionRepository();
-        var passwordHasher = new LoginUserHandlerTestSupport.FakePasswordHasher();
-        var accessTokenService = new LoginUserHandlerTestSupport.FakeAccessTokenService();
-        var refreshTokenProvider = new LoginUserHandlerTestSupport.FakeRefreshTokenProvider();
-        var geoLocationService = new LoginUserHandlerTestSupport.FakeGeoLocationService
+            User user = LoginUserHandlerTestSupport.CreateUser();
+            var userRepository = new LoginUserHandlerTestSupport.FakeUserRepository
+            {
+                UserByEmail = user
+            };
+            var userSessionRepository = new LoginUserHandlerTestSupport.FakeUserSessionRepository();
+            var passwordHasher = new LoginUserHandlerTestSupport.FakePasswordHasher();
+            var accessTokenService = new LoginUserHandlerTestSupport.FakeAccessTokenService();
+            var refreshTokenProvider = new LoginUserHandlerTestSupport.FakeRefreshTokenProvider();
+            var geoLocationService = new LoginUserHandlerTestSupport.FakeGeoLocationService
+            {
+                Result = LoginUserHandlerTestSupport.CreateGeoLocation()
+            };
+            var unitOfWork = new LoginUserHandlerTestSupport.FakeUnitOfWork();
+            var permissionsService = new LoginUserHandlerTestSupport.FakeEffectivePermissionsService();
+            var securityAuditService = new LoginUserHandlerTestSupport.FakeSecurityAuditService();
+            LoginUserCommandHandler handler = LoginUserHandlerTestSupport.CreateHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                passwordHasher: passwordHasher,
+                accessTokenService: accessTokenService,
+                refreshTokenProvider: refreshTokenProvider,
+                geoLocationService: geoLocationService,
+                unitOfWork: unitOfWork,
+                permissionsService: permissionsService,
+                securityAuditService: securityAuditService);
+
+            LoginUserResult result = await handler.Handle(
+                request: LoginUserHandlerTestSupport.CreateCommand(
+                    login: " Neo@Matrix.Local ",
+                    ipAddress: "203.0.113.5",
+                    rememberMe: true),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: "neo@matrix.local",
+                actual: userRepository.RequestedEmail);
+            UserSession session = Assert.Single(userSessionRepository.AddedSessions);
+            Assert.Equal(
+                expected: user.Id,
+                actual: session.UserId);
+            Assert.Equal(
+                expected: LoginUserHandlerTestSupport.UtcNow,
+                actual: session.CreatedAtUtc);
+            Assert.Equal(
+                expected: "device-1",
+                actual: session.DeviceInfo.DeviceId);
+            Assert.Equal(
+                expected: "Phone",
+                actual: session.DeviceInfo.DeviceName);
+            Assert.Equal(
+                expected: "Mozilla/5.0",
+                actual: session.DeviceInfo.UserAgent);
+            Assert.Equal(
+                expected: "203.0.113.5",
+                actual: session.DeviceInfo.IpAddress);
+            Assert.Equal(
+                expected: refreshTokenProvider.Result.ExpiresAtUtc,
+                actual: session.RefreshTokenExpiresAtUtc);
+            Assert.True(session.IsPersistent);
+            Assert.Equal(
+                expected: new[]
+                {
+                    "203.0.113.5"
+                },
+                actual: geoLocationService.RequestedIpAddresses);
+            Assert.Equal(
+                expected: new[]
+                {
+                    user.Id
+                },
+                actual: permissionsService.RequestedUserIds);
+            Assert.Equal(
+                expected: user.Id,
+                actual: accessTokenService.RequestedUserId);
+            Assert.Equal(
+                expected: permissionsService.Result.PermissionsVersion,
+                actual: accessTokenService.RequestedPermissionsVersion);
+            Assert.Equal(
+                expected: session.Id,
+                actual: accessTokenService.RequestedSessionId);
+            Assert.True(refreshTokenProvider.RequestedRememberMe);
+            Assert.Equal(
+                expected: accessTokenService.Result.Token,
+                actual: result.AccessToken);
+            Assert.Equal(
+                expected: accessTokenService.Result.TokenType,
+                actual: result.TokenType);
+            Assert.Equal(
+                expected: accessTokenService.Result.ExpiresInSeconds,
+                actual: result.AccessTokenExpiresInSeconds);
+            Assert.Equal(
+                expected: refreshTokenProvider.Result.Token,
+                actual: result.RefreshToken);
+            Assert.Equal(
+                expected: refreshTokenProvider.Result.ExpiresAtUtc,
+                actual: result.RefreshTokenExpiresAtUtc);
+            Assert.True(result.IsPersistent);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.True(audit.IsSuccessful);
+            Assert.Equal(
+                expected: SecurityAuditEventType.Login,
+                actual: audit.EventType);
+            Assert.Equal(
+                expected: user.Id,
+                actual: audit.UserId);
+            Assert.Equal(
+                expected: session.Id,
+                actual: audit.SessionId);
+            Assert.Equal(
+                expected: "neo@matrix.local",
+                actual: audit.Subject);
+            Assert.Null(audit.Details);
+
+            Domain.Entities.RefreshToken refreshToken = Assert.Single(user.RefreshTokens);
+            Assert.Equal(
+                expected: session.Id,
+                actual: refreshToken.SessionId);
+            Assert.Equal(
+                expected: refreshTokenProvider.Result.TokenHash,
+                actual: refreshToken.TokenHash);
+            Assert.Equal(
+                expected: LoginUserHandlerTestSupport.UtcNow,
+                actual: refreshToken.CreatedAtUtc);
+            Assert.False(refreshToken.IsRevoked);
+        }
+
+        [Fact]
+        public async Task Handle_WhenActiveSessionExists_ReusesSessionRehashesPasswordAndRevokesSameDeviceState()
         {
-            Result = LoginUserHandlerTestSupport.CreateGeoLocation()
-        };
-        var unitOfWork = new LoginUserHandlerTestSupport.FakeUnitOfWork();
-        var permissionsService = new LoginUserHandlerTestSupport.FakeEffectivePermissionsService();
-        var securityAuditService = new LoginUserHandlerTestSupport.FakeSecurityAuditService();
-        var handler = LoginUserHandlerTestSupport.CreateHandler(
-            userRepository,
-            userSessionRepository,
-            passwordHasher,
-            accessTokenService,
-            refreshTokenProvider,
-            geoLocationService,
-            unitOfWork,
-            permissionsService,
-            securityAuditService);
+            User user = LoginUserHandlerTestSupport.CreateUser(
+                username: "neo",
+                passwordHash: "old-hash");
+            UserSession currentSession = LoginUserHandlerTestSupport.CreateSession(
+                user: user,
+                deviceId: "device-1",
+                deviceName: "Phone",
+                ipAddress: "127.0.0.1",
+                isPersistent: true);
+            UserSession replacedSession = LoginUserHandlerTestSupport.CreateSession(
+                user: user,
+                deviceId: "device-1",
+                deviceName: "Tablet",
+                ipAddress: "127.0.0.2",
+                isPersistent: true);
+            UserSession otherDeviceSession = LoginUserHandlerTestSupport.CreateSession(
+                user: user,
+                deviceId: "device-2",
+                deviceName: "Desktop",
+                ipAddress: "127.0.0.3",
+                isPersistent: true);
+            var userSessionRepository = new LoginUserHandlerTestSupport.FakeUserSessionRepository();
+            userSessionRepository.Sessions.AddRange(
+                new[]
+                {
+                    currentSession,
+                    replacedSession,
+                    otherDeviceSession
+                });
+            LoginUserHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: currentSession.Id,
+                tokenHash: "existing-keep",
+                deviceId: "device-1");
+            LoginUserHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: replacedSession.Id,
+                tokenHash: "existing-revoke",
+                deviceId: "device-1");
+            LoginUserHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: otherDeviceSession.Id,
+                tokenHash: "other-device",
+                deviceId: "device-2");
 
-        var result = await handler.Handle(
-            LoginUserHandlerTestSupport.CreateCommand(login: " Neo@Matrix.Local ", ipAddress: "203.0.113.5", rememberMe: true),
-            CancellationToken.None);
+            var userRepository = new LoginUserHandlerTestSupport.FakeUserRepository
+            {
+                UserByUsername = user
+            };
+            var passwordHasher = new LoginUserHandlerTestSupport.FakePasswordHasher
+            {
+                VerifyOutcome = PasswordVerificationOutcome.SuccessRehashNeeded
+            };
+            var accessTokenService = new LoginUserHandlerTestSupport.FakeAccessTokenService();
+            var refreshTokenProvider = new LoginUserHandlerTestSupport.FakeRefreshTokenProvider();
+            var geoLocationService = new LoginUserHandlerTestSupport.FakeGeoLocationService();
+            var unitOfWork = new LoginUserHandlerTestSupport.FakeUnitOfWork();
+            var permissionsService = new LoginUserHandlerTestSupport.FakeEffectivePermissionsService();
+            var securityAuditService = new LoginUserHandlerTestSupport.FakeSecurityAuditService();
+            LoginUserCommandHandler handler = LoginUserHandlerTestSupport.CreateHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                passwordHasher: passwordHasher,
+                accessTokenService: accessTokenService,
+                refreshTokenProvider: refreshTokenProvider,
+                geoLocationService: geoLocationService,
+                unitOfWork: unitOfWork,
+                permissionsService: permissionsService,
+                securityAuditService: securityAuditService);
 
-        Assert.Equal("neo@matrix.local", userRepository.RequestedEmail);
-        var session = Assert.Single(userSessionRepository.AddedSessions);
-        Assert.Equal(user.Id, session.UserId);
-        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, session.CreatedAtUtc);
-        Assert.Equal("device-1", session.DeviceInfo.DeviceId);
-        Assert.Equal("Phone", session.DeviceInfo.DeviceName);
-        Assert.Equal("Mozilla/5.0", session.DeviceInfo.UserAgent);
-        Assert.Equal("203.0.113.5", session.DeviceInfo.IpAddress);
-        Assert.Equal(refreshTokenProvider.Result.ExpiresAtUtc, session.RefreshTokenExpiresAtUtc);
-        Assert.True(session.IsPersistent);
-        Assert.Equal(new[] { "203.0.113.5" }, geoLocationService.RequestedIpAddresses);
-        Assert.Equal(new[] { user.Id }, permissionsService.RequestedUserIds);
-        Assert.Equal(user.Id, accessTokenService.RequestedUserId);
-        Assert.Equal(permissionsService.Result.PermissionsVersion, accessTokenService.RequestedPermissionsVersion);
-        Assert.Equal(session.Id, accessTokenService.RequestedSessionId);
-        Assert.True(refreshTokenProvider.RequestedRememberMe);
-        Assert.Equal(accessTokenService.Result.Token, result.AccessToken);
-        Assert.Equal(accessTokenService.Result.TokenType, result.TokenType);
-        Assert.Equal(accessTokenService.Result.ExpiresInSeconds, result.AccessTokenExpiresInSeconds);
-        Assert.Equal(refreshTokenProvider.Result.Token, result.RefreshToken);
-        Assert.Equal(refreshTokenProvider.Result.ExpiresAtUtc, result.RefreshTokenExpiresAtUtc);
-        Assert.True(result.IsPersistent);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-        var audit = Assert.Single(securityAuditService.Entries);
-        Assert.True(audit.IsSuccessful);
-        Assert.Equal(SecurityAuditEventType.Login, audit.EventType);
-        Assert.Equal(user.Id, audit.UserId);
-        Assert.Equal(session.Id, audit.SessionId);
-        Assert.Equal("neo@matrix.local", audit.Subject);
-        Assert.Null(audit.Details);
+            LoginUserResult result = await handler.Handle(
+                request: LoginUserHandlerTestSupport.CreateCommand(
+                    login: "neo",
+                    ipAddress: null,
+                    rememberMe: false),
+                cancellationToken: CancellationToken.None);
 
-        var refreshToken = Assert.Single(user.RefreshTokens);
-        Assert.Equal(session.Id, refreshToken.SessionId);
-        Assert.Equal(refreshTokenProvider.Result.TokenHash, refreshToken.TokenHash);
-        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, refreshToken.CreatedAtUtc);
-        Assert.False(refreshToken.IsRevoked);
-    }
+            Assert.Equal(
+                expected: "neo",
+                actual: userRepository.RequestedUsername);
+            Assert.Empty(userSessionRepository.AddedSessions);
+            Assert.Equal(
+                expected: LoginUserHandlerTestSupport.UtcNow,
+                actual: currentSession.LastUsedAtUtc);
+            Assert.Equal(
+                expected: refreshTokenProvider.Result.ExpiresAtUtc,
+                actual: currentSession.RefreshTokenExpiresAtUtc);
+            Assert.False(currentSession.IsPersistent);
+            Assert.True(replacedSession.IsRevoked);
+            Assert.Equal(
+                expected: LoginUserHandlerTestSupport.UtcNow,
+                actual: replacedSession.RevokedAtUtc);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.SessionReplaced,
+                actual: replacedSession.RevokedReason);
+            Assert.False(otherDeviceSession.IsRevoked);
+            Assert.Equal(
+                expected: "hash::Pa$$w0rd",
+                actual: user.PasswordHash);
+            Assert.Equal(
+                expected: new[]
+                {
+                    "Pa$$w0rd"
+                },
+                actual: passwordHasher.HashedPasswords);
+            Assert.Empty(geoLocationService.RequestedIpAddresses);
+            Assert.Equal(
+                expected: currentSession.Id,
+                actual: accessTokenService.RequestedSessionId);
+            Assert.Equal(
+                expected: user.Id,
+                actual: accessTokenService.RequestedUserId);
+            Assert.False(refreshTokenProvider.RequestedRememberMe);
+            Assert.Equal(
+                expected: refreshTokenProvider.Result.Token,
+                actual: result.RefreshToken);
+            Assert.False(result.IsPersistent);
 
-    [Fact]
-    public async Task Handle_WhenActiveSessionExists_ReusesSessionRehashesPasswordAndRevokesSameDeviceState()
-    {
-        var user = LoginUserHandlerTestSupport.CreateUser(username: "neo", passwordHash: "old-hash");
-        var currentSession = LoginUserHandlerTestSupport.CreateSession(
-            user,
-            deviceId: "device-1",
-            deviceName: "Phone",
-            ipAddress: "127.0.0.1",
-            isPersistent: true);
-        var replacedSession = LoginUserHandlerTestSupport.CreateSession(
-            user,
-            deviceId: "device-1",
-            deviceName: "Tablet",
-            ipAddress: "127.0.0.2",
-            isPersistent: true);
-        var otherDeviceSession = LoginUserHandlerTestSupport.CreateSession(
-            user,
-            deviceId: "device-2",
-            deviceName: "Desktop",
-            ipAddress: "127.0.0.3",
-            isPersistent: true);
-        var userSessionRepository = new LoginUserHandlerTestSupport.FakeUserSessionRepository();
-        userSessionRepository.Sessions.AddRange(new[]
-        {
-            currentSession,
-            replacedSession,
-            otherDeviceSession
-        });
-        LoginUserHandlerTestSupport.SeedRefreshToken(user, currentSession.Id, "existing-keep", deviceId: "device-1");
-        LoginUserHandlerTestSupport.SeedRefreshToken(user, replacedSession.Id, "existing-revoke", deviceId: "device-1");
-        LoginUserHandlerTestSupport.SeedRefreshToken(user, otherDeviceSession.Id, "other-device", deviceId: "device-2");
+            Domain.Entities.RefreshToken existingCurrentToken = Assert.Single(
+                collection: user.RefreshTokens,
+                predicate: x => x.TokenHash == "existing-keep");
+            Domain.Entities.RefreshToken existingReplacedToken = Assert.Single(
+                collection: user.RefreshTokens,
+                predicate: x => x.TokenHash == "existing-revoke");
+            Domain.Entities.RefreshToken otherDeviceToken = Assert.Single(
+                collection: user.RefreshTokens,
+                predicate: x => x.TokenHash == "other-device");
+            Domain.Entities.RefreshToken newToken = Assert.Single(
+                collection: user.RefreshTokens,
+                predicate: x => x.TokenHash == refreshTokenProvider.Result.TokenHash);
+            Assert.True(existingCurrentToken.IsRevoked);
+            Assert.Equal(
+                expected: LoginUserHandlerTestSupport.UtcNow,
+                actual: existingCurrentToken.RevokedAtUtc);
+            Assert.True(existingReplacedToken.IsRevoked);
+            Assert.Equal(
+                expected: LoginUserHandlerTestSupport.UtcNow,
+                actual: existingReplacedToken.RevokedAtUtc);
+            Assert.False(otherDeviceToken.IsRevoked);
+            Assert.False(newToken.IsRevoked);
+            Assert.Equal(
+                expected: LoginUserHandlerTestSupport.UtcNow,
+                actual: newToken.CreatedAtUtc);
+            Assert.Equal(
+                expected: currentSession.Id,
+                actual: newToken.SessionId);
 
-        var userRepository = new LoginUserHandlerTestSupport.FakeUserRepository
-        {
-            UserByUsername = user
-        };
-        var passwordHasher = new LoginUserHandlerTestSupport.FakePasswordHasher
-        {
-            VerifyOutcome = PasswordVerificationOutcome.SuccessRehashNeeded
-        };
-        var accessTokenService = new LoginUserHandlerTestSupport.FakeAccessTokenService();
-        var refreshTokenProvider = new LoginUserHandlerTestSupport.FakeRefreshTokenProvider();
-        var geoLocationService = new LoginUserHandlerTestSupport.FakeGeoLocationService();
-        var unitOfWork = new LoginUserHandlerTestSupport.FakeUnitOfWork();
-        var permissionsService = new LoginUserHandlerTestSupport.FakeEffectivePermissionsService();
-        var securityAuditService = new LoginUserHandlerTestSupport.FakeSecurityAuditService();
-        var handler = LoginUserHandlerTestSupport.CreateHandler(
-            userRepository,
-            userSessionRepository,
-            passwordHasher,
-            accessTokenService,
-            refreshTokenProvider,
-            geoLocationService,
-            unitOfWork,
-            permissionsService,
-            securityAuditService);
-
-        var result = await handler.Handle(
-            LoginUserHandlerTestSupport.CreateCommand(
-                login: "neo",
-                ipAddress: null,
-                rememberMe: false),
-            CancellationToken.None);
-
-        Assert.Equal("neo", userRepository.RequestedUsername);
-        Assert.Empty(userSessionRepository.AddedSessions);
-        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, currentSession.LastUsedAtUtc);
-        Assert.Equal(refreshTokenProvider.Result.ExpiresAtUtc, currentSession.RefreshTokenExpiresAtUtc);
-        Assert.False(currentSession.IsPersistent);
-        Assert.True(replacedSession.IsRevoked);
-        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, replacedSession.RevokedAtUtc);
-        Assert.Equal(RefreshTokenRevocationReason.SessionReplaced, replacedSession.RevokedReason);
-        Assert.False(otherDeviceSession.IsRevoked);
-        Assert.Equal("hash::Pa$$w0rd", user.PasswordHash);
-        Assert.Equal(new[] { "Pa$$w0rd" }, passwordHasher.HashedPasswords);
-        Assert.Empty(geoLocationService.RequestedIpAddresses);
-        Assert.Equal(currentSession.Id, accessTokenService.RequestedSessionId);
-        Assert.Equal(user.Id, accessTokenService.RequestedUserId);
-        Assert.False(refreshTokenProvider.RequestedRememberMe);
-        Assert.Equal(refreshTokenProvider.Result.Token, result.RefreshToken);
-        Assert.False(result.IsPersistent);
-
-        var existingCurrentToken = Assert.Single(user.RefreshTokens, x => x.TokenHash == "existing-keep");
-        var existingReplacedToken = Assert.Single(user.RefreshTokens, x => x.TokenHash == "existing-revoke");
-        var otherDeviceToken = Assert.Single(user.RefreshTokens, x => x.TokenHash == "other-device");
-        var newToken = Assert.Single(user.RefreshTokens, x => x.TokenHash == refreshTokenProvider.Result.TokenHash);
-        Assert.True(existingCurrentToken.IsRevoked);
-        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, existingCurrentToken.RevokedAtUtc);
-        Assert.True(existingReplacedToken.IsRevoked);
-        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, existingReplacedToken.RevokedAtUtc);
-        Assert.False(otherDeviceToken.IsRevoked);
-        Assert.False(newToken.IsRevoked);
-        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, newToken.CreatedAtUtc);
-        Assert.Equal(currentSession.Id, newToken.SessionId);
-
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-        var audit = Assert.Single(securityAuditService.Entries);
-        Assert.True(audit.IsSuccessful);
-        Assert.Equal(user.Id, audit.UserId);
-        Assert.Equal(currentSession.Id, audit.SessionId);
-        Assert.Equal("neo", audit.Subject);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.True(audit.IsSuccessful);
+            Assert.Equal(
+                expected: user.Id,
+                actual: audit.UserId);
+            Assert.Equal(
+                expected: currentSession.Id,
+                actual: audit.SessionId);
+            Assert.Equal(
+                expected: "neo",
+                actual: audit.Subject);
+        }
     }
 }

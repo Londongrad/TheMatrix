@@ -48,7 +48,6 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
                 cancellationToken: context.CancellationToken);
 
             if (entry is null)
-            {
                 logger.LogDebug(
                     message:
                     "Skipped duplicate classic city operational expense for cityId={CityId}, expenseId={ExpenseId}, sourceService={SourceService}, operationKind={OperationKind}; republishing current budget pressure snapshot.",
@@ -56,7 +55,6 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
                     message.ExpenseId,
                     message.SourceService,
                     message.OperationKind);
-            }
             else
             {
                 BudgetLedgerEntryDto recordedEntry = entry;

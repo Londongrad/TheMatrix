@@ -1,5 +1,4 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -38,13 +37,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             financialStressByHouseholdId.TryGetValue(
                 key: person.HouseholdId,
                 value: out CityPopulationHouseholdFinancialStressState? financialStressState);
-            CityHouseholdCommutePressureProfile? commutePressureProfile = await HouseholdCommutePressureProfileBuilder.BuildAsync(
-                cityId: cityId,
-                householdId: person.HouseholdId,
-                householdResidents: householdResidents,
-                residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
-                commuteRoutingService: commuteRoutingService,
-                cancellationToken: cancellationToken);
+            CityHouseholdCommutePressureProfile? commutePressureProfile =
+                await HouseholdCommutePressureProfileBuilder.BuildAsync(
+                    cityId: cityId,
+                    householdId: person.HouseholdId,
+                    householdResidents: householdResidents,
+                    residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
+                    commuteRoutingService: commuteRoutingService,
+                    cancellationToken: cancellationToken);
 
             return householdPressurePolicy.Apply(
                 resident: person,

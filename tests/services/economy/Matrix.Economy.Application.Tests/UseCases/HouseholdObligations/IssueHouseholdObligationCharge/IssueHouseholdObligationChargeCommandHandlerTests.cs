@@ -1,4 +1,3 @@
-using Matrix.Economy.Application.Tests.TestSupport;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.IssueHouseholdObligationCharge;
@@ -7,78 +6,131 @@ using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.HouseholdObligations.IssueHouseholdObligationCharge;
-
-public sealed class IssueHouseholdObligationChargeCommandHandlerTests
+namespace Matrix.Economy.Application.Tests.UseCases.HouseholdObligations.IssueHouseholdObligationCharge
 {
-    [Fact]
-    public async Task Handle_ChargesObligationAndSavesChanges()
+    public sealed class IssueHouseholdObligationChargeCommandHandlerTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        CityHouseholdAccount householdAccount = CreateHouseholdAccount(cityId, "Tenant Household", 300m);
-        CityBusiness providerBusiness = CreateBusiness(cityId, "Landlord", CityBusinessKind.Landlord, 500m);
-        CityHouseholdObligation obligation = CreateHouseholdObligation(
-            cityId,
-            householdAccount.Id,
-            providerBusiness.Id,
-            "Monthly Rent",
-            CityHouseholdObligationKind.Rent,
-            CityHouseholdObligationBillingCadence.Monthly,
-            80m,
-            8m);
-        var obligationRepository = new FakeCityHouseholdObligationRepository { Obligations = [obligation] };
-        var householdAccountRepository = new FakeCityHouseholdAccountRepository { Accounts = [householdAccount] };
-        var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
-        var businessRepository = new FakeCityBusinessRepository { Businesses = [providerBusiness] };
-        var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
-        var timeProvider = new FrozenTimeProvider(new DateTimeOffset(2048, 5, 7, 10, 0, 0, TimeSpan.Zero));
-        var chargeSupport = new HouseholdObligationChargeSupport(
-            householdAccountRepository,
-            householdLedgerRepository,
-            businessRepository,
-            businessLedgerRepository,
-            timeProvider);
-        var unitOfWork = new FakeEconomyUnitOfWork();
-        var handler = new IssueHouseholdObligationChargeCommandHandler(
-            obligationRepository,
-            chargeSupport,
-            unitOfWork);
-        var command = new IssueHouseholdObligationChargeCommand(
-            ObligationId: obligation.Id,
-            Description: "Scheduled charge");
+        [Fact]
+        public async Task Handle_ChargesObligationAndSavesChanges()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityHouseholdAccount householdAccount = CreateHouseholdAccount(
+                cityId: cityId,
+                name: "Tenant Household",
+                openingBalance: 300m);
+            CityBusiness providerBusiness = CreateBusiness(
+                cityId: cityId,
+                name: "Landlord",
+                kind: CityBusinessKind.Landlord,
+                initialCapital: 500m);
+            CityHouseholdObligation obligation = CreateHouseholdObligation(
+                cityId: cityId,
+                householdAccountId: householdAccount.Id,
+                providerBusinessId: providerBusiness.Id,
+                name: "Monthly Rent",
+                kind: CityHouseholdObligationKind.Rent,
+                cadence: CityHouseholdObligationBillingCadence.Monthly,
+                chargeAmount: 80m,
+                taxAmount: 8m);
+            var obligationRepository = new FakeCityHouseholdObligationRepository
+            {
+                Obligations = [obligation]
+            };
+            var householdAccountRepository = new FakeCityHouseholdAccountRepository
+            {
+                Accounts = [householdAccount]
+            };
+            var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
+            var businessRepository = new FakeCityBusinessRepository
+            {
+                Businesses = [providerBusiness]
+            };
+            var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
+            var timeProvider = new FrozenTimeProvider(
+                new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 7,
+                    hour: 10,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero));
+            var chargeSupport = new HouseholdObligationChargeSupport(
+                householdAccountRepository: householdAccountRepository,
+                householdLedgerRepository: householdLedgerRepository,
+                businessRepository: businessRepository,
+                businessLedgerRepository: businessLedgerRepository,
+                timeProvider: timeProvider);
+            var unitOfWork = new FakeEconomyUnitOfWork();
+            var handler = new IssueHouseholdObligationChargeCommandHandler(
+                obligationRepository: obligationRepository,
+                chargeSupport: chargeSupport,
+                unitOfWork: unitOfWork);
+            var command = new IssueHouseholdObligationChargeCommand(
+                ObligationId: obligation.Id,
+                Description: "Scheduled charge");
 
-        CityHouseholdAccountLedgerEntryDto result = await handler.Handle(command, CancellationToken.None);
+            CityHouseholdAccountLedgerEntryDto result = await handler.Handle(
+                request: command,
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
-        Assert.Equal("ObligationCharge", result.Kind);
-        Assert.Equal("Obligation", result.Source);
-        Assert.Equal(80m, result.Amount);
-        Assert.Equal(obligation.Id.ToString("N"), result.ReferenceCode);
-        Assert.Single(householdLedgerRepository.AddedEntries);
-        Assert.Single(businessLedgerRepository.AddedEntries);
-    }
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: "ObligationCharge",
+                actual: result.Kind);
+            Assert.Equal(
+                expected: "Obligation",
+                actual: result.Source);
+            Assert.Equal(
+                expected: 80m,
+                actual: result.Amount);
+            Assert.Equal(
+                expected: obligation.Id.ToString("N"),
+                actual: result.ReferenceCode);
+            Assert.Single(householdLedgerRepository.AddedEntries);
+            Assert.Single(businessLedgerRepository.AddedEntries);
+        }
 
-    [Fact]
-    public async Task Handle_ThrowsWhenObligationIsMissing()
-    {
-        var obligationRepository = new FakeCityHouseholdObligationRepository();
-        var chargeSupport = new HouseholdObligationChargeSupport(
-            new FakeCityHouseholdAccountRepository(),
-            new FakeCityHouseholdAccountLedgerRepository(),
-            new FakeCityBusinessRepository(),
-            new FakeCityBusinessLedgerRepository(),
-            new FrozenTimeProvider(new DateTimeOffset(2048, 5, 7, 10, 0, 0, TimeSpan.Zero)));
-        var unitOfWork = new FakeEconomyUnitOfWork();
-        var handler = new IssueHouseholdObligationChargeCommandHandler(
-            obligationRepository,
-            chargeSupport,
-            unitOfWork);
-        var obligationId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task Handle_ThrowsWhenObligationIsMissing()
+        {
+            var obligationRepository = new FakeCityHouseholdObligationRepository();
+            var chargeSupport = new HouseholdObligationChargeSupport(
+                householdAccountRepository: new FakeCityHouseholdAccountRepository(),
+                householdLedgerRepository: new FakeCityHouseholdAccountLedgerRepository(),
+                businessRepository: new FakeCityBusinessRepository(),
+                businessLedgerRepository: new FakeCityBusinessLedgerRepository(),
+                timeProvider: new FrozenTimeProvider(
+                    new DateTimeOffset(
+                        year: 2048,
+                        month: 5,
+                        day: 7,
+                        hour: 10,
+                        minute: 0,
+                        second: 0,
+                        offset: TimeSpan.Zero)));
+            var unitOfWork = new FakeEconomyUnitOfWork();
+            var handler = new IssueHouseholdObligationChargeCommandHandler(
+                obligationRepository: obligationRepository,
+                chargeSupport: chargeSupport,
+                unitOfWork: unitOfWork);
+            var obligationId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => handler.Handle(new IssueHouseholdObligationChargeCommand(obligationId, null), CancellationToken.None));
+            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(()
+                => handler.Handle(
+                    request: new IssueHouseholdObligationChargeCommand(
+                        ObligationId: obligationId,
+                        Description: null),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal($"Obligation '{obligationId}' was not found.", exception.Message);
-        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: $"Obligation '{obligationId}' was not found.",
+                actual: exception.Message);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCallCount);
+        }
     }
 }

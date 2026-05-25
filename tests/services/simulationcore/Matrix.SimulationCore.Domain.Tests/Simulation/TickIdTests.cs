@@ -1,21 +1,27 @@
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Simulation;
-
-public sealed class TickIdTests
+namespace Matrix.SimulationCore.Domain.Tests.Simulation
 {
-    [Fact]
-    public void Start_ReturnsZero()
+    public sealed class TickIdTests
     {
-        Assert.Equal(0, TickId.Start().Value);
-    }
+        [Fact]
+        public void Start_ReturnsZero()
+        {
+            Assert.Equal(
+                expected: 0,
+                actual: TickId.Start()
+                   .Value);
+        }
 
-    [Fact]
-    public void Next_IncrementsValueMonotonically()
-    {
-        var next = new TickId(41).Next();
+        [Fact]
+        public void Next_IncrementsValueMonotonically()
+        {
+            TickId next = new TickId(41).Next();
 
-        Assert.Equal(42, next.Value);
+            Assert.Equal(
+                expected: 42,
+                actual: next.Value);
+        }
     }
 }

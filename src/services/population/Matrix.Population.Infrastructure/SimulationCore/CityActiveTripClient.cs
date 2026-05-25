@@ -36,8 +36,7 @@ namespace Matrix.Population.Infrastructure.SimulationCore
                     FromEntityId: x.From.EntityId,
                     ToName: x.To.Name,
                     ToEntityId: x.To.EntityId))
-                   .ToArray()
-                ?? [];
+               .ToArray() ?? [];
         }
 
         public async Task<CityPopulationActiveTripSnapshot?> FindActiveByTravellerAsync(

@@ -1,15 +1,15 @@
 using Matrix.Identity.Application.UseCases.Admin.Roles.GetRolesList;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.GetRolesList;
-
-public sealed class GetRolesListQueryHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.GetRolesList
 {
-    [Fact]
-    public async Task Handle_ReturnsRolesFromRepository()
+    public sealed class GetRolesListQueryHandlerTests
     {
-        var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        roleReadRepository.Roles.AddRange(
+        [Fact]
+        public async Task Handle_ReturnsRolesFromRepository()
+        {
+            var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            roleReadRepository.Roles.AddRange(
             [
                 new RoleListItemResult
                 {
@@ -26,11 +26,22 @@ public sealed class GetRolesListQueryHandlerTests
                     CreatedAtUtc = AdminRolesTestSupport.UtcNow.AddDays(-5)
                 }
             ]);
-        var handler = new GetRolesListQueryHandler(roleReadRepository);
+            var handler = new GetRolesListQueryHandler(roleReadRepository);
 
-        var result = await handler.Handle(new GetRolesListQuery(), CancellationToken.None);
+            IReadOnlyCollection<RoleListItemResult> result = await handler.Handle(
+                request: new GetRolesListQuery(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(2, result.Count);
-        Assert.Equal(new[] { "Operators", "SuperAdmin" }, result.Select(x => x.Name));
+            Assert.Equal(
+                expected: 2,
+                actual: result.Count);
+            Assert.Equal(
+                expected: new[]
+                {
+                    "Operators",
+                    "SuperAdmin"
+                },
+                actual: result.Select(x => x.Name));
+        }
     }
 }

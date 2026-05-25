@@ -3,10 +3,10 @@ using System.Globalization;
 namespace Matrix.BuildingBlocks.Domain.ValueObjects
 {
     /// <summary>
-    /// Represents the fixed-scale single-currency money amount used by the current city economy.
-    /// Negative values are allowed because the simulation models deficits, arrears and debt-like states.
-    /// Other simulations with different exchange units should define their own value objects
-    /// instead of overloading this type.
+    ///     Represents the fixed-scale single-currency money amount used by the current city economy.
+    ///     Negative values are allowed because the simulation models deficits, arrears and debt-like states.
+    ///     Other simulations with different exchange units should define their own value objects
+    ///     instead of overloading this type.
     /// </summary>
     public sealed class Money(decimal amount) : IEquatable<Money>, IComparable<Money>
     {
@@ -20,6 +20,19 @@ namespace Matrix.BuildingBlocks.Domain.ValueObjects
         public bool IsZero => Amount == 0m;
         public bool IsPositive => Amount > 0m;
         public bool IsNegative => Amount < 0m;
+
+        public int CompareTo(Money? other)
+        {
+            if (other is null)
+                return 1;
+
+            return Amount.CompareTo(other.Amount);
+        }
+
+        public bool Equals(Money? other)
+        {
+            return other is not null && Amount == other.Amount;
+        }
 
         public static Money FromDecimal(decimal amount)
         {
@@ -45,14 +58,12 @@ namespace Matrix.BuildingBlocks.Domain.ValueObjects
             return new Money(Amount * factor);
         }
 
-        public bool Equals(Money? other)
-        {
-            return other is not null && Amount == other.Amount;
-        }
-
         public override bool Equals(object? obj)
         {
-            return ReferenceEquals(this, obj) || obj is Money other && Equals(other);
+            return ReferenceEquals(
+                       objA: this,
+                       objB: obj) ||
+                   (obj is Money other && Equals(other));
         }
 
         public override int GetHashCode()
@@ -60,44 +71,62 @@ namespace Matrix.BuildingBlocks.Domain.ValueObjects
             return Amount.GetHashCode();
         }
 
-        public int CompareTo(Money? other)
+        public static bool operator ==(
+            Money? left,
+            Money? right)
         {
-            if (other is null)
-            {
-                return 1;
-            }
-
-            return Amount.CompareTo(other.Amount);
+            return Equals(
+                objA: left,
+                objB: right);
         }
 
-        public static bool operator ==(Money? left, Money? right)
+        public static bool operator !=(
+            Money? left,
+            Money? right)
         {
-            return Equals(left, right);
+            return !Equals(
+                objA: left,
+                objB: right);
         }
 
-        public static bool operator !=(Money? left, Money? right)
+        public static bool operator <(
+            Money? left,
+            Money? right)
         {
-            return !Equals(left, right);
+            return CompareNullable(
+                       left: left,
+                       right: right) <
+                   0;
         }
 
-        public static bool operator <(Money? left, Money? right)
+        public static bool operator <=(
+            Money? left,
+            Money? right)
         {
-            return CompareNullable(left, right) < 0;
+            return CompareNullable(
+                       left: left,
+                       right: right) <=
+                   0;
         }
 
-        public static bool operator <=(Money? left, Money? right)
+        public static bool operator >(
+            Money? left,
+            Money? right)
         {
-            return CompareNullable(left, right) <= 0;
+            return CompareNullable(
+                       left: left,
+                       right: right) >
+                   0;
         }
 
-        public static bool operator >(Money? left, Money? right)
+        public static bool operator >=(
+            Money? left,
+            Money? right)
         {
-            return CompareNullable(left, right) > 0;
-        }
-
-        public static bool operator >=(Money? left, Money? right)
-        {
-            return CompareNullable(left, right) >= 0;
+            return CompareNullable(
+                       left: left,
+                       right: right) >=
+                   0;
         }
 
         public override string ToString()
@@ -107,17 +136,17 @@ namespace Matrix.BuildingBlocks.Domain.ValueObjects
                 provider: CultureInfo.InvariantCulture);
         }
 
-        private static int CompareNullable(Money? left, Money? right)
+        private static int CompareNullable(
+            Money? left,
+            Money? right)
         {
-            if (ReferenceEquals(left, right))
-            {
+            if (ReferenceEquals(
+                    objA: left,
+                    objB: right))
                 return 0;
-            }
 
             if (left is null)
-            {
                 return -1;
-            }
 
             return left.CompareTo(right);
         }

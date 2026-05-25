@@ -8,7 +8,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.DispatchCityRoadAccessMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.
+    DispatchCityRoadAccessMaintenance
 {
     public sealed class DispatchCityRoadAccessMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -57,7 +58,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ro
 
             if (authorizationDecision.Denied)
             {
-                decimal deniedSupport = pressureProfileFactory.Create(state).RoadSupport;
+                decimal deniedSupport = pressureProfileFactory.Create(state)
+                   .RoadSupport;
 
                 return CityRoadAccessStatusDto.FromState(
                     cityId: request.CityId,
@@ -102,7 +104,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ro
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal roadSupport = pressureProfileFactory.Create(state).RoadSupport;
+            decimal roadSupport = pressureProfileFactory.Create(state)
+               .RoadSupport;
 
             return CityRoadAccessStatusDto.FromState(
                 cityId: request.CityId,
@@ -129,7 +132,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ro
                 ? 2
                 : 1;
 
-            return Math.Max(0, currentTickId + delay);
+            return Math.Max(
+                val1: 0,
+                val2: currentTickId + delay);
         }
     }
 }

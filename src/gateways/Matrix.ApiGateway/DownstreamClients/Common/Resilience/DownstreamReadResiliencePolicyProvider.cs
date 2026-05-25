@@ -12,10 +12,13 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Resilience
     {
         private static readonly IAsyncPolicy<HttpResponseMessage> NoOpPolicy = Policy.NoOpAsync<HttpResponseMessage>();
 
-        private readonly ConcurrentDictionary<string, IAsyncPolicy<HttpResponseMessage>> _retryPolicies = new();
-        private readonly ConcurrentDictionary<string, IAsyncPolicy<HttpResponseMessage>> _circuitBreakerPolicies = new();
-        private readonly DownstreamReadResilienceOptions _options;
+        private readonly ConcurrentDictionary<string, IAsyncPolicy<HttpResponseMessage>>
+            _circuitBreakerPolicies = new();
+
         private readonly ILogger<DownstreamReadResiliencePolicyProvider> _logger;
+        private readonly DownstreamReadResilienceOptions _options;
+
+        private readonly ConcurrentDictionary<string, IAsyncPolicy<HttpResponseMessage>> _retryPolicies = new();
 
         public DownstreamReadResiliencePolicyProvider(
             IOptions<DownstreamReadResilienceOptions> options,
@@ -30,11 +33,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Resilience
             HttpRequestMessage request)
         {
             if (!ShouldApplyResilience(request) || _options.MaxRetryAttempts <= 0)
-            {
                 return NoOpPolicy;
-            }
 
-            return _retryPolicies.GetOrAdd(serviceName, CreateRetryPolicy);
+            return _retryPolicies.GetOrAdd(
+                key: serviceName,
+                valueFactory: CreateRetryPolicy);
         }
 
         public IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy(
@@ -42,11 +45,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Resilience
             HttpRequestMessage request)
         {
             if (!ShouldApplyResilience(request))
-            {
                 return NoOpPolicy;
-            }
 
-            return _circuitBreakerPolicies.GetOrAdd(serviceName, CreateCircuitBreakerPolicy);
+            return _circuitBreakerPolicies.GetOrAdd(
+                key: serviceName,
+                valueFactory: CreateCircuitBreakerPolicy);
         }
 
         private static PolicyBuilder<HttpResponseMessage> CreatePolicyBuilder()
@@ -59,12 +62,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Resilience
         private bool ShouldApplyResilience(HttpRequestMessage request)
         {
             if (!_options.Enabled)
-            {
                 return false;
-            }
 
-            return request.Method == HttpMethod.Get
-                || request.Method == HttpMethod.Head;
+            return request.Method == HttpMethod.Get || request.Method == HttpMethod.Head;
         }
 
         private IAsyncPolicy<HttpResponseMessage> CreateRetryPolicy(string serviceName)
@@ -74,14 +74,21 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Resilience
                     retryCount: _options.MaxRetryAttempts,
                     sleepDurationProvider: attempt =>
                     {
-                        double exponentialBackoff = Math.Pow(2, attempt - 1);
+                        double exponentialBackoff = Math.Pow(
+                            x: 2,
+                            y: attempt - 1);
                         double delayMilliseconds = _options.BaseRetryDelayMilliseconds * exponentialBackoff;
                         return TimeSpan.FromMilliseconds(delayMilliseconds);
                     },
-                    onRetry: (outcome, delay, attempt, _) =>
+                    onRetry: (
+                        outcome,
+                        delay,
+                        attempt,
+                        _) =>
                     {
                         string failure = DescribeOutcome(outcome);
                         _logger.LogWarning(
+                            message:
                             "Retrying downstream read against {ServiceName}. Attempt {Attempt}/{MaxRetryAttempts} in {DelayMilliseconds} ms after {Failure}.",
                             serviceName,
                             attempt,
@@ -102,14 +109,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Resilience
         private static string DescribeOutcome(DelegateResult<HttpResponseMessage> outcome)
         {
             if (outcome.Exception is BrokenCircuitException)
-            {
                 return "an open circuit";
-            }
 
             if (outcome.Exception is not null)
-            {
-                return outcome.Exception.GetType().Name;
-            }
+                return outcome.Exception.GetType()
+                   .Name;
 
             HttpResponseMessage? response = outcome.Result;
             return response is null

@@ -14,16 +14,20 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Bind(configuration.GetSection(DownstreamReadResilienceOptions.SectionName))
                .Validate(
                     validation: o => o.MaxRetryAttempts >= 0,
-                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:MaxRetryAttempts must be greater than or equal to 0.")
+                    failureMessage:
+                    $"{DownstreamReadResilienceOptions.SectionName}:MaxRetryAttempts must be greater than or equal to 0.")
                .Validate(
                     validation: o => o.BaseRetryDelayMilliseconds > 0,
-                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:BaseRetryDelayMilliseconds must be greater than 0.")
+                    failureMessage:
+                    $"{DownstreamReadResilienceOptions.SectionName}:BaseRetryDelayMilliseconds must be greater than 0.")
                .Validate(
                     validation: o => o.CircuitBreakerConsecutiveFailureThreshold > 0,
-                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:CircuitBreakerConsecutiveFailureThreshold must be greater than 0.")
+                    failureMessage:
+                    $"{DownstreamReadResilienceOptions.SectionName}:CircuitBreakerConsecutiveFailureThreshold must be greater than 0.")
                .Validate(
                     validation: o => o.CircuitBreakDurationSeconds > 0,
-                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:CircuitBreakDurationSeconds must be greater than 0.")
+                    failureMessage:
+                    $"{DownstreamReadResilienceOptions.SectionName}:CircuitBreakDurationSeconds must be greater than 0.")
                .ValidateOnStart();
 
             services.TryAddSingleton<DownstreamReadResiliencePolicyProvider>();
@@ -36,16 +40,26 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             string serviceName)
         {
             return builder
-               .AddPolicyHandler((sp, request) =>
-               {
-                   DownstreamReadResiliencePolicyProvider provider = sp.GetRequiredService<DownstreamReadResiliencePolicyProvider>();
-                   return provider.GetRetryPolicy(serviceName, request);
-               })
-               .AddPolicyHandler((sp, request) =>
-               {
-                   DownstreamReadResiliencePolicyProvider provider = sp.GetRequiredService<DownstreamReadResiliencePolicyProvider>();
-                   return provider.GetCircuitBreakerPolicy(serviceName, request);
-               });
+               .AddPolicyHandler((
+                    sp,
+                    request) =>
+                {
+                    DownstreamReadResiliencePolicyProvider provider =
+                        sp.GetRequiredService<DownstreamReadResiliencePolicyProvider>();
+                    return provider.GetRetryPolicy(
+                        serviceName: serviceName,
+                        request: request);
+                })
+               .AddPolicyHandler((
+                    sp,
+                    request) =>
+                {
+                    DownstreamReadResiliencePolicyProvider provider =
+                        sp.GetRequiredService<DownstreamReadResiliencePolicyProvider>();
+                    return provider.GetCircuitBreakerPolicy(
+                        serviceName: serviceName,
+                        request: request);
+                });
         }
     }
 }

@@ -4,57 +4,82 @@ using Matrix.Identity.Application.Tests.UseCases.Admin.Roles;
 using Matrix.Identity.Application.Tests.UseCases.Admin.Users;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.GetDefaultUserAccessPermissions;
 using Matrix.Identity.Domain.Authorization;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Permissions.GetDefaultUserAccessPermissions;
-
-public sealed class GetDefaultUserAccessPermissionsQueryHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Permissions.GetDefaultUserAccessPermissions
 {
-    [Fact]
-    public async Task Handle_WhenUserRoleMissing_ThrowsBusinessRule()
+    public sealed class GetDefaultUserAccessPermissionsQueryHandlerTests
     {
-        var handler = new GetDefaultUserAccessPermissionsQueryHandler(
-            new AdminRolesTestSupport.FakeRoleReadRepository(),
-            new AdminRolesTestSupport.FakeRolePermissionsRepository(),
-            new AdminUsersTestSupport.FakeDefaultUserAccessPolicyRepository());
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new GetDefaultUserAccessPermissionsQuery(),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.Role.System.Missing", exception.Code);
-        Assert.Equal(ApplicationErrorType.BusinessRule, exception.ErrorType);
-    }
-
-    [Fact]
-    public async Task Handle_MergesBasePermissionsWithOverrides()
-    {
-        var userRole = AdminRolesTestSupport.CreateRole(SystemRoleNames.User, isSystem: true);
-        var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        roleReadRepository.RolesById[userRole.Id] = userRole;
-        var rolePermissionsRepository = new AdminRolesTestSupport.FakeRolePermissionsRepository
+        [Fact]
+        public async Task Handle_WhenUserRoleMissing_ThrowsBusinessRule()
         {
-            GetRolePermissionsResult = ["users.read", "reports.read"]
-        };
-        var defaultPolicyRepository = new AdminUsersTestSupport.FakeDefaultUserAccessPolicyRepository
+            var handler = new GetDefaultUserAccessPermissionsQueryHandler(
+                roleReadRepository: new AdminRolesTestSupport.FakeRoleReadRepository(),
+                rolePermissionsRepository: new AdminRolesTestSupport.FakeRolePermissionsRepository(),
+                defaultUserAccessPolicyRepository: new AdminUsersTestSupport.FakeDefaultUserAccessPolicyRepository());
+
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new GetDefaultUserAccessPermissionsQuery(),
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal(
+                expected: "Identity.Role.System.Missing",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.BusinessRule,
+                actual: exception.ErrorType);
+        }
+
+        [Fact]
+        public async Task Handle_MergesBasePermissionsWithOverrides()
         {
-            VersionResult = 7,
-            OverridesResult = new Dictionary<string, PermissionEffect>(StringComparer.Ordinal)
+            Role userRole = AdminRolesTestSupport.CreateRole(
+                name: SystemRoleNames.User,
+                isSystem: true);
+            var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            roleReadRepository.RolesById[userRole.Id] = userRole;
+            var rolePermissionsRepository = new AdminRolesTestSupport.FakeRolePermissionsRepository
             {
-                ["users.read"] = PermissionEffect.Deny,
-                ["roles.manage"] = PermissionEffect.Allow
-            }
-        };
-        var handler = new GetDefaultUserAccessPermissionsQueryHandler(
-            roleReadRepository,
-            rolePermissionsRepository,
-            defaultPolicyRepository);
+                GetRolePermissionsResult =
+                [
+                    "users.read",
+                    "reports.read"
+                ]
+            };
+            var defaultPolicyRepository = new AdminUsersTestSupport.FakeDefaultUserAccessPolicyRepository
+            {
+                VersionResult = 7,
+                OverridesResult = new Dictionary<string, PermissionEffect>(StringComparer.Ordinal)
+                {
+                    ["users.read"] = PermissionEffect.Deny,
+                    ["roles.manage"] = PermissionEffect.Allow
+                }
+            };
+            var handler = new GetDefaultUserAccessPermissionsQueryHandler(
+                roleReadRepository: roleReadRepository,
+                rolePermissionsRepository: rolePermissionsRepository,
+                defaultUserAccessPolicyRepository: defaultPolicyRepository);
 
-        var result = await handler.Handle(new GetDefaultUserAccessPermissionsQuery(), CancellationToken.None);
+            DefaultUserAccessPermissionsResult result = await handler.Handle(
+                request: new GetDefaultUserAccessPermissionsQuery(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(userRole.Id, rolePermissionsRepository.RequestedRoleId);
-        Assert.Equal(7, result.Version);
-        Assert.Equal(["reports.read", "roles.manage"], result.PermissionKeys);
+            Assert.Equal(
+                expected: userRole.Id,
+                actual: rolePermissionsRepository.RequestedRoleId);
+            Assert.Equal(
+                expected: 7,
+                actual: result.Version);
+            Assert.Equal(
+                expected:
+                [
+                    "reports.read",
+                    "roles.manage"
+                ],
+                actual: result.PermissionKeys);
+        }
     }
 }

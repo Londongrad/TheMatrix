@@ -1,94 +1,135 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.RecalculateCityEnvironmentalConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    RecalculateCityEnvironmentalConditions;
 using Matrix.SimulationSystems.Application.Tests.TestSupport;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.RecalculateCityEnvironmentalConditions;
-
-public sealed class RecalculateCityEnvironmentalConditionsCommandHandlerTests
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    RecalculateCityEnvironmentalConditions
 {
-    [Fact]
-    public async Task Handle_WhenStateIsMissing_ReturnsNotInitialized()
+    public sealed class RecalculateCityEnvironmentalConditionsCommandHandlerTests
     {
-        var repository = new FakeCityEnvironmentalConditionRepository();
-        var handler = CreateHandler(repository, new FakeUnitOfWork());
+        [Fact]
+        public async Task Handle_WhenStateIsMissing_ReturnsNotInitialized()
+        {
+            var repository = new FakeCityEnvironmentalConditionRepository();
+            RecalculateCityEnvironmentalConditionsCommandHandler handler = CreateHandler(
+                repository: repository,
+                unitOfWork: new FakeUnitOfWork());
 
-        RecalculateCityEnvironmentalConditionsResult result = await handler.Handle(
-            CreateCommand(),
-            CancellationToken.None);
+            RecalculateCityEnvironmentalConditionsResult result = await handler.Handle(
+                request: CreateCommand(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(RecalculateCityEnvironmentalConditionsStatus.NotInitialized, result.Status);
-        Assert.Equal(0m, result.FloodingIndex);
-    }
+            Assert.Equal(
+                expected: RecalculateCityEnvironmentalConditionsStatus.NotInitialized,
+                actual: result.Status);
+            Assert.Equal(
+                expected: 0m,
+                actual: result.FloodingIndex);
+        }
 
-    [Fact]
-    public async Task Handle_WhenTimestampIsStale_ReturnsStale()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var handler = CreateHandler(repository, new FakeUnitOfWork());
+        [Fact]
+        public async Task Handle_WhenTimestampIsStale_ReturnsStale()
+        {
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            RecalculateCityEnvironmentalConditionsCommandHandler handler = CreateHandler(
+                repository: repository,
+                unitOfWork: new FakeUnitOfWork());
 
-        RecalculateCityEnvironmentalConditionsResult result = await handler.Handle(
-            CreateCommand(atUtc: SimulationSystemsApplicationTestSupport.CreatedAtUtc.AddMinutes(-1)),
-            CancellationToken.None);
+            RecalculateCityEnvironmentalConditionsResult result = await handler.Handle(
+                request: CreateCommand(atUtc: SimulationSystemsApplicationTestSupport.CreatedAtUtc.AddMinutes(-1)),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(RecalculateCityEnvironmentalConditionsStatus.Stale, result.Status);
-        Assert.Equal(state.FloodingIndex.Value, result.FloodingIndex);
-    }
+            Assert.Equal(
+                expected: RecalculateCityEnvironmentalConditionsStatus.Stale,
+                actual: result.Status);
+            Assert.Equal(
+                expected: state.FloodingIndex.Value,
+                actual: result.FloodingIndex);
+        }
 
-    [Fact]
-    public async Task Handle_WhenTimestampMatchesCurrentState_ReturnsDuplicateAndPersistsWeatherPressure()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var unitOfWork = new FakeUnitOfWork();
-        var handler = CreateHandler(repository, unitOfWork);
+        [Fact]
+        public async Task Handle_WhenTimestampMatchesCurrentState_ReturnsDuplicateAndPersistsWeatherPressure()
+        {
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            var unitOfWork = new FakeUnitOfWork();
+            RecalculateCityEnvironmentalConditionsCommandHandler handler = CreateHandler(
+                repository: repository,
+                unitOfWork: unitOfWork);
 
-        RecalculateCityEnvironmentalConditionsResult result = await handler.Handle(
-            CreateCommand(atUtc: state.LastEvaluatedAtUtc),
-            CancellationToken.None);
+            RecalculateCityEnvironmentalConditionsResult result = await handler.Handle(
+                request: CreateCommand(atUtc: state.LastEvaluatedAtUtc),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(RecalculateCityEnvironmentalConditionsStatus.Duplicate, result.Status);
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
-        Assert.True(state.WeatherPressure.StormPressure > 0m);
-    }
+            Assert.Equal(
+                expected: RecalculateCityEnvironmentalConditionsStatus.Duplicate,
+                actual: result.Status);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.True(state.WeatherPressure.StormPressure > 0m);
+        }
 
-    [Fact]
-    public async Task Handle_WhenRecalculationSucceeds_AppliesSnapshot()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var unitOfWork = new FakeUnitOfWork();
-        var handler = CreateHandler(repository, unitOfWork);
+        [Fact]
+        public async Task Handle_WhenRecalculationSucceeds_AppliesSnapshot()
+        {
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            var unitOfWork = new FakeUnitOfWork();
+            RecalculateCityEnvironmentalConditionsCommandHandler handler = CreateHandler(
+                repository: repository,
+                unitOfWork: unitOfWork);
 
-        RecalculateCityEnvironmentalConditionsResult result = await handler.Handle(
-            CreateCommand(atUtc: SimulationSystemsApplicationTestSupport.LaterUtc),
-            CancellationToken.None);
+            RecalculateCityEnvironmentalConditionsResult result = await handler.Handle(
+                request: CreateCommand(atUtc: SimulationSystemsApplicationTestSupport.LaterUtc),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(RecalculateCityEnvironmentalConditionsStatus.Applied, result.Status);
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.LaterUtc, state.LastEvaluatedAtUtc);
-        Assert.Equal(state.FloodingIndex.Value, result.FloodingIndex);
-        Assert.True(state.WeatherPressure.RainPressure > 0m);
-    }
+            Assert.Equal(
+                expected: RecalculateCityEnvironmentalConditionsStatus.Applied,
+                actual: result.Status);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.LaterUtc,
+                actual: state.LastEvaluatedAtUtc);
+            Assert.Equal(
+                expected: state.FloodingIndex.Value,
+                actual: result.FloodingIndex);
+            Assert.True(state.WeatherPressure.RainPressure > 0m);
+        }
 
-    private static RecalculateCityEnvironmentalConditionsCommandHandler CreateHandler(
-        FakeCityEnvironmentalConditionRepository repository,
-        FakeUnitOfWork unitOfWork)
-    {
-        return new RecalculateCityEnvironmentalConditionsCommandHandler(
-            repository,
-            unitOfWork,
-            new CityEnvironmentalConditionPolicy(),
-            new ClassicCityWeatherPressureProfileFactory());
-    }
+        private static RecalculateCityEnvironmentalConditionsCommandHandler CreateHandler(
+            FakeCityEnvironmentalConditionRepository repository,
+            FakeUnitOfWork unitOfWork)
+        {
+            return new RecalculateCityEnvironmentalConditionsCommandHandler(
+                repository: repository,
+                unitOfWork: unitOfWork,
+                policy: new CityEnvironmentalConditionPolicy(),
+                pressureProfileFactory: new ClassicCityWeatherPressureProfileFactory());
+        }
 
-    private static RecalculateCityEnvironmentalConditionsCommand CreateCommand(DateTimeOffset? atUtc = null)
-    {
-        return new RecalculateCityEnvironmentalConditionsCommand(
-            CityId: SimulationSystemsApplicationTestSupport.CityId,
-            AtSimTimeUtc: atUtc ?? SimulationSystemsApplicationTestSupport.LaterUtc,
-            Weather: SimulationSystemsApplicationTestSupport.CreateWeather());
+        private static RecalculateCityEnvironmentalConditionsCommand CreateCommand(DateTimeOffset? atUtc = null)
+        {
+            return new RecalculateCityEnvironmentalConditionsCommand(
+                CityId: SimulationSystemsApplicationTestSupport.CityId,
+                AtSimTimeUtc: atUtc ?? SimulationSystemsApplicationTestSupport.LaterUtc,
+                Weather: SimulationSystemsApplicationTestSupport.CreateWeather());
+        }
     }
 }

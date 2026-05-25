@@ -15,7 +15,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressStates,
             IReadOnlyDictionary<HouseholdId, CityHouseholdCommutePressureProfile>? commutePressureProfiles,
-            IReadOnlyDictionary<HouseholdId, CityDistrictUtilityConditionsSnapshot>? districtUtilityConditionsByHouseholdId,
+            IReadOnlyDictionary<HouseholdId, CityDistrictUtilityConditionsSnapshot>?
+                districtUtilityConditionsByHouseholdId,
             DateOnly previousDate,
             DateOnly currentDate,
             CityPopulationCostOfLivingState? costOfLivingState = null,
@@ -529,11 +530,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (commutePressureProfile is not null &&
                 commutePressureProfile.BlockedRouteCount > 0 &&
                 economyProfile.StrainScore >= 0.20d)
-            {
                 chance += Math.Min(
                     val1: 0.010d,
                     val2: commutePressureProfile.BlockedRouteCount * 0.004d);
-            }
 
             if (districtUtilityFragility >= 0.60d &&
                 economyProfile.StrainScore >= 0.20d)
@@ -571,9 +570,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return false;
 
             double combinedChance = 1d -
-                Math.Pow(
-                    x: 1d - chancePerReview,
-                    y: reviewWindows);
+                                    Math.Pow(
+                                        x: 1d - chancePerReview,
+                                        y: reviewWindows);
             return GetStableFraction(
                        householdId: householdId,
                        currentDate: currentDate,

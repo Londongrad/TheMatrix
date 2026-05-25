@@ -1,6 +1,6 @@
+using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -133,18 +133,14 @@ namespace Matrix.BuildingBlocks.Api.HealthChecks
                         a: keyRing.CurrentKeyId,
                         b: InternalJwtKeyRingPolicy.LegacyKeyId,
                         comparisonType: StringComparison.Ordinal))
-                {
                     return (
                         HealthStatus.Degraded,
                         "using legacy single-key configuration; migrate to CurrentKeyId + Keys before rotating.");
-                }
 
                 if (keyRing.Keys.Count < 2)
-                {
                     return (
                         HealthStatus.Degraded,
                         $"current key '{keyRing.CurrentKeyId}' is configured without overlap keys; add a secondary key before rotation.");
-                }
 
                 return (
                     HealthStatus.Healthy,

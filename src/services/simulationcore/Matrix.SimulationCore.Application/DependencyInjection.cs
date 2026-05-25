@@ -6,7 +6,6 @@ using Matrix.SimulationCore.Application.Errors;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

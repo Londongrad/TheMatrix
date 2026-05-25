@@ -11,6 +11,10 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
         bool AuthorizedByEmergencyOverride,
         string Summary)
     {
+        public bool Denied => Status.Equals(
+            value: "Denied",
+            comparisonType: StringComparison.OrdinalIgnoreCase);
+
         public static CityBudgetAuthorizationDecision NotRequired(
             string requestedIntensity,
             decimal pressureIndex,
@@ -28,9 +32,5 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 AuthorizedByEmergencyOverride: false,
                 Summary: "Explicit budget authorization was not required for this resupply dispatch.");
         }
-
-        public bool Denied => Status.Equals(
-            value: "Denied",
-            comparisonType: StringComparison.OrdinalIgnoreCase);
     }
 }

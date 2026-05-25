@@ -407,7 +407,7 @@ namespace Matrix.Population.Domain.Entities
             CityAnchorId? institutionAnchorId = null)
         {
             Education = Education.AssignInstitution(
-                GuardHelper.AgainstNull(
+                institutionId: GuardHelper.AgainstNull(
                     value: institutionId,
                     propertyName: nameof(institutionId)),
                 currentInstitutionAnchorId: institutionAnchorId);

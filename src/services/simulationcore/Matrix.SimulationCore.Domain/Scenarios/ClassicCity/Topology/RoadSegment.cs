@@ -78,8 +78,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
                 propertyName: nameof(type));
 
             if (fromRoadNodeId == toRoadNodeId)
-                throw ClassicCityDomainErrorsFactory.RoadSegmentEndpointsMustDiffer(
-                    propertyName: nameof(toRoadNodeId));
+                throw ClassicCityDomainErrorsFactory.RoadSegmentEndpointsMustDiffer(propertyName: nameof(toRoadNodeId));
 
             return new RoadSegment(
                 id: RoadSegmentId.New(),

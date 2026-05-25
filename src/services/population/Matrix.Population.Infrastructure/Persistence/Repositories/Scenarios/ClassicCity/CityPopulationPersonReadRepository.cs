@@ -184,7 +184,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                             : (Guid?)null,
                         JobTitle = person.Employment.Job.Title
                     })
-                .ToListAsync(cancellationToken);
+               .ToListAsync(cancellationToken);
 
             return rows
                .GroupBy(x => new
@@ -194,7 +194,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     x.JobTitle
                 })
                .OrderByDescending(x => x.Count())
-               .ThenBy(x => x.Key.JobTitle, StringComparer.OrdinalIgnoreCase)
+               .ThenBy(
+                    keySelector: x => x.Key.JobTitle,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .Select(x => new CityEmploymentWorkplaceSnapshot(
                     WorkplaceId: WorkplaceId.From(x.Key.WorkplaceId),
                     WorkplaceAnchorId: x.Key.WorkplaceAnchorId.HasValue
@@ -226,7 +228,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                             : (Guid?)null,
                         JobTitle = person.Employment.Job.Title
                     })
-                .ToListAsync(cancellationToken);
+               .ToListAsync(cancellationToken);
 
             var snapshot = rows
                .GroupBy(x => new
@@ -236,7 +238,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     x.JobTitle
                 })
                .OrderByDescending(x => x.Count())
-               .ThenBy(x => x.Key.JobTitle, StringComparer.OrdinalIgnoreCase)
+               .ThenBy(
+                    keySelector: x => x.Key.JobTitle,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .Select(x => new
                 {
                     x.Key.WorkplaceId,
@@ -276,7 +280,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                             : (Guid?)null,
                         person.Education.Level
                     })
-                .ToListAsync(cancellationToken);
+               .ToListAsync(cancellationToken);
 
             return rows
                .GroupBy(x => new
@@ -318,7 +322,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                             : (Guid?)null,
                         person.Education.Level
                     })
-                .ToListAsync(cancellationToken);
+               .ToListAsync(cancellationToken);
 
             var snapshot = rows
                .GroupBy(x => new

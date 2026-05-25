@@ -4,7 +4,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects
 {
     /// <summary>
-    ///     Normalized citywide continuity for utility restoration, where 0 means cascading outages and 1 means stable response coverage.
+    ///     Normalized citywide continuity for utility restoration, where 0 means cascading outages and 1 means stable response
+    ///     coverage.
     /// </summary>
     public readonly record struct UtilityContinuityIndex
     {

@@ -2,52 +2,71 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Identity.Domain.Entities;
 using Xunit;
 
-namespace Matrix.Identity.Domain.Tests.Entities;
-
-public sealed class RolePermissionTests
+namespace Matrix.Identity.Domain.Tests.Entities
 {
-    [Fact]
-    public void Constructor_WithValidValues_SetsProperties()
+    public sealed class RolePermissionTests
     {
-        var roleId = Guid.Parse("60000000-0000-0000-0000-000000000001");
-        var rolePermission = new RolePermission(
-            roleId: roleId,
-            permissionKey: "identity.users.read");
+        [Fact]
+        public void Constructor_WithValidValues_SetsProperties()
+        {
+            var roleId = Guid.Parse("60000000-0000-0000-0000-000000000001");
+            var rolePermission = new RolePermission(
+                roleId: roleId,
+                permissionKey: "identity.users.read");
 
-        Assert.Equal(roleId, rolePermission.RoleId);
-        Assert.Equal("identity.users.read", rolePermission.PermissionKey);
-    }
+            Assert.Equal(
+                expected: roleId,
+                actual: rolePermission.RoleId);
+            Assert.Equal(
+                expected: "identity.users.read",
+                actual: rolePermission.PermissionKey);
+        }
 
-    [Fact]
-    public void Constructor_WithEmptyRoleId_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => new RolePermission(
-            roleId: Guid.Empty,
-            permissionKey: "identity.users.read"));
+        [Fact]
+        public void Constructor_WithEmptyRoleId_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new RolePermission(
+                roleId: Guid.Empty,
+                permissionKey: "identity.users.read"));
 
-        Assert.Equal("Identity.Role.EmptyId", exception.Code);
-        Assert.Equal("roleId", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "Identity.Role.EmptyId",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "roleId",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Constructor_WithWhitespacePermissionKey_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => new RolePermission(
-            roleId: Guid.Parse("60000000-0000-0000-0000-000000000001"),
-            permissionKey: "   "));
+        [Fact]
+        public void Constructor_WithWhitespacePermissionKey_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new RolePermission(
+                roleId: Guid.Parse("60000000-0000-0000-0000-000000000001"),
+                permissionKey: "   "));
 
-        Assert.Equal("Identity.Permission.Key.Empty", exception.Code);
-        Assert.Equal("permissionKey", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "Identity.Permission.Key.Empty",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "permissionKey",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Constructor_WithTooLongPermissionKey_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => new RolePermission(
-            roleId: Guid.Parse("60000000-0000-0000-0000-000000000001"),
-            permissionKey: new string('p', RolePermission.PermissionKeyMaxLength + 1)));
+        [Fact]
+        public void Constructor_WithTooLongPermissionKey_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new RolePermission(
+                roleId: Guid.Parse("60000000-0000-0000-0000-000000000001"),
+                permissionKey: new string(
+                    c: 'p',
+                    count: RolePermission.PermissionKeyMaxLength + 1)));
 
-        Assert.Equal("Identity.Permission.Key.InvalidLength", exception.Code);
-        Assert.Equal("permissionKey", exception.PropertyName);
+            Assert.Equal(
+                expected: "Identity.Permission.Key.InvalidLength",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "permissionKey",
+                actual: exception.PropertyName);
+        }
     }
 }

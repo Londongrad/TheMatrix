@@ -2,16 +2,20 @@ using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.GetCityDistrictHeatingConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityDistrictPowerDistributionConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityDistrictPowerDistributionConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityDistrictWaterDistributionConditions;
+using
+    Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    GetCityDistrictWaterDistributionConditions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityDistrictUtilityIncidentConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    GetCityDistrictUtilityIncidentConditions
 {
     public sealed class GetCityDistrictUtilityIncidentConditionsQueryHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -45,7 +49,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 return null;
 
             CitySystemPressureProfile pressureProfile = pressureProfileFactory.Create(state);
-            IReadOnlyDictionary<Guid, CityDistrictHeatingConditionDto> heatingByDistrictId = heatingProjectionPolicy.Project(
+            IReadOnlyDictionary<Guid, CityDistrictHeatingConditionDto> heatingByDistrictId = heatingProjectionPolicy
+               .Project(
                     topology: topology,
                     state: state,
                     heatingSupportIndex: pressureProfile.HeatingSupport)

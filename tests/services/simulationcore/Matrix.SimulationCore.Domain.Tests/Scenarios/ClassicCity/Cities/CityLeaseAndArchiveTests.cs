@@ -2,187 +2,235 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities;
-
-public sealed class CityLeaseAndArchiveTests
+namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
 {
-    [Fact]
-    public void TryAcquireProvisioningLease_WhenProvisioningAndLeaseIsFree_AcquiresLease()
+    public sealed class CityLeaseAndArchiveTests
     {
-        var city = CityTestData.CreateCity(
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: true);
-        var leaseDuration = TimeSpan.FromMinutes(10);
+        [Fact]
+        public void TryAcquireProvisioningLease_WhenProvisioningAndLeaseIsFree_AcquiresLease()
+        {
+            City city = CityTestData.CreateCity(
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true);
+            var leaseDuration = TimeSpan.FromMinutes(10);
 
-        city.ClearDomainEvents();
+            city.ClearDomainEvents();
 
-        var result = city.TryAcquireProvisioningLease(
-            acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
-            leaseDuration: leaseDuration);
+            bool result = city.TryAcquireProvisioningLease(
+                acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
+                leaseDuration: leaseDuration);
 
-        Assert.True(result);
-        Assert.Equal(CityStatus.Provisioning, city.Status);
-        Assert.Equal(CityTestData.CreatedAtUtc, city.ProvisioningStartedAtUtc);
-        Assert.Equal(CityTestData.LeaseAcquiredAtUtc, city.ProvisioningHeartbeatAtUtc);
-        Assert.Equal(CityTestData.LeaseAcquiredAtUtc.Add(leaseDuration), city.ProvisioningLeaseExpiresAtUtc);
-        Assert.Equal(1, city.ProvisioningAttemptCount);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.True(result);
+            Assert.Equal(
+                expected: CityStatus.Provisioning,
+                actual: city.Status);
+            Assert.Equal(
+                expected: CityTestData.CreatedAtUtc,
+                actual: city.ProvisioningStartedAtUtc);
+            Assert.Equal(
+                expected: CityTestData.LeaseAcquiredAtUtc,
+                actual: city.ProvisioningHeartbeatAtUtc);
+            Assert.Equal(
+                expected: CityTestData.LeaseAcquiredAtUtc.Add(leaseDuration),
+                actual: city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Equal(
+                expected: 1,
+                actual: city.ProvisioningAttemptCount);
+            Assert.Empty(city.DomainEvents);
+        }
 
-    [Fact]
-    public void TryAcquireProvisioningLease_WhenCityIsNotProvisioning_ReturnsFalse()
-    {
-        var city = CityTestData.CreateCity();
+        [Fact]
+        public void TryAcquireProvisioningLease_WhenCityIsNotProvisioning_ReturnsFalse()
+        {
+            City city = CityTestData.CreateCity();
 
-        city.ClearDomainEvents();
+            city.ClearDomainEvents();
 
-        var result = city.TryAcquireProvisioningLease(
-            acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
-            leaseDuration: TimeSpan.FromMinutes(10));
+            bool result = city.TryAcquireProvisioningLease(
+                acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
+                leaseDuration: TimeSpan.FromMinutes(10));
 
-        Assert.False(result);
-        Assert.Equal(CityStatus.Active, city.Status);
-        Assert.Null(city.ProvisioningLeaseExpiresAtUtc);
-        Assert.Equal(0, city.ProvisioningAttemptCount);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.False(result);
+            Assert.Equal(
+                expected: CityStatus.Active,
+                actual: city.Status);
+            Assert.Null(city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Equal(
+                expected: 0,
+                actual: city.ProvisioningAttemptCount);
+            Assert.Empty(city.DomainEvents);
+        }
 
-    [Fact]
-    public void TryAcquireProvisioningLease_WhenLeaseIsStillActive_ReturnsFalseWithoutIncrementingAttempts()
-    {
-        var city = CityTestData.CreateCity(
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: true);
-        var leaseDuration = TimeSpan.FromMinutes(10);
+        [Fact]
+        public void TryAcquireProvisioningLease_WhenLeaseIsStillActive_ReturnsFalseWithoutIncrementingAttempts()
+        {
+            City city = CityTestData.CreateCity(
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true);
+            var leaseDuration = TimeSpan.FromMinutes(10);
 
-        city.TryAcquireProvisioningLease(
-            acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
-            leaseDuration: leaseDuration);
-        city.ClearDomainEvents();
+            city.TryAcquireProvisioningLease(
+                acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
+                leaseDuration: leaseDuration);
+            city.ClearDomainEvents();
 
-        var result = city.TryAcquireProvisioningLease(
-            acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc.AddMinutes(5),
-            leaseDuration: leaseDuration);
+            bool result = city.TryAcquireProvisioningLease(
+                acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc.AddMinutes(5),
+                leaseDuration: leaseDuration);
 
-        Assert.False(result);
-        Assert.Equal(CityTestData.LeaseAcquiredAtUtc, city.ProvisioningHeartbeatAtUtc);
-        Assert.Equal(CityTestData.LeaseAcquiredAtUtc.Add(leaseDuration), city.ProvisioningLeaseExpiresAtUtc);
-        Assert.Equal(1, city.ProvisioningAttemptCount);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.False(result);
+            Assert.Equal(
+                expected: CityTestData.LeaseAcquiredAtUtc,
+                actual: city.ProvisioningHeartbeatAtUtc);
+            Assert.Equal(
+                expected: CityTestData.LeaseAcquiredAtUtc.Add(leaseDuration),
+                actual: city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Equal(
+                expected: 1,
+                actual: city.ProvisioningAttemptCount);
+            Assert.Empty(city.DomainEvents);
+        }
 
-    [Fact]
-    public void TryAcquireProvisioningLease_WithNonPositiveDuration_ThrowsInvalidOperationException()
-    {
-        var city = CityTestData.CreateCity(
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: true);
+        [Fact]
+        public void TryAcquireProvisioningLease_WithNonPositiveDuration_ThrowsInvalidOperationException()
+        {
+            City city = CityTestData.CreateCity(
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true);
 
-        var exception = Assert.Throws<InvalidOperationException>(() => city.TryAcquireProvisioningLease(
-            acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
-            leaseDuration: TimeSpan.Zero));
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(()
+                => city.TryAcquireProvisioningLease(
+                    acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
+                    leaseDuration: TimeSpan.Zero));
 
-        Assert.Equal("Provisioning lease duration must be greater than zero.", exception.Message);
-    }
+            Assert.Equal(
+                expected: "Provisioning lease duration must be greater than zero.",
+                actual: exception.Message);
+        }
 
-    [Fact]
-    public void TryRefreshProvisioningLease_WhenLeaseIsActive_RefreshesHeartbeatAndExpiration()
-    {
-        var city = CityTestData.CreateCity(
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: true);
-        var leaseDuration = TimeSpan.FromMinutes(10);
+        [Fact]
+        public void TryRefreshProvisioningLease_WhenLeaseIsActive_RefreshesHeartbeatAndExpiration()
+        {
+            City city = CityTestData.CreateCity(
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true);
+            var leaseDuration = TimeSpan.FromMinutes(10);
 
-        city.TryAcquireProvisioningLease(
-            acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
-            leaseDuration: leaseDuration);
-        city.ClearDomainEvents();
+            city.TryAcquireProvisioningLease(
+                acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
+                leaseDuration: leaseDuration);
+            city.ClearDomainEvents();
 
-        var result = city.TryRefreshProvisioningLease(
-            heartbeatAtUtc: CityTestData.LeaseHeartbeatAtUtc,
-            leaseDuration: leaseDuration);
+            bool result = city.TryRefreshProvisioningLease(
+                heartbeatAtUtc: CityTestData.LeaseHeartbeatAtUtc,
+                leaseDuration: leaseDuration);
 
-        Assert.True(result);
-        Assert.Equal(CityTestData.LeaseHeartbeatAtUtc, city.ProvisioningHeartbeatAtUtc);
-        Assert.Equal(CityTestData.LeaseHeartbeatAtUtc.Add(leaseDuration), city.ProvisioningLeaseExpiresAtUtc);
-        Assert.Equal(1, city.ProvisioningAttemptCount);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.True(result);
+            Assert.Equal(
+                expected: CityTestData.LeaseHeartbeatAtUtc,
+                actual: city.ProvisioningHeartbeatAtUtc);
+            Assert.Equal(
+                expected: CityTestData.LeaseHeartbeatAtUtc.Add(leaseDuration),
+                actual: city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Equal(
+                expected: 1,
+                actual: city.ProvisioningAttemptCount);
+            Assert.Empty(city.DomainEvents);
+        }
 
-    [Fact]
-    public void TryRefreshProvisioningLease_WhenLeaseHasExpired_ReturnsFalse()
-    {
-        var city = CityTestData.CreateCity(
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: true);
-        var leaseDuration = TimeSpan.FromMinutes(10);
+        [Fact]
+        public void TryRefreshProvisioningLease_WhenLeaseHasExpired_ReturnsFalse()
+        {
+            City city = CityTestData.CreateCity(
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true);
+            var leaseDuration = TimeSpan.FromMinutes(10);
 
-        city.TryAcquireProvisioningLease(
-            acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
-            leaseDuration: leaseDuration);
-        city.ClearDomainEvents();
+            city.TryAcquireProvisioningLease(
+                acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
+                leaseDuration: leaseDuration);
+            city.ClearDomainEvents();
 
-        var result = city.TryRefreshProvisioningLease(
-            heartbeatAtUtc: CityTestData.LeaseAcquiredAtUtc.AddMinutes(11),
-            leaseDuration: leaseDuration);
+            bool result = city.TryRefreshProvisioningLease(
+                heartbeatAtUtc: CityTestData.LeaseAcquiredAtUtc.AddMinutes(11),
+                leaseDuration: leaseDuration);
 
-        Assert.False(result);
-        Assert.Equal(CityTestData.LeaseAcquiredAtUtc, city.ProvisioningHeartbeatAtUtc);
-        Assert.Equal(CityTestData.LeaseAcquiredAtUtc.Add(leaseDuration), city.ProvisioningLeaseExpiresAtUtc);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.False(result);
+            Assert.Equal(
+                expected: CityTestData.LeaseAcquiredAtUtc,
+                actual: city.ProvisioningHeartbeatAtUtc);
+            Assert.Equal(
+                expected: CityTestData.LeaseAcquiredAtUtc.Add(leaseDuration),
+                actual: city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Empty(city.DomainEvents);
+        }
 
-    [Fact]
-    public void TryRefreshProvisioningLease_WithNonPositiveDuration_ThrowsInvalidOperationException()
-    {
-        var city = CityTestData.CreateCity(
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: true);
+        [Fact]
+        public void TryRefreshProvisioningLease_WithNonPositiveDuration_ThrowsInvalidOperationException()
+        {
+            City city = CityTestData.CreateCity(
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true);
 
-        var exception = Assert.Throws<InvalidOperationException>(() => city.TryRefreshProvisioningLease(
-            heartbeatAtUtc: CityTestData.LeaseHeartbeatAtUtc,
-            leaseDuration: TimeSpan.Zero));
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(()
+                => city.TryRefreshProvisioningLease(
+                    heartbeatAtUtc: CityTestData.LeaseHeartbeatAtUtc,
+                    leaseDuration: TimeSpan.Zero));
 
-        Assert.Equal("Provisioning lease duration must be greater than zero.", exception.Message);
-    }
+            Assert.Equal(
+                expected: "Provisioning lease duration must be greater than zero.",
+                actual: exception.Message);
+        }
 
-    [Fact]
-    public void Archive_WhenCityIsNotArchived_ArchivesCity_ClearsLease_AndEmitsEvent()
-    {
-        var city = CityTestData.CreateCity(
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: true);
+        [Fact]
+        public void Archive_WhenCityIsNotArchived_ArchivesCity_ClearsLease_AndEmitsEvent()
+        {
+            City city = CityTestData.CreateCity(
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true);
 
-        city.TryAcquireProvisioningLease(
-            acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
-            leaseDuration: TimeSpan.FromMinutes(10));
-        city.ClearDomainEvents();
+            city.TryAcquireProvisioningLease(
+                acquiredAtUtc: CityTestData.LeaseAcquiredAtUtc,
+                leaseDuration: TimeSpan.FromMinutes(10));
+            city.ClearDomainEvents();
 
-        city.Archive(CityTestData.ArchivedAtUtc);
+            city.Archive(CityTestData.ArchivedAtUtc);
 
-        Assert.Equal(CityStatus.Archived, city.Status);
-        Assert.True(city.IsArchived);
-        Assert.Equal(CityTestData.ArchivedAtUtc, city.ArchivedAtUtc);
-        Assert.Null(city.ProvisioningHeartbeatAtUtc);
-        Assert.Null(city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Equal(
+                expected: CityStatus.Archived,
+                actual: city.Status);
+            Assert.True(city.IsArchived);
+            Assert.Equal(
+                expected: CityTestData.ArchivedAtUtc,
+                actual: city.ArchivedAtUtc);
+            Assert.Null(city.ProvisioningHeartbeatAtUtc);
+            Assert.Null(city.ProvisioningLeaseExpiresAtUtc);
 
-        var archivedEvent = Assert.IsType<CityArchivedDomainEvent>(Assert.Single(city.DomainEvents));
+            CityArchivedDomainEvent archivedEvent =
+                Assert.IsType<CityArchivedDomainEvent>(Assert.Single(city.DomainEvents));
 
-        Assert.Equal(city.Id, archivedEvent.CityId);
-        Assert.Equal(CityTestData.ArchivedAtUtc, archivedEvent.ArchivedAtUtc);
-    }
+            Assert.Equal(
+                expected: city.Id,
+                actual: archivedEvent.CityId);
+            Assert.Equal(
+                expected: CityTestData.ArchivedAtUtc,
+                actual: archivedEvent.ArchivedAtUtc);
+        }
 
-    [Fact]
-    public void Archive_WhenAlreadyArchived_IsNoOp()
-    {
-        var city = CityTestData.CreateCity();
+        [Fact]
+        public void Archive_WhenAlreadyArchived_IsNoOp()
+        {
+            City city = CityTestData.CreateCity();
 
-        city.Archive(CityTestData.ArchivedAtUtc);
-        city.ClearDomainEvents();
+            city.Archive(CityTestData.ArchivedAtUtc);
+            city.ClearDomainEvents();
 
-        city.Archive(CityTestData.ArchivedAtUtc.AddDays(1));
+            city.Archive(CityTestData.ArchivedAtUtc.AddDays(1));
 
-        Assert.Equal(CityTestData.ArchivedAtUtc, city.ArchivedAtUtc);
-        Assert.Empty(city.DomainEvents);
+            Assert.Equal(
+                expected: CityTestData.ArchivedAtUtc,
+                actual: city.ArchivedAtUtc);
+            Assert.Empty(city.DomainEvents);
+        }
     }
 }

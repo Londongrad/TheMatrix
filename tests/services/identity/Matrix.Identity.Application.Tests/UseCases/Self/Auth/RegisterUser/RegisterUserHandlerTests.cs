@@ -1,4 +1,5 @@
 using System.Data;
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.Identity.Application.Abstractions.Persistence;
@@ -10,309 +11,515 @@ using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Entities;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RegisterUser;
-
-public sealed class RegisterUserHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RegisterUser
 {
-    private static readonly DateTime UtcNow = new(2047, 6, 7, 8, 9, 10, DateTimeKind.Utc);
-
-    [Fact]
-    public async Task Handle_WhenFirstUser_AssignsSuperAdminAndPersistsUser()
+    public sealed class RegisterUserHandlerTests
     {
-        var userRepository = new FakeUserRepository
+        private static readonly DateTime UtcNow = new(
+            year: 2047,
+            month: 6,
+            day: 7,
+            hour: 8,
+            minute: 9,
+            second: 10,
+            kind: DateTimeKind.Utc);
+
+        [Fact]
+        public async Task Handle_WhenFirstUser_AssignsSuperAdminAndPersistsUser()
         {
-            AnyAsyncResult = false
-        };
-        var assignedRole = Role.Create(
-            name: SystemRoleNames.SuperAdmin,
-            isSystem: true,
-            createdAtUtc: UtcNow);
-        var roleRepository = new FakeRoleReadRepository
-        {
-            RolesByName =
+            var userRepository = new FakeUserRepository
             {
-                [SystemRoleNames.SuperAdmin] = assignedRole
-            }
-        };
-        var userRolesRepository = new FakeUserRolesRepository();
-        var passwordHasher = new FakePasswordHasher();
-        var unitOfWork = new FakeUnitOfWork();
-        var handler = CreateHandler(
-            userRepository: userRepository,
-            userRolesRepository: userRolesRepository,
-            roleReadRepository: roleRepository,
-            passwordHasher: passwordHasher,
-            unitOfWork: unitOfWork);
-
-        var result = await handler.Handle(
-            new RegisterUserCommand(
-                Email: "Neo@Matrix.Local",
-                Username: "Neo",
-                Password: "Pa$$w0rd"),
-            CancellationToken.None);
-
-        Assert.NotNull(userRepository.AddedUser);
-        Assert.Equal("neo@matrix.local", userRepository.AddedUser!.Email.Value);
-        Assert.Equal(UtcNow, userRepository.AddedUser.CreatedAtUtc);
-        Assert.Equal("Pa$$w0rd", passwordHasher.HashedPasswordInput);
-        Assert.Equal("hash::Pa$$w0rd", userRepository.AddedUser.PasswordHash);
-        Assert.Equal(SystemRoleNames.SuperAdmin, roleRepository.RequestedRoleNames.Single());
-        Assert.Equal(userRepository.AddedUser.Id, result.UserId);
-        Assert.Equal("neo@matrix.local", result.Email);
-        Assert.Equal("Neo", result.Username);
-        Assert.Equal(userRepository.AddedUser.Id, userRolesRepository.ReplacedUserId);
-        Assert.Equal(new[] { assignedRole.Id }, userRolesRepository.ReplacedRoleIds);
-        Assert.True(unitOfWork.WasExecuted);
-        Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
-    }
-
-    [Fact]
-    public async Task Handle_WhenUsersAlreadyExist_AssignsUserRole()
-    {
-        var userRepository = new FakeUserRepository
-        {
-            AnyAsyncResult = true
-        };
-        var assignedRole = Role.Create(
-            name: SystemRoleNames.User,
-            isSystem: true,
-            createdAtUtc: UtcNow);
-        var roleRepository = new FakeRoleReadRepository
-        {
-            RolesByName =
-            {
-                [SystemRoleNames.User] = assignedRole
-            }
-        };
-        var userRolesRepository = new FakeUserRolesRepository();
-        var handler = CreateHandler(
-            userRepository: userRepository,
-            userRolesRepository: userRolesRepository,
-            roleReadRepository: roleRepository);
-
-        await handler.Handle(
-            new RegisterUserCommand(
-                Email: "neo@matrix.local",
-                Username: "neo",
-                Password: "Pa$$w0rd"),
-            CancellationToken.None);
-
-        Assert.Equal(SystemRoleNames.User, roleRepository.RequestedRoleNames.Single());
-        Assert.Equal(new[] { assignedRole.Id }, userRolesRepository.ReplacedRoleIds);
-    }
-
-    [Fact]
-    public async Task Handle_WhenEmailAlreadyTaken_ThrowsConflictAndDoesNotPersist()
-    {
-        var userRepository = new FakeUserRepository
-        {
-            IsEmailTakenAsyncResult = true
-        };
-        var handler = CreateHandler(userRepository: userRepository);
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new RegisterUserCommand(
-                Email: "neo@matrix.local",
-                Username: "neo",
-                Password: "Pa$$w0rd"),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.EmailAlreadyInUse", exception.Code);
-        Assert.Equal(ApplicationErrorType.Conflict, exception.ErrorType);
-        Assert.Null(userRepository.AddedUser);
-    }
-
-    [Fact]
-    public async Task Handle_WhenUsernameAlreadyTaken_ThrowsConflictAndDoesNotPersist()
-    {
-        var userRepository = new FakeUserRepository
-        {
-            IsUsernameTakenAsyncResult = true
-        };
-        var handler = CreateHandler(userRepository: userRepository);
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new RegisterUserCommand(
-                Email: "neo@matrix.local",
-                Username: "neo",
-                Password: "Pa$$w0rd"),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.UsernameAlreadyInUse", exception.Code);
-        Assert.Equal(ApplicationErrorType.Conflict, exception.ErrorType);
-        Assert.Null(userRepository.AddedUser);
-    }
-
-    [Fact]
-    public async Task Handle_WhenRequiredSystemRoleMissing_ThrowsBusinessRule()
-    {
-        var userRepository = new FakeUserRepository
-        {
-            AnyAsyncResult = true
-        };
-        var roleRepository = new FakeRoleReadRepository();
-        var handler = CreateHandler(
-            userRepository: userRepository,
-            roleReadRepository: roleRepository);
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new RegisterUserCommand(
-                Email: "neo@matrix.local",
-                Username: "neo",
-                Password: "Pa$$w0rd"),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.Role.System.Missing", exception.Code);
-        Assert.Equal(ApplicationErrorType.BusinessRule, exception.ErrorType);
-        Assert.Equal(SystemRoleNames.User, roleRepository.RequestedRoleNames.Single());
-    }
-
-    private static RegisterUserHandler CreateHandler(
-        FakeUserRepository? userRepository = null,
-        FakeUserRolesRepository? userRolesRepository = null,
-        FakeRoleReadRepository? roleReadRepository = null,
-        FakePasswordHasher? passwordHasher = null,
-        FakeUnitOfWork? unitOfWork = null,
-        TimeProvider? timeProvider = null)
-    {
-        return new RegisterUserHandler(
-            userRepository ?? new FakeUserRepository(),
-            userRolesRepository ?? new FakeUserRolesRepository(),
-            roleReadRepository ?? new FakeRoleReadRepository
+                AnyAsyncResult = false
+            };
+            var assignedRole = Role.Create(
+                name: SystemRoleNames.SuperAdmin,
+                isSystem: true,
+                createdAtUtc: UtcNow);
+            var roleRepository = new FakeRoleReadRepository
             {
                 RolesByName =
                 {
-                    [SystemRoleNames.User] = Role.Create(SystemRoleNames.User, true, UtcNow),
-                    [SystemRoleNames.SuperAdmin] = Role.Create(SystemRoleNames.SuperAdmin, true, UtcNow)
+                    [SystemRoleNames.SuperAdmin] = assignedRole
                 }
-            },
-            passwordHasher ?? new FakePasswordHasher(),
-            timeProvider ?? CreateTimeProvider(),
-            unitOfWork ?? new FakeUnitOfWork());
-    }
+            };
+            var userRolesRepository = new FakeUserRolesRepository();
+            var passwordHasher = new FakePasswordHasher();
+            var unitOfWork = new FakeUnitOfWork();
+            RegisterUserHandler handler = CreateHandler(
+                userRepository: userRepository,
+                userRolesRepository: userRolesRepository,
+                roleReadRepository: roleRepository,
+                passwordHasher: passwordHasher,
+                unitOfWork: unitOfWork);
 
-    private static TimeProvider CreateTimeProvider(DateTime? utcNow = null)
-    {
-        return new FrozenTimeProvider(utcNow ?? UtcNow);
-    }
+            RegisterUserResult result = await handler.Handle(
+                request: new RegisterUserCommand(
+                    Email: "Neo@Matrix.Local",
+                    Username: "Neo",
+                    Password: "Pa$$w0rd"),
+                cancellationToken: CancellationToken.None);
 
-    private sealed class FakeUserRepository : IUserRepository
-    {
-        public bool AnyAsyncResult { get; init; }
-        public bool IsEmailTakenAsyncResult { get; init; }
-        public bool IsUsernameTakenAsyncResult { get; init; }
-        public User? AddedUser { get; private set; }
-
-        public Task AddAsync(User user, CancellationToken cancellationToken = default)
-        {
-            AddedUser = user;
-            return Task.CompletedTask;
+            Assert.NotNull(userRepository.AddedUser);
+            Assert.Equal(
+                expected: "neo@matrix.local",
+                actual: userRepository.AddedUser!.Email.Value);
+            Assert.Equal(
+                expected: UtcNow,
+                actual: userRepository.AddedUser.CreatedAtUtc);
+            Assert.Equal(
+                expected: "Pa$$w0rd",
+                actual: passwordHasher.HashedPasswordInput);
+            Assert.Equal(
+                expected: "hash::Pa$$w0rd",
+                actual: userRepository.AddedUser.PasswordHash);
+            Assert.Equal(
+                expected: SystemRoleNames.SuperAdmin,
+                actual: roleRepository.RequestedRoleNames.Single());
+            Assert.Equal(
+                expected: userRepository.AddedUser.Id,
+                actual: result.UserId);
+            Assert.Equal(
+                expected: "neo@matrix.local",
+                actual: result.Email);
+            Assert.Equal(
+                expected: "Neo",
+                actual: result.Username);
+            Assert.Equal(
+                expected: userRepository.AddedUser.Id,
+                actual: userRolesRepository.ReplacedUserId);
+            Assert.Equal(
+                expected: new[]
+                {
+                    assignedRole.Id
+                },
+                actual: userRolesRepository.ReplacedRoleIds);
+            Assert.True(unitOfWork.WasExecuted);
+            Assert.Equal(
+                expected: IsolationLevel.Serializable,
+                actual: unitOfWork.LastIsolationLevel);
         }
 
-        public Task<bool> AnyAsync(CancellationToken cancellationToken = default) => Task.FromResult(AnyAsyncResult);
-        public Task<bool> BumpPermissionsVersionAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<int> BumpPermissionsVersionByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task DeleteAsync(User user, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<User?> GetByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<User?> GetByIdWithRefreshTokensAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<User?> GetByPendingEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<int?> GetPermissionsVersionAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<User?> GetByRefreshTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<User?> GetByUsernameAsync(string login, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public IAsyncEnumerable<Guid> StreamUserIdsByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<bool> IsEmailTakenAsync(string normalizedEmail, CancellationToken cancellationToken = default) => Task.FromResult(IsEmailTakenAsyncResult);
-        public Task<bool> IsUsernameTakenAsync(string normalizedUsername, CancellationToken cancellationToken = default) => Task.FromResult(IsUsernameTakenAsyncResult);
-    }
-
-    private sealed class FakeUserRolesRepository : IUserRolesRepository
-    {
-        public Guid ReplacedUserId { get; private set; }
-        public IReadOnlyCollection<Guid>? ReplacedRoleIds { get; private set; }
-
-        public Task<IReadOnlyCollection<UserRoleResult>> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken)
+        [Fact]
+        public async Task Handle_WhenUsersAlreadyExist_AssignsUserRole()
         {
-            throw new NotSupportedException();
+            var userRepository = new FakeUserRepository
+            {
+                AnyAsyncResult = true
+            };
+            var assignedRole = Role.Create(
+                name: SystemRoleNames.User,
+                isSystem: true,
+                createdAtUtc: UtcNow);
+            var roleRepository = new FakeRoleReadRepository
+            {
+                RolesByName =
+                {
+                    [SystemRoleNames.User] = assignedRole
+                }
+            };
+            var userRolesRepository = new FakeUserRolesRepository();
+            RegisterUserHandler handler = CreateHandler(
+                userRepository: userRepository,
+                userRolesRepository: userRolesRepository,
+                roleReadRepository: roleRepository);
+
+            await handler.Handle(
+                request: new RegisterUserCommand(
+                    Email: "neo@matrix.local",
+                    Username: "neo",
+                    Password: "Pa$$w0rd"),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: SystemRoleNames.User,
+                actual: roleRepository.RequestedRoleNames.Single());
+            Assert.Equal(
+                expected: new[]
+                {
+                    assignedRole.Id
+                },
+                actual: userRolesRepository.ReplacedRoleIds);
         }
 
-        public Task<bool> ReplaceUserRolesAsync(Guid userId, IReadOnlyCollection<Guid> roleIds, CancellationToken cancellationToken)
+        [Fact]
+        public async Task Handle_WhenEmailAlreadyTaken_ThrowsConflictAndDoesNotPersist()
         {
-            ReplacedUserId = userId;
-            ReplacedRoleIds = roleIds.ToArray();
-            return Task.FromResult(true);
-        }
-    }
+            var userRepository = new FakeUserRepository
+            {
+                IsEmailTakenAsyncResult = true
+            };
+            RegisterUserHandler handler = CreateHandler(userRepository: userRepository);
 
-    private sealed class FakeRoleReadRepository : IRoleReadRepository
-    {
-        public Dictionary<string, Role> RolesByName { get; } = new(StringComparer.Ordinal);
-        public List<string> RequestedRoleNames { get; } = new();
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new RegisterUserCommand(
+                        Email: "neo@matrix.local",
+                        Username: "neo",
+                        Password: "Pa$$w0rd"),
+                    cancellationToken: CancellationToken.None));
 
-        public Task<bool> ExistsAsync(Guid roleId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<bool> ExistsByNameAsync(string roleName, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<bool> ExistsByNameExceptAsync(string roleName, Guid excludedRoleId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyCollection<Guid>> GetExistingRoleIdsAsync(IReadOnlyCollection<Guid> roleIds, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<Role?> GetByIdAsync(Guid roleId, CancellationToken cancellationToken) => throw new NotSupportedException();
-
-        public Task<Role?> GetByNameAsync(string roleName, CancellationToken cancellationToken)
-        {
-            RequestedRoleNames.Add(roleName);
-            RolesByName.TryGetValue(roleName, out var role);
-            return Task.FromResult(role);
-        }
-
-        public Task<IReadOnlyCollection<RoleListItemResult>> GetRolesAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
-    }
-
-    private sealed class FakePasswordHasher : IPasswordHasher
-    {
-        public string? HashedPasswordInput { get; private set; }
-
-        public string Hash(string password)
-        {
-            HashedPasswordInput = password;
-            return $"hash::{password}";
+            Assert.Equal(
+                expected: "Identity.EmailAlreadyInUse",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Conflict,
+                actual: exception.ErrorType);
+            Assert.Null(userRepository.AddedUser);
         }
 
-        public PasswordVerificationOutcome Verify(User user, string passwordHash, string providedPassword)
+        [Fact]
+        public async Task Handle_WhenUsernameAlreadyTaken_ThrowsConflictAndDoesNotPersist()
         {
-            throw new NotSupportedException();
-        }
-    }
+            var userRepository = new FakeUserRepository
+            {
+                IsUsernameTakenAsyncResult = true
+            };
+            RegisterUserHandler handler = CreateHandler(userRepository: userRepository);
 
-    private sealed class FrozenTimeProvider(DateTime utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow()
-        {
-            return new DateTimeOffset(
-                DateTime.SpecifyKind(utcNow, DateTimeKind.Utc),
-                TimeSpan.Zero);
-        }
-    }
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new RegisterUserCommand(
+                        Email: "neo@matrix.local",
+                        Username: "neo",
+                        Password: "Pa$$w0rd"),
+                    cancellationToken: CancellationToken.None));
 
-    private sealed class FakeUnitOfWork : Matrix.BuildingBlocks.Application.Abstractions.IUnitOfWork
-    {
-        public bool WasExecuted { get; private set; }
-        public IsolationLevel LastIsolationLevel { get; private set; }
-
-        public Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
-        {
-            WasExecuted = true;
-            LastIsolationLevel = isolationLevel;
-            return action(cancellationToken);
+            Assert.Equal(
+                expected: "Identity.UsernameAlreadyInUse",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Conflict,
+                actual: exception.ErrorType);
+            Assert.Null(userRepository.AddedUser);
         }
 
-        public Task<T> ExecuteInTransactionAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        [Fact]
+        public async Task Handle_WhenRequiredSystemRoleMissing_ThrowsBusinessRule()
         {
-            WasExecuted = true;
-            LastIsolationLevel = isolationLevel;
-            return action(cancellationToken);
+            var userRepository = new FakeUserRepository
+            {
+                AnyAsyncResult = true
+            };
+            var roleRepository = new FakeRoleReadRepository();
+            RegisterUserHandler handler = CreateHandler(
+                userRepository: userRepository,
+                roleReadRepository: roleRepository);
+
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new RegisterUserCommand(
+                        Email: "neo@matrix.local",
+                        Username: "neo",
+                        Password: "Pa$$w0rd"),
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal(
+                expected: "Identity.Role.System.Missing",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.BusinessRule,
+                actual: exception.ErrorType);
+            Assert.Equal(
+                expected: SystemRoleNames.User,
+                actual: roleRepository.RequestedRoleNames.Single());
         }
 
-        public Task SaveChangesAsync(CancellationToken cancellationToken)
+        private static RegisterUserHandler CreateHandler(
+            FakeUserRepository? userRepository = null,
+            FakeUserRolesRepository? userRolesRepository = null,
+            FakeRoleReadRepository? roleReadRepository = null,
+            FakePasswordHasher? passwordHasher = null,
+            FakeUnitOfWork? unitOfWork = null,
+            TimeProvider? timeProvider = null)
         {
-            return Task.CompletedTask;
+            return new RegisterUserHandler(
+                userRepository: userRepository ?? new FakeUserRepository(),
+                userRolesRepository: userRolesRepository ?? new FakeUserRolesRepository(),
+                roleReadRepository: roleReadRepository ??
+                                    new FakeRoleReadRepository
+                                    {
+                                        RolesByName =
+                                        {
+                                            [SystemRoleNames.User] = Role.Create(
+                                                name: SystemRoleNames.User,
+                                                isSystem: true,
+                                                createdAtUtc: UtcNow),
+                                            [SystemRoleNames.SuperAdmin] = Role.Create(
+                                                name: SystemRoleNames.SuperAdmin,
+                                                isSystem: true,
+                                                createdAtUtc: UtcNow)
+                                        }
+                                    },
+                passwordHasher: passwordHasher ?? new FakePasswordHasher(),
+                timeProvider: timeProvider ?? CreateTimeProvider(),
+                unitOfWork: unitOfWork ?? new FakeUnitOfWork());
+        }
+
+        private static TimeProvider CreateTimeProvider(DateTime? utcNow = null)
+        {
+            return new FrozenTimeProvider(utcNow ?? UtcNow);
+        }
+
+        private sealed class FakeUserRepository : IUserRepository
+        {
+            public bool AnyAsyncResult { get; init; }
+            public bool IsEmailTakenAsyncResult { get; init; }
+            public bool IsUsernameTakenAsyncResult { get; init; }
+            public User? AddedUser { get; private set; }
+
+            public Task AddAsync(
+                User user,
+                CancellationToken cancellationToken = default)
+            {
+                AddedUser = user;
+                return Task.CompletedTask;
+            }
+
+            public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(AnyAsyncResult);
+            }
+
+            public Task<bool> BumpPermissionsVersionAsync(
+                Guid userId,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<int> BumpPermissionsVersionByRoleAsync(
+                Guid roleId,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task DeleteAsync(
+                User user,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<bool> ExistsAsync(
+                Guid userId,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<User?> GetByEmailAsync(
+                string normalizedEmail,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<User?> GetByIdAsync(
+                Guid userId,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<User?> GetByIdWithRefreshTokensAsync(
+                Guid userId,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<User?> GetByPendingEmailAsync(
+                string normalizedEmail,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<int?> GetPermissionsVersionAsync(
+                Guid userId,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<User?> GetByRefreshTokenHashAsync(
+                string tokenHash,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<User?> GetByUsernameAsync(
+                string login,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAsyncEnumerable<Guid> StreamUserIdsByRoleAsync(
+                Guid roleId,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<bool> IsEmailTakenAsync(
+                string normalizedEmail,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(IsEmailTakenAsyncResult);
+            }
+
+            public Task<bool> IsUsernameTakenAsync(
+                string normalizedUsername,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(IsUsernameTakenAsyncResult);
+            }
+        }
+
+        private sealed class FakeUserRolesRepository : IUserRolesRepository
+        {
+            public Guid ReplacedUserId { get; private set; }
+            public IReadOnlyCollection<Guid>? ReplacedRoleIds { get; private set; }
+
+            public Task<IReadOnlyCollection<UserRoleResult>> GetUserRolesAsync(
+                Guid userId,
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<bool> ReplaceUserRolesAsync(
+                Guid userId,
+                IReadOnlyCollection<Guid> roleIds,
+                CancellationToken cancellationToken)
+            {
+                ReplacedUserId = userId;
+                ReplacedRoleIds = roleIds.ToArray();
+                return Task.FromResult(true);
+            }
+        }
+
+        private sealed class FakeRoleReadRepository : IRoleReadRepository
+        {
+            public Dictionary<string, Role> RolesByName { get; } = new(StringComparer.Ordinal);
+            public List<string> RequestedRoleNames { get; } = new();
+
+            public Task<bool> ExistsAsync(
+                Guid roleId,
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<bool> ExistsByNameAsync(
+                string roleName,
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<bool> ExistsByNameExceptAsync(
+                string roleName,
+                Guid excludedRoleId,
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<IReadOnlyCollection<Guid>> GetExistingRoleIdsAsync(
+                IReadOnlyCollection<Guid> roleIds,
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<Role?> GetByIdAsync(
+                Guid roleId,
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<Role?> GetByNameAsync(
+                string roleName,
+                CancellationToken cancellationToken)
+            {
+                RequestedRoleNames.Add(roleName);
+                RolesByName.TryGetValue(
+                    key: roleName,
+                    value: out Role? role);
+                return Task.FromResult(role);
+            }
+
+            public Task<IReadOnlyCollection<RoleListItemResult>> GetRolesAsync(CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        private sealed class FakePasswordHasher : IPasswordHasher
+        {
+            public string? HashedPasswordInput { get; private set; }
+
+            public string Hash(string password)
+            {
+                HashedPasswordInput = password;
+                return $"hash::{password}";
+            }
+
+            public PasswordVerificationOutcome Verify(
+                User user,
+                string passwordHash,
+                string providedPassword)
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        private sealed class FrozenTimeProvider(DateTime utcNow) : TimeProvider
+        {
+            public override DateTimeOffset GetUtcNow()
+            {
+                return new DateTimeOffset(
+                    dateTime: DateTime.SpecifyKind(
+                        value: utcNow,
+                        kind: DateTimeKind.Utc),
+                    offset: TimeSpan.Zero);
+            }
+        }
+
+        private sealed class FakeUnitOfWork : IUnitOfWork
+        {
+            public bool WasExecuted { get; private set; }
+            public IsolationLevel LastIsolationLevel { get; private set; }
+
+            public Task ExecuteInTransactionAsync(
+                Func<CancellationToken, Task> action,
+                CancellationToken cancellationToken,
+                IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+            {
+                WasExecuted = true;
+                LastIsolationLevel = isolationLevel;
+                return action(cancellationToken);
+            }
+
+            public Task<T> ExecuteInTransactionAsync<T>(
+                Func<CancellationToken, Task<T>> action,
+                CancellationToken cancellationToken,
+                IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+            {
+                WasExecuted = true;
+                LastIsolationLevel = isolationLevel;
+                return action(cancellationToken);
+            }
+
+            public Task SaveChangesAsync(CancellationToken cancellationToken)
+            {
+                return Task.CompletedTask;
+            }
         }
     }
 }

@@ -21,10 +21,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivit
             SecurityActivityCursor? cursor = ParseCursor(request.Cursor);
 
             return await securityAuditReadRepository.GetSliceByUserIdAsync(
-                    userId: userId,
-                    cursor: cursor,
-                    pageSize: request.PageSize,
-                    cancellationToken: cancellationToken);
+                userId: userId,
+                cursor: cursor,
+                pageSize: request.PageSize,
+                cancellationToken: cancellationToken);
         }
 
         private static SecurityActivityCursor? ParseCursor(string? rawCursor)

@@ -1,5 +1,6 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
+using
+    Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
@@ -80,9 +81,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             }
 
             return districts
-                .OrderByDescending(x => x.MaintenancePriorityIndex)
-                .ThenBy(x => x.DistrictId)
-                .ToArray();
+               .OrderByDescending(x => x.MaintenancePriorityIndex)
+               .ThenBy(x => x.DistrictId)
+               .ToArray();
         }
 
         private static (decimal CenterX, decimal CenterY) ResolveCityCenter(
@@ -112,13 +113,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 return 1m;
 
             decimal maxDistance = districts
-                .Select(x => Distance(
+               .Select(x => Distance(
                     fromX: x.AnchorX,
                     fromY: x.AnchorY,
                     toX: centerX,
                     toY: centerY))
-                .DefaultIfEmpty(1m)
-                .Max();
+               .DefaultIfEmpty(1m)
+               .Max();
 
             return maxDistance <= 0m
                 ? 1m

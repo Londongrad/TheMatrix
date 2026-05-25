@@ -24,14 +24,21 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
             Task<DistrictPowerConditionsPayload?> powerTask = TryGetPayloadAsync<DistrictPowerConditionsPayload>(
                 requestUri: $"/api/classic-city/cities/{cityId}/power-distribution/districts",
                 cancellationToken: cancellationToken);
-            Task<DistrictSanitationConditionsPayload?> sanitationTask = TryGetPayloadAsync<DistrictSanitationConditionsPayload>(
-                requestUri: $"/api/classic-city/cities/{cityId}/sanitation/districts",
-                cancellationToken: cancellationToken);
-            Task<DistrictUtilityIncidentConditionsPayload?> incidentsTask = TryGetPayloadAsync<DistrictUtilityIncidentConditionsPayload>(
-                requestUri: $"/api/classic-city/cities/{cityId}/utility-incidents/districts",
-                cancellationToken: cancellationToken);
+            Task<DistrictSanitationConditionsPayload?> sanitationTask =
+                TryGetPayloadAsync<DistrictSanitationConditionsPayload>(
+                    requestUri: $"/api/classic-city/cities/{cityId}/sanitation/districts",
+                    cancellationToken: cancellationToken);
+            Task<DistrictUtilityIncidentConditionsPayload?> incidentsTask =
+                TryGetPayloadAsync<DistrictUtilityIncidentConditionsPayload>(
+                    requestUri: $"/api/classic-city/cities/{cityId}/utility-incidents/districts",
+                    cancellationToken: cancellationToken);
 
-            await Task.WhenAll(heatingTask, waterTask, powerTask, sanitationTask, incidentsTask);
+            await Task.WhenAll(
+                heatingTask,
+                waterTask,
+                powerTask,
+                sanitationTask,
+                incidentsTask);
 
             DistrictHeatingConditionsPayload? heating = await heatingTask;
             DistrictWaterConditionsPayload? water = await waterTask;
@@ -48,23 +55,33 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
             var sanitationByDistrictId = sanitation.Districts.ToDictionary(x => DistrictId.From(x.DistrictId));
             var incidentsByDistrictId = incidents.Districts.ToDictionary(x => DistrictId.From(x.DistrictId));
 
-            var districtIds = heatingByDistrictId.Keys
-                .Concat(waterByDistrictId.Keys)
-                .Concat(powerByDistrictId.Keys)
-                .Concat(sanitationByDistrictId.Keys)
-                .Concat(incidentsByDistrictId.Keys)
-                .Distinct()
-                .ToArray();
+            DistrictId[] districtIds = heatingByDistrictId.Keys
+               .Concat(waterByDistrictId.Keys)
+               .Concat(powerByDistrictId.Keys)
+               .Concat(sanitationByDistrictId.Keys)
+               .Concat(incidentsByDistrictId.Keys)
+               .Distinct()
+               .ToArray();
 
             var snapshots = new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(districtIds.Length);
 
             foreach (DistrictId districtId in districtIds)
             {
-                heatingByDistrictId.TryGetValue(districtId, out DistrictHeatingConditionPayload? heatingDistrict);
-                waterByDistrictId.TryGetValue(districtId, out DistrictWaterConditionPayload? waterDistrict);
-                powerByDistrictId.TryGetValue(districtId, out DistrictPowerConditionPayload? powerDistrict);
-                sanitationByDistrictId.TryGetValue(districtId, out DistrictSanitationConditionPayload? sanitationDistrict);
-                incidentsByDistrictId.TryGetValue(districtId, out DistrictUtilityIncidentConditionPayload? incidentDistrict);
+                heatingByDistrictId.TryGetValue(
+                    key: districtId,
+                    value: out DistrictHeatingConditionPayload? heatingDistrict);
+                waterByDistrictId.TryGetValue(
+                    key: districtId,
+                    value: out DistrictWaterConditionPayload? waterDistrict);
+                powerByDistrictId.TryGetValue(
+                    key: districtId,
+                    value: out DistrictPowerConditionPayload? powerDistrict);
+                sanitationByDistrictId.TryGetValue(
+                    key: districtId,
+                    value: out DistrictSanitationConditionPayload? sanitationDistrict);
+                incidentsByDistrictId.TryGetValue(
+                    key: districtId,
+                    value: out DistrictUtilityIncidentConditionPayload? incidentDistrict);
 
                 snapshots[districtId] = new CityDistrictUtilityConditionsSnapshot(
                     DistrictId: districtId,
@@ -94,7 +111,7 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
                 cancellationToken: cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
-                return default;
+                return default(TPayload?);
 
             response.EnsureSuccessStatusCode();
 

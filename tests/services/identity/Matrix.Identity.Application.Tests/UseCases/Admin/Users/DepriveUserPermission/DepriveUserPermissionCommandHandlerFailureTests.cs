@@ -5,88 +5,110 @@ using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatal
 using Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.DepriveUserPermission;
-
-public sealed class DepriveUserPermissionCommandHandlerFailureTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.DepriveUserPermission
 {
-    [Fact]
-    public async Task Handle_WhenUserDoesNotExist_ThrowsNotFound()
+    public sealed class DepriveUserPermissionCommandHandlerFailureTests
     {
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenUserDoesNotExist_ThrowsNotFound()
         {
-            ExistsAsyncResult = false
-        };
-        var handler = new DepriveUserPermissionCommandHandler(
-            userRepository,
-            new AdminUsersTestSupport.FakeUserPermissionsRepository(),
-            new AdminUsersTestSupport.FakePermissionReadRepository(),
-            new AdminUsersTestSupport.FakeAdminUserGuard(),
-            new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
-            new AdminRolesTestSupport.FakeUnitOfWork());
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = false
+            };
+            var handler = new DepriveUserPermissionCommandHandler(
+                userRepository: userRepository,
+                permissionsRepository: new AdminUsersTestSupport.FakeUserPermissionsRepository(),
+                permissionReadRepository: new AdminUsersTestSupport.FakePermissionReadRepository(),
+                adminUserGuard: new AdminUsersTestSupport.FakeAdminUserGuard(),
+                securityStateChangeCollector: new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new DepriveUserPermissionCommand(Guid.NewGuid(), "users.read"),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new DepriveUserPermissionCommand(
+                        UserId: Guid.NewGuid(),
+                        TargetPermissionKey: "users.read"),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.User.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-    }
+            Assert.Equal(
+                expected: "Identity.User.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+        }
 
-    [Fact]
-    public async Task Handle_WhenPermissionDoesNotExist_ThrowsNotFound()
-    {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenPermissionDoesNotExist_ThrowsNotFound()
         {
-            ExistsAsyncResult = true
-        };
-        var permissionReadRepository = new AdminUsersTestSupport.FakePermissionReadRepository();
-        var handler = new DepriveUserPermissionCommandHandler(
-            userRepository,
-            new AdminUsersTestSupport.FakeUserPermissionsRepository(),
-            permissionReadRepository,
-            new AdminUsersTestSupport.FakeAdminUserGuard(),
-            new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
-            new AdminRolesTestSupport.FakeUnitOfWork());
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = true
+            };
+            var permissionReadRepository = new AdminUsersTestSupport.FakePermissionReadRepository();
+            var handler = new DepriveUserPermissionCommandHandler(
+                userRepository: userRepository,
+                permissionsRepository: new AdminUsersTestSupport.FakeUserPermissionsRepository(),
+                permissionReadRepository: permissionReadRepository,
+                adminUserGuard: new AdminUsersTestSupport.FakeAdminUserGuard(),
+                securityStateChangeCollector: new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new DepriveUserPermissionCommand(userId, "users.read"),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new DepriveUserPermissionCommand(
+                        UserId: userId,
+                        TargetPermissionKey: "users.read"),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.Permission.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-    }
+            Assert.Equal(
+                expected: "Identity.Permission.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+        }
 
-    [Fact]
-    public async Task Handle_WhenPermissionIsDeprecated_ThrowsValidationError()
-    {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenPermissionIsDeprecated_ThrowsValidationError()
         {
-            ExistsAsyncResult = true
-        };
-        var permissionReadRepository = new AdminUsersTestSupport.FakePermissionReadRepository();
-        permissionReadRepository.PermissionByKey["users.read"] = new PermissionCatalogItemResult
-        {
-            Key = "users.read",
-            Service = "identity",
-            Group = "users",
-            Description = "Read users.",
-            IsDeprecated = true
-        };
-        var handler = new DepriveUserPermissionCommandHandler(
-            userRepository,
-            new AdminUsersTestSupport.FakeUserPermissionsRepository(),
-            permissionReadRepository,
-            new AdminUsersTestSupport.FakeAdminUserGuard(),
-            new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
-            new AdminRolesTestSupport.FakeUnitOfWork());
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = true
+            };
+            var permissionReadRepository = new AdminUsersTestSupport.FakePermissionReadRepository();
+            permissionReadRepository.PermissionByKey["users.read"] = new PermissionCatalogItemResult
+            {
+                Key = "users.read",
+                Service = "identity",
+                Group = "users",
+                Description = "Read users.",
+                IsDeprecated = true
+            };
+            var handler = new DepriveUserPermissionCommandHandler(
+                userRepository: userRepository,
+                permissionsRepository: new AdminUsersTestSupport.FakeUserPermissionsRepository(),
+                permissionReadRepository: permissionReadRepository,
+                adminUserGuard: new AdminUsersTestSupport.FakeAdminUserGuard(),
+                securityStateChangeCollector: new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new DepriveUserPermissionCommand(userId, "users.read"),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new DepriveUserPermissionCommand(
+                        UserId: userId,
+                        TargetPermissionKey: "users.read"),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.Permission.Deprecated", exception.Code);
-        Assert.Equal(ApplicationErrorType.Validation, exception.ErrorType);
+            Assert.Equal(
+                expected: "Identity.Permission.Deprecated",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Validation,
+                actual: exception.ErrorType);
+        }
     }
 }

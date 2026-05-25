@@ -1,27 +1,31 @@
+using FluentValidation.Results;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology.GetCityDistricts;
-
-public sealed class GetCityDistrictsQueryValidatorTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology.GetCityDistricts
 {
-    private readonly GetCityDistrictsQueryValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidCityId_ReturnsNoErrors()
+    public sealed class GetCityDistrictsQueryValidatorTests
     {
-        var result = _validator.Validate(new GetCityDistrictsQuery(Guid.NewGuid()));
+        private readonly GetCityDistrictsQueryValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidCityId_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(new GetCityDistrictsQuery(Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_WithEmptyCityId_ReturnsError()
-    {
-        var result = _validator.Validate(new GetCityDistrictsQuery(Guid.Empty));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.PropertyName == "CityId");
+        [Fact]
+        public void Validate_WithEmptyCityId_ReturnsError()
+        {
+            ValidationResult? result = _validator.Validate(new GetCityDistrictsQuery(Guid.Empty));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "CityId");
+        }
     }
 }

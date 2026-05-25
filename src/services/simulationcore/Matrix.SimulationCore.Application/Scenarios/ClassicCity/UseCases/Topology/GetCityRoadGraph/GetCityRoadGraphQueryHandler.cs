@@ -2,6 +2,7 @@ using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using MediatR;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityRoadGraph
@@ -16,11 +17,11 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
         {
             var cityId = new CityId(request.CityId);
 
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.District> districts =
+            IReadOnlyList<District> districts =
                 await districtRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadSegment> roadSegments =
+            IReadOnlyList<RoadSegment> roadSegments =
                 await roadSegmentRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);

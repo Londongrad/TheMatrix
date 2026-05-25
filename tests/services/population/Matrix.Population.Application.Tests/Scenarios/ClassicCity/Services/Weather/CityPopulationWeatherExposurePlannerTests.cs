@@ -5,263 +5,319 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Xunit;
 
-namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Weather;
-
-public sealed class CityPopulationWeatherExposurePlannerTests
+namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Weather
 {
-    private static readonly CityId TestCityId = CityId.From(Guid.Parse("11111111-2222-3333-4444-555555555555"));
-    private static readonly DateTimeOffset BaseTime = new(2030, 1, 1, 8, 0, 0, TimeSpan.Zero);
-
-    [Fact]
-    public void ShouldAdvanceCheckpoint_WhenStateIsNull_ReturnsFalse()
+    public sealed class CityPopulationWeatherExposurePlannerTests
     {
-        bool result = CityPopulationWeatherExposurePlanner.ShouldAdvanceCheckpoint(
-            weatherExposureState: null,
-            fromSimTimeUtc: BaseTime,
-            toSimTimeUtc: BaseTime.AddHours(1));
+        private static readonly CityId TestCityId = CityId.From(Guid.Parse("11111111-2222-3333-4444-555555555555"));
 
-        Assert.False(result);
-    }
+        private static readonly DateTimeOffset BaseTime = new(
+            year: 2030,
+            month: 1,
+            day: 1,
+            hour: 8,
+            minute: 0,
+            second: 0,
+            offset: TimeSpan.Zero);
 
-    [Fact]
-    public void ShouldAdvanceCheckpoint_WhenToTimeDoesNotPassEffectiveCheckpoint_ReturnsFalse()
-    {
-        DateTimeOffset checkpoint = BaseTime.AddHours(1);
-        CityPopulationWeatherExposureState state = CreateWeatherExposureState(
-            currentWeather: CreateAdverseWeather(),
-            currentWeatherEffectiveAtSimTimeUtc: checkpoint);
+        [Fact]
+        public void ShouldAdvanceCheckpoint_WhenStateIsNull_ReturnsFalse()
+        {
+            bool result = CityPopulationWeatherExposurePlanner.ShouldAdvanceCheckpoint(
+                weatherExposureState: null,
+                fromSimTimeUtc: BaseTime,
+                toSimTimeUtc: BaseTime.AddHours(1));
 
-        bool result = CityPopulationWeatherExposurePlanner.ShouldAdvanceCheckpoint(
-            weatherExposureState: state,
-            fromSimTimeUtc: BaseTime,
-            toSimTimeUtc: checkpoint);
+            Assert.False(result);
+        }
 
-        Assert.False(result);
-    }
+        [Fact]
+        public void ShouldAdvanceCheckpoint_WhenToTimeDoesNotPassEffectiveCheckpoint_ReturnsFalse()
+        {
+            DateTimeOffset checkpoint = BaseTime.AddHours(1);
+            CityPopulationWeatherExposureState state = CreateWeatherExposureState(
+                currentWeather: CreateAdverseWeather(),
+                currentWeatherEffectiveAtSimTimeUtc: checkpoint);
 
-    [Fact]
-    public void ShouldAdvanceCheckpoint_WhenToTimePassesEffectiveCheckpoint_ReturnsTrue()
-    {
-        CityPopulationWeatherExposureState state = CreateWeatherExposureState(
-            currentWeather: CreateAdverseWeather(),
-            currentWeatherEffectiveAtSimTimeUtc: BaseTime);
+            bool result = CityPopulationWeatherExposurePlanner.ShouldAdvanceCheckpoint(
+                weatherExposureState: state,
+                fromSimTimeUtc: BaseTime,
+                toSimTimeUtc: checkpoint);
 
-        bool result = CityPopulationWeatherExposurePlanner.ShouldAdvanceCheckpoint(
-            weatherExposureState: state,
-            fromSimTimeUtc: BaseTime.AddHours(-1),
-            toSimTimeUtc: BaseTime.AddHours(1));
+            Assert.False(result);
+        }
 
-        Assert.True(result);
-    }
+        [Fact]
+        public void ShouldAdvanceCheckpoint_WhenToTimePassesEffectiveCheckpoint_ReturnsTrue()
+        {
+            CityPopulationWeatherExposureState state = CreateWeatherExposureState(
+                currentWeather: CreateAdverseWeather(),
+                currentWeatherEffectiveAtSimTimeUtc: BaseTime);
 
-    [Fact]
-    public void BuildSegments_WhenNoTimeNeedsProcessing_ReturnsEmptyList()
-    {
-        CityPopulationWeatherExposureState state = CreateWeatherExposureState(
-            currentWeather: CreateAdverseWeather(),
-            currentWeatherEffectiveAtSimTimeUtc: BaseTime);
+            bool result = CityPopulationWeatherExposurePlanner.ShouldAdvanceCheckpoint(
+                weatherExposureState: state,
+                fromSimTimeUtc: BaseTime.AddHours(-1),
+                toSimTimeUtc: BaseTime.AddHours(1));
 
-        List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
-            weatherExposureState: state,
-            fromSimTimeUtc: BaseTime.AddMinutes(30),
-            toSimTimeUtc: BaseTime.AddMinutes(30));
+            Assert.True(result);
+        }
 
-        Assert.Empty(segments);
-    }
+        [Fact]
+        public void BuildSegments_WhenNoTimeNeedsProcessing_ReturnsEmptyList()
+        {
+            CityPopulationWeatherExposureState state = CreateWeatherExposureState(
+                currentWeather: CreateAdverseWeather(),
+                currentWeatherEffectiveAtSimTimeUtc: BaseTime);
 
-    [Fact]
-    public void BuildSegments_WhenCurrentWeatherIsAdverse_IncludesCurrentAdverseExposureSegment()
-    {
-        WeatherImpactProfile adverseWeather = CreateAdverseWeather();
-        CityPopulationWeatherExposureState state = CreateWeatherExposureState(
-            currentWeather: adverseWeather,
-            currentWeatherEffectiveAtSimTimeUtc: BaseTime);
-        DateTimeOffset from = BaseTime.AddMinutes(30);
-        DateTimeOffset to = BaseTime.AddHours(1);
+            List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
+                weatherExposureState: state,
+                fromSimTimeUtc: BaseTime.AddMinutes(30),
+                toSimTimeUtc: BaseTime.AddMinutes(30));
 
-        List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
-            weatherExposureState: state,
-            fromSimTimeUtc: from,
-            toSimTimeUtc: to);
+            Assert.Empty(segments);
+        }
 
-        CityWeatherExposureSegment segment = Assert.Single(segments);
+        [Fact]
+        public void BuildSegments_WhenCurrentWeatherIsAdverse_IncludesCurrentAdverseExposureSegment()
+        {
+            WeatherImpactProfile adverseWeather = CreateAdverseWeather();
+            CityPopulationWeatherExposureState state = CreateWeatherExposureState(
+                currentWeather: adverseWeather,
+                currentWeatherEffectiveAtSimTimeUtc: BaseTime);
+            DateTimeOffset from = BaseTime.AddMinutes(30);
+            DateTimeOffset to = BaseTime.AddHours(1);
 
-        Assert.Equal(CityWeatherExposureKind.Adverse, segment.Kind);
-        Assert.Equal(from, segment.IntervalStartSimTimeUtc);
-        Assert.Equal(to, segment.IntervalEndSimTimeUtc);
-        Assert.Equal(BaseTime, segment.EffectStartedAtSimTimeUtc);
-        Assert.Equal(adverseWeather, segment.Weather);
-        Assert.Null(segment.SourceWeather);
-    }
+            List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
+                weatherExposureState: state,
+                fromSimTimeUtc: from,
+                toSimTimeUtc: to);
 
-    [Fact]
-    public void BuildSegments_WhenPreviousWeatherIsAdverseBeforeCurrentEffectiveTime_IncludesPreviousAdverseSegment()
-    {
-        WeatherImpactProfile previousAdverseWeather = CreateAdverseWeather();
-        CityPopulationWeatherExposureState state = CreateWeatherExposureState(
-            currentWeather: previousAdverseWeather,
-            currentWeatherEffectiveAtSimTimeUtc: BaseTime);
-        state.ApplyWeatherUpdate(
-            currentWeather: CreateNeutralWeather(),
-            currentWeatherEffectiveAtSimTimeUtc: BaseTime.AddHours(2),
-            occurredOnUtc: BaseTime.AddHours(2),
-            updatedAtUtc: BaseTime.AddHours(2));
-        DateTimeOffset from = BaseTime.AddHours(1);
-        DateTimeOffset to = BaseTime.AddHours(1)
-           .AddMinutes(30);
+            CityWeatherExposureSegment segment = Assert.Single(segments);
 
-        List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
-            weatherExposureState: state,
-            fromSimTimeUtc: from,
-            toSimTimeUtc: to);
+            Assert.Equal(
+                expected: CityWeatherExposureKind.Adverse,
+                actual: segment.Kind);
+            Assert.Equal(
+                expected: from,
+                actual: segment.IntervalStartSimTimeUtc);
+            Assert.Equal(
+                expected: to,
+                actual: segment.IntervalEndSimTimeUtc);
+            Assert.Equal(
+                expected: BaseTime,
+                actual: segment.EffectStartedAtSimTimeUtc);
+            Assert.Equal(
+                expected: adverseWeather,
+                actual: segment.Weather);
+            Assert.Null(segment.SourceWeather);
+        }
 
-        CityWeatherExposureSegment segment = Assert.Single(segments);
+        [Fact]
+        public void
+            BuildSegments_WhenPreviousWeatherIsAdverseBeforeCurrentEffectiveTime_IncludesPreviousAdverseSegment()
+        {
+            WeatherImpactProfile previousAdverseWeather = CreateAdverseWeather();
+            CityPopulationWeatherExposureState state = CreateWeatherExposureState(
+                currentWeather: previousAdverseWeather,
+                currentWeatherEffectiveAtSimTimeUtc: BaseTime);
+            state.ApplyWeatherUpdate(
+                currentWeather: CreateNeutralWeather(),
+                currentWeatherEffectiveAtSimTimeUtc: BaseTime.AddHours(2),
+                occurredOnUtc: BaseTime.AddHours(2),
+                updatedAtUtc: BaseTime.AddHours(2));
+            DateTimeOffset from = BaseTime.AddHours(1);
+            DateTimeOffset to = BaseTime.AddHours(1)
+               .AddMinutes(30);
 
-        Assert.Equal(CityWeatherExposureKind.Adverse, segment.Kind);
-        Assert.Equal(previousAdverseWeather, segment.Weather);
-        Assert.Equal(from, segment.IntervalStartSimTimeUtc);
-        Assert.Equal(to, segment.IntervalEndSimTimeUtc);
-        Assert.Equal(BaseTime, segment.EffectStartedAtSimTimeUtc);
-    }
+            List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
+                weatherExposureState: state,
+                fromSimTimeUtc: from,
+                toSimTimeUtc: to);
 
-    [Fact]
-    public void BuildSegments_WhenPreviousAndCurrentWeatherAreAdverse_SplitsSegmentsChronologically()
-    {
-        WeatherImpactProfile previousAdverseWeather = CreateAdverseWeather();
-        WeatherImpactProfile currentAdverseWeather = CreateAdverseWeather(
-            type: PopulationWeatherType.Heatwave,
-            precipitationKind: PopulationPrecipitationKind.None,
-            temperatureC: 34m,
-            windSpeedKph: 8m);
-        CityPopulationWeatherExposureState state = CreateWeatherExposureState(
-            currentWeather: previousAdverseWeather,
-            currentWeatherEffectiveAtSimTimeUtc: BaseTime);
-        DateTimeOffset currentEffectiveAt = BaseTime.AddHours(2);
-        state.ApplyWeatherUpdate(
-            currentWeather: currentAdverseWeather,
-            currentWeatherEffectiveAtSimTimeUtc: currentEffectiveAt,
-            occurredOnUtc: currentEffectiveAt,
-            updatedAtUtc: currentEffectiveAt);
-        DateTimeOffset from = BaseTime.AddHours(1)
-           .AddMinutes(30);
-        DateTimeOffset to = BaseTime.AddHours(2)
-           .AddMinutes(30);
+            CityWeatherExposureSegment segment = Assert.Single(segments);
 
-        List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
-            weatherExposureState: state,
-            fromSimTimeUtc: from,
-            toSimTimeUtc: to);
+            Assert.Equal(
+                expected: CityWeatherExposureKind.Adverse,
+                actual: segment.Kind);
+            Assert.Equal(
+                expected: previousAdverseWeather,
+                actual: segment.Weather);
+            Assert.Equal(
+                expected: from,
+                actual: segment.IntervalStartSimTimeUtc);
+            Assert.Equal(
+                expected: to,
+                actual: segment.IntervalEndSimTimeUtc);
+            Assert.Equal(
+                expected: BaseTime,
+                actual: segment.EffectStartedAtSimTimeUtc);
+        }
 
-        Assert.Equal(2, segments.Count);
-        Assert.Equal(previousAdverseWeather, segments[0].Weather);
-        Assert.Equal(currentAdverseWeather, segments[1].Weather);
-        Assert.Equal(from, segments[0].IntervalStartSimTimeUtc);
-        Assert.Equal(currentEffectiveAt, segments[0].IntervalEndSimTimeUtc);
-        Assert.Equal(currentEffectiveAt, segments[1].IntervalStartSimTimeUtc);
-        Assert.Equal(to, segments[1].IntervalEndSimTimeUtc);
-        Assert.True(segments[0].IntervalEndSimTimeUtc <= segments[1].IntervalStartSimTimeUtc);
-    }
+        [Fact]
+        public void BuildSegments_WhenPreviousAndCurrentWeatherAreAdverse_SplitsSegmentsChronologically()
+        {
+            WeatherImpactProfile previousAdverseWeather = CreateAdverseWeather();
+            WeatherImpactProfile currentAdverseWeather = CreateAdverseWeather(
+                type: PopulationWeatherType.Heatwave,
+                precipitationKind: PopulationPrecipitationKind.None,
+                temperatureC: 34m,
+                windSpeedKph: 8m);
+            CityPopulationWeatherExposureState state = CreateWeatherExposureState(
+                currentWeather: previousAdverseWeather,
+                currentWeatherEffectiveAtSimTimeUtc: BaseTime);
+            DateTimeOffset currentEffectiveAt = BaseTime.AddHours(2);
+            state.ApplyWeatherUpdate(
+                currentWeather: currentAdverseWeather,
+                currentWeatherEffectiveAtSimTimeUtc: currentEffectiveAt,
+                occurredOnUtc: currentEffectiveAt,
+                updatedAtUtc: currentEffectiveAt);
+            DateTimeOffset from = BaseTime.AddHours(1)
+               .AddMinutes(30);
+            DateTimeOffset to = BaseTime.AddHours(2)
+               .AddMinutes(30);
 
-    [Fact]
-    public void BuildSegments_WhenCurrentWeatherIsRecoveryAndSourceExists_IncludesRecoverySegment()
-    {
-        WeatherImpactProfile adverseWeather = CreateAdverseWeather();
-        WeatherImpactProfile recoveryWeather = CreateRecoveryWeather();
-        CityPopulationWeatherExposureState state = CreateWeatherExposureState(
-            currentWeather: adverseWeather,
-            currentWeatherEffectiveAtSimTimeUtc: BaseTime);
-        DateTimeOffset recoveryStartedAt = BaseTime.AddHours(2);
-        state.ApplyWeatherUpdate(
-            currentWeather: recoveryWeather,
-            currentWeatherEffectiveAtSimTimeUtc: recoveryStartedAt,
-            occurredOnUtc: recoveryStartedAt,
-            updatedAtUtc: recoveryStartedAt);
-        DateTimeOffset to = recoveryStartedAt.AddHours(1);
+            List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
+                weatherExposureState: state,
+                fromSimTimeUtc: from,
+                toSimTimeUtc: to);
 
-        List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
-            weatherExposureState: state,
-            fromSimTimeUtc: recoveryStartedAt,
-            toSimTimeUtc: to);
+            Assert.Equal(
+                expected: 2,
+                actual: segments.Count);
+            Assert.Equal(
+                expected: previousAdverseWeather,
+                actual: segments[0].Weather);
+            Assert.Equal(
+                expected: currentAdverseWeather,
+                actual: segments[1].Weather);
+            Assert.Equal(
+                expected: from,
+                actual: segments[0].IntervalStartSimTimeUtc);
+            Assert.Equal(
+                expected: currentEffectiveAt,
+                actual: segments[0].IntervalEndSimTimeUtc);
+            Assert.Equal(
+                expected: currentEffectiveAt,
+                actual: segments[1].IntervalStartSimTimeUtc);
+            Assert.Equal(
+                expected: to,
+                actual: segments[1].IntervalEndSimTimeUtc);
+            Assert.True(segments[0].IntervalEndSimTimeUtc <= segments[1].IntervalStartSimTimeUtc);
+        }
 
-        CityWeatherExposureSegment segment = Assert.Single(segments);
+        [Fact]
+        public void BuildSegments_WhenCurrentWeatherIsRecoveryAndSourceExists_IncludesRecoverySegment()
+        {
+            WeatherImpactProfile adverseWeather = CreateAdverseWeather();
+            WeatherImpactProfile recoveryWeather = CreateRecoveryWeather();
+            CityPopulationWeatherExposureState state = CreateWeatherExposureState(
+                currentWeather: adverseWeather,
+                currentWeatherEffectiveAtSimTimeUtc: BaseTime);
+            DateTimeOffset recoveryStartedAt = BaseTime.AddHours(2);
+            state.ApplyWeatherUpdate(
+                currentWeather: recoveryWeather,
+                currentWeatherEffectiveAtSimTimeUtc: recoveryStartedAt,
+                occurredOnUtc: recoveryStartedAt,
+                updatedAtUtc: recoveryStartedAt);
+            DateTimeOffset to = recoveryStartedAt.AddHours(1);
 
-        Assert.Equal(CityWeatherExposureKind.Recovery, segment.Kind);
-        Assert.Equal(recoveryStartedAt, segment.IntervalStartSimTimeUtc);
-        Assert.Equal(to, segment.IntervalEndSimTimeUtc);
-        Assert.Equal(recoveryStartedAt, segment.EffectStartedAtSimTimeUtc);
-        Assert.Equal(recoveryWeather, segment.Weather);
-        Assert.NotNull(segment.SourceWeather);
-        Assert.Equal(adverseWeather, segment.SourceWeather);
-    }
+            List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
+                weatherExposureState: state,
+                fromSimTimeUtc: recoveryStartedAt,
+                toSimTimeUtc: to);
 
-    [Fact]
-    public void BuildSegments_WhenRecoveryWeatherHasNoSource_ReturnsEmptyList()
-    {
-        CityPopulationWeatherExposureState state = CreateWeatherExposureState(
-            currentWeather: CreateRecoveryWeather(),
-            currentWeatherEffectiveAtSimTimeUtc: BaseTime);
+            CityWeatherExposureSegment segment = Assert.Single(segments);
 
-        List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
-            weatherExposureState: state,
-            fromSimTimeUtc: BaseTime.AddHours(1),
-            toSimTimeUtc: BaseTime.AddHours(2));
+            Assert.Equal(
+                expected: CityWeatherExposureKind.Recovery,
+                actual: segment.Kind);
+            Assert.Equal(
+                expected: recoveryStartedAt,
+                actual: segment.IntervalStartSimTimeUtc);
+            Assert.Equal(
+                expected: to,
+                actual: segment.IntervalEndSimTimeUtc);
+            Assert.Equal(
+                expected: recoveryStartedAt,
+                actual: segment.EffectStartedAtSimTimeUtc);
+            Assert.Equal(
+                expected: recoveryWeather,
+                actual: segment.Weather);
+            Assert.NotNull(segment.SourceWeather);
+            Assert.Equal(
+                expected: adverseWeather,
+                actual: segment.SourceWeather);
+        }
 
-        Assert.Empty(segments);
-    }
+        [Fact]
+        public void BuildSegments_WhenRecoveryWeatherHasNoSource_ReturnsEmptyList()
+        {
+            CityPopulationWeatherExposureState state = CreateWeatherExposureState(
+                currentWeather: CreateRecoveryWeather(),
+                currentWeatherEffectiveAtSimTimeUtc: BaseTime);
 
-    private static CityPopulationWeatherExposureState CreateWeatherExposureState(
-        WeatherImpactProfile currentWeather,
-        DateTimeOffset currentWeatherEffectiveAtSimTimeUtc)
-    {
-        return CityPopulationWeatherExposureState.Create(
-            cityId: TestCityId,
-            currentWeather: currentWeather,
-            currentWeatherEffectiveAtSimTimeUtc: currentWeatherEffectiveAtSimTimeUtc,
-            occurredOnUtc: currentWeatherEffectiveAtSimTimeUtc,
-            updatedAtUtc: currentWeatherEffectiveAtSimTimeUtc);
-    }
+            List<CityWeatherExposureSegment> segments = CityPopulationWeatherExposurePlanner.BuildSegments(
+                weatherExposureState: state,
+                fromSimTimeUtc: BaseTime.AddHours(1),
+                toSimTimeUtc: BaseTime.AddHours(2));
 
-    private static WeatherImpactProfile CreateAdverseWeather(
-        PopulationWeatherType type = PopulationWeatherType.Storm,
-        PopulationWeatherSeverity severity = PopulationWeatherSeverity.Moderate,
-        PopulationPrecipitationKind precipitationKind = PopulationPrecipitationKind.Rain,
-        decimal temperatureC = 12m,
-        decimal windSpeedKph = 32m)
-    {
-        return new WeatherImpactProfile(
-            Type: type,
-            Severity: severity,
-            PrecipitationKind: precipitationKind,
-            TemperatureC: temperatureC,
-            HumidityPercent: 75m,
-            WindSpeedKph: windSpeedKph,
-            CloudCoveragePercent: 82m,
-            PressureHpa: 1002m);
-    }
+            Assert.Empty(segments);
+        }
 
-    private static WeatherImpactProfile CreateRecoveryWeather()
-    {
-        return new WeatherImpactProfile(
-            Type: PopulationWeatherType.Clear,
-            Severity: PopulationWeatherSeverity.Mild,
-            PrecipitationKind: PopulationPrecipitationKind.None,
-            TemperatureC: 20m,
-            HumidityPercent: 48m,
-            WindSpeedKph: 12m,
-            CloudCoveragePercent: 10m,
-            PressureHpa: 1014m);
-    }
+        private static CityPopulationWeatherExposureState CreateWeatherExposureState(
+            WeatherImpactProfile currentWeather,
+            DateTimeOffset currentWeatherEffectiveAtSimTimeUtc)
+        {
+            return CityPopulationWeatherExposureState.Create(
+                cityId: TestCityId,
+                currentWeather: currentWeather,
+                currentWeatherEffectiveAtSimTimeUtc: currentWeatherEffectiveAtSimTimeUtc,
+                occurredOnUtc: currentWeatherEffectiveAtSimTimeUtc,
+                updatedAtUtc: currentWeatherEffectiveAtSimTimeUtc);
+        }
 
-    private static WeatherImpactProfile CreateNeutralWeather()
-    {
-        return new WeatherImpactProfile(
-            Type: PopulationWeatherType.Rain,
-            Severity: PopulationWeatherSeverity.Mild,
-            PrecipitationKind: PopulationPrecipitationKind.Rain,
-            TemperatureC: 14m,
-            HumidityPercent: 72m,
-            WindSpeedKph: 10m,
-            CloudCoveragePercent: 70m,
-            PressureHpa: 1008m);
+        private static WeatherImpactProfile CreateAdverseWeather(
+            PopulationWeatherType type = PopulationWeatherType.Storm,
+            PopulationWeatherSeverity severity = PopulationWeatherSeverity.Moderate,
+            PopulationPrecipitationKind precipitationKind = PopulationPrecipitationKind.Rain,
+            decimal temperatureC = 12m,
+            decimal windSpeedKph = 32m)
+        {
+            return new WeatherImpactProfile(
+                Type: type,
+                Severity: severity,
+                PrecipitationKind: precipitationKind,
+                TemperatureC: temperatureC,
+                HumidityPercent: 75m,
+                WindSpeedKph: windSpeedKph,
+                CloudCoveragePercent: 82m,
+                PressureHpa: 1002m);
+        }
+
+        private static WeatherImpactProfile CreateRecoveryWeather()
+        {
+            return new WeatherImpactProfile(
+                Type: PopulationWeatherType.Clear,
+                Severity: PopulationWeatherSeverity.Mild,
+                PrecipitationKind: PopulationPrecipitationKind.None,
+                TemperatureC: 20m,
+                HumidityPercent: 48m,
+                WindSpeedKph: 12m,
+                CloudCoveragePercent: 10m,
+                PressureHpa: 1014m);
+        }
+
+        private static WeatherImpactProfile CreateNeutralWeather()
+        {
+            return new WeatherImpactProfile(
+                Type: PopulationWeatherType.Rain,
+                Severity: PopulationWeatherSeverity.Mild,
+                PrecipitationKind: PopulationPrecipitationKind.Rain,
+                TemperatureC: 14m,
+                HumidityPercent: 72m,
+                WindSpeedKph: 10m,
+                CloudCoveragePercent: 70m,
+                PressureHpa: 1008m);
+        }
     }
 }

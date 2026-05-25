@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 {

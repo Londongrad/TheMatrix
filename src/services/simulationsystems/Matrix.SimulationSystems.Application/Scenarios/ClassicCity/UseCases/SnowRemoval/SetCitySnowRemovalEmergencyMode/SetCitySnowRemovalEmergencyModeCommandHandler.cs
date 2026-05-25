@@ -2,12 +2,14 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.Common;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.SetCitySnowRemovalEmergencyMode
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.
+    SetCitySnowRemovalEmergencyMode
 {
     public sealed class SetCitySnowRemovalEmergencyModeCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -31,7 +33,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
 
             state.SetSnowRemovalEmergencyMode(request.Enabled);
 
-            var refreshedSnapshot = policy.Recalculate(
+            CityEnvironmentalConditionSnapshot refreshedSnapshot = policy.Recalculate(
                 state: state,
                 pressure: pressureProfileFactory.Create(state),
                 asOfUtc: state.LastEvaluatedAtUtc);
@@ -39,7 +41,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
             state.ApplySnapshot(refreshedSnapshot);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal snowRemovalSupport = pressureProfileFactory.Create(state).SnowRemovalSupport;
+            decimal snowRemovalSupport = pressureProfileFactory.Create(state)
+               .SnowRemovalSupport;
 
             return CitySnowRemovalStatusDto.FromState(
                 cityId: request.CityId,

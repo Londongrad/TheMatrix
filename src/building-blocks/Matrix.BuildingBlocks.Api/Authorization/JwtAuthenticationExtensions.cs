@@ -80,10 +80,7 @@ namespace Matrix.BuildingBlocks.Api.Authorization
                .AddPolicyScheme(
                     authenticationScheme: InternalCompositeJwtScheme,
                     displayName: InternalCompositeJwtScheme,
-                    configureOptions: options =>
-                    {
-                        options.ForwardDefaultSelector = ResolveInternalJwtScheme;
-                    })
+                    configureOptions: options => { options.ForwardDefaultSelector = ResolveInternalJwtScheme; })
                .AddJwtBearer(InternalUserContextJwtScheme)
                .AddJwtBearer(InternalServiceJwtScheme);
 
@@ -108,7 +105,7 @@ namespace Matrix.BuildingBlocks.Api.Authorization
             string sectionName)
             where TJwtOptions : class, IJwtValidationOptions
         {
-            var optionsBuilder = services.AddOptions<TJwtOptions>()
+            OptionsBuilder<TJwtOptions> optionsBuilder = services.AddOptions<TJwtOptions>()
                .Configure(options =>
                 {
                     configuration.GetSection(sectionName)
@@ -143,7 +140,9 @@ namespace Matrix.BuildingBlocks.Api.Authorization
             where TJwtOptions : class, IJwtValidationOptions
         {
             services.AddOptions<JwtBearerOptions>(scheme)
-               .Configure<IOptions<TJwtOptions>>((jwtBearerOptions, jwtOptions) =>
+               .Configure<IOptions<TJwtOptions>>((
+                    jwtBearerOptions,
+                    jwtOptions) =>
                 {
                     TJwtOptions jwt = jwtOptions.Value;
 
@@ -175,10 +174,8 @@ namespace Matrix.BuildingBlocks.Api.Authorization
                             kid: kid);
                     }
                     else
-                    {
                         tokenValidationParameters.IssuerSigningKey =
                             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey));
-                    }
 
                     jwtBearerOptions.TokenValidationParameters = tokenValidationParameters;
 
@@ -194,11 +191,10 @@ namespace Matrix.BuildingBlocks.Api.Authorization
 
             try
             {
-                var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+                JwtSecurityToken? jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
-                string? tokenKind = jwt.Claims.FirstOrDefault(
-                        claim => claim.Type == JwtClaimNames.InternalTokenKind)
-                   ?.Value;
+                string? tokenKind = jwt.Claims.FirstOrDefault(claim => claim.Type == JwtClaimNames.InternalTokenKind)
+                  ?.Value;
 
                 if (string.Equals(
                         a: tokenKind,
@@ -226,10 +222,13 @@ namespace Matrix.BuildingBlocks.Api.Authorization
         {
             string? authorization = context.Request.Headers.Authorization;
             if (string.IsNullOrWhiteSpace(authorization) ||
-                !authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                !authorization.StartsWith(
+                    value: "Bearer ",
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            return authorization["Bearer ".Length..].Trim();
+            return authorization["Bearer ".Length..]
+               .Trim();
         }
 
         private static bool HasConfiguredJwtValues(IConfigurationSection section)

@@ -5,10 +5,7 @@ import Button from "@shared/ui/controls/Button/Button";
 import {usePermissions} from "@shared/permissions/usePermissions";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {useCityEconomyWorkspace} from "@services/economy/city/hooks/useCityEconomyWorkspace";
-import type {
-    CityBusinessDto,
-    CityHouseholdAccountDto,
-} from "@services/economy/city/api/cityEconomyContracts";
+import type {CityBusinessDto, CityHouseholdAccountDto,} from "@services/economy/city/api/cityEconomyContracts";
 import type {
     BudgetLedgerEntryDto,
     CityBusinessLedgerEntryDto,
@@ -148,11 +145,11 @@ function getPressureTone(pressureIndex: number) {
 }
 
 function MetricTile({
-    label,
-    value,
-    note,
-    tone = "default",
-}: MetricTileProps) {
+                        label,
+                        value,
+                        note,
+                        tone = "default",
+                    }: MetricTileProps) {
     return (
         <article className={`city-economy__metric city-economy__metric--${tone}`}>
             <span className="city-economy__metric-label">{label}</span>
@@ -163,19 +160,19 @@ function MetricTile({
 }
 
 function LedgerFeedPanel<T>({
-    title,
-    subtitle,
-    entries,
-    error,
-    isLoadingInitial,
-    isLoadingMore,
-    hasNext,
-    onLoadMore,
-    emptyTitle,
-    emptyText,
-    renderEntry,
-    right,
-}: LedgerFeedPanelProps<T>) {
+                                title,
+                                subtitle,
+                                entries,
+                                error,
+                                isLoadingInitial,
+                                isLoadingMore,
+                                hasNext,
+                                onLoadMore,
+                                emptyTitle,
+                                emptyText,
+                                renderEntry,
+                                right,
+                            }: LedgerFeedPanelProps<T>) {
     return (
         <Card title={title} subtitle={subtitle} right={right}>
             {error ? (
@@ -235,7 +232,8 @@ function BudgetLedgerEntryRow({entry}: { entry: BudgetLedgerEntryDto }) {
                     </span>
                 </div>
 
-                <span className={`city-economy__ledger-amount city-economy__ledger-amount--${getAmountTone(entry.amount)}`}>
+                <span
+                    className={`city-economy__ledger-amount city-economy__ledger-amount--${getAmountTone(entry.amount)}`}>
                     {formatAmount(entry.amount, entry.unitSymbol, entry.unitCode)}
                 </span>
             </div>
@@ -268,7 +266,8 @@ function BusinessLedgerEntryRow({entry}: { entry: CityBusinessLedgerEntryDto }) 
                     </span>
                 </div>
 
-                <span className={`city-economy__ledger-amount city-economy__ledger-amount--${getAmountTone(entry.amount)}`}>
+                <span
+                    className={`city-economy__ledger-amount city-economy__ledger-amount--${getAmountTone(entry.amount)}`}>
                     {formatAmount(entry.amount, entry.unitSymbol, entry.unitCode)}
                 </span>
             </div>
@@ -303,7 +302,8 @@ function HouseholdLedgerEntryRow({entry}: { entry: CityHouseholdAccountLedgerEnt
                     </span>
                 </div>
 
-                <span className={`city-economy__ledger-amount city-economy__ledger-amount--${getAmountTone(entry.amount)}`}>
+                <span
+                    className={`city-economy__ledger-amount city-economy__ledger-amount--${getAmountTone(entry.amount)}`}>
                     {formatAmount(entry.amount, entry.unitSymbol, entry.unitCode)}
                 </span>
             </div>
@@ -323,10 +323,10 @@ function HouseholdLedgerEntryRow({entry}: { entry: CityHouseholdAccountLedgerEnt
 }
 
 function BusinessRoster({
-    businesses,
-    selectedBusinessId,
-    onSelect,
-}: {
+                            businesses,
+                            selectedBusinessId,
+                            onSelect,
+                        }: {
     businesses: CityBusinessDto[];
     selectedBusinessId: string;
     onSelect: (businessId: string) => void;
@@ -371,10 +371,10 @@ function BusinessRoster({
 }
 
 function HouseholdRoster({
-    householdAccounts,
-    selectedHouseholdAccountId,
-    onSelect,
-}: {
+                             householdAccounts,
+                             selectedHouseholdAccountId,
+                             onSelect,
+                         }: {
     householdAccounts: CityHouseholdAccountDto[];
     selectedHouseholdAccountId: string;
     onSelect: (householdAccountId: string) => void;
@@ -423,10 +423,10 @@ function HouseholdRoster({
 }
 
 export function CityEconomyCard({
-    cityId,
-    cityName,
-    isArchived = false,
-}: Props) {
+                                    cityId,
+                                    cityName,
+                                    isArchived = false,
+                                }: Props) {
     const [searchParams, setSearchParams] = useSearchParams();
     const {can} = usePermissions();
     const canReadBudget = can(PermissionKeys.EconomyBudgetRead);

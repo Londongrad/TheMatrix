@@ -1,38 +1,50 @@
+using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityBudgetSettlementRepositoryTests
+namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task ExistsAsync_ReturnsTrueForMatchingCityAndTick()
+    public sealed class CityBudgetSettlementRepositoryTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task ExistsAsync_ReturnsTrueForMatchingCityAndTick()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityBudgetSettlements.Add(CreateBudgetSettlement(cityId, 42, "corr-42"));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityBudgetSettlements.Add(
+                CreateBudgetSettlement(
+                    cityId: cityId,
+                    tickId: 42,
+                    correlationId: "corr-42"));
+            await dbContext.SaveChangesAsync();
 
-        CityBudgetSettlementRepository repository = new(dbContext);
+            CityBudgetSettlementRepository repository = new(dbContext);
 
-        bool exists = await repository.ExistsAsync(cityId, 42);
+            bool exists = await repository.ExistsAsync(
+                cityId: cityId,
+                tickId: 42);
 
-        Assert.True(exists);
-    }
+            Assert.True(exists);
+        }
 
-    [Fact]
-    public async Task AddAsync_PersistsSettlement()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task AddAsync_PersistsSettlement()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        CityBudgetSettlementRepository repository = new(dbContext);
+            await using EconomyDbContext dbContext = CreateDbContext();
+            CityBudgetSettlementRepository repository = new(dbContext);
 
-        await repository.AddAsync(CreateBudgetSettlement(cityId, 43, "corr-43"));
-        await dbContext.SaveChangesAsync();
+            await repository.AddAsync(
+                CreateBudgetSettlement(
+                    cityId: cityId,
+                    tickId: 43,
+                    correlationId: "corr-43"));
+            await dbContext.SaveChangesAsync();
 
-        Assert.Single(dbContext.CityBudgetSettlements);
+            Assert.Single(dbContext.CityBudgetSettlements);
+        }
     }
 }

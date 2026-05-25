@@ -1,60 +1,92 @@
 using System.Text.Json;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Infrastructure.Outbox;
-using Matrix.Economy.Infrastructure.Tests.TestSupport;
+using Matrix.Economy.Infrastructure.Persistence;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Outbox;
-
-public sealed class CityOperationalBudgetSignalOutboxWriterTests
+namespace Matrix.Economy.Infrastructure.Tests.Outbox
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
-    [Fact]
-    public async Task PublishClassicCityOperationalBudgetPressureSnapshotAsync_AddsOutboxMessage()
+    public sealed class CityOperationalBudgetSignalOutboxWriterTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        DateTimeOffset effectiveAtUtc = new(2048, 5, 6, 11, 0, 0, TimeSpan.Zero);
-        DateTimeOffset occurredAtUtc = new(2048, 5, 6, 11, 5, 0, TimeSpan.Zero);
-        var snapshot = new CityOperationalBudgetPressureDto(
-            CityId: cityId,
-            EffectiveTickId: 42,
-            EffectiveAtUtc: effectiveAtUtc,
-            UnitKind: "Currency",
-            UnitCode: "MNY",
-            UnitDisplayName: "Money",
-            UnitSymbol: "$",
-            Balance: 500m,
-            TotalCityExpenses: 120m,
-            MunicipalOperationsExpenses: 40m,
-            InfrastructureOperationsExpenses: 30m,
-            EmergencyOperationsExpenses: 10m,
-            GeneralAvailableAmount: 300m,
-            OperationsAvailableAmount: 200m,
-            InfrastructureAvailableAmount: 150m,
-            HealthcareAvailableAmount: 90m,
-            GeneralAuthorizationLevel: "Open",
-            OperationsAuthorizationLevel: "Watch",
-            InfrastructureAuthorizationLevel: "Stable",
-            HealthcareAuthorizationLevel: "Protected",
-            LastMunicipalExpenseAtUtc: "2048-05-06T11:00:00.0000000+00:00",
-            PressureIndex: 0.25m);
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-        await using var dbContext = CreateDbContext();
-        var writer = new CityOperationalBudgetSignalOutboxWriter(dbContext);
+        [Fact]
+        public async Task PublishClassicCityOperationalBudgetPressureSnapshotAsync_AddsOutboxMessage()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            DateTimeOffset effectiveAtUtc = new(
+                year: 2048,
+                month: 5,
+                day: 6,
+                hour: 11,
+                minute: 0,
+                second: 0,
+                offset: TimeSpan.Zero);
+            DateTimeOffset occurredAtUtc = new(
+                year: 2048,
+                month: 5,
+                day: 6,
+                hour: 11,
+                minute: 5,
+                second: 0,
+                offset: TimeSpan.Zero);
+            var snapshot = new CityOperationalBudgetPressureDto(
+                CityId: cityId,
+                EffectiveTickId: 42,
+                EffectiveAtUtc: effectiveAtUtc,
+                UnitKind: "Currency",
+                UnitCode: "MNY",
+                UnitDisplayName: "Money",
+                UnitSymbol: "$",
+                Balance: 500m,
+                TotalCityExpenses: 120m,
+                MunicipalOperationsExpenses: 40m,
+                InfrastructureOperationsExpenses: 30m,
+                EmergencyOperationsExpenses: 10m,
+                GeneralAvailableAmount: 300m,
+                OperationsAvailableAmount: 200m,
+                InfrastructureAvailableAmount: 150m,
+                HealthcareAvailableAmount: 90m,
+                GeneralAuthorizationLevel: "Open",
+                OperationsAuthorizationLevel: "Watch",
+                InfrastructureAuthorizationLevel: "Stable",
+                HealthcareAuthorizationLevel: "Protected",
+                LastMunicipalExpenseAtUtc: "2048-05-06T11:00:00.0000000+00:00",
+                PressureIndex: 0.25m);
 
-        await writer.PublishClassicCityOperationalBudgetPressureSnapshotAsync(snapshot, effectiveAtUtc, occurredAtUtc);
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            var writer = new CityOperationalBudgetSignalOutboxWriter(dbContext);
 
-        var message = Assert.Single(dbContext.OutboxMessages);
-        var payload = JsonSerializer.Deserialize<ClassicCityOperationalBudgetPressureSnapshotV1>(message.PayloadJson, JsonOptions);
-        Assert.Equal(EconomyOutboxEventTypes.ClassicCityOperationalBudgetPressureSnapshotV1, message.Type);
-        Assert.NotNull(payload);
-        Assert.Equal(cityId, payload.CityId);
-        Assert.Equal(42, payload.EffectiveTickId);
-        Assert.Equal(500m, payload.Balance);
-        Assert.Equal(occurredAtUtc.UtcDateTime, message.OccurredOnUtc);
+            await writer.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                snapshot: snapshot,
+                effectiveAtUtc: effectiveAtUtc,
+                occurredAtUtc: occurredAtUtc);
+            await dbContext.SaveChangesAsync();
+
+            OutboxMessage message = Assert.Single(dbContext.OutboxMessages);
+            ClassicCityOperationalBudgetPressureSnapshotV1? payload =
+                JsonSerializer.Deserialize<ClassicCityOperationalBudgetPressureSnapshotV1>(
+                    json: message.PayloadJson,
+                    options: JsonOptions);
+            Assert.Equal(
+                expected: EconomyOutboxEventTypes.ClassicCityOperationalBudgetPressureSnapshotV1,
+                actual: message.Type);
+            Assert.NotNull(payload);
+            Assert.Equal(
+                expected: cityId,
+                actual: payload.CityId);
+            Assert.Equal(
+                expected: 42,
+                actual: payload.EffectiveTickId);
+            Assert.Equal(
+                expected: 500m,
+                actual: payload.Balance);
+            Assert.Equal(
+                expected: occurredAtUtc.UtcDateTime,
+                actual: message.OccurredOnUtc);
+        }
     }
 }

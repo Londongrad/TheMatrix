@@ -32,7 +32,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
 
         public static ScenarioModelSetVersion Default()
         {
-            return new(DefaultValue);
+            return new ScenarioModelSetVersion(DefaultValue);
         }
 
         public override string ToString()

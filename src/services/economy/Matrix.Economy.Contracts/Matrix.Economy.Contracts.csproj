@@ -4,7 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\shared\Matrix.PermissionCatalog.Abstractions\Matrix.PermissionCatalog.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\shared\Matrix.PermissionCatalog.Abstractions\Matrix.PermissionCatalog.Abstractions.csproj"/>
   </ItemGroup>
 
 </Project>

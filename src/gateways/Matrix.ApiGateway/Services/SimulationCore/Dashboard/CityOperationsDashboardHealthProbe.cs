@@ -12,14 +12,13 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         IOptions<CityOperationsDashboardOptions> dashboardOptions,
         TimeProvider timeProvider) : ICityOperationsDashboardHealthProbe
     {
+        private readonly CityOperationsDashboardOptions _dashboardOptions = dashboardOptions.Value;
+        private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
         private readonly HealthCheckService _healthCheckService = healthCheckService;
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
-        private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
-        private readonly CityOperationsDashboardOptions _dashboardOptions = dashboardOptions.Value;
         private readonly TimeProvider _timeProvider = timeProvider;
 
-        public async Task<IReadOnlyList<DashboardServiceHealthView>> ProbeAsync(
-            CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<DashboardServiceHealthView>> ProbeAsync(CancellationToken cancellationToken)
         {
             Task<DashboardServiceHealthView> gatewayTask = ProbeGatewayHealthAsync(cancellationToken);
             Task<DashboardServiceHealthView> simulationCoreTask = ProbeRemoteHealthAsync(

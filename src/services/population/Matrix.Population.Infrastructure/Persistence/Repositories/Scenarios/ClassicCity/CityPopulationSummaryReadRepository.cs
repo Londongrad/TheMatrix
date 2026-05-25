@@ -154,7 +154,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             return fallbackTimestamp.HasValue
                 ? DateOnly.FromDateTime(fallbackTimestamp.Value.UtcDateTime)
-                : DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+                : DateOnly.FromDateTime(
+                    timeProvider.GetUtcNow()
+                       .UtcDateTime);
         }
     }
 }

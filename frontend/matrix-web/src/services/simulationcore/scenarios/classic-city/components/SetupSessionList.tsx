@@ -1,5 +1,7 @@
 import Button from "@shared/ui/controls/Button/Button";
-import type {ClassicCitySetupSessionView} from "@services/simulationcore/scenarios/classic-city/contracts/setupSessionContracts";
+import type {
+    ClassicCitySetupSessionView
+} from "@services/simulationcore/scenarios/classic-city/contracts/setupSessionContracts";
 
 interface SetupSessionListProps {
     sessions: ClassicCitySetupSessionView[];
@@ -54,11 +56,11 @@ function getDraftName(session: ClassicCitySetupSessionView): string {
 }
 
 export default function SetupSessionList({
-    sessions,
-    deletingSessionId = null,
-    onOpen,
-    onDelete,
-}: SetupSessionListProps) {
+                                             sessions,
+                                             deletingSessionId = null,
+                                             onOpen,
+                                             onDelete,
+                                         }: SetupSessionListProps) {
     return (
         <div className="city-list-grid">
             {sessions.map((session) => {

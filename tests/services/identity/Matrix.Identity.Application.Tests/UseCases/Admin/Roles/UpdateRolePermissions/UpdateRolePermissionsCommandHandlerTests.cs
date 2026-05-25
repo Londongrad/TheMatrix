@@ -1,127 +1,196 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions;
+using Matrix.Identity.Domain.Entities;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.UpdateRolePermissions;
-
-public sealed class UpdateRolePermissionsCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.UpdateRolePermissions
 {
-    [Fact]
-    public async Task Handle_WhenRoleDoesNotExist_ThrowsNotFound()
+    public sealed class UpdateRolePermissionsCommandHandlerTests
     {
-        var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        var handler = new UpdateRolePermissionsCommandHandler(
-            roleReadRepository,
-            new AdminRolesTestSupport.FakeRolePermissionsRepository(),
-            new AdminRolesTestSupport.FakePermissionKeysValidator(),
-            new AdminRolesTestSupport.FakeUserRepository(),
-            new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
-            new AdminRolesTestSupport.FakeUnitOfWork());
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new UpdateRolePermissionsCommand(Guid.NewGuid(), new[] { "users.read" }),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.Role.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-    }
-
-    [Fact]
-    public async Task Handle_WhenRoleIsSystem_ThrowsForbidden()
-    {
-        var role = AdminRolesTestSupport.CreateRole("SuperAdmin", isSystem: true);
-        var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        roleReadRepository.RolesById[role.Id] = role;
-        var handler = new UpdateRolePermissionsCommandHandler(
-            roleReadRepository,
-            new AdminRolesTestSupport.FakeRolePermissionsRepository(),
-            new AdminRolesTestSupport.FakePermissionKeysValidator(),
-            new AdminRolesTestSupport.FakeUserRepository(),
-            new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
-            new AdminRolesTestSupport.FakeUnitOfWork());
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new UpdateRolePermissionsCommand(role.Id, new[] { "users.read" }),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.Role.System.ReadOnly", exception.Code);
-        Assert.Equal(ApplicationErrorType.Forbidden, exception.ErrorType);
-    }
-
-    [Fact]
-    public async Task Handle_WhenPermissionsChange_ReplacesPermissionsAndMarksAffectedUsers()
-    {
-        var role = AdminRolesTestSupport.CreateRole("Operators");
-        Guid firstUserId = Guid.NewGuid();
-        Guid secondUserId = Guid.NewGuid();
-        var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        roleReadRepository.RolesById[role.Id] = role;
-        var rolePermissionsRepository = new AdminRolesTestSupport.FakeRolePermissionsRepository
+        [Fact]
+        public async Task Handle_WhenRoleDoesNotExist_ThrowsNotFound()
         {
-            ReplaceResult = true
-        };
-        var permissionKeysValidator = new AdminRolesTestSupport.FakePermissionKeysValidator();
-        var userRepository = new AdminRolesTestSupport.FakeUserRepository();
-        userRepository.UserIdsByRoleId[role.Id] = new[] { firstUserId, secondUserId };
-        var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
-        var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
-        var handler = new UpdateRolePermissionsCommandHandler(
-            roleReadRepository,
-            rolePermissionsRepository,
-            permissionKeysValidator,
-            userRepository,
-            securityStateChangeCollector,
-            unitOfWork);
+            var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            var handler = new UpdateRolePermissionsCommandHandler(
+                roleReadRepository: roleReadRepository,
+                rolePermissionsRepository: new AdminRolesTestSupport.FakeRolePermissionsRepository(),
+                permissionKeysValidator: new AdminRolesTestSupport.FakePermissionKeysValidator(),
+                userRepository: new AdminRolesTestSupport.FakeUserRepository(),
+                securityStateChangeCollector: new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork());
 
-        await handler.Handle(
-            new UpdateRolePermissionsCommand(role.Id, new[] { " users.read ", "users.read", "", "roles.manage" }),
-            CancellationToken.None);
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new UpdateRolePermissionsCommand(
+                        RoleId: Guid.NewGuid(),
+                        RolePermissionKeys: new[]
+                        {
+                            "users.read"
+                        }),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal(role.Id, rolePermissionsRepository.RequestedRoleId);
-        Assert.NotNull(permissionKeysValidator.ValidatedKeys);
-        Assert.NotNull(rolePermissionsRepository.RequestedPermissionKeys);
-        Assert.Equal(
-            new HashSet<string>(new[] { "users.read", "roles.manage" }, StringComparer.Ordinal),
-            permissionKeysValidator.ValidatedKeys!.ToHashSet(StringComparer.Ordinal));
-        Assert.Equal(
-            new HashSet<string>(new[] { "users.read", "roles.manage" }, StringComparer.Ordinal),
-            rolePermissionsRepository.RequestedPermissionKeys!.ToHashSet(StringComparer.Ordinal));
-        Assert.Equal(role.Id, userRepository.RequestedRoleId);
-        Assert.Equal(new[] { firstUserId, secondUserId }, securityStateChangeCollector.ChangedUsers);
-        Assert.Equal(1, unitOfWork.TransactionCalls);
-    }
+            Assert.Equal(
+                expected: "Identity.Role.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+        }
 
-    [Fact]
-    public async Task Handle_WhenPermissionsDoNotChange_DoesNotMarkUsers()
-    {
-        var role = AdminRolesTestSupport.CreateRole("Operators");
-        var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        roleReadRepository.RolesById[role.Id] = role;
-        var rolePermissionsRepository = new AdminRolesTestSupport.FakeRolePermissionsRepository
+        [Fact]
+        public async Task Handle_WhenRoleIsSystem_ThrowsForbidden()
         {
-            ReplaceResult = false
-        };
-        var permissionKeysValidator = new AdminRolesTestSupport.FakePermissionKeysValidator();
-        var userRepository = new AdminRolesTestSupport.FakeUserRepository();
-        var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
-        var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
-        var handler = new UpdateRolePermissionsCommandHandler(
-            roleReadRepository,
-            rolePermissionsRepository,
-            permissionKeysValidator,
-            userRepository,
-            securityStateChangeCollector,
-            unitOfWork);
+            Role role = AdminRolesTestSupport.CreateRole(
+                name: "SuperAdmin",
+                isSystem: true);
+            var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            roleReadRepository.RolesById[role.Id] = role;
+            var handler = new UpdateRolePermissionsCommandHandler(
+                roleReadRepository: roleReadRepository,
+                rolePermissionsRepository: new AdminRolesTestSupport.FakeRolePermissionsRepository(),
+                permissionKeysValidator: new AdminRolesTestSupport.FakePermissionKeysValidator(),
+                userRepository: new AdminRolesTestSupport.FakeUserRepository(),
+                securityStateChangeCollector: new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork());
 
-        await handler.Handle(
-            new UpdateRolePermissionsCommand(role.Id, new[] { "users.read" }),
-            CancellationToken.None);
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new UpdateRolePermissionsCommand(
+                        RoleId: role.Id,
+                        RolePermissionKeys: new[]
+                        {
+                            "users.read"
+                        }),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.NotNull(permissionKeysValidator.ValidatedKeys);
-        Assert.Equal(role.Id, rolePermissionsRepository.RequestedRoleId);
-        Assert.Null(userRepository.RequestedRoleId);
-        Assert.Empty(securityStateChangeCollector.ChangedUsers);
-        Assert.Equal(1, unitOfWork.TransactionCalls);
+            Assert.Equal(
+                expected: "Identity.Role.System.ReadOnly",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Forbidden,
+                actual: exception.ErrorType);
+        }
+
+        [Fact]
+        public async Task Handle_WhenPermissionsChange_ReplacesPermissionsAndMarksAffectedUsers()
+        {
+            Role role = AdminRolesTestSupport.CreateRole();
+            var firstUserId = Guid.NewGuid();
+            var secondUserId = Guid.NewGuid();
+            var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            roleReadRepository.RolesById[role.Id] = role;
+            var rolePermissionsRepository = new AdminRolesTestSupport.FakeRolePermissionsRepository
+            {
+                ReplaceResult = true
+            };
+            var permissionKeysValidator = new AdminRolesTestSupport.FakePermissionKeysValidator();
+            var userRepository = new AdminRolesTestSupport.FakeUserRepository();
+            userRepository.UserIdsByRoleId[role.Id] = new[]
+            {
+                firstUserId,
+                secondUserId
+            };
+            var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
+            var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
+            var handler = new UpdateRolePermissionsCommandHandler(
+                roleReadRepository: roleReadRepository,
+                rolePermissionsRepository: rolePermissionsRepository,
+                permissionKeysValidator: permissionKeysValidator,
+                userRepository: userRepository,
+                securityStateChangeCollector: securityStateChangeCollector,
+                unitOfWork: unitOfWork);
+
+            await handler.Handle(
+                request: new UpdateRolePermissionsCommand(
+                    RoleId: role.Id,
+                    RolePermissionKeys: new[]
+                    {
+                        " users.read ",
+                        "users.read",
+                        "",
+                        "roles.manage"
+                    }),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: role.Id,
+                actual: rolePermissionsRepository.RequestedRoleId);
+            Assert.NotNull(permissionKeysValidator.ValidatedKeys);
+            Assert.NotNull(rolePermissionsRepository.RequestedPermissionKeys);
+            Assert.Equal(
+                expected: new HashSet<string>(
+                    collection: new[]
+                    {
+                        "users.read",
+                        "roles.manage"
+                    },
+                    comparer: StringComparer.Ordinal),
+                actual: permissionKeysValidator.ValidatedKeys!.ToHashSet(StringComparer.Ordinal));
+            Assert.Equal(
+                expected: new HashSet<string>(
+                    collection: new[]
+                    {
+                        "users.read",
+                        "roles.manage"
+                    },
+                    comparer: StringComparer.Ordinal),
+                actual: rolePermissionsRepository.RequestedPermissionKeys!.ToHashSet(StringComparer.Ordinal));
+            Assert.Equal(
+                expected: role.Id,
+                actual: userRepository.RequestedRoleId);
+            Assert.Equal(
+                expected: new[]
+                {
+                    firstUserId,
+                    secondUserId
+                },
+                actual: securityStateChangeCollector.ChangedUsers);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.TransactionCalls);
+        }
+
+        [Fact]
+        public async Task Handle_WhenPermissionsDoNotChange_DoesNotMarkUsers()
+        {
+            Role role = AdminRolesTestSupport.CreateRole();
+            var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            roleReadRepository.RolesById[role.Id] = role;
+            var rolePermissionsRepository = new AdminRolesTestSupport.FakeRolePermissionsRepository
+            {
+                ReplaceResult = false
+            };
+            var permissionKeysValidator = new AdminRolesTestSupport.FakePermissionKeysValidator();
+            var userRepository = new AdminRolesTestSupport.FakeUserRepository();
+            var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
+            var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
+            var handler = new UpdateRolePermissionsCommandHandler(
+                roleReadRepository: roleReadRepository,
+                rolePermissionsRepository: rolePermissionsRepository,
+                permissionKeysValidator: permissionKeysValidator,
+                userRepository: userRepository,
+                securityStateChangeCollector: securityStateChangeCollector,
+                unitOfWork: unitOfWork);
+
+            await handler.Handle(
+                request: new UpdateRolePermissionsCommand(
+                    RoleId: role.Id,
+                    RolePermissionKeys: new[]
+                    {
+                        "users.read"
+                    }),
+                cancellationToken: CancellationToken.None);
+
+            Assert.NotNull(permissionKeysValidator.ValidatedKeys);
+            Assert.Equal(
+                expected: role.Id,
+                actual: rolePermissionsRepository.RequestedRoleId);
+            Assert.Null(userRepository.RequestedRoleId);
+            Assert.Empty(securityStateChangeCollector.ChangedUsers);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.TransactionCalls);
+        }
     }
 }

@@ -1,7 +1,8 @@
 using FluentValidation;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.DispatchCityUtilityIncidentResponse
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    DispatchCityUtilityIncidentResponse
 {
     public sealed class DispatchCityUtilityIncidentResponseCommandValidator
         : AbstractValidator<DispatchCityUtilityIncidentResponseCommand>

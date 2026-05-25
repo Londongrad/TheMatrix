@@ -6,46 +6,47 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Xunit;
 
-namespace Matrix.Identity.Api.Tests.Authorization.Internal;
-
-public sealed class RequireInternalApiKeyAttributeTests
+namespace Matrix.Identity.Api.Tests.Authorization.Internal
 {
-    [Fact]
-    public void OnAuthorization_WhenContextIsTrusted_AllowsRequest()
+    public sealed class RequireInternalApiKeyAttributeTests
     {
-        var attribute = new RequireInternalApiKeyAttribute();
-        AuthorizationFilterContext context = CreateFilterContext(trusted: true);
+        [Fact]
+        public void OnAuthorization_WhenContextIsTrusted_AllowsRequest()
+        {
+            var attribute = new RequireInternalApiKeyAttribute();
+            AuthorizationFilterContext context = CreateFilterContext(trusted: true);
 
-        attribute.OnAuthorization(context);
+            attribute.OnAuthorization(context);
 
-        Assert.Null(context.Result);
-    }
+            Assert.Null(context.Result);
+        }
 
-    [Fact]
-    public void OnAuthorization_WhenContextIsNotTrusted_ReturnsUnauthorized()
-    {
-        var attribute = new RequireInternalApiKeyAttribute();
-        AuthorizationFilterContext context = CreateFilterContext(trusted: false);
+        [Fact]
+        public void OnAuthorization_WhenContextIsNotTrusted_ReturnsUnauthorized()
+        {
+            var attribute = new RequireInternalApiKeyAttribute();
+            AuthorizationFilterContext context = CreateFilterContext(trusted: false);
 
-        attribute.OnAuthorization(context);
+            attribute.OnAuthorization(context);
 
-        Assert.IsType<UnauthorizedResult>(context.Result);
-    }
+            Assert.IsType<UnauthorizedResult>(context.Result);
+        }
 
-    private static AuthorizationFilterContext CreateFilterContext(bool trusted)
-    {
-        DefaultHttpContext httpContext = new();
+        private static AuthorizationFilterContext CreateFilterContext(bool trusted)
+        {
+            DefaultHttpContext httpContext = new();
 
-        if (trusted)
-            TrustedGatewayRequestContext.Mark(httpContext);
+            if (trusted)
+                TrustedGatewayRequestContext.Mark(httpContext);
 
-        var actionContext = new ActionContext(
-            httpContext: httpContext,
-            routeData: new RouteData(),
-            actionDescriptor: new ActionDescriptor());
+            var actionContext = new ActionContext(
+                httpContext: httpContext,
+                routeData: new RouteData(),
+                actionDescriptor: new ActionDescriptor());
 
-        return new AuthorizationFilterContext(
-            actionContext: actionContext,
-            filters: []);
+            return new AuthorizationFilterContext(
+                actionContext: actionContext,
+                filters: []);
+        }
     }
 }

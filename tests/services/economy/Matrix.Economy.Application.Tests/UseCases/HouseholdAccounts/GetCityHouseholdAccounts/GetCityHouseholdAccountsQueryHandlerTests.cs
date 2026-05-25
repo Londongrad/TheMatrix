@@ -1,37 +1,58 @@
+using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccounts;
-using Matrix.Economy.Application.Tests.TestSupport;
+using Matrix.Economy.Domain.Aggregates;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.HouseholdAccounts.GetCityHouseholdAccounts;
-
-public sealed class GetCityHouseholdAccountsQueryHandlerTests
+namespace Matrix.Economy.Application.Tests.UseCases.HouseholdAccounts.GetCityHouseholdAccounts
 {
-    [Fact]
-    public async Task Handle_MapsHouseholdAccountsToDtos()
+    public sealed class GetCityHouseholdAccountsQueryHandlerTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var account = CreateHouseholdAccount(cityId, "Anderson Household", 300m);
-        account.ReceivePayroll(Matrix.BuildingBlocks.Domain.ValueObjects.Money.FromDecimal(120m));
-        account.RecordConsumerPurchase(Matrix.BuildingBlocks.Domain.ValueObjects.Money.FromDecimal(45m));
-        var repository = new FakeCityHouseholdAccountRepository
+        [Fact]
+        public async Task Handle_MapsHouseholdAccountsToDtos()
         {
-            Accounts =
-            [
-                account,
-                CreateHouseholdAccount(Guid.Parse("11111111-2222-3333-4444-555555555555"), "Other Household", 90m)
-            ]
-        };
-        var handler = new GetCityHouseholdAccountsQueryHandler(repository);
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityHouseholdAccount account = CreateHouseholdAccount(
+                cityId: cityId,
+                name: "Anderson Household",
+                openingBalance: 300m);
+            account.ReceivePayroll(Money.FromDecimal(120m));
+            account.RecordConsumerPurchase(Money.FromDecimal(45m));
+            var repository = new FakeCityHouseholdAccountRepository
+            {
+                Accounts =
+                [
+                    account,
+                    CreateHouseholdAccount(
+                        cityId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                        name: "Other Household",
+                        openingBalance: 90m)
+                ]
+            };
+            var handler = new GetCityHouseholdAccountsQueryHandler(repository);
 
-        IReadOnlyList<Matrix.Economy.Application.UseCases.HouseholdAccounts.CityHouseholdAccountDto> result =
-            await handler.Handle(new GetCityHouseholdAccountsQuery(cityId), CancellationToken.None);
+            IReadOnlyList<CityHouseholdAccountDto> result =
+                await handler.Handle(
+                    request: new GetCityHouseholdAccountsQuery(cityId),
+                    cancellationToken: CancellationToken.None);
 
-        Assert.Equal(cityId, repository.RequestedCityId);
-        Assert.Single(result);
-        Assert.Equal("Anderson Household", result[0].Name);
-        Assert.Equal(375m, result[0].Balance);
-        Assert.Equal(120m, result[0].TotalPayrollIncome);
-        Assert.Equal(45m, result[0].TotalConsumerSpending);
+            Assert.Equal(
+                expected: cityId,
+                actual: repository.RequestedCityId);
+            Assert.Single(result);
+            Assert.Equal(
+                expected: "Anderson Household",
+                actual: result[0].Name);
+            Assert.Equal(
+                expected: 375m,
+                actual: result[0].Balance);
+            Assert.Equal(
+                expected: 120m,
+                actual: result[0].TotalPayrollIncome);
+            Assert.Equal(
+                expected: 45m,
+                actual: result[0].TotalConsumerSpending);
+        }
     }
 }

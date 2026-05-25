@@ -1,6 +1,7 @@
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.SyncCityResourceSupply
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    SyncCityResourceSupply
 {
     public sealed record SyncCityResourceSupplyCommand(
         Guid CityId,

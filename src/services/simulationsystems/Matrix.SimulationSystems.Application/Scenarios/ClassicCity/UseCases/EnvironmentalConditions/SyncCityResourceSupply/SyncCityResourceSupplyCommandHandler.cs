@@ -7,7 +7,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.SyncCityResourceSupply
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    SyncCityResourceSupply
 {
     public sealed class SyncCityResourceSupplyCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -51,24 +52,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                         cancellationToken: cancellationToken);
 
                 if (state is null)
-                {
                     return new SyncCityResourceSupplyResult(
                         Status: SyncCityResourceSupplyStatus.NotInitialized,
                         SupplyStressIndex: 0m,
                         EffectiveTickId: request.EffectiveTickId,
                         EffectiveAtUtc: request.EffectiveAtUtc);
-                }
 
                 if (IsIncomingSnapshotStale(
                         effectiveTickId: request.EffectiveTickId,
                         effectiveAtUtc: request.EffectiveAtUtc,
                         currentEffectiveTickId: state.ResourceSupply.EffectiveTickId,
                         currentEffectiveAtUtc: state.ResourceSupply.EffectiveAtUtc))
-                {
                     return ToResult(
                         status: SyncCityResourceSupplyStatus.Stale,
                         state: state.ResourceSupply);
-                }
 
                 state.ApplyResourceSupply(resourceSnapshot);
 
@@ -125,37 +122,31 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
             CancellationToken cancellationToken)
         {
             CityEnvironmentalConditionState? persistedState = await repository.GetBySimulationHostIdNoTrackingAsync(
-                    simulationHostId: simulationHostId,
-                    cancellationToken: cancellationToken);
+                simulationHostId: simulationHostId,
+                cancellationToken: cancellationToken);
 
             if (persistedState is null)
-            {
                 return new SyncCityResourceSupplyResult(
                     Status: SyncCityResourceSupplyStatus.NotInitialized,
                     SupplyStressIndex: 0m,
                     EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc);
-            }
 
             if (IsIncomingSnapshotStale(
                     effectiveTickId: request.EffectiveTickId,
                     effectiveAtUtc: request.EffectiveAtUtc,
                     currentEffectiveTickId: persistedState.ResourceSupply.EffectiveTickId,
                     currentEffectiveAtUtc: persistedState.ResourceSupply.EffectiveAtUtc))
-            {
                 return ToResult(
                     status: SyncCityResourceSupplyStatus.Stale,
                     state: persistedState.ResourceSupply);
-            }
 
             if (MatchesSnapshot(
                     request: request,
                     state: persistedState.ResourceSupply))
-            {
                 return ToResult(
                     status: SyncCityResourceSupplyStatus.Concurrent,
                     state: persistedState.ResourceSupply);
-            }
 
             return null;
         }
@@ -213,7 +204,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
 
         private static bool IsConcurrencyException(Exception exception)
         {
-            return exception.GetType().Name == "DbUpdateConcurrencyException";
+            return exception.GetType()
+                      .Name ==
+                   "DbUpdateConcurrencyException";
         }
 
         private static SyncCityResourceSupplyResult ToResult(

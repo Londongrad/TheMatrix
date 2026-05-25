@@ -2,7 +2,9 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Domain.Simulation;
 using MediatR;
 
@@ -22,7 +24,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         {
             SimulationHostId simulationHostId = new(request.CityId);
 
-            var state = await repository.GetBySimulationHostIdAsync(
+            CityStockpileState? state = await repository.GetBySimulationHostIdAsync(
                 simulationHostId: simulationHostId,
                 cancellationToken: cancellationToken);
 
@@ -40,7 +42,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     EmergencyRationingEnabled: state.EmergencyRationingEnabled,
                     SupplyStressIndex: state.SupplyStressIndex);
 
-            var refreshedSnapshot = policy.SetEmergencyRationing(
+            CityStockpileSnapshot refreshedSnapshot = policy.SetEmergencyRationing(
                 current: state.ToSnapshot(),
                 enabled: request.Enabled);
 

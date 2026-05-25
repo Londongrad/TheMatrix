@@ -137,12 +137,11 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
                 HeatingSupportIndex: dto.HeatingSupportIndex,
                 Districts: dto.Districts
-                    .Select(MapToDistrictConditionView)
-                    .ToArray());
+                   .Select(MapToDistrictConditionView)
+                   .ToArray());
         }
 
-        private static CityDistrictHeatingConditionView MapToDistrictConditionView(
-            CityDistrictHeatingConditionDto dto)
+        private static CityDistrictHeatingConditionView MapToDistrictConditionView(CityDistrictHeatingConditionDto dto)
         {
             return new CityDistrictHeatingConditionView(
                 DistrictId: dto.DistrictId,

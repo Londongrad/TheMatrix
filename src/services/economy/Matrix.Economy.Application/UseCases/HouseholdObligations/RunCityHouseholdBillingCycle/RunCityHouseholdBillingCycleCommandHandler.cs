@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
@@ -19,24 +20,26 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
             DateTimeOffset asOfUtc = request.AsOfUtc ?? timeProvider.GetUtcNow();
             RunCityHouseholdBillingCycleResultDto result = default!;
 
-            await unitOfWork.ExecuteInTransactionAsync(async ct =>
-            {
-                CityEconomyBillingCycleExecutionResult executionResult =
-                    await recurringCycleExecutionService.ExecuteBillingAsync(
-                        cityId: request.CityId,
-                        asOfUtc: asOfUtc,
-                        cancellationToken: ct);
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async ct =>
+                {
+                    CityEconomyBillingCycleExecutionResult executionResult =
+                        await recurringCycleExecutionService.ExecuteBillingAsync(
+                            cityId: request.CityId,
+                            asOfUtc: asOfUtc,
+                            cancellationToken: ct);
 
-                await unitOfWork.SaveChangesAsync(ct);
+                    await unitOfWork.SaveChangesAsync(ct);
 
-                foreach (var batch in executionResult.FinancialStressBatches)
-                    await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
-                        batch: batch,
-                        cancellationToken: ct);
+                    foreach (ClassicCityHouseholdFinancialStressBatchV1 batch in executionResult.FinancialStressBatches)
+                        await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
+                            batch: batch,
+                            cancellationToken: ct);
 
-                await unitOfWork.SaveChangesAsync(ct);
-                result = executionResult.Result;
-            }, cancellationToken);
+                    await unitOfWork.SaveChangesAsync(ct);
+                    result = executionResult.Result;
+                },
+                cancellationToken: cancellationToken);
 
             return result;
         }

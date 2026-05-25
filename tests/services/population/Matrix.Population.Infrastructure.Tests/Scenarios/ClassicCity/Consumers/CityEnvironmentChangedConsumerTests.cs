@@ -6,89 +6,156 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers;
-
-public sealed class CityEnvironmentChangedConsumerTests
+namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
 {
-    [Fact]
-    public async Task ConsumeAsync_WhenSyncIsApplied_SendsMappedCommandAndLogsInformation()
+    public sealed class CityEnvironmentChangedConsumerTests
     {
-        var mediator = new TestMediator
+        [Fact]
+        public async Task ConsumeAsync_WhenSyncIsApplied_SendsMappedCommandAndLogsInformation()
         {
-            Result = new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Applied)
-        };
-        var logger = new TestLogger<CityEnvironmentChangedConsumer>();
-        var consumer = new CityEnvironmentChangedConsumer(mediator, logger);
-        CityEnvironmentChangedV1 message = new(
-            CityId: Guid.Parse("e01d80c0-4948-4805-bbf9-3ec028d6919c"),
-            PreviousEnvironment: null,
-            CurrentEnvironment: new CityEnvironmentV1("Temperate", "Northern", 180),
-            OccurredOnUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero));
-
-        await consumer.ConsumeAsync(message, CancellationToken.None);
-
-        ApplyCityEnvironmentSyncCommand command = Assert.Single(mediator.Commands);
-        Assert.Equal("Temperate", command.ClimateZone);
-        Assert.Equal("Northern", command.Hemisphere);
-        Assert.Equal(180, command.UtcOffsetMinutes);
-        TestLogEntry entry = Assert.Single(logger.Entries);
-        Assert.Equal(LogLevel.Information, entry.LogLevel);
-        Assert.Contains("Applied city environment sync", entry.Message);
-    }
-
-    [Fact]
-    public async Task ConsumeAsync_WhenSyncIsStale_LogsWarning()
-    {
-        var mediator = new TestMediator
-        {
-            Result = new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Stale)
-        };
-        var logger = new TestLogger<CityEnvironmentChangedConsumer>();
-        var consumer = new CityEnvironmentChangedConsumer(mediator, logger);
-
-        await consumer.ConsumeAsync(
-            new CityEnvironmentChangedV1(
+            var mediator = new TestMediator
+            {
+                Result = new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Applied)
+            };
+            var logger = new TestLogger<CityEnvironmentChangedConsumer>();
+            var consumer = new CityEnvironmentChangedConsumer(
+                mediator: mediator,
+                logger: logger);
+            CityEnvironmentChangedV1 message = new(
                 CityId: Guid.Parse("e01d80c0-4948-4805-bbf9-3ec028d6919c"),
                 PreviousEnvironment: null,
-                CurrentEnvironment: new CityEnvironmentV1("Temperate", "Northern", 180),
-                OccurredOnUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero)),
-            CancellationToken.None);
+                CurrentEnvironment: new CityEnvironmentV1(
+                    ClimateZone: "Temperate",
+                    Hemisphere: "Northern",
+                    UtcOffsetMinutes: 180),
+                OccurredOnUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 9,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero));
 
-        TestLogEntry entry = Assert.Single(logger.Entries);
-        Assert.Equal(LogLevel.Warning, entry.LogLevel);
-        Assert.Contains("stale", entry.Message);
-    }
+            await consumer.ConsumeAsync(
+                message: message,
+                cancellationToken: CancellationToken.None);
 
-    private sealed class TestMediator : IMediator
-    {
-        public List<ApplyCityEnvironmentSyncCommand> Commands { get; } = [];
-        public required SyncCityEnvironmentResult Result { get; init; }
-
-        public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
-        {
-            ApplyCityEnvironmentSyncCommand command = Assert.IsType<ApplyCityEnvironmentSyncCommand>(request);
-            Commands.Add(command);
-            return Task.FromResult((TResponse)(object)Result);
+            ApplyCityEnvironmentSyncCommand command = Assert.Single(mediator.Commands);
+            Assert.Equal(
+                expected: "Temperate",
+                actual: command.ClimateZone);
+            Assert.Equal(
+                expected: "Northern",
+                actual: command.Hemisphere);
+            Assert.Equal(
+                expected: 180,
+                actual: command.UtcOffsetMinutes);
+            TestLogEntry entry = Assert.Single(logger.Entries);
+            Assert.Equal(
+                expected: LogLevel.Information,
+                actual: entry.LogLevel);
+            Assert.Contains(
+                expectedSubstring: "Applied city environment sync",
+                actualString: entry.Message);
         }
 
-        public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
-            where TRequest : IRequest
-            => throw new NotSupportedException();
+        [Fact]
+        public async Task ConsumeAsync_WhenSyncIsStale_LogsWarning()
+        {
+            var mediator = new TestMediator
+            {
+                Result = new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Stale)
+            };
+            var logger = new TestLogger<CityEnvironmentChangedConsumer>();
+            var consumer = new CityEnvironmentChangedConsumer(
+                mediator: mediator,
+                logger: logger);
 
-        public Task<object?> Send(object request, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+            await consumer.ConsumeAsync(
+                message: new CityEnvironmentChangedV1(
+                    CityId: Guid.Parse("e01d80c0-4948-4805-bbf9-3ec028d6919c"),
+                    PreviousEnvironment: null,
+                    CurrentEnvironment: new CityEnvironmentV1(
+                        ClimateZone: "Temperate",
+                        Hemisphere: "Northern",
+                        UtcOffsetMinutes: 180),
+                    OccurredOnUtc: new DateTimeOffset(
+                        year: 2048,
+                        month: 5,
+                        day: 6,
+                        hour: 9,
+                        minute: 0,
+                        second: 0,
+                        offset: TimeSpan.Zero)),
+                cancellationToken: CancellationToken.None);
 
-        public IAsyncEnumerable<TResponse> CreateStream<TResponse>(IStreamRequest<TResponse> request, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+            TestLogEntry entry = Assert.Single(logger.Entries);
+            Assert.Equal(
+                expected: LogLevel.Warning,
+                actual: entry.LogLevel);
+            Assert.Contains(
+                expectedSubstring: "stale",
+                actualString: entry.Message);
+        }
 
-        public IAsyncEnumerable<object?> CreateStream(object request, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+        private sealed class TestMediator : IMediator
+        {
+            public List<ApplyCityEnvironmentSyncCommand> Commands { get; } = [];
+            public required SyncCityEnvironmentResult Result { get; init; }
 
-        public Task Publish(object notification, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+            public Task<TResponse> Send<TResponse>(
+                IRequest<TResponse> request,
+                CancellationToken cancellationToken = default)
+            {
+                ApplyCityEnvironmentSyncCommand command = Assert.IsType<ApplyCityEnvironmentSyncCommand>(request);
+                Commands.Add(command);
+                return Task.FromResult((TResponse)(object)Result);
+            }
 
-        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
-            where TNotification : INotification
-            => throw new NotSupportedException();
+            public Task Send<TRequest>(
+                TRequest request,
+                CancellationToken cancellationToken = default)
+                where TRequest : IRequest
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<object?> Send(
+                object request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAsyncEnumerable<TResponse> CreateStream<TResponse>(
+                IStreamRequest<TResponse> request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAsyncEnumerable<object?> CreateStream(
+                object request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task Publish(
+                object notification,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task Publish<TNotification>(
+                TNotification notification,
+                CancellationToken cancellationToken = default)
+                where TNotification : INotification
+            {
+                throw new NotSupportedException();
+            }
+        }
     }
 }

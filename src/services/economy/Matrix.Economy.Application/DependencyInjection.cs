@@ -10,9 +10,7 @@ using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.UseCases.Businesses.Common;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
-using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Domain.Services;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Economy.Application
@@ -30,7 +28,9 @@ namespace Matrix.Economy.Application
             services.AddScoped<CityBudgetAllocationExpenseSupport>();
             services.AddScoped<CityBudgetBusinessDisbursementSupport>();
             services.AddScoped<CityBudgetOperationalExpenseSupport>();
-            services.AddScoped<ICityOperationalBudgetPressureProjectionService, CityOperationalBudgetPressureProjectionService>();
+            services
+               .AddScoped<ICityOperationalBudgetPressureProjectionService,
+                    CityOperationalBudgetPressureProjectionService>();
             services.AddScoped<HouseholdObligationChargeSupport>();
             services.AddScoped<CityBusinessTaxRemittanceSupport>();
             services.AddClassicCityScenarioApplication();

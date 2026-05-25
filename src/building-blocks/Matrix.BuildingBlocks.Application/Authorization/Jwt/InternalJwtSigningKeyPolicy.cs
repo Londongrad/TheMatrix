@@ -24,7 +24,8 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
                 return false;
             }
 
-            int distinctCharacters = signingKey.Distinct().Count();
+            int distinctCharacters = signingKey.Distinct()
+               .Count();
             if (distinctCharacters < MinDistinctCharacters)
             {
                 validationError = $"Signing key must contain at least {MinDistinctCharacters} distinct characters.";
@@ -50,9 +51,7 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
             if (!TryValidate(
                     signingKey: signingKey,
                     validationError: out string? validationError))
-            {
                 throw new InvalidOperationException($"{optionsPath}: {validationError}");
-            }
         }
 
         private static double CalculateShannonEntropyPerCharacter(string value)

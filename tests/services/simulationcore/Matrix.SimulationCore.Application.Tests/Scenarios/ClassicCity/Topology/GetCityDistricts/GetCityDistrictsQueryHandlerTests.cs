@@ -1,31 +1,51 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology.GetCityDistricts;
-
-public sealed class GetCityDistrictsQueryHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology.GetCityDistricts
 {
-    [Fact]
-    public async Task Handle_ReturnsMappedDistrictsForRequestedCity()
+    public sealed class GetCityDistrictsQueryHandlerTests
     {
-        var cityId = new CityId(Guid.NewGuid());
-        var district = TopologyTestSupport.CreateDistrict(cityId, "Harbor");
-        var repository = new TopologyTestSupport.FakeDistrictRepository
+        [Fact]
+        public async Task Handle_ReturnsMappedDistrictsForRequestedCity()
         {
-            Districts = [district]
-        };
-        var handler = new GetCityDistrictsQueryHandler(repository);
+            var cityId = new CityId(Guid.NewGuid());
+            District district = TopologyTestSupport.CreateDistrict(
+                cityId: cityId,
+                name: "Harbor");
+            var repository = new TopologyTestSupport.FakeDistrictRepository
+            {
+                Districts = [district]
+            };
+            var handler = new GetCityDistrictsQueryHandler(repository);
 
-        var result = await handler.Handle(new GetCityDistrictsQuery(cityId.Value), CancellationToken.None);
+            IReadOnlyList<DistrictDto> result = await handler.Handle(
+                request: new GetCityDistrictsQuery(cityId.Value),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(cityId.Value, repository.RequestedCityId!.Value.Value);
-        var item = Assert.Single(result);
-        Assert.Equal(district.Id.Value, item.DistrictId);
-        Assert.Equal(district.CityId.Value, item.CityId);
-        Assert.Equal("Harbor", item.Name);
-        Assert.Equal(district.AnchorX, item.AnchorX);
-        Assert.Equal(district.AnchorY, item.AnchorY);
-        Assert.Equal(district.CreatedAtUtc, item.CreatedAtUtc);
+            Assert.Equal(
+                expected: cityId.Value,
+                actual: repository.RequestedCityId!.Value.Value);
+            DistrictDto item = Assert.Single(result);
+            Assert.Equal(
+                expected: district.Id.Value,
+                actual: item.DistrictId);
+            Assert.Equal(
+                expected: district.CityId.Value,
+                actual: item.CityId);
+            Assert.Equal(
+                expected: "Harbor",
+                actual: item.Name);
+            Assert.Equal(
+                expected: district.AnchorX,
+                actual: item.AnchorX);
+            Assert.Equal(
+                expected: district.AnchorY,
+                actual: item.AnchorY);
+            Assert.Equal(
+                expected: district.CreatedAtUtc,
+                actual: item.CreatedAtUtc);
+        }
     }
 }

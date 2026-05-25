@@ -23,26 +23,22 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 cancellationToken: cancellationToken);
 
             if (state is null)
-            {
                 return new SyncCityOperationalBudgetPressureResult(
                     Status: SyncCityOperationalBudgetPressureStatus.NotInitialized,
                     PressureIndex: 0m,
                     EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc);
-            }
 
             if (IsIncomingSnapshotStale(
                     effectiveTickId: request.EffectiveTickId,
                     effectiveAtUtc: request.EffectiveAtUtc,
                     currentEffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
                     currentEffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc))
-            {
                 return new SyncCityOperationalBudgetPressureResult(
                     Status: SyncCityOperationalBudgetPressureStatus.Stale,
                     PressureIndex: state.OperationalBudgetPressure.PressureIndex,
                     EffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
                     EffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc);
-            }
 
             state.ApplyOperationalBudgetPressure(
                 snapshot: new CityOperationalBudgetPressureSnapshot(

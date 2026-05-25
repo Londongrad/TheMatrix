@@ -7,234 +7,339 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities;
-
-public sealed class CityTests
+namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
 {
-    private const string CityArchivedErrorCode = "SimulationCore.City.Archived";
-    private static readonly DateTimeOffset CreatedAtUtc = new(2040, 2, 3, 4, 5, 6, TimeSpan.Zero);
-    private static readonly DateTimeOffset ArchivedAtUtc = new(2040, 2, 4, 5, 6, 7, TimeSpan.Zero);
-
-    [Fact]
-    public void Create_WhenBootstrapIsNotRequired_SetsActiveState_AndEmitsCreatedEvent()
+    public sealed class CityTests
     {
-        var name = new CityName("Alpha City");
-        var environment = CreateEnvironment();
-        var generationSeed = new CityGenerationSeed("alpha-seed");
-        var scenarioModelSetVersion = new ScenarioModelSetVersion("classic-city-v3");
-        var generationProfile = CreateGenerationProfile();
-        var initialWeatherProfile = CreateInitialWeatherProfile();
+        private const string CityArchivedErrorCode = "SimulationCore.City.Archived";
 
-        var city = City.Create(
-            name: name,
-            simulationKind: SimulationKind.ClassicCity,
-            environment: environment,
-            generationSeed: generationSeed,
-            scenarioModelSetVersion: scenarioModelSetVersion,
-            generationProfile: generationProfile,
-            initialWeatherProfile: initialWeatherProfile,
-            provisioningCorrelationId: null,
-            requiresPopulationBootstrap: false,
-            requiresEconomyBootstrap: false,
-            createdAtUtc: CreatedAtUtc);
+        private static readonly DateTimeOffset CreatedAtUtc = new(
+            year: 2040,
+            month: 2,
+            day: 3,
+            hour: 4,
+            minute: 5,
+            second: 6,
+            offset: TimeSpan.Zero);
 
-        Assert.Equal(name, city.Name);
-        Assert.Equal(SimulationKind.ClassicCity, city.SimulationKind);
-        Assert.Equal(environment, city.Environment);
-        Assert.Equal(generationSeed, city.GenerationSeed);
-        Assert.Equal(scenarioModelSetVersion, city.ScenarioModelSetVersion);
-        Assert.Equal(generationProfile, city.GenerationProfile);
-        Assert.Equal(initialWeatherProfile, city.InitialWeatherProfile);
-        Assert.Equal(CityStatus.Active, city.Status);
-        Assert.True(city.IsActive);
-        Assert.False(city.IsProvisioning);
-        Assert.False(city.IsArchived);
-        Assert.Equal(CreatedAtUtc, city.CreatedAtUtc);
-        Assert.NotEqual(Guid.Empty, city.Id.Value);
-        Assert.NotEqual(Guid.Empty, city.RunId);
-        Assert.NotEqual(Guid.Empty, city.PopulationBootstrapOperationId);
-        Assert.NotEqual(Guid.Empty, city.EconomyBootstrapOperationId);
-        Assert.Equal(CreatedAtUtc, city.PopulationBootstrapCompletedAtUtc);
-        Assert.Equal(CreatedAtUtc, city.EconomyBootstrapCompletedAtUtc);
-        Assert.Null(city.PopulationBootstrapFailedAtUtc);
-        Assert.Null(city.EconomyBootstrapFailedAtUtc);
-        Assert.Null(city.PopulationBootstrapFailureCode);
-        Assert.Null(city.EconomyBootstrapFailureCode);
-        Assert.Null(city.ProvisioningStartedAtUtc);
-        Assert.Null(city.ProvisioningHeartbeatAtUtc);
-        Assert.Null(city.ProvisioningLeaseExpiresAtUtc);
-        Assert.Equal(0, city.ProvisioningAttemptCount);
-        Assert.Null(city.ArchivedAtUtc);
+        private static readonly DateTimeOffset ArchivedAtUtc = new(
+            year: 2040,
+            month: 2,
+            day: 4,
+            hour: 5,
+            minute: 6,
+            second: 7,
+            offset: TimeSpan.Zero);
 
-        var createdEvent = Assert.IsType<CityCreatedDomainEvent>(Assert.Single(city.DomainEvents));
+        [Fact]
+        public void Create_WhenBootstrapIsNotRequired_SetsActiveState_AndEmitsCreatedEvent()
+        {
+            var name = new CityName("Alpha City");
+            CityEnvironment environment = CreateEnvironment();
+            var generationSeed = new CityGenerationSeed("alpha-seed");
+            var scenarioModelSetVersion = new ScenarioModelSetVersion("classic-city-v3");
+            CityGenerationProfile generationProfile = CreateGenerationProfile();
+            CityInitialWeatherProfile initialWeatherProfile = CreateInitialWeatherProfile();
 
-        Assert.Equal(city.Id, createdEvent.CityId);
-        Assert.Equal(name, createdEvent.Name);
-        Assert.Equal(SimulationKind.ClassicCity, createdEvent.SimulationKind);
-        Assert.Equal(environment, createdEvent.Environment);
-        Assert.Equal(generationSeed, createdEvent.GenerationSeed);
-        Assert.Equal(city.RunId, createdEvent.RunId);
-        Assert.Equal(scenarioModelSetVersion, createdEvent.ScenarioModelSetVersion);
-        Assert.Equal(generationProfile, createdEvent.GenerationProfile);
-        Assert.Equal(city.PopulationBootstrapOperationId, createdEvent.PopulationBootstrapOperationId);
-        Assert.Equal(CreatedAtUtc, createdEvent.CreatedAtUtc);
-    }
+            var city = City.Create(
+                name: name,
+                simulationKind: SimulationKind.ClassicCity,
+                environment: environment,
+                generationSeed: generationSeed,
+                scenarioModelSetVersion: scenarioModelSetVersion,
+                generationProfile: generationProfile,
+                initialWeatherProfile: initialWeatherProfile,
+                provisioningCorrelationId: null,
+                requiresPopulationBootstrap: false,
+                requiresEconomyBootstrap: false,
+                createdAtUtc: CreatedAtUtc);
 
-    [Fact]
-    public void Create_WhenBootstrapIsRequired_SetsProvisioningState_AndProvisioningTimestamps()
-    {
-        var city = CreateCity(
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: false);
+            Assert.Equal(
+                expected: name,
+                actual: city.Name);
+            Assert.Equal(
+                expected: SimulationKind.ClassicCity,
+                actual: city.SimulationKind);
+            Assert.Equal(
+                expected: environment,
+                actual: city.Environment);
+            Assert.Equal(
+                expected: generationSeed,
+                actual: city.GenerationSeed);
+            Assert.Equal(
+                expected: scenarioModelSetVersion,
+                actual: city.ScenarioModelSetVersion);
+            Assert.Equal(
+                expected: generationProfile,
+                actual: city.GenerationProfile);
+            Assert.Equal(
+                expected: initialWeatherProfile,
+                actual: city.InitialWeatherProfile);
+            Assert.Equal(
+                expected: CityStatus.Active,
+                actual: city.Status);
+            Assert.True(city.IsActive);
+            Assert.False(city.IsProvisioning);
+            Assert.False(city.IsArchived);
+            Assert.Equal(
+                expected: CreatedAtUtc,
+                actual: city.CreatedAtUtc);
+            Assert.NotEqual(
+                expected: Guid.Empty,
+                actual: city.Id.Value);
+            Assert.NotEqual(
+                expected: Guid.Empty,
+                actual: city.RunId);
+            Assert.NotEqual(
+                expected: Guid.Empty,
+                actual: city.PopulationBootstrapOperationId);
+            Assert.NotEqual(
+                expected: Guid.Empty,
+                actual: city.EconomyBootstrapOperationId);
+            Assert.Equal(
+                expected: CreatedAtUtc,
+                actual: city.PopulationBootstrapCompletedAtUtc);
+            Assert.Equal(
+                expected: CreatedAtUtc,
+                actual: city.EconomyBootstrapCompletedAtUtc);
+            Assert.Null(city.PopulationBootstrapFailedAtUtc);
+            Assert.Null(city.EconomyBootstrapFailedAtUtc);
+            Assert.Null(city.PopulationBootstrapFailureCode);
+            Assert.Null(city.EconomyBootstrapFailureCode);
+            Assert.Null(city.ProvisioningStartedAtUtc);
+            Assert.Null(city.ProvisioningHeartbeatAtUtc);
+            Assert.Null(city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Equal(
+                expected: 0,
+                actual: city.ProvisioningAttemptCount);
+            Assert.Null(city.ArchivedAtUtc);
 
-        Assert.Equal(CityStatus.Provisioning, city.Status);
-        Assert.False(city.IsActive);
-        Assert.True(city.IsProvisioning);
-        Assert.Null(city.PopulationBootstrapCompletedAtUtc);
-        Assert.Equal(CreatedAtUtc, city.EconomyBootstrapCompletedAtUtc);
-        Assert.Equal(CreatedAtUtc, city.ProvisioningStartedAtUtc);
-        Assert.Equal(CreatedAtUtc, city.ProvisioningHeartbeatAtUtc);
-    }
+            CityCreatedDomainEvent createdEvent =
+                Assert.IsType<CityCreatedDomainEvent>(Assert.Single(city.DomainEvents));
 
-    [Fact]
-    public void Rename_WhenNameChanges_UpdatesName_AndEmitsEvent()
-    {
-        var city = CreateCity();
-        var newName = new CityName("Beta City");
+            Assert.Equal(
+                expected: city.Id,
+                actual: createdEvent.CityId);
+            Assert.Equal(
+                expected: name,
+                actual: createdEvent.Name);
+            Assert.Equal(
+                expected: SimulationKind.ClassicCity,
+                actual: createdEvent.SimulationKind);
+            Assert.Equal(
+                expected: environment,
+                actual: createdEvent.Environment);
+            Assert.Equal(
+                expected: generationSeed,
+                actual: createdEvent.GenerationSeed);
+            Assert.Equal(
+                expected: city.RunId,
+                actual: createdEvent.RunId);
+            Assert.Equal(
+                expected: scenarioModelSetVersion,
+                actual: createdEvent.ScenarioModelSetVersion);
+            Assert.Equal(
+                expected: generationProfile,
+                actual: createdEvent.GenerationProfile);
+            Assert.Equal(
+                expected: city.PopulationBootstrapOperationId,
+                actual: createdEvent.PopulationBootstrapOperationId);
+            Assert.Equal(
+                expected: CreatedAtUtc,
+                actual: createdEvent.CreatedAtUtc);
+        }
 
-        city.ClearDomainEvents();
-        city.Rename(newName);
+        [Fact]
+        public void Create_WhenBootstrapIsRequired_SetsProvisioningState_AndProvisioningTimestamps()
+        {
+            City city = CreateCity(
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: false);
 
-        Assert.Equal(newName, city.Name);
+            Assert.Equal(
+                expected: CityStatus.Provisioning,
+                actual: city.Status);
+            Assert.False(city.IsActive);
+            Assert.True(city.IsProvisioning);
+            Assert.Null(city.PopulationBootstrapCompletedAtUtc);
+            Assert.Equal(
+                expected: CreatedAtUtc,
+                actual: city.EconomyBootstrapCompletedAtUtc);
+            Assert.Equal(
+                expected: CreatedAtUtc,
+                actual: city.ProvisioningStartedAtUtc);
+            Assert.Equal(
+                expected: CreatedAtUtc,
+                actual: city.ProvisioningHeartbeatAtUtc);
+        }
 
-        var renamedEvent = Assert.IsType<CityRenamedDomainEvent>(Assert.Single(city.DomainEvents));
+        [Fact]
+        public void Rename_WhenNameChanges_UpdatesName_AndEmitsEvent()
+        {
+            City city = CreateCity();
+            var newName = new CityName("Beta City");
 
-        Assert.Equal(city.Id, renamedEvent.CityId);
-        Assert.Equal(new CityName("Alpha City"), renamedEvent.From);
-        Assert.Equal(newName, renamedEvent.To);
-    }
+            city.ClearDomainEvents();
+            city.Rename(newName);
 
-    [Fact]
-    public void Rename_WithSameName_IsNoOp()
-    {
-        var city = CreateCity();
+            Assert.Equal(
+                expected: newName,
+                actual: city.Name);
 
-        city.ClearDomainEvents();
-        city.Rename(new CityName("Alpha City"));
+            CityRenamedDomainEvent renamedEvent =
+                Assert.IsType<CityRenamedDomainEvent>(Assert.Single(city.DomainEvents));
 
-        Assert.Equal(new CityName("Alpha City"), city.Name);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.Equal(
+                expected: city.Id,
+                actual: renamedEvent.CityId);
+            Assert.Equal(
+                expected: new CityName("Alpha City"),
+                actual: renamedEvent.From);
+            Assert.Equal(
+                expected: newName,
+                actual: renamedEvent.To);
+        }
 
-    [Fact]
-    public void Rename_WhenArchived_ThrowsDomainException()
-    {
-        var city = CreateCity();
-        city.Archive(ArchivedAtUtc);
-        city.ClearDomainEvents();
+        [Fact]
+        public void Rename_WithSameName_IsNoOp()
+        {
+            City city = CreateCity();
 
-        var exception = Assert.Throws<DomainException>(() => city.Rename(new CityName("Gamma City")));
+            city.ClearDomainEvents();
+            city.Rename(new CityName("Alpha City"));
 
-        Assert.Equal(CityArchivedErrorCode, exception.Code);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.Equal(
+                expected: new CityName("Alpha City"),
+                actual: city.Name);
+            Assert.Empty(city.DomainEvents);
+        }
 
-    [Fact]
-    public void ChangeEnvironment_WhenValueChanges_UpdatesEnvironment_AndEmitsEvent()
-    {
-        var city = CreateCity();
-        var newEnvironment = CityEnvironment.Create(
-            climateZone: ClimateZone.Arid,
-            hemisphere: Hemisphere.Southern,
-            utcOffset: CityUtcOffset.FromMinutes(600));
+        [Fact]
+        public void Rename_WhenArchived_ThrowsDomainException()
+        {
+            City city = CreateCity();
+            city.Archive(ArchivedAtUtc);
+            city.ClearDomainEvents();
 
-        city.ClearDomainEvents();
-        city.ChangeEnvironment(newEnvironment);
+            DomainException exception = Assert.Throws<DomainException>(() => city.Rename(new CityName("Gamma City")));
 
-        Assert.Equal(newEnvironment, city.Environment);
+            Assert.Equal(
+                expected: CityArchivedErrorCode,
+                actual: exception.Code);
+            Assert.Empty(city.DomainEvents);
+        }
 
-        var changedEvent = Assert.IsType<CityEnvironmentChangedDomainEvent>(Assert.Single(city.DomainEvents));
+        [Fact]
+        public void ChangeEnvironment_WhenValueChanges_UpdatesEnvironment_AndEmitsEvent()
+        {
+            City city = CreateCity();
+            var newEnvironment = CityEnvironment.Create(
+                climateZone: ClimateZone.Arid,
+                hemisphere: Hemisphere.Southern,
+                utcOffset: CityUtcOffset.FromMinutes(600));
 
-        Assert.Equal(city.Id, changedEvent.CityId);
-        Assert.Equal(CreateEnvironment(), changedEvent.From);
-        Assert.Equal(newEnvironment, changedEvent.To);
-    }
+            city.ClearDomainEvents();
+            city.ChangeEnvironment(newEnvironment);
 
-    [Fact]
-    public void ChangeEnvironment_WithSameValue_IsNoOp()
-    {
-        var city = CreateCity();
+            Assert.Equal(
+                expected: newEnvironment,
+                actual: city.Environment);
 
-        city.ClearDomainEvents();
-        city.ChangeEnvironment(CreateEnvironment());
+            CityEnvironmentChangedDomainEvent changedEvent =
+                Assert.IsType<CityEnvironmentChangedDomainEvent>(Assert.Single(city.DomainEvents));
 
-        Assert.Equal(CreateEnvironment(), city.Environment);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.Equal(
+                expected: city.Id,
+                actual: changedEvent.CityId);
+            Assert.Equal(
+                expected: CreateEnvironment(),
+                actual: changedEvent.From);
+            Assert.Equal(
+                expected: newEnvironment,
+                actual: changedEvent.To);
+        }
 
-    [Fact]
-    public void ChangeEnvironment_WhenArchived_ThrowsDomainException()
-    {
-        var city = CreateCity();
-        city.Archive(ArchivedAtUtc);
-        city.ClearDomainEvents();
+        [Fact]
+        public void ChangeEnvironment_WithSameValue_IsNoOp()
+        {
+            City city = CreateCity();
 
-        var exception = Assert.Throws<DomainException>(() => city.ChangeEnvironment(CreateAlternativeEnvironment()));
+            city.ClearDomainEvents();
+            city.ChangeEnvironment(CreateEnvironment());
 
-        Assert.Equal(CityArchivedErrorCode, exception.Code);
-        Assert.Empty(city.DomainEvents);
-    }
+            Assert.Equal(
+                expected: CreateEnvironment(),
+                actual: city.Environment);
+            Assert.Empty(city.DomainEvents);
+        }
 
-    private static City CreateCity(
-        bool requiresPopulationBootstrap = false,
-        bool requiresEconomyBootstrap = false)
-    {
-        return City.Create(
-            name: new CityName("Alpha City"),
-            simulationKind: SimulationKind.ClassicCity,
-            environment: CreateEnvironment(),
-            generationSeed: new CityGenerationSeed("alpha-seed"),
-            scenarioModelSetVersion: new ScenarioModelSetVersion("classic-city-v3"),
-            generationProfile: CreateGenerationProfile(),
-            initialWeatherProfile: CreateInitialWeatherProfile(),
-            provisioningCorrelationId: null,
-            requiresPopulationBootstrap: requiresPopulationBootstrap,
-            requiresEconomyBootstrap: requiresEconomyBootstrap,
-            createdAtUtc: CreatedAtUtc);
-    }
+        [Fact]
+        public void ChangeEnvironment_WhenArchived_ThrowsDomainException()
+        {
+            City city = CreateCity();
+            city.Archive(ArchivedAtUtc);
+            city.ClearDomainEvents();
 
-    private static CityEnvironment CreateEnvironment()
-    {
-        return CityEnvironment.Create(
-            climateZone: ClimateZone.Temperate,
-            hemisphere: Hemisphere.Northern,
-            utcOffset: CityUtcOffset.FromMinutes(180));
-    }
+            DomainException exception =
+                Assert.Throws<DomainException>(() => city.ChangeEnvironment(CreateAlternativeEnvironment()));
 
-    private static CityEnvironment CreateAlternativeEnvironment()
-    {
-        return CityEnvironment.Create(
-            climateZone: ClimateZone.Arid,
-            hemisphere: Hemisphere.Southern,
-            utcOffset: CityUtcOffset.FromMinutes(600));
-    }
+            Assert.Equal(
+                expected: CityArchivedErrorCode,
+                actual: exception.Code);
+            Assert.Empty(city.DomainEvents);
+        }
 
-    private static CityGenerationProfile CreateGenerationProfile()
-    {
-        return CityGenerationProfile.Create(
-            sizeTier: CitySizeTier.Medium,
-            urbanDensity: UrbanDensity.Balanced,
-            developmentLevel: CityDevelopmentLevel.Balanced,
-            economyProfile: CityEconomyProfile.Balanced,
-            populationOccupancyProfile: PopulationOccupancyProfile.Balanced,
-            plannedPeopleCount: 25_000);
-    }
+        private static City CreateCity(
+            bool requiresPopulationBootstrap = false,
+            bool requiresEconomyBootstrap = false)
+        {
+            return City.Create(
+                name: new CityName("Alpha City"),
+                simulationKind: SimulationKind.ClassicCity,
+                environment: CreateEnvironment(),
+                generationSeed: new CityGenerationSeed("alpha-seed"),
+                scenarioModelSetVersion: new ScenarioModelSetVersion("classic-city-v3"),
+                generationProfile: CreateGenerationProfile(),
+                initialWeatherProfile: CreateInitialWeatherProfile(),
+                provisioningCorrelationId: null,
+                requiresPopulationBootstrap: requiresPopulationBootstrap,
+                requiresEconomyBootstrap: requiresEconomyBootstrap,
+                createdAtUtc: CreatedAtUtc);
+        }
 
-    private static CityInitialWeatherProfile CreateInitialWeatherProfile()
-    {
-        return CityInitialWeatherProfile.CreateManual(
-            manualType: WeatherType.Clear,
-            manualSeverity: WeatherSeverity.Calm,
-            manualTemperature: TemperatureC.From(18m));
+        private static CityEnvironment CreateEnvironment()
+        {
+            return CityEnvironment.Create(
+                climateZone: ClimateZone.Temperate,
+                hemisphere: Hemisphere.Northern,
+                utcOffset: CityUtcOffset.FromMinutes(180));
+        }
+
+        private static CityEnvironment CreateAlternativeEnvironment()
+        {
+            return CityEnvironment.Create(
+                climateZone: ClimateZone.Arid,
+                hemisphere: Hemisphere.Southern,
+                utcOffset: CityUtcOffset.FromMinutes(600));
+        }
+
+        private static CityGenerationProfile CreateGenerationProfile()
+        {
+            return CityGenerationProfile.Create(
+                sizeTier: CitySizeTier.Medium,
+                urbanDensity: UrbanDensity.Balanced,
+                developmentLevel: CityDevelopmentLevel.Balanced,
+                economyProfile: CityEconomyProfile.Balanced,
+                populationOccupancyProfile: PopulationOccupancyProfile.Balanced,
+                plannedPeopleCount: 25_000);
+        }
+
+        private static CityInitialWeatherProfile CreateInitialWeatherProfile()
+        {
+            return CityInitialWeatherProfile.CreateManual(
+                manualType: WeatherType.Clear,
+                manualSeverity: WeatherSeverity.Calm,
+                manualTemperature: TemperatureC.From(18m));
+        }
     }
 }

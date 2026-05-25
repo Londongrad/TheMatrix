@@ -1,28 +1,36 @@
+using FluentValidation.Results;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
 using Xunit;
 
-namespace Matrix.Population.Application.Tests.UseCases.Population.GetCitizenPage;
-
-public sealed class GetCitizensPageQueryValidatorTests
+namespace Matrix.Population.Application.Tests.UseCases.Population.GetCitizenPage
 {
-    private readonly GetCitizensPageQueryValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidPagination_ReturnsNoErrors()
+    public sealed class GetCitizensPageQueryValidatorTests
     {
-        var result = _validator.Validate(new GetCitizensPageQuery(new Pagination(pageNumber: 1, pageSize: 50)));
+        private readonly GetCitizensPageQueryValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidPagination_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new GetCitizensPageQuery(
+                    new Pagination(
+                        pageNumber: 1,
+                        pageSize: 50)));
 
-    [Fact]
-    public void Validate_WithNullPagination_ReturnsError()
-    {
-        var result = _validator.Validate(new GetCitizensPageQuery(Pagination: null!));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "Pagination");
+        [Fact]
+        public void Validate_WithNullPagination_ReturnsError()
+        {
+            ValidationResult? result = _validator.Validate(new GetCitizensPageQuery(Pagination: null!));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Pagination");
+        }
     }
 }

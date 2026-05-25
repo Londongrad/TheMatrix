@@ -1,11 +1,9 @@
-using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.BuildingBlocks.Api.Forwarding;
 using Microsoft.Extensions.Primitives;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity
 {
-    public sealed class TrustedIdentityClientContextHandler(
-        IHttpContextAccessor accessor) : DelegatingHandler
+    public sealed class TrustedIdentityClientContextHandler(IHttpContextAccessor accessor) : DelegatingHandler
     {
         private readonly IHttpContextAccessor _accessor = accessor;
 

@@ -108,11 +108,20 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
                         value: out EmployerPayrollSnapshot? payrollSnapshot))
                     employerPayrollByReference[payroll.WorkplaceExternalReferenceCode] = payrollSnapshot with
                     {
-                        RequestedGrossPayrollAmount = payrollSnapshot.RequestedGrossPayrollAmount + requestedGrossPayroll.Amount,
-                        PaidGrossPayrollAmount = payrollSnapshot.PaidGrossPayrollAmount + payrollOutcome.PaidGrossPayroll.Amount,
-                        MissedGrossPayrollAmount = payrollSnapshot.MissedGrossPayrollAmount + payrollOutcome.GrossShortfall.Amount,
-                        FailedPayrollCount = payrollSnapshot.FailedPayrollCount + (payrollOutcome.IsMissed ? 1 : 0),
-                        PartialPayrollCount = payrollSnapshot.PartialPayrollCount + (payrollOutcome.IsPartiallyPaid ? 1 : 0)
+                        RequestedGrossPayrollAmount =
+                        payrollSnapshot.RequestedGrossPayrollAmount + requestedGrossPayroll.Amount,
+                        PaidGrossPayrollAmount =
+                        payrollSnapshot.PaidGrossPayrollAmount + payrollOutcome.PaidGrossPayroll.Amount,
+                        MissedGrossPayrollAmount =
+                        payrollSnapshot.MissedGrossPayrollAmount + payrollOutcome.GrossShortfall.Amount,
+                        FailedPayrollCount = payrollSnapshot.FailedPayrollCount +
+                                             (payrollOutcome.IsMissed
+                                                 ? 1
+                                                 : 0),
+                        PartialPayrollCount = payrollSnapshot.PartialPayrollCount +
+                                              (payrollOutcome.IsPartiallyPaid
+                                                  ? 1
+                                                  : 0)
                     };
                 else
                     employerPayrollByReference[payroll.WorkplaceExternalReferenceCode] = new EmployerPayrollSnapshot(
@@ -122,8 +131,12 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
                         RequestedGrossPayrollAmount: requestedGrossPayroll.Amount,
                         PaidGrossPayrollAmount: payrollOutcome.PaidGrossPayroll.Amount,
                         MissedGrossPayrollAmount: payrollOutcome.GrossShortfall.Amount,
-                        FailedPayrollCount: payrollOutcome.IsMissed ? 1 : 0,
-                        PartialPayrollCount: payrollOutcome.IsPartiallyPaid ? 1 : 0);
+                        FailedPayrollCount: payrollOutcome.IsMissed
+                            ? 1
+                            : 0,
+                        PartialPayrollCount: payrollOutcome.IsPartiallyPaid
+                            ? 1
+                            : 0);
 
                 if (payrollOutcome.PaidGrossPayroll.IsPositive)
                 {
@@ -221,8 +234,8 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
                     "Skipped classic city workplace payroll settlement for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}.",
                     message.CityId,
                     message.CorrelationId,
-                message.BatchNumber,
-                message.TotalBatches);
+                    message.BatchNumber,
+                    message.TotalBatches);
                 return;
             }
 
@@ -300,7 +313,9 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
                         HasHiringFreeze: hasHiringFreeze,
                         HasLayoffPressure: hasLayoffPressure);
                 })
-               .OrderBy(x => x.WorkplaceExternalReferenceCode, StringComparer.Ordinal)
+               .OrderBy(
+                    keySelector: x => x.WorkplaceExternalReferenceCode,
+                    comparer: StringComparer.Ordinal)
                .ToArray();
 
             if (items.Length == 0)
@@ -308,7 +323,9 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 
             ClassicCityEmployerFinancialStressBatchV1[] batches = items
                .Chunk(EmployerStressBatchSize)
-               .Select((chunk, index) => new ClassicCityEmployerFinancialStressBatchV1(
+               .Select((
+                    chunk,
+                    index) => new ClassicCityEmployerFinancialStressBatchV1(
                     CityId: message.CityId,
                     BatchNumber: index + 1,
                     TotalBatches: 0,

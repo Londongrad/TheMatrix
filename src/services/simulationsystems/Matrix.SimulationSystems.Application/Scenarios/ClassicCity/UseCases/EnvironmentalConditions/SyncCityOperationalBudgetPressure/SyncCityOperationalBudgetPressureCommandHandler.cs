@@ -5,7 +5,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.SyncCityOperationalBudgetPressure
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    SyncCityOperationalBudgetPressure
 {
     public sealed class SyncCityOperationalBudgetPressureCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -45,24 +46,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                         cancellationToken: cancellationToken);
 
                 if (state is null)
-                {
                     return new SyncCityOperationalBudgetPressureResult(
                         Status: SyncCityOperationalBudgetPressureStatus.NotInitialized,
                         PressureIndex: 0m,
                         EffectiveTickId: request.EffectiveTickId,
                         EffectiveAtUtc: request.EffectiveAtUtc);
-                }
 
                 if (IsIncomingSnapshotStale(
                         effectiveTickId: request.EffectiveTickId,
                         effectiveAtUtc: request.EffectiveAtUtc,
                         currentEffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
                         currentEffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc))
-                {
                     return ToResult(
                         status: SyncCityOperationalBudgetPressureStatus.Stale,
                         state: state.OperationalBudgetPressure);
-                }
 
                 state.ApplyOperationalBudgetPressure(snapshot: snapshot);
 
@@ -89,7 +86,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 }
             }
 
-            throw new InvalidOperationException("Operational budget pressure synchronization exhausted its save retry budget.");
+            throw new InvalidOperationException(
+                "Operational budget pressure synchronization exhausted its save retry budget.");
         }
 
         private async Task<SyncCityOperationalBudgetPressureResult?> ResolveConcurrencyAsync(
@@ -102,33 +100,27 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 cancellationToken: cancellationToken);
 
             if (persistedState is null)
-            {
                 return new SyncCityOperationalBudgetPressureResult(
                     Status: SyncCityOperationalBudgetPressureStatus.NotInitialized,
                     PressureIndex: 0m,
                     EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc);
-            }
 
             if (IsIncomingSnapshotStale(
                     effectiveTickId: request.EffectiveTickId,
                     effectiveAtUtc: request.EffectiveAtUtc,
                     currentEffectiveTickId: persistedState.OperationalBudgetPressure.EffectiveTickId,
                     currentEffectiveAtUtc: persistedState.OperationalBudgetPressure.EffectiveAtUtc))
-            {
                 return ToResult(
                     status: SyncCityOperationalBudgetPressureStatus.Stale,
                     state: persistedState.OperationalBudgetPressure);
-            }
 
             if (MatchesSnapshot(
                     request: request,
                     state: persistedState.OperationalBudgetPressure))
-            {
                 return ToResult(
                     status: SyncCityOperationalBudgetPressureStatus.Concurrent,
                     state: persistedState.OperationalBudgetPressure);
-            }
 
             return null;
         }
@@ -160,16 +152,30 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                    state.OperationsAvailableAmount == request.OperationsAvailableAmount &&
                    state.InfrastructureAvailableAmount == request.InfrastructureAvailableAmount &&
                    state.HealthcareAvailableAmount == request.HealthcareAvailableAmount &&
-                   string.Equals(state.GeneralAuthorizationLevel, request.GeneralAuthorizationLevel, StringComparison.Ordinal) &&
-                   string.Equals(state.OperationsAuthorizationLevel, request.OperationsAuthorizationLevel, StringComparison.Ordinal) &&
-                   string.Equals(state.InfrastructureAuthorizationLevel, request.InfrastructureAuthorizationLevel, StringComparison.Ordinal) &&
-                   string.Equals(state.HealthcareAuthorizationLevel, request.HealthcareAuthorizationLevel, StringComparison.Ordinal) &&
+                   string.Equals(
+                       a: state.GeneralAuthorizationLevel,
+                       b: request.GeneralAuthorizationLevel,
+                       comparisonType: StringComparison.Ordinal) &&
+                   string.Equals(
+                       a: state.OperationsAuthorizationLevel,
+                       b: request.OperationsAuthorizationLevel,
+                       comparisonType: StringComparison.Ordinal) &&
+                   string.Equals(
+                       a: state.InfrastructureAuthorizationLevel,
+                       b: request.InfrastructureAuthorizationLevel,
+                       comparisonType: StringComparison.Ordinal) &&
+                   string.Equals(
+                       a: state.HealthcareAuthorizationLevel,
+                       b: request.HealthcareAuthorizationLevel,
+                       comparisonType: StringComparison.Ordinal) &&
                    state.PressureIndex == request.PressureIndex;
         }
 
         private static bool IsConcurrencyException(Exception exception)
         {
-            return exception.GetType().Name == "DbUpdateConcurrencyException";
+            return exception.GetType()
+                      .Name ==
+                   "DbUpdateConcurrencyException";
         }
 
         private static SyncCityOperationalBudgetPressureResult ToResult(

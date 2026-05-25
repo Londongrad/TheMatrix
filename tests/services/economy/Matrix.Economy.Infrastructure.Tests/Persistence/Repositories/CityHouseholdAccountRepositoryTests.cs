@@ -1,51 +1,78 @@
+using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
-using Matrix.Economy.Infrastructure.Tests.TestSupport;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityHouseholdAccountRepositoryTests
+namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task GetByExternalReferenceCode_ReturnsMatchingAccount()
+    public sealed class CityHouseholdAccountRepositoryTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var account = CreateHouseholdAccount(cityId, "Anderson", "hh-anderson");
+        [Fact]
+        public async Task GetByExternalReferenceCode_ReturnsMatchingAccount()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityHouseholdAccount account = CreateHouseholdAccount(
+                cityId: cityId,
+                name: "Anderson",
+                externalReferenceCode: "hh-anderson");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityHouseholdAccounts.AddRange(
-            account,
-            CreateHouseholdAccount(Guid.Parse("11111111-2222-3333-4444-555555555555"), "Other", "hh-other"));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityHouseholdAccounts.AddRange(
+                account,
+                CreateHouseholdAccount(
+                    cityId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                    name: "Other",
+                    externalReferenceCode: "hh-other"));
+            await dbContext.SaveChangesAsync();
 
-        CityHouseholdAccountRepository repository = new(dbContext);
+            CityHouseholdAccountRepository repository = new(dbContext);
 
-        var result = await repository.GetByCityAndExternalReferenceCodeAsync(cityId, "hh-anderson");
+            CityHouseholdAccount? result = await repository.GetByCityAndExternalReferenceCodeAsync(
+                cityId: cityId,
+                externalReferenceCode: "hh-anderson");
 
-        Assert.Equal(account.Id, result?.Id);
-    }
+            Assert.Equal(
+                expected: account.Id,
+                actual: result?.Id);
+        }
 
-    [Fact]
-    public async Task ListByCityAsync_FiltersAndOrdersByName()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task ListByCityAsync_FiltersAndOrdersByName()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityHouseholdAccounts.AddRange(
-            CreateHouseholdAccount(cityId, "Zimmer", "hh-zimmer"),
-            CreateHouseholdAccount(cityId, "Anderson", "hh-anderson"),
-            CreateHouseholdAccount(Guid.Parse("11111111-2222-3333-4444-555555555555"), "Other", "hh-other"));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityHouseholdAccounts.AddRange(
+                CreateHouseholdAccount(
+                    cityId: cityId,
+                    name: "Zimmer",
+                    externalReferenceCode: "hh-zimmer"),
+                CreateHouseholdAccount(
+                    cityId: cityId,
+                    name: "Anderson",
+                    externalReferenceCode: "hh-anderson"),
+                CreateHouseholdAccount(
+                    cityId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                    name: "Other",
+                    externalReferenceCode: "hh-other"));
+            await dbContext.SaveChangesAsync();
 
-        CityHouseholdAccountRepository repository = new(dbContext);
+            CityHouseholdAccountRepository repository = new(dbContext);
 
-        var accounts = await repository.ListByCityAsync(cityId);
+            IReadOnlyList<CityHouseholdAccount> accounts = await repository.ListByCityAsync(cityId);
 
-        Assert.Equal(2, accounts.Count);
-        Assert.Collection(
-            accounts,
-            x => Assert.Equal("Anderson", x.Name),
-            x => Assert.Equal("Zimmer", x.Name));
+            Assert.Equal(
+                expected: 2,
+                actual: accounts.Count);
+            Assert.Collection(
+                collection: accounts,
+                x => Assert.Equal(
+                    expected: "Anderson",
+                    actual: x.Name),
+                x => Assert.Equal(
+                    expected: "Zimmer",
+                    actual: x.Name));
+        }
     }
 }

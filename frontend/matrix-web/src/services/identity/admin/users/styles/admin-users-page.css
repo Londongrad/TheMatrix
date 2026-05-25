@@ -29,9 +29,8 @@
     padding: 18px;
     border-radius: 24px;
     border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.2));
-    background:
-        radial-gradient(circle at top right, rgba(var(--shell-accent-rgb), 0.14), transparent 36%),
-        linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
+    background: radial-gradient(circle at top right, rgba(var(--shell-accent-rgb), 0.14), transparent 36%),
+    linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
     overflow: hidden;
 }
 
@@ -39,10 +38,9 @@
     content: "";
     position: absolute;
     inset: 0;
-    background:
-        linear-gradient(120deg, transparent 12%, rgba(255, 255, 255, 0.05) 44%, transparent 70%),
-        linear-gradient(rgba(var(--shell-accent-rgb), 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(var(--shell-accent-rgb), 0.04) 1px, transparent 1px);
+    background: linear-gradient(120deg, transparent 12%, rgba(255, 255, 255, 0.05) 44%, transparent 70%),
+    linear-gradient(rgba(var(--shell-accent-rgb), 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--shell-accent-rgb), 0.04) 1px, transparent 1px);
     background-size: auto, 16px 16px, 16px 16px;
     pointer-events: none;
 }
@@ -90,11 +88,9 @@
     padding: 14px 15px;
     border-radius: 18px;
     border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.14));
-    background:
-        linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 18px 28px rgba(0, 0, 0, 0.12);
+    background: linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 18px 28px rgba(0, 0, 0, 0.12);
 }
 
 .mx-admin-users__overviewValue {
@@ -149,17 +145,15 @@
 
 .mx-admin-users__card {
     position: relative;
-    background:
-        linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
+    background: linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
     border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.12));
     border-radius: 20px;
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    box-shadow:
-        var(--shell-shadow-soft),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: var(--shell-shadow-soft),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
     overflow: hidden;
 }
 
@@ -174,18 +168,16 @@
 
 .mx-admin-users__card.is-locked {
     border-color: rgba(247, 220, 111, 0.26);
-    box-shadow:
-        var(--shell-shadow-soft),
-        0 0 0 1px rgba(247, 220, 111, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: var(--shell-shadow-soft),
+    0 0 0 1px rgba(247, 220, 111, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .mx-admin-users__card.is-deleted {
     border-color: rgba(255, 156, 156, 0.26);
-    box-shadow:
-        var(--shell-shadow-soft),
-        0 0 0 1px rgba(255, 156, 156, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: var(--shell-shadow-soft),
+    0 0 0 1px rgba(255, 156, 156, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .mx-admin-users__cardTop {
@@ -253,8 +245,7 @@
     flex: 1 1 auto;
     height: 7px;
     border-radius: 999px;
-    background:
-        linear-gradient(90deg, rgba(var(--shell-accent-rgb), 0.32), rgba(var(--shell-accent-rgb), 0.08));
+    background: linear-gradient(90deg, rgba(var(--shell-accent-rgb), 0.32), rgba(var(--shell-accent-rgb), 0.08));
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 

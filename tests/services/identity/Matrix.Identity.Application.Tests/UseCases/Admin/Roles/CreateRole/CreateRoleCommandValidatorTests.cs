@@ -1,37 +1,48 @@
+using FluentValidation.Results;
 using Matrix.Identity.Application.UseCases.Admin.Roles.CreateRole;
 using Matrix.Identity.Domain.Entities;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.CreateRole;
-
-public sealed class CreateRoleCommandValidatorTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.CreateRole
 {
-    private readonly CreateRoleCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidName_ReturnsNoErrors()
+    public sealed class CreateRoleCommandValidatorTests
     {
-        var result = _validator.Validate(new CreateRoleCommand("Operators"));
+        private readonly CreateRoleCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidName_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(new CreateRoleCommand("Operators"));
 
-    [Fact]
-    public void Validate_WithEmptyName_ReturnsExpectedError()
-    {
-        var result = _validator.Validate(new CreateRoleCommand(string.Empty));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "Name" && x.ErrorMessage == "Name must not be empty");
-    }
+        [Fact]
+        public void Validate_WithEmptyName_ReturnsExpectedError()
+        {
+            ValidationResult? result = _validator.Validate(new CreateRoleCommand(string.Empty));
 
-    [Fact]
-    public void Validate_WithTooLongName_ReturnsExpectedError()
-    {
-        var result = _validator.Validate(new CreateRoleCommand(new string('R', Role.NameMaxLength + 1)));
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Name" && x.ErrorMessage == "Name must not be empty");
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "Name" && x.ErrorMessage == $"Role name must be at most {Role.NameMaxLength} characters");
+        [Fact]
+        public void Validate_WithTooLongName_ReturnsExpectedError()
+        {
+            ValidationResult? result = _validator.Validate(
+                new CreateRoleCommand(
+                    new string(
+                        c: 'R',
+                        count: Role.NameMaxLength + 1)));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Name" &&
+                             x.ErrorMessage == $"Role name must be at most {Role.NameMaxLength} characters");
+        }
     }
 }

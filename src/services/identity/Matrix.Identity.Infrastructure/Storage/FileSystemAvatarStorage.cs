@@ -13,18 +13,26 @@ namespace Matrix.Identity.Infrastructure.Storage
     public sealed class FileSystemAvatarStorage(IHostEnvironment env) : IAvatarStorage
     {
         private const string AvatarUrlPrefix = "/avatars/";
+
         private static readonly StringComparison PathComparison =
             OperatingSystem.IsWindows()
                 ? StringComparison.OrdinalIgnoreCase
                 : StringComparison.Ordinal;
 
         private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
+
         private static readonly IReadOnlyDictionary<string, AvatarFormatDescriptor> AllowedFormats =
             new Dictionary<string, AvatarFormatDescriptor>(StringComparer.OrdinalIgnoreCase)
             {
-                ["JPEG"] = new(".jpg", "image/jpeg"),
-                ["PNG"] = new(".png", "image/png"),
-                ["WEBP"] = new(".webp", "image/webp")
+                ["JPEG"] = new(
+                    Extension: ".jpg",
+                    ContentType: "image/jpeg"),
+                ["PNG"] = new(
+                    Extension: ".png",
+                    ContentType: "image/png"),
+                ["WEBP"] = new(
+                    Extension: ".webp",
+                    ContentType: "image/webp")
             };
 
         public async Task<string> SaveAsync(
@@ -146,9 +154,13 @@ namespace Matrix.Identity.Infrastructure.Storage
         private static string ExtractFileName(string path)
         {
             string normalized = path.Trim()
-               .Replace('\\', '/');
+               .Replace(
+                    oldChar: '\\',
+                    newChar: '/');
 
-            if (normalized.StartsWith(AvatarUrlPrefix, StringComparison.OrdinalIgnoreCase))
+            if (normalized.StartsWith(
+                    value: AvatarUrlPrefix,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                 normalized = normalized[AvatarUrlPrefix.Length..];
 
             return Path.GetFileName(normalized);
@@ -156,7 +168,9 @@ namespace Matrix.Identity.Infrastructure.Storage
 
         private static string ResolveContentType(string fileName)
         {
-            return ContentTypeProvider.TryGetContentType(fileName, out string? contentType)
+            return ContentTypeProvider.TryGetContentType(
+                subpath: fileName,
+                contentType: out string? contentType)
                 ? contentType
                 : "application/octet-stream";
         }
@@ -169,13 +183,21 @@ namespace Matrix.Identity.Infrastructure.Storage
             if (string.IsNullOrWhiteSpace(relative))
                 return null;
 
-            if (!string.Equals(relative, Path.GetFileName(relative), PathComparison))
+            if (!string.Equals(
+                    a: relative,
+                    b: Path.GetFileName(relative),
+                    comparisonType: PathComparison))
                 return null;
 
             string rootFullPath = EnsureTrailingDirectorySeparator(Path.GetFullPath(root));
-            string candidateFullPath = Path.GetFullPath(Path.Combine(rootFullPath, relative));
+            string candidateFullPath = Path.GetFullPath(
+                Path.Combine(
+                    path1: rootFullPath,
+                    path2: relative));
 
-            return candidateFullPath.StartsWith(rootFullPath, PathComparison)
+            return candidateFullPath.StartsWith(
+                value: rootFullPath,
+                comparisonType: PathComparison)
                 ? candidateFullPath
                 : null;
         }
@@ -183,12 +205,18 @@ namespace Matrix.Identity.Infrastructure.Storage
         private static string? ExtractRelativePath(string path)
         {
             string normalized = path.Trim()
-               .Replace('\\', '/');
+               .Replace(
+                    oldChar: '\\',
+                    newChar: '/');
 
-            if (normalized.StartsWith(AvatarUrlPrefix, StringComparison.OrdinalIgnoreCase))
+            if (normalized.StartsWith(
+                    value: AvatarUrlPrefix,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                 normalized = normalized[AvatarUrlPrefix.Length..];
             else
-                normalized = normalized.TrimStart('/', '\\');
+                normalized = normalized.TrimStart(
+                    '/',
+                    '\\');
 
             return string.IsNullOrWhiteSpace(normalized)
                 ? null
@@ -227,7 +255,9 @@ namespace Matrix.Identity.Infrastructure.Storage
 
                 IImageFormat? format = image.Metadata.DecodedImageFormat;
                 if (format is null ||
-                    !AllowedFormats.TryGetValue(format.Name, out AvatarFormatDescriptor? descriptor))
+                    !AllowedFormats.TryGetValue(
+                        key: format.Name,
+                        value: out AvatarFormatDescriptor? descriptor))
                 {
                     await buffer.DisposeAsync();
                     throw ApplicationErrorsFactory.AvatarFormatNotSupported();
@@ -237,10 +267,6 @@ namespace Matrix.Identity.Infrastructure.Storage
                 return new AvatarValidatedContent(
                     Buffer: buffer,
                     Extension: descriptor.Extension);
-            }
-            catch (Matrix.BuildingBlocks.Application.Exceptions.MatrixApplicationException)
-            {
-                throw;
             }
             catch (UnknownImageFormatException)
             {
@@ -258,6 +284,8 @@ namespace Matrix.Identity.Infrastructure.Storage
             MemoryStream Buffer,
             string Extension);
 
-        private sealed record AvatarFormatDescriptor(string Extension, string ContentType);
+        private sealed record AvatarFormatDescriptor(
+            string Extension,
+            string ContentType);
     }
 }

@@ -1,5 +1,5 @@
-using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.GetDefaultUserAccessPermissions;
+using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.UpdateDefaultUserAccessPermissions;
 using Matrix.Identity.Contracts.Admin.Permissions.Requests;
 using Matrix.Identity.Contracts.Admin.Permissions.Responses;
@@ -50,11 +50,12 @@ namespace Matrix.Identity.Api.Controllers.Admin
                 request: query,
                 cancellationToken: cancellationToken);
 
-            return Ok(new DefaultUserAccessPermissionsResponse
-            {
-                Version = result.Version,
-                PermissionKeys = result.PermissionKeys
-            });
+            return Ok(
+                new DefaultUserAccessPermissionsResponse
+                {
+                    Version = result.Version,
+                    PermissionKeys = result.PermissionKeys
+                });
         }
 
         [HttpPut("default-user-access")]

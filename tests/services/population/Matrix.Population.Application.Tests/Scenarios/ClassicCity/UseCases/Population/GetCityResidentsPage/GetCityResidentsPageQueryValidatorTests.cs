@@ -1,46 +1,68 @@
+using FluentValidation.Results;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
 using Xunit;
 
-namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
-
-public sealed class GetCityResidentsPageQueryValidatorTests
+namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage
 {
-    private readonly GetCityResidentsPageQueryValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidQuery_ReturnsNoErrors()
+    public sealed class GetCityResidentsPageQueryValidatorTests
     {
-        var result = _validator.Validate(new GetCityResidentsPageQuery(
-            CityId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-            CurrentDate: new DateOnly(2048, 5, 3),
-            Pagination: new Pagination(pageNumber: 1, pageSize: 20)));
+        private readonly GetCityResidentsPageQueryValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidQuery_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new GetCityResidentsPageQuery(
+                    CityId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+                    CurrentDate: new DateOnly(
+                        year: 2048,
+                        month: 5,
+                        day: 3),
+                    Pagination: new Pagination(
+                        pageNumber: 1,
+                        pageSize: 20)));
 
-    [Fact]
-    public void Validate_WithEmptyCityId_ReturnsError()
-    {
-        var result = _validator.Validate(new GetCityResidentsPageQuery(
-            CityId: Guid.Empty,
-            CurrentDate: new DateOnly(2048, 5, 3),
-            Pagination: new Pagination(pageNumber: 1, pageSize: 20)));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "CityId");
-    }
+        [Fact]
+        public void Validate_WithEmptyCityId_ReturnsError()
+        {
+            ValidationResult? result = _validator.Validate(
+                new GetCityResidentsPageQuery(
+                    CityId: Guid.Empty,
+                    CurrentDate: new DateOnly(
+                        year: 2048,
+                        month: 5,
+                        day: 3),
+                    Pagination: new Pagination(
+                        pageNumber: 1,
+                        pageSize: 20)));
 
-    [Fact]
-    public void Validate_WithNullPagination_ReturnsError()
-    {
-        var result = _validator.Validate(new GetCityResidentsPageQuery(
-            CityId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-            CurrentDate: new DateOnly(2048, 5, 3),
-            Pagination: null!));
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "CityId");
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "Pagination");
+        [Fact]
+        public void Validate_WithNullPagination_ReturnsError()
+        {
+            ValidationResult? result = _validator.Validate(
+                new GetCityResidentsPageQuery(
+                    CityId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+                    CurrentDate: new DateOnly(
+                        year: 2048,
+                        month: 5,
+                        day: 3),
+                    Pagination: null!));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Pagination");
+        }
     }
 }

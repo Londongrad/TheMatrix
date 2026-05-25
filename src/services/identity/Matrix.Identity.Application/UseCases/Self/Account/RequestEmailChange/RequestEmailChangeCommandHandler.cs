@@ -107,7 +107,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange
                 throw ApplicationErrorsFactory.PendingEmailAlreadyInUse(newEmail.Value);
             }
 
-            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             user.RequestEmailChange(
                 newEmail: newEmail,

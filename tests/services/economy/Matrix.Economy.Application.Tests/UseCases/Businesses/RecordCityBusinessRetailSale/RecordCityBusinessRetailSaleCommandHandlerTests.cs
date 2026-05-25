@@ -1,48 +1,86 @@
-using Matrix.Economy.Application.Tests.TestSupport;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetailSale;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RecordCityBusinessRetailSale;
-
-public sealed class RecordCityBusinessRetailSaleCommandHandlerTests
+namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RecordCityBusinessRetailSale
 {
-    [Fact]
-    public async Task Handle_RecordsRetailSaleWithFrozenTimestamp()
+    public sealed class RecordCityBusinessRetailSaleCommandHandlerTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        CityBusiness business = CreateBusiness(cityId, "Corner Store", CityBusinessKind.RetailStore, 180m);
-        var businessRepository = new FakeCityBusinessRepository { Businesses = [business] };
-        var ledgerRepository = new FakeCityBusinessLedgerRepository();
-        var unitOfWork = new FakeEconomyUnitOfWork();
-        var timeProvider = new FrozenTimeProvider(new DateTimeOffset(2048, 5, 8, 11, 20, 0, TimeSpan.Zero));
-        var handler = new RecordCityBusinessRetailSaleCommandHandler(
-            businessRepository,
-            ledgerRepository,
-            unitOfWork,
-            timeProvider);
-        var command = new RecordCityBusinessRetailSaleCommand(
-            BusinessId: business.Id,
-            GrossAmount: 50m,
-            SalesTaxAmount: 5m,
-            Title: "Morning Sales",
-            Description: "Retail batch");
+        [Fact]
+        public async Task Handle_RecordsRetailSaleWithFrozenTimestamp()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityBusiness business = CreateBusiness(
+                cityId: cityId,
+                name: "Corner Store",
+                kind: CityBusinessKind.RetailStore,
+                initialCapital: 180m);
+            var businessRepository = new FakeCityBusinessRepository
+            {
+                Businesses = [business]
+            };
+            var ledgerRepository = new FakeCityBusinessLedgerRepository();
+            var unitOfWork = new FakeEconomyUnitOfWork();
+            var timeProvider = new FrozenTimeProvider(
+                new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 8,
+                    hour: 11,
+                    minute: 20,
+                    second: 0,
+                    offset: TimeSpan.Zero));
+            var handler = new RecordCityBusinessRetailSaleCommandHandler(
+                businessRepository: businessRepository,
+                ledgerRepository: ledgerRepository,
+                unitOfWork: unitOfWork,
+                timeProvider: timeProvider);
+            var command = new RecordCityBusinessRetailSaleCommand(
+                BusinessId: business.Id,
+                GrossAmount: 50m,
+                SalesTaxAmount: 5m,
+                Title: "Morning Sales",
+                Description: "Retail batch");
 
-        CityBusinessLedgerEntryDto result = await handler.Handle(command, CancellationToken.None);
+            CityBusinessLedgerEntryDto result = await handler.Handle(
+                request: command,
+                cancellationToken: CancellationToken.None);
 
-        var entry = Assert.Single(ledgerRepository.AddedEntries);
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
-        Assert.Equal(timeProvider.UtcNow, entry.OccurredAtUtc);
-        Assert.Equal("RetailSale", result.Kind);
-        Assert.Equal("RetailSale", result.Source);
-        Assert.Equal(50m, result.Amount);
-        Assert.Equal(5m, result.TaxAmount);
-        Assert.Equal(230m, business.Balance.Amount);
-        Assert.Equal(5m, business.TaxReserve.Amount);
-        Assert.Equal(50m, business.TotalRetailTurnover.Amount);
-        Assert.Equal(45m, business.TotalNetSalesRevenue.Amount);
+            CityBusinessLedgerEntry entry = Assert.Single(ledgerRepository.AddedEntries);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: timeProvider.UtcNow,
+                actual: entry.OccurredAtUtc);
+            Assert.Equal(
+                expected: "RetailSale",
+                actual: result.Kind);
+            Assert.Equal(
+                expected: "RetailSale",
+                actual: result.Source);
+            Assert.Equal(
+                expected: 50m,
+                actual: result.Amount);
+            Assert.Equal(
+                expected: 5m,
+                actual: result.TaxAmount);
+            Assert.Equal(
+                expected: 230m,
+                actual: business.Balance.Amount);
+            Assert.Equal(
+                expected: 5m,
+                actual: business.TaxReserve.Amount);
+            Assert.Equal(
+                expected: 50m,
+                actual: business.TotalRetailTurnover.Amount);
+            Assert.Equal(
+                expected: 45m,
+                actual: business.TotalNetSalesRevenue.Amount);
+        }
     }
 }

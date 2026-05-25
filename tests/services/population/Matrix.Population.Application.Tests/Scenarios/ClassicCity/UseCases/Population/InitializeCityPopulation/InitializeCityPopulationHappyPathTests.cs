@@ -1,6 +1,9 @@
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation;
-using Matrix.Population.Application.Tests.TestSupport;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
@@ -9,238 +12,355 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
 
-namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation;
-
-public sealed class InitializeCityPopulationHappyPathTests
+namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation
 {
-    [Fact]
-    public async Task Handle_WhenResidentialCapacityExists_PersistsBootstrapAndReturnsSummary()
+    public sealed class InitializeCityPopulationHappyPathTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var personWriteRepository = new FakePersonWriteRepository();
-        var householdWriteRepository = new FakeHouseholdWriteRepository();
-        var environmentRepository = new FakeCityPopulationEnvironmentRepository();
-        var anchorCatalogRepository = new FakeCityPopulationAnchorCatalogRepository();
-        var activityJournalService = new FakeCityPopulationActivityJournalService();
-        var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
-        var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
-        var unitOfWork = new FakeUnitOfWork();
-        var handler = CreateHandler(
-            personWriteRepository: personWriteRepository,
-            householdWriteRepository: householdWriteRepository,
-            environmentRepository: environmentRepository,
-            anchorCatalogRepository: anchorCatalogRepository,
-            activityJournalService: activityJournalService,
-            summaryProjectionService: summaryProjectionService,
-            outboxWriter: outboxWriter,
-            unitOfWork: unitOfWork);
-
-        var result = await handler.Handle(CreateHousedCommand(cityId), CancellationToken.None);
-
-        Assert.Equal(cityId, result.CityId);
-        Assert.Equal(6, result.RequestedPeopleCount);
-        Assert.Equal(6, result.GeneratedPeopleCount);
-        Assert.True(result.HouseholdCount > 0);
-        Assert.Equal(result.HouseholdCount, result.HousedHouseholdCount);
-        Assert.Equal(0, result.HomelessHouseholdCount);
-        Assert.Equal(6, result.HousedPeopleCount);
-        Assert.Equal(0, result.HomelessPeopleCount);
-
-        Assert.Single(environmentRepository.UpsertedEnvironments);
-        Assert.Equal(1, anchorCatalogRepository.DeleteByCityCalls);
-        Assert.Single(anchorCatalogRepository.AddedRanges);
-        Assert.Equal(2, anchorCatalogRepository.AddedRanges[0].Count);
-        Assert.Equal(1, householdWriteRepository.DeleteByCityCalls);
-
-        var addedHouseholds = Assert.Single(householdWriteRepository.AddedRanges);
-        Assert.Equal(result.HouseholdCount, addedHouseholds.Households.Count);
-        Assert.Equal(result.HouseholdCount, addedHouseholds.Placements.Count);
-        Assert.All(addedHouseholds.Placements, x => Assert.Equal(HousingStatus.Housed, x.HousingStatus));
-
-        IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> addedPersons = Assert.Single(personWriteRepository.AddedRanges);
-        Assert.Equal(result.GeneratedPeopleCount, addedPersons.Count);
-
-        var updateCall = Assert.Single(summaryProjectionService.UpdateCalls);
-        Assert.Equal(CityId.From(cityId), updateCall.CityId);
-        Assert.Equal(new DateOnly(2048, 5, 3), updateCall.CurrentDate);
-        Assert.Equal(result.GeneratedPeopleCount, updateCall.PersonCount);
-        Assert.Equal(result.HouseholdCount, updateCall.PlacementCount);
-        Assert.False(updateCall.IncludeCommuteMetrics);
-
-        var activity = Assert.Single(activityJournalService.Entries);
-        Assert.Equal(CityPopulationActivityEventType.PopulationInitialized, activity.EventType);
-        Assert.Equal(cityId, activity.CityId);
-
-        Assert.NotEmpty(outboxWriter.HouseholdBatches);
-        Assert.All(outboxWriter.HouseholdBatches, batch =>
+        [Fact]
+        public async Task Handle_WhenResidentialCapacityExists_PersistsBootstrapAndReturnsSummary()
         {
-            Assert.Equal(cityId, batch.CityId);
-            Assert.All(batch.Households, item => Assert.True(item.IsHoused));
-        });
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            var personWriteRepository = new FakePersonWriteRepository();
+            var householdWriteRepository = new FakeHouseholdWriteRepository();
+            var environmentRepository = new FakeCityPopulationEnvironmentRepository();
+            var anchorCatalogRepository = new FakeCityPopulationAnchorCatalogRepository();
+            var activityJournalService = new FakeCityPopulationActivityJournalService();
+            var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
+            var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+            var unitOfWork = new FakeUnitOfWork();
+            InitializeCityPopulationCommandHandler handler = CreateHandler(
+                personWriteRepository: personWriteRepository,
+                householdWriteRepository: householdWriteRepository,
+                environmentRepository: environmentRepository,
+                anchorCatalogRepository: anchorCatalogRepository,
+                activityJournalService: activityJournalService,
+                summaryProjectionService: summaryProjectionService,
+                outboxWriter: outboxWriter,
+                unitOfWork: unitOfWork);
 
-        Assert.Equal(1, unitOfWork.ExecuteTransactionCalls);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-    }
+            CityPopulationBootstrapSummaryDto result = await handler.Handle(
+                request: CreateHousedCommand(cityId),
+                cancellationToken: CancellationToken.None);
 
-    [Fact]
-    public async Task Handle_WhenNoResidentialCapacityExists_ProducesHomelessBootstrap()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var personWriteRepository = new FakePersonWriteRepository();
-        var householdWriteRepository = new FakeHouseholdWriteRepository();
-        var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
-        var handler = CreateHandler(
-            personWriteRepository: personWriteRepository,
-            householdWriteRepository: householdWriteRepository,
-            outboxWriter: outboxWriter);
+            Assert.Equal(
+                expected: cityId,
+                actual: result.CityId);
+            Assert.Equal(
+                expected: 6,
+                actual: result.RequestedPeopleCount);
+            Assert.Equal(
+                expected: 6,
+                actual: result.GeneratedPeopleCount);
+            Assert.True(result.HouseholdCount > 0);
+            Assert.Equal(
+                expected: result.HouseholdCount,
+                actual: result.HousedHouseholdCount);
+            Assert.Equal(
+                expected: 0,
+                actual: result.HomelessHouseholdCount);
+            Assert.Equal(
+                expected: 6,
+                actual: result.HousedPeopleCount);
+            Assert.Equal(
+                expected: 0,
+                actual: result.HomelessPeopleCount);
 
-        var result = await handler.Handle(CreateHomelessCommand(cityId), CancellationToken.None);
+            Assert.Single(environmentRepository.UpsertedEnvironments);
+            Assert.Equal(
+                expected: 1,
+                actual: anchorCatalogRepository.DeleteByCityCalls);
+            Assert.Single(anchorCatalogRepository.AddedRanges);
+            Assert.Equal(
+                expected: 2,
+                actual: anchorCatalogRepository.AddedRanges[0].Count);
+            Assert.Equal(
+                expected: 1,
+                actual: householdWriteRepository.DeleteByCityCalls);
 
-        Assert.Equal(5, result.RequestedPeopleCount);
-        Assert.Equal(5, result.GeneratedPeopleCount);
-        Assert.Equal(0, result.HousedHouseholdCount);
-        Assert.Equal(result.HouseholdCount, result.HomelessHouseholdCount);
-        Assert.Equal(0, result.HousedPeopleCount);
-        Assert.Equal(result.GeneratedPeopleCount, result.HomelessPeopleCount);
+            (IReadOnlyCollection<Household> Households, IReadOnlyCollection<ClassicCityHouseholdPlacement> Placements)
+                addedHouseholds = Assert.Single(householdWriteRepository.AddedRanges);
+            Assert.Equal(
+                expected: result.HouseholdCount,
+                actual: addedHouseholds.Households.Count);
+            Assert.Equal(
+                expected: result.HouseholdCount,
+                actual: addedHouseholds.Placements.Count);
+            Assert.All(
+                collection: addedHouseholds.Placements,
+                action: x => Assert.Equal(
+                    expected: HousingStatus.Housed,
+                    actual: x.HousingStatus));
 
-        var addedHouseholds = Assert.Single(householdWriteRepository.AddedRanges);
-        Assert.Equal(result.HouseholdCount, addedHouseholds.Households.Count);
-        Assert.All(addedHouseholds.Placements, x => Assert.Equal(HousingStatus.Homeless, x.HousingStatus));
+            IReadOnlyCollection<Person> addedPersons = Assert.Single(personWriteRepository.AddedRanges);
+            Assert.Equal(
+                expected: result.GeneratedPeopleCount,
+                actual: addedPersons.Count);
 
-        Assert.NotEmpty(outboxWriter.HouseholdBatches);
-        Assert.All(outboxWriter.HouseholdBatches, batch =>
+            (Domain.Scenarios.ClassicCity.ValueObjects.CityId CityId, DateOnly CurrentDate, int PersonCount, int
+                PlacementCount, bool IncludeCommuteMetrics) updateCall =
+                    Assert.Single(summaryProjectionService.UpdateCalls);
+            Assert.Equal(
+                expected: CityId.From(cityId),
+                actual: updateCall.CityId);
+            Assert.Equal(
+                expected: new DateOnly(
+                    year: 2048,
+                    month: 5,
+                    day: 3),
+                actual: updateCall.CurrentDate);
+            Assert.Equal(
+                expected: result.GeneratedPeopleCount,
+                actual: updateCall.PersonCount);
+            Assert.Equal(
+                expected: result.HouseholdCount,
+                actual: updateCall.PlacementCount);
+            Assert.False(updateCall.IncludeCommuteMetrics);
+
+            CityPopulationActivityWriteModel activity = Assert.Single(activityJournalService.Entries);
+            Assert.Equal(
+                expected: CityPopulationActivityEventType.PopulationInitialized,
+                actual: activity.EventType);
+            Assert.Equal(
+                expected: cityId,
+                actual: activity.CityId);
+
+            Assert.NotEmpty(outboxWriter.HouseholdBatches);
+            Assert.All(
+                collection: outboxWriter.HouseholdBatches,
+                action: batch =>
+                {
+                    Assert.Equal(
+                        expected: cityId,
+                        actual: batch.CityId);
+                    Assert.All(
+                        collection: batch.Households,
+                        action: item => Assert.True(item.IsHoused));
+                });
+
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.ExecuteTransactionCalls);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+        }
+
+        [Fact]
+        public async Task Handle_WhenNoResidentialCapacityExists_ProducesHomelessBootstrap()
         {
-            Assert.Equal(cityId, batch.CityId);
-            Assert.All(batch.Households, item => Assert.False(item.IsHoused));
-        });
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            var personWriteRepository = new FakePersonWriteRepository();
+            var householdWriteRepository = new FakeHouseholdWriteRepository();
+            var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+            InitializeCityPopulationCommandHandler handler = CreateHandler(
+                personWriteRepository: personWriteRepository,
+                householdWriteRepository: householdWriteRepository,
+                outboxWriter: outboxWriter);
 
-        IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> addedPersons = Assert.Single(personWriteRepository.AddedRanges);
-        Assert.Equal(result.GeneratedPeopleCount, addedPersons.Count);
-    }
+            CityPopulationBootstrapSummaryDto result = await handler.Handle(
+                request: CreateHomelessCommand(cityId),
+                cancellationToken: CancellationToken.None);
 
-    private static InitializeCityPopulationCommandHandler CreateHandler(
-        FakePersonWriteRepository? personWriteRepository = null,
-        FakeHouseholdWriteRepository? householdWriteRepository = null,
-        FakeCityPopulationEnvironmentRepository? environmentRepository = null,
-        FakeCityPopulationAnchorCatalogRepository? anchorCatalogRepository = null,
-        FakeCityPopulationActivityJournalService? activityJournalService = null,
-        FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
-        FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
-        FakeUnitOfWork? unitOfWork = null)
-    {
-        return new InitializeCityPopulationCommandHandler(
-            personWriteRepository: personWriteRepository ?? new FakePersonWriteRepository(),
-            householdWriteRepository: householdWriteRepository ?? new FakeHouseholdWriteRepository(),
-            cityPopulationArchiveStateRepository: new FakeCityPopulationArchiveStateRepository(),
-            cityPopulationDeletionStateRepository: new FakeCityPopulationDeletionStateRepository(),
-            cityPopulationEnvironmentRepository: environmentRepository ?? new FakeCityPopulationEnvironmentRepository(),
-            cityPopulationAnchorCatalogRepository: anchorCatalogRepository ?? new FakeCityPopulationAnchorCatalogRepository(),
-            cityPopulationActivityJournalService: activityJournalService ?? new FakeCityPopulationActivityJournalService(),
-            cityPopulationSummaryProjectionService: summaryProjectionService ?? new FakeCityPopulationSummaryProjectionService(),
-            cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
-            generator: new CityPopulationBootstrapGenerator(
-                contentCatalog: new TestPopulationGenerationContentCatalog(),
-                anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy()),
-            unitOfWork: unitOfWork ?? new FakeUnitOfWork());
-    }
+            Assert.Equal(
+                expected: 5,
+                actual: result.RequestedPeopleCount);
+            Assert.Equal(
+                expected: 5,
+                actual: result.GeneratedPeopleCount);
+            Assert.Equal(
+                expected: 0,
+                actual: result.HousedHouseholdCount);
+            Assert.Equal(
+                expected: result.HouseholdCount,
+                actual: result.HomelessHouseholdCount);
+            Assert.Equal(
+                expected: 0,
+                actual: result.HousedPeopleCount);
+            Assert.Equal(
+                expected: result.GeneratedPeopleCount,
+                actual: result.HomelessPeopleCount);
 
-    private static InitializeCityPopulationCommand CreateHousedCommand(Guid cityId)
-    {
-        return new InitializeCityPopulationCommand(
-            CityId: cityId,
-            CurrentDate: new DateOnly(2048, 5, 3),
-            CreatedAtUtc: UtcNow,
-            PeopleCount: 6,
-            RandomSeed: 5,
-            Environment: new CityPopulationEnvironmentInput(
-                ClimateZone: "Temperate",
-                Hemisphere: "Northern",
-                UtcOffsetMinutes: 180),
-            Tuning: new CityPopulationBootstrapTuningInput(
-                HousingPressurePercent: 40,
-                EconomicStabilityPercent: 60,
-                SocialVolatilityPercent: 25,
-                FamilyFormationPercent: 55),
-            CityAnchors:
+            (IReadOnlyCollection<Household> Households, IReadOnlyCollection<ClassicCityHouseholdPlacement> Placements)
+                addedHouseholds = Assert.Single(householdWriteRepository.AddedRanges);
+            Assert.Equal(
+                expected: result.HouseholdCount,
+                actual: addedHouseholds.Households.Count);
+            Assert.All(
+                collection: addedHouseholds.Placements,
+                action: x => Assert.Equal(
+                    expected: HousingStatus.Homeless,
+                    actual: x.HousingStatus));
+
+            Assert.NotEmpty(outboxWriter.HouseholdBatches);
+            Assert.All(
+                collection: outboxWriter.HouseholdBatches,
+                action: batch =>
+                {
+                    Assert.Equal(
+                        expected: cityId,
+                        actual: batch.CityId);
+                    Assert.All(
+                        collection: batch.Households,
+                        action: item => Assert.False(item.IsHoused));
+                });
+
+            IReadOnlyCollection<Person> addedPersons = Assert.Single(personWriteRepository.AddedRanges);
+            Assert.Equal(
+                expected: result.GeneratedPeopleCount,
+                actual: addedPersons.Count);
+        }
+
+        private static InitializeCityPopulationCommandHandler CreateHandler(
+            FakePersonWriteRepository? personWriteRepository = null,
+            FakeHouseholdWriteRepository? householdWriteRepository = null,
+            FakeCityPopulationEnvironmentRepository? environmentRepository = null,
+            FakeCityPopulationAnchorCatalogRepository? anchorCatalogRepository = null,
+            FakeCityPopulationActivityJournalService? activityJournalService = null,
+            FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
+            FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
+            FakeUnitOfWork? unitOfWork = null)
+        {
+            return new InitializeCityPopulationCommandHandler(
+                personWriteRepository: personWriteRepository ?? new FakePersonWriteRepository(),
+                householdWriteRepository: householdWriteRepository ?? new FakeHouseholdWriteRepository(),
+                cityPopulationArchiveStateRepository: new FakeCityPopulationArchiveStateRepository(),
+                cityPopulationDeletionStateRepository: new FakeCityPopulationDeletionStateRepository(),
+                cityPopulationEnvironmentRepository: environmentRepository ??
+                                                     new FakeCityPopulationEnvironmentRepository(),
+                cityPopulationAnchorCatalogRepository: anchorCatalogRepository ??
+                                                       new FakeCityPopulationAnchorCatalogRepository(),
+                cityPopulationActivityJournalService: activityJournalService ??
+                                                      new FakeCityPopulationActivityJournalService(),
+                cityPopulationSummaryProjectionService: summaryProjectionService ??
+                                                        new FakeCityPopulationSummaryProjectionService(),
+                cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
+                generator: new CityPopulationBootstrapGenerator(
+                    contentCatalog: new TestPopulationGenerationContentCatalog(),
+                    anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy()),
+                unitOfWork: unitOfWork ?? new FakeUnitOfWork());
+        }
+
+        private static InitializeCityPopulationCommand CreateHousedCommand(Guid cityId)
+        {
+            return new InitializeCityPopulationCommand(
+                CityId: cityId,
+                CurrentDate: new DateOnly(
+                    year: 2048,
+                    month: 5,
+                    day: 3),
+                CreatedAtUtc: UtcNow,
+                PeopleCount: 6,
+                RandomSeed: 5,
+                Environment: new CityPopulationEnvironmentInput(
+                    ClimateZone: "Temperate",
+                    Hemisphere: "Northern",
+                    UtcOffsetMinutes: 180),
+                Tuning: new CityPopulationBootstrapTuningInput(
+                    HousingPressurePercent: 40,
+                    EconomicStabilityPercent: 60,
+                    SocialVolatilityPercent: 25,
+                    FamilyFormationPercent: 55),
+                CityAnchors:
+                [
+                    new CityAnchorSeedItem(
+                        CityAnchorId: Guid.Parse("10000000-0000-0000-0000-000000000001"),
+                        DistrictId: Guid.Parse("20000000-0000-0000-0000-000000000001"),
+                        AccessRoadNodeId: Guid.Parse("30000000-0000-0000-0000-000000000001"),
+                        Name: "Factory",
+                        Type: "Workplace",
+                        Capacity: 120,
+                        PositionX: 10m,
+                        PositionY: 20m,
+                        CreatedAtUtc: UtcNow),
+                    new CityAnchorSeedItem(
+                        CityAnchorId: Guid.Parse("10000000-0000-0000-0000-000000000002"),
+                        DistrictId: Guid.Parse("20000000-0000-0000-0000-000000000001"),
+                        AccessRoadNodeId: Guid.Parse("30000000-0000-0000-0000-000000000002"),
+                        Name: "School",
+                        Type: "School",
+                        Capacity: 80,
+                        PositionX: 11m,
+                        PositionY: 21m,
+                        CreatedAtUtc: UtcNow)
+                ],
+                ResidentialBuildings:
+                [
+                    new ResidentialBuildingSeedItem(
+                        ResidentialBuildingId: Guid.Parse("40000000-0000-0000-0000-000000000001"),
+                        DistrictId: Guid.Parse("20000000-0000-0000-0000-000000000001"),
+                        ResidentCapacity: 12)
+                ]);
+        }
+
+        private static InitializeCityPopulationCommand CreateHomelessCommand(Guid cityId)
+        {
+            return new InitializeCityPopulationCommand(
+                CityId: cityId,
+                CurrentDate: new DateOnly(
+                    year: 2048,
+                    month: 5,
+                    day: 3),
+                CreatedAtUtc: UtcNow,
+                PeopleCount: 5,
+                RandomSeed: 7,
+                Environment: new CityPopulationEnvironmentInput(
+                    ClimateZone: "Continental",
+                    Hemisphere: "Northern",
+                    UtcOffsetMinutes: 180),
+                Tuning: new CityPopulationBootstrapTuningInput(
+                    HousingPressurePercent: 65,
+                    EconomicStabilityPercent: 45,
+                    SocialVolatilityPercent: 30,
+                    FamilyFormationPercent: 40),
+                CityAnchors:
+                [
+                    new CityAnchorSeedItem(
+                        CityAnchorId: Guid.Parse("10000000-0000-0000-0000-000000000003"),
+                        DistrictId: Guid.Parse("20000000-0000-0000-0000-000000000002"),
+                        AccessRoadNodeId: Guid.Parse("30000000-0000-0000-0000-000000000003"),
+                        Name: "Clinic",
+                        Type: "Hospital",
+                        Capacity: 60,
+                        PositionX: 12m,
+                        PositionY: 22m,
+                        CreatedAtUtc: UtcNow)
+                ],
+                ResidentialBuildings: Array.Empty<ResidentialBuildingSeedItem>());
+        }
+
+        private sealed class TestPopulationGenerationContentCatalog : IPopulationGenerationContentCatalog
+        {
+            public IReadOnlyList<string> MaleFirstNames =>
             [
-                new CityAnchorSeedItem(
-                    CityAnchorId: Guid.Parse("10000000-0000-0000-0000-000000000001"),
-                    DistrictId: Guid.Parse("20000000-0000-0000-0000-000000000001"),
-                    AccessRoadNodeId: Guid.Parse("30000000-0000-0000-0000-000000000001"),
-                    Name: "Factory",
-                    Type: "Workplace",
-                    Capacity: 120,
-                    PositionX: 10m,
-                    PositionY: 20m,
-                    CreatedAtUtc: UtcNow),
-                new CityAnchorSeedItem(
-                    CityAnchorId: Guid.Parse("10000000-0000-0000-0000-000000000002"),
-                    DistrictId: Guid.Parse("20000000-0000-0000-0000-000000000001"),
-                    AccessRoadNodeId: Guid.Parse("30000000-0000-0000-0000-000000000002"),
-                    Name: "School",
-                    Type: "School",
-                    Capacity: 80,
-                    PositionX: 11m,
-                    PositionY: 21m,
-                    CreatedAtUtc: UtcNow)
-            ],
-            ResidentialBuildings:
+                "Ivan",
+                "Pavel"
+            ];
+
+            public IReadOnlyList<string> FemaleFirstNames =>
             [
-                new ResidentialBuildingSeedItem(
-                    ResidentialBuildingId: Guid.Parse("40000000-0000-0000-0000-000000000001"),
-                    DistrictId: Guid.Parse("20000000-0000-0000-0000-000000000001"),
-                    ResidentCapacity: 12)
-            ]);
-    }
+                "Anna",
+                "Maria"
+            ];
 
-    private static InitializeCityPopulationCommand CreateHomelessCommand(Guid cityId)
-    {
-        return new InitializeCityPopulationCommand(
-            CityId: cityId,
-            CurrentDate: new DateOnly(2048, 5, 3),
-            CreatedAtUtc: UtcNow,
-            PeopleCount: 5,
-            RandomSeed: 7,
-            Environment: new CityPopulationEnvironmentInput(
-                ClimateZone: "Continental",
-                Hemisphere: "Northern",
-                UtcOffsetMinutes: 180),
-            Tuning: new CityPopulationBootstrapTuningInput(
-                HousingPressurePercent: 65,
-                EconomicStabilityPercent: 45,
-                SocialVolatilityPercent: 30,
-                FamilyFormationPercent: 40),
-            CityAnchors:
+            public IReadOnlyList<PopulationFamilySurnameCatalogItem> FamilySurnames =>
             [
-                new CityAnchorSeedItem(
-                    CityAnchorId: Guid.Parse("10000000-0000-0000-0000-000000000003"),
-                    DistrictId: Guid.Parse("20000000-0000-0000-0000-000000000002"),
-                    AccessRoadNodeId: Guid.Parse("30000000-0000-0000-0000-000000000003"),
-                    Name: "Clinic",
-                    Type: "Hospital",
-                    Capacity: 60,
-                    PositionX: 12m,
-                    PositionY: 22m,
-                    CreatedAtUtc: UtcNow)
-            ],
-            ResidentialBuildings: Array.Empty<ResidentialBuildingSeedItem>());
-    }
+                new(
+                    Masculine: "Ivanov",
+                    Feminine: "Ivanova"),
+                new(
+                    Masculine: "Petrov",
+                    Feminine: "Petrova")
+            ];
 
-    private sealed class TestPopulationGenerationContentCatalog : IPopulationGenerationContentCatalog
-    {
-        public IReadOnlyList<string> MaleFirstNames => ["Ivan", "Pavel"];
-        public IReadOnlyList<string> FemaleFirstNames => ["Anna", "Maria"];
-
-        public IReadOnlyList<PopulationFamilySurnameCatalogItem> FamilySurnames =>
-        [
-            new("Ivanov", "Ivanova"),
-            new("Petrov", "Petrova")
-        ];
-
-        public IReadOnlyList<PopulationProfessionCatalogItem> Professions =>
-        [
-            new("Engineer", 1),
-            new("Teacher", 1)
-        ];
+            public IReadOnlyList<PopulationProfessionCatalogItem> Professions =>
+            [
+                new(
+                    Title: "Engineer",
+                    Weight: 1),
+                new(
+                    Title: "Teacher",
+                    Weight: 1)
+            ];
+        }
     }
 }

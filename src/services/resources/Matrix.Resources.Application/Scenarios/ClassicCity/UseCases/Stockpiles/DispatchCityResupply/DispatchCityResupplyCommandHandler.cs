@@ -4,6 +4,7 @@ using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.Common;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Domain.Simulation;
 using MediatR;
 
@@ -25,7 +26,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         {
             SimulationHostId simulationHostId = new(request.CityId);
 
-            var state = await repository.GetBySimulationHostIdAsync(
+            CityStockpileState? state = await repository.GetBySimulationHostIdAsync(
                 simulationHostId: simulationHostId,
                 cancellationToken: cancellationToken);
 
@@ -48,7 +49,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     FoodStockLevelIndex: 0m,
                     EmergencyWaterStockLevelIndex: 0m);
 
-            CityBudgetAuthorizationDecision authorizationDecision = CityBudgetAuthorizationDecision.NotRequired(
+            var authorizationDecision = CityBudgetAuthorizationDecision.NotRequired(
                 requestedIntensity: request.Intensity.ToString(),
                 pressureIndex: state.OperationalBudgetPressure.PressureIndex,
                 authorizationLevel: state.OperationalBudgetPressure.OperationsAuthorizationLevel,
@@ -148,14 +149,12 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             if (request.FocusDistrictId.HasValue)
-            {
                 await resupplyTripDispatcher.TryDispatchDistrictResupplyAsync(
                     cityId: request.CityId,
                     focusDistrictId: request.FocusDistrictId.Value,
                     focus: request.Focus.ToString(),
                     intensity: decision.AppliedIntensity.ToString(),
                     cancellationToken: cancellationToken);
-            }
 
             return new DispatchCityResupplyResult(
                 Status: DispatchCityResupplyStatus.Scheduled,
@@ -198,9 +197,13 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 : 1;
 
             if (districtFocused)
-                delay = Math.Max(1, delay - 1);
+                delay = Math.Max(
+                    val1: 1,
+                    val2: delay - 1);
 
-            return Math.Max(0, currentTickId + delay);
+            return Math.Max(
+                val1: 0,
+                val2: currentTickId + delay);
         }
     }
 }

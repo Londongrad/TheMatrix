@@ -1,29 +1,45 @@
+using FluentValidation.Results;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.FailEconomyBootstrap;
-
-public sealed class FailCityEconomyBootstrapCommandValidatorTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.FailEconomyBootstrap
 {
-    private readonly FailCityEconomyBootstrapCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidValues_ReturnsNoErrors()
+    public sealed class FailCityEconomyBootstrapCommandValidatorTests
     {
-        var result = _validator.Validate(new FailCityEconomyBootstrapCommand(Guid.NewGuid(), Guid.NewGuid(), "CAPACITY_LIMIT"));
+        private readonly FailCityEconomyBootstrapCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidValues_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new FailCityEconomyBootstrapCommand(
+                    CityId: Guid.NewGuid(),
+                    OperationId: Guid.NewGuid(),
+                    FailureCode: "CAPACITY_LIMIT"));
 
-    [Fact]
-    public void Validate_WithInvalidValues_ReturnsErrors()
-    {
-        var result = _validator.Validate(new FailCityEconomyBootstrapCommand(Guid.Empty, Guid.Empty, ""));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.PropertyName == "CityId");
-        Assert.Contains(result.Errors, error => error.PropertyName == "OperationId");
-        Assert.Contains(result.Errors, error => error.PropertyName == "FailureCode");
+        [Fact]
+        public void Validate_WithInvalidValues_ReturnsErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new FailCityEconomyBootstrapCommand(
+                    CityId: Guid.Empty,
+                    OperationId: Guid.Empty,
+                    FailureCode: ""));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "CityId");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "OperationId");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "FailureCode");
+        }
     }
 }

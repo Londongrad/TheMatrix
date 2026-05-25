@@ -141,7 +141,8 @@ namespace Matrix.Identity.Application.Services.Identity
                 return;
             }
 
-            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
             TimeSpan cooldown = oneTimeTokenService.GetDeliveryCooldown(purpose);
             int maxAttemptsPerHour = oneTimeTokenService.GetMaxDeliveryAttemptsPerHour(purpose);
 

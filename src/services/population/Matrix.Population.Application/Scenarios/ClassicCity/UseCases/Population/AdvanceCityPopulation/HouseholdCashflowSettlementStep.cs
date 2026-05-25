@@ -28,7 +28,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationLivingConditionsState? livingConditionsState,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationParticipationPolicy participationPolicy,
@@ -92,12 +93,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         value: out DistrictId? resolvedDistrictId)
                         ? resolvedDistrictId
                         : null;
-                    CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
-                        districtId: districtId,
-                        livingConditionsState: livingConditionsState,
-                        districtUtilityConditions: ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
+                    CityPopulationLivingConditionsContext districtLivingConditions =
+                        districtImpactPolicy.ResolveLivingConditions(
                             districtId: districtId,
-                            districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
+                            livingConditionsState: livingConditionsState,
+                            districtUtilityConditions: ClassicCityHousingOpportunityPlanner
+                               .ResolveDistrictUtilityConditions(
+                                    districtId: districtId,
+                                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
                     CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                         districtId: districtId,
                         essentialsState: essentialsState);
@@ -135,7 +138,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     Money residentGrossIncomeForPeriod = residentIncome.GrossIncome.Multiply(daysElapsed);
                     Money residentTaxForPeriod = residentIncome.TaxWithheld.Multiply(daysElapsed);
                     Money residentNetIncomeForPeriod = residentIncome.NetIncome.Multiply(daysElapsed);
-                    actualHouseholdNetIncomeForPeriod = actualHouseholdNetIncomeForPeriod.Add(residentNetIncomeForPeriod);
+                    actualHouseholdNetIncomeForPeriod =
+                        actualHouseholdNetIncomeForPeriod.Add(residentNetIncomeForPeriod);
 
                     if (resident.Employment.Status == EmploymentStatus.Employed &&
                         resident.Employment.Job is
@@ -173,9 +177,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             NetPayrollAmount: supportNetIncomeForPeriod.Amount,
                             RetailTurnoverAmount: retailTurnoverForPeriod.Amount,
                             RetailTaxAmount: retailTaxForPeriod.Amount,
-                            RetailStoreSpendAmount: cashflow.RetailStoreSpend.Multiply(daysElapsed).Amount,
-                            ServiceSpendAmount: cashflow.ServiceSpend.Multiply(daysElapsed).Amount,
-                            MunicipalSpendAmount: cashflow.MunicipalSpend.Multiply(daysElapsed).Amount));
+                            RetailStoreSpendAmount: cashflow.RetailStoreSpend.Multiply(daysElapsed)
+                               .Amount,
+                            ServiceSpendAmount: cashflow.ServiceSpend.Multiply(daysElapsed)
+                               .Amount,
+                            MunicipalSpendAmount: cashflow.MunicipalSpend.Multiply(daysElapsed)
+                               .Amount));
 
                 grossPayroll = grossPayroll.Add(supportGrossIncomeForPeriod);
                 incomeTax = incomeTax.Add(supportIncomeTaxForPeriod);

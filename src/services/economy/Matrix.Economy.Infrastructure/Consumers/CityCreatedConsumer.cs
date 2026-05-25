@@ -1,7 +1,7 @@
 using MassTransit;
-using Matrix.SimulationCore.Contracts.Events;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
+using Matrix.SimulationCore.Contracts.Events;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers
@@ -13,7 +13,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
     {
         public async Task Consume(ConsumeContext<CityCreatedV1> context)
         {
-            await ConsumeAsync(context.Message, context.CancellationToken);
+            await ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
         }
 
         internal async Task ConsumeAsync(

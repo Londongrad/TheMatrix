@@ -37,21 +37,27 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         return new ApplyCityLivingConditionsSnapshotResult(
                             ApplyCityLivingConditionsSnapshotStatus.Duplicate);
 
-                    if (await cityPopulationDeletionStateRepository.GetByCityAsync(cityId, ct) is not null)
+                    if (await cityPopulationDeletionStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct) is not null)
                         return new ApplyCityLivingConditionsSnapshotResult(
                             ApplyCityLivingConditionsSnapshotStatus.CityDeleted);
 
-                    if (await cityPopulationArchiveStateRepository.GetByCityAsync(cityId, ct) is not null)
+                    if (await cityPopulationArchiveStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct) is not null)
                         return new ApplyCityLivingConditionsSnapshotResult(
                             ApplyCityLivingConditionsSnapshotStatus.CityArchived);
 
                     CityPopulationLivingConditionsState? state =
-                        await cityPopulationLivingConditionsStateRepository.GetByCityAsync(cityId, ct);
+                        await cityPopulationLivingConditionsStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (state is not null &&
                         (request.EffectiveTickId < state.EffectiveTickId ||
-                         request.EffectiveTickId == state.EffectiveTickId &&
-                         effectiveAtUtc <= state.EffectiveAtUtc))
+                         (request.EffectiveTickId == state.EffectiveTickId &&
+                          effectiveAtUtc <= state.EffectiveAtUtc)))
                         return new ApplyCityLivingConditionsSnapshotResult(
                             ApplyCityLivingConditionsSnapshotStatus.Stale);
 
@@ -72,7 +78,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             effectiveAtUtc: effectiveAtUtc,
                             updatedAtUtc: updatedAtUtc);
 
-                        await cityPopulationLivingConditionsStateRepository.AddAsync(state, ct);
+                        await cityPopulationLivingConditionsStateRepository.AddAsync(
+                            state: state,
+                            cancellationToken: ct);
                     }
                     else
                         state.ApplySnapshot(
@@ -89,8 +97,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     await unitOfWork.SaveChangesAsync(ct);
 
-                    return new ApplyCityLivingConditionsSnapshotResult(
-                        ApplyCityLivingConditionsSnapshotStatus.Applied);
+                    return new ApplyCityLivingConditionsSnapshotResult(ApplyCityLivingConditionsSnapshotStatus.Applied);
                 },
                 cancellationToken: cancellationToken);
         }

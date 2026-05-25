@@ -37,7 +37,7 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                 throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
             DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
-            DateOnly today = DateOnly.FromDateTime(occurredAtUtc.UtcDateTime);
+            var today = DateOnly.FromDateTime(occurredAtUtc.UtcDateTime);
 
             person.Die(today);
 

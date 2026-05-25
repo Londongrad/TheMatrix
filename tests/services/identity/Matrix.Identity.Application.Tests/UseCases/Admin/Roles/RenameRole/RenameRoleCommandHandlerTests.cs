@@ -1,94 +1,137 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.Identity.Application.UseCases.Admin.Roles.RenameRole;
+using Matrix.Identity.Domain.Entities;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.RenameRole;
-
-public sealed class RenameRoleCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Roles.RenameRole
 {
-    [Fact]
-    public async Task Handle_WhenRoleExists_RenamesAndPersistsIt()
+    public sealed class RenameRoleCommandHandlerTests
     {
-        var role = AdminRolesTestSupport.CreateRole("Operators");
-        var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        var roleWriteRepository = new AdminRolesTestSupport.FakeRoleWriteRepository();
-        roleWriteRepository.RolesById[role.Id] = role;
-        var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
-        var handler = new RenameRoleCommandHandler(
-            roleReadRepository,
-            roleWriteRepository,
-            unitOfWork);
+        [Fact]
+        public async Task Handle_WhenRoleExists_RenamesAndPersistsIt()
+        {
+            Role role = AdminRolesTestSupport.CreateRole();
+            var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            var roleWriteRepository = new AdminRolesTestSupport.FakeRoleWriteRepository();
+            roleWriteRepository.RolesById[role.Id] = role;
+            var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
+            var handler = new RenameRoleCommandHandler(
+                roleReadRepository: roleReadRepository,
+                roleWriteRepository: roleWriteRepository,
+                unitOfWork: unitOfWork);
 
-        var result = await handler.Handle(
-            new RenameRoleCommand(role.Id, "  Moderators  "),
-            CancellationToken.None);
+            RoleRenamedResult result = await handler.Handle(
+                request: new RenameRoleCommand(
+                    RoleId: role.Id,
+                    Name: "  Moderators  "),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(role.Id, roleWriteRepository.RequestedRoleId);
-        Assert.Equal(("  Moderators  ", role.Id), roleReadRepository.ExistsByNameExceptRequests.Single());
-        Assert.Equal("Moderators", role.Name);
-        Assert.Equal(role.Id, result.Id);
-        Assert.Equal("Moderators", result.Name);
-        Assert.False(result.IsSystem);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-    }
+            Assert.Equal(
+                expected: role.Id,
+                actual: roleWriteRepository.RequestedRoleId);
+            Assert.Equal(
+                expected: ("  Moderators  ", role.Id),
+                actual: roleReadRepository.ExistsByNameExceptRequests.Single());
+            Assert.Equal(
+                expected: "Moderators",
+                actual: role.Name);
+            Assert.Equal(
+                expected: role.Id,
+                actual: result.Id);
+            Assert.Equal(
+                expected: "Moderators",
+                actual: result.Name);
+            Assert.False(result.IsSystem);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+        }
 
-    [Fact]
-    public async Task Handle_WhenRoleDoesNotExist_ThrowsNotFound()
-    {
-        var handler = new RenameRoleCommandHandler(
-            new AdminRolesTestSupport.FakeRoleReadRepository(),
-            new AdminRolesTestSupport.FakeRoleWriteRepository(),
-            new AdminRolesTestSupport.FakeUnitOfWork());
+        [Fact]
+        public async Task Handle_WhenRoleDoesNotExist_ThrowsNotFound()
+        {
+            var handler = new RenameRoleCommandHandler(
+                roleReadRepository: new AdminRolesTestSupport.FakeRoleReadRepository(),
+                roleWriteRepository: new AdminRolesTestSupport.FakeRoleWriteRepository(),
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new RenameRoleCommand(Guid.NewGuid(), "Moderators"),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new RenameRoleCommand(
+                        RoleId: Guid.NewGuid(),
+                        Name: "Moderators"),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.Role.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-    }
+            Assert.Equal(
+                expected: "Identity.Role.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+        }
 
-    [Fact]
-    public async Task Handle_WhenRoleIsSystem_ThrowsForbidden()
-    {
-        var role = AdminRolesTestSupport.CreateRole("SuperAdmin", isSystem: true);
-        var roleWriteRepository = new AdminRolesTestSupport.FakeRoleWriteRepository();
-        roleWriteRepository.RolesById[role.Id] = role;
-        var handler = new RenameRoleCommandHandler(
-            new AdminRolesTestSupport.FakeRoleReadRepository(),
-            roleWriteRepository,
-            new AdminRolesTestSupport.FakeUnitOfWork());
+        [Fact]
+        public async Task Handle_WhenRoleIsSystem_ThrowsForbidden()
+        {
+            Role role = AdminRolesTestSupport.CreateRole(
+                name: "SuperAdmin",
+                isSystem: true);
+            var roleWriteRepository = new AdminRolesTestSupport.FakeRoleWriteRepository();
+            roleWriteRepository.RolesById[role.Id] = role;
+            var handler = new RenameRoleCommandHandler(
+                roleReadRepository: new AdminRolesTestSupport.FakeRoleReadRepository(),
+                roleWriteRepository: roleWriteRepository,
+                unitOfWork: new AdminRolesTestSupport.FakeUnitOfWork());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new RenameRoleCommand(role.Id, "Operators"),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new RenameRoleCommand(
+                        RoleId: role.Id,
+                        Name: "Operators"),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.Role.System.ReadOnly", exception.Code);
-        Assert.Equal(ApplicationErrorType.Forbidden, exception.ErrorType);
-    }
+            Assert.Equal(
+                expected: "Identity.Role.System.ReadOnly",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Forbidden,
+                actual: exception.ErrorType);
+        }
 
-    [Fact]
-    public async Task Handle_WhenNameAlreadyInUse_ThrowsConflict()
-    {
-        var role = AdminRolesTestSupport.CreateRole("Operators");
-        var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
-        roleReadRepository.ExistingNames.Add("Moderators");
-        var roleWriteRepository = new AdminRolesTestSupport.FakeRoleWriteRepository();
-        roleWriteRepository.RolesById[role.Id] = role;
-        var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
-        var handler = new RenameRoleCommandHandler(
-            roleReadRepository,
-            roleWriteRepository,
-            unitOfWork);
+        [Fact]
+        public async Task Handle_WhenNameAlreadyInUse_ThrowsConflict()
+        {
+            Role role = AdminRolesTestSupport.CreateRole();
+            var roleReadRepository = new AdminRolesTestSupport.FakeRoleReadRepository();
+            roleReadRepository.ExistingNames.Add("Moderators");
+            var roleWriteRepository = new AdminRolesTestSupport.FakeRoleWriteRepository();
+            roleWriteRepository.RolesById[role.Id] = role;
+            var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
+            var handler = new RenameRoleCommandHandler(
+                roleReadRepository: roleReadRepository,
+                roleWriteRepository: roleWriteRepository,
+                unitOfWork: unitOfWork);
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new RenameRoleCommand(role.Id, "Moderators"),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new RenameRoleCommand(
+                        RoleId: role.Id,
+                        Name: "Moderators"),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.Role.Name.AlreadyInUse", exception.Code);
-        Assert.Equal(ApplicationErrorType.Conflict, exception.ErrorType);
-        Assert.Equal("Operators", role.Name);
-        Assert.Equal(0, unitOfWork.SaveChangesCalls);
+            Assert.Equal(
+                expected: "Identity.Role.Name.AlreadyInUse",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Conflict,
+                actual: exception.ErrorType);
+            Assert.Equal(
+                expected: "Operators",
+                actual: role.Name);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCalls);
+        }
     }
 }

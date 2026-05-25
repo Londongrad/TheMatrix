@@ -30,8 +30,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public decimal IncidentQueuePressureIndex { get; private set; }
         public bool EmergencyModeEnabled { get; private set; }
 
-        public static CityUtilityIncidentInfrastructureState Create(
-            CityUtilityIncidentInfrastructureSnapshot snapshot)
+        public static CityUtilityIncidentInfrastructureState Create(CityUtilityIncidentInfrastructureSnapshot snapshot)
         {
             ArgumentNullException.ThrowIfNull(snapshot);
 

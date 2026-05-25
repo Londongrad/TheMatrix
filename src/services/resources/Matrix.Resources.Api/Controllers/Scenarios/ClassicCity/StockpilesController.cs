@@ -4,11 +4,11 @@ using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.Get
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.SetCityEmergencyRationing;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
-using DomainResupplyFocus = Matrix.Resources.Domain.Scenarios.ClassicCity.Enums.ResupplyFocus;
-using DomainResupplyIntensity = Matrix.Resources.Domain.Scenarios.ClassicCity.Enums.ResupplyIntensity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DomainResupplyFocus = Matrix.Resources.Domain.Scenarios.ClassicCity.Enums.ResupplyFocus;
+using DomainResupplyIntensity = Matrix.Resources.Domain.Scenarios.ClassicCity.Enums.ResupplyIntensity;
 
 namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
 {
@@ -71,7 +71,8 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
 
             DispatchCityResupplyView view = MapDispatchView(result);
 
-            return result.Status is DispatchCityResupplyStatus.BudgetBlocked or DispatchCityResupplyStatus.AuthorizationDenied
+            return result.Status is DispatchCityResupplyStatus.BudgetBlocked
+             or DispatchCityResupplyStatus.AuthorizationDenied
                 ? Results.Conflict(view)
                 : Results.Ok(view);
         }

@@ -2,12 +2,14 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.Common;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.SetCityWaterDistributionEmergencyMode
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    SetCityWaterDistributionEmergencyMode
 {
     public sealed class SetCityWaterDistributionEmergencyModeCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -31,7 +33,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
 
             state.SetWaterDistributionEmergencyMode(request.Enabled);
 
-            var refreshedSnapshot = policy.Recalculate(
+            CityEnvironmentalConditionSnapshot refreshedSnapshot = policy.Recalculate(
                 state: state,
                 pressure: pressureProfileFactory.Create(state),
                 asOfUtc: state.LastEvaluatedAtUtc);
@@ -39,7 +41,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
             state.ApplySnapshot(refreshedSnapshot);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal waterSupport = pressureProfileFactory.Create(state).WaterSupport;
+            decimal waterSupport = pressureProfileFactory.Create(state)
+               .WaterSupport;
 
             return CityWaterDistributionStatusDto.FromState(
                 cityId: request.CityId,

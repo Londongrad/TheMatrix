@@ -134,7 +134,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateCountMetric(
                         key: "activeIllnesses",
                         label: "Active illnesses",
-                        description: "Residents currently carrying any active illness burden inside the city population.",
+                        description:
+                        "Residents currently carrying any active illness burden inside the city population.",
                         currentValue: currentSnapshot.ActiveIllnessCount,
                         yesterdayValue: yesterdaySnapshot?.ActiveIllnessCount,
                         monthValue: previousMonthSnapshot?.ActiveIllnessCount,
@@ -142,7 +143,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateCountMetric(
                         key: "severeIllnesses",
                         label: "Severe illnesses",
-                        description: "Residents currently in severe illness state and most likely to compete for urgent care.",
+                        description:
+                        "Residents currently in severe illness state and most likely to compete for urgent care.",
                         currentValue: currentSnapshot.SevereIllnessCount,
                         yesterdayValue: yesterdaySnapshot?.SevereIllnessCount,
                         monthValue: previousMonthSnapshot?.SevereIllnessCount,
@@ -150,7 +152,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateAverageMetric(
                         key: "medicalLoad",
                         label: "Medical load",
-                        description: "Weighted clinical pressure on the city's care system after illness mix, shortages, and access disruption.",
+                        description:
+                        "Weighted clinical pressure on the city's care system after illness mix, shortages, and access disruption.",
                         currentValue: currentSnapshot.MedicalLoadIndex,
                         yesterdayValue: yesterdaySnapshot?.MedicalLoadIndex,
                         monthValue: previousMonthSnapshot?.MedicalLoadIndex,
@@ -158,7 +161,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateAverageMetric(
                         key: "triagePressure",
                         label: "Triage pressure",
-                        description: "Severity-driven pressure that forces the city to prioritize the sickest residents over routine recovery.",
+                        description:
+                        "Severity-driven pressure that forces the city to prioritize the sickest residents over routine recovery.",
                         currentValue: currentSnapshot.TriagePressureIndex,
                         yesterdayValue: yesterdaySnapshot?.TriagePressureIndex,
                         monthValue: previousMonthSnapshot?.TriagePressureIndex,
@@ -166,7 +170,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateAverageMetric(
                         key: "recoverySupport",
                         label: "Recovery support",
-                        description: "Current practical recovery support after healthcare quality, access, medicines, and overload are combined.",
+                        description:
+                        "Current practical recovery support after healthcare quality, access, medicines, and overload are combined.",
                         currentValue: currentSnapshot.RecoverySupportIndex,
                         yesterdayValue: yesterdaySnapshot?.RecoverySupportIndex,
                         monthValue: previousMonthSnapshot?.RecoverySupportIndex,
@@ -174,7 +179,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateAverageMetric(
                         key: "workforceCommuteAccessibility",
                         label: "Workforce commute access",
-                        description: "Average practical reachability of workplaces from home after closures, slowdown, and route passability are applied.",
+                        description:
+                        "Average practical reachability of workplaces from home after closures, slowdown, and route passability are applied.",
                         currentValue: currentSnapshot.WorkforceCommuteAccessibilityIndex,
                         yesterdayValue: yesterdaySnapshot?.WorkforceCommuteAccessibilityIndex,
                         monthValue: previousMonthSnapshot?.WorkforceCommuteAccessibilityIndex,
@@ -182,7 +188,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateAverageMetric(
                         key: "workforceAttendance",
                         label: "Workforce attendance",
-                        description: "Average attendance readiness of employed residents after commute access, utilities, and essentials pressure are combined.",
+                        description:
+                        "Average attendance readiness of employed residents after commute access, utilities, and essentials pressure are combined.",
                         currentValue: currentSnapshot.WorkforceAttendanceIndex,
                         yesterdayValue: yesterdaySnapshot?.WorkforceAttendanceIndex,
                         monthValue: previousMonthSnapshot?.WorkforceAttendanceIndex,
@@ -190,7 +197,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateAverageMetric(
                         key: "workforceProductivity",
                         label: "Workforce productivity",
-                        description: "Average effective productivity of employed residents after commute friction, utility disruption, and shortage pressure.",
+                        description:
+                        "Average effective productivity of employed residents after commute friction, utility disruption, and shortage pressure.",
                         currentValue: currentSnapshot.WorkforceProductivityIndex,
                         yesterdayValue: yesterdaySnapshot?.WorkforceProductivityIndex,
                         monthValue: previousMonthSnapshot?.WorkforceProductivityIndex,
@@ -198,7 +206,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateAverageMetric(
                         key: "studentCommuteAccessibility",
                         label: "Student commute access",
-                        description: "Average practical reachability of schools from home under current closures, slowdown, and route passability.",
+                        description:
+                        "Average practical reachability of schools from home under current closures, slowdown, and route passability.",
                         currentValue: currentSnapshot.StudentCommuteAccessibilityIndex,
                         yesterdayValue: yesterdaySnapshot?.StudentCommuteAccessibilityIndex,
                         monthValue: previousMonthSnapshot?.StudentCommuteAccessibilityIndex,
@@ -206,7 +215,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateAverageMetric(
                         key: "studentAttendance",
                         label: "Student attendance",
-                        description: "Average study attendance readiness after commute access, infrastructure disruption, and essentials pressure.",
+                        description:
+                        "Average study attendance readiness after commute access, infrastructure disruption, and essentials pressure.",
                         currentValue: currentSnapshot.StudentAttendanceIndex,
                         yesterdayValue: yesterdaySnapshot?.StudentAttendanceIndex,
                         monthValue: previousMonthSnapshot?.StudentAttendanceIndex,

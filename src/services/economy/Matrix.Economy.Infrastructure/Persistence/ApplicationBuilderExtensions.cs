@@ -1,6 +1,4 @@
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Economy.Infrastructure.Persistence
 {
@@ -11,9 +9,9 @@ namespace Matrix.Economy.Infrastructure.Persistence
             CancellationToken cancellationToken = default)
         {
             await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<EconomyDbContext>(
-                services,
+                services: services,
                 serviceName: "Economy",
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
     }
 }

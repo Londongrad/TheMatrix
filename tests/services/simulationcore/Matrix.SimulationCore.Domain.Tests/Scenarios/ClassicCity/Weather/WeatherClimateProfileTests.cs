@@ -6,177 +6,260 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Profiles;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Weather;
-
-public sealed class WeatherClimateProfileTests
+namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Weather
 {
-    private const string InvalidClimateProfileCode = "SimulationCore.Weather.ClimateProfile.Invalid";
-    private const string InvalidEnumCode = "Domain.Guard.InvalidEnum";
-
-    [Fact]
-    public void SeasonalTemperatureProfile_Create_WithNegativeDailySwing_ThrowsDomainException()
+    public sealed class WeatherClimateProfileTests
     {
-        var exception = Assert.Throws<DomainException>(() => SeasonalTemperatureProfile.Create(
-            springAverage: TemperatureC.From(12m),
-            summerAverage: TemperatureC.From(24m),
-            autumnAverage: TemperatureC.From(10m),
-            winterAverage: TemperatureC.From(-6m),
-            dailySwing: TemperatureC.From(-1m)));
+        private const string InvalidClimateProfileCode = "SimulationCore.Weather.ClimateProfile.Invalid";
+        private const string InvalidEnumCode = "Domain.Guard.InvalidEnum";
 
-        Assert.Equal(InvalidClimateProfileCode, exception.Code);
-        Assert.Equal("dailySwing", exception.PropertyName);
-    }
+        [Fact]
+        public void SeasonalTemperatureProfile_Create_WithNegativeDailySwing_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => SeasonalTemperatureProfile.Create(
+                springAverage: TemperatureC.From(12m),
+                summerAverage: TemperatureC.From(24m),
+                autumnAverage: TemperatureC.From(10m),
+                winterAverage: TemperatureC.From(-6m),
+                dailySwing: TemperatureC.From(-1m)));
 
-    [Fact]
-    public void SeasonalTemperatureProfile_GetAverage_ReturnsSeasonalValues_AndRejectsInvalidSeason()
-    {
-        var profile = WeatherTestData.CreateTemperatureProfile();
+            Assert.Equal(
+                expected: InvalidClimateProfileCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "dailySwing",
+                actual: exception.PropertyName);
+        }
 
-        Assert.Equal(profile.SpringAverage, profile.GetAverage(WeatherSeason.Spring));
-        Assert.Equal(profile.SummerAverage, profile.GetAverage(WeatherSeason.Summer));
-        Assert.Equal(profile.AutumnAverage, profile.GetAverage(WeatherSeason.Autumn));
-        Assert.Equal(profile.WinterAverage, profile.GetAverage(WeatherSeason.Winter));
+        [Fact]
+        public void SeasonalTemperatureProfile_GetAverage_ReturnsSeasonalValues_AndRejectsInvalidSeason()
+        {
+            SeasonalTemperatureProfile profile = WeatherTestData.CreateTemperatureProfile();
 
-        var exception = Assert.Throws<DomainException>(() => profile.GetAverage((WeatherSeason)999));
+            Assert.Equal(
+                expected: profile.SpringAverage,
+                actual: profile.GetAverage(WeatherSeason.Spring));
+            Assert.Equal(
+                expected: profile.SummerAverage,
+                actual: profile.GetAverage(WeatherSeason.Summer));
+            Assert.Equal(
+                expected: profile.AutumnAverage,
+                actual: profile.GetAverage(WeatherSeason.Autumn));
+            Assert.Equal(
+                expected: profile.WinterAverage,
+                actual: profile.GetAverage(WeatherSeason.Winter));
 
-        Assert.Equal(InvalidClimateProfileCode, exception.Code);
-        Assert.Equal("season", exception.PropertyName);
-    }
+            DomainException exception = Assert.Throws<DomainException>(() => profile.GetAverage((WeatherSeason)999));
 
-    [Fact]
-    public void SeasonalPrecipitationProfile_Create_WithInvalidKind_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => SeasonalPrecipitationProfile.Create(
-            springHumidity: HumidityPercent.From(58m),
-            summerHumidity: HumidityPercent.From(62m),
-            autumnHumidity: HumidityPercent.From(70m),
-            winterHumidity: HumidityPercent.From(77m),
-            springDominantKind: (PrecipitationKind)999,
-            summerDominantKind: PrecipitationKind.Rain,
-            autumnDominantKind: PrecipitationKind.Drizzle,
-            winterDominantKind: PrecipitationKind.Snow));
+            Assert.Equal(
+                expected: InvalidClimateProfileCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "season",
+                actual: exception.PropertyName);
+        }
 
-        Assert.Equal(InvalidEnumCode, exception.Code);
-        Assert.Equal("SpringDominantKind", exception.PropertyName);
-    }
+        [Fact]
+        public void SeasonalPrecipitationProfile_Create_WithInvalidKind_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => SeasonalPrecipitationProfile.Create(
+                springHumidity: HumidityPercent.From(58m),
+                summerHumidity: HumidityPercent.From(62m),
+                autumnHumidity: HumidityPercent.From(70m),
+                winterHumidity: HumidityPercent.From(77m),
+                springDominantKind: (PrecipitationKind)999,
+                summerDominantKind: PrecipitationKind.Rain,
+                autumnDominantKind: PrecipitationKind.Drizzle,
+                winterDominantKind: PrecipitationKind.Snow));
 
-    [Fact]
-    public void SeasonalPrecipitationProfile_GetMembers_ReturnSeasonalValues_AndRejectInvalidSeason()
-    {
-        var profile = WeatherTestData.CreatePrecipitationProfile();
+            Assert.Equal(
+                expected: InvalidEnumCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "SpringDominantKind",
+                actual: exception.PropertyName);
+        }
 
-        Assert.Equal(profile.SpringHumidity, profile.GetHumidity(WeatherSeason.Spring));
-        Assert.Equal(profile.WinterHumidity, profile.GetHumidity(WeatherSeason.Winter));
-        Assert.Equal(profile.SummerDominantKind, profile.GetDominantKind(WeatherSeason.Summer));
-        Assert.Equal(profile.AutumnDominantKind, profile.GetDominantKind(WeatherSeason.Autumn));
+        [Fact]
+        public void SeasonalPrecipitationProfile_GetMembers_ReturnSeasonalValues_AndRejectInvalidSeason()
+        {
+            SeasonalPrecipitationProfile profile = WeatherTestData.CreatePrecipitationProfile();
 
-        var humidityException = Assert.Throws<DomainException>(() => profile.GetHumidity((WeatherSeason)999));
-        var kindException = Assert.Throws<DomainException>(() => profile.GetDominantKind((WeatherSeason)999));
+            Assert.Equal(
+                expected: profile.SpringHumidity,
+                actual: profile.GetHumidity(WeatherSeason.Spring));
+            Assert.Equal(
+                expected: profile.WinterHumidity,
+                actual: profile.GetHumidity(WeatherSeason.Winter));
+            Assert.Equal(
+                expected: profile.SummerDominantKind,
+                actual: profile.GetDominantKind(WeatherSeason.Summer));
+            Assert.Equal(
+                expected: profile.AutumnDominantKind,
+                actual: profile.GetDominantKind(WeatherSeason.Autumn));
 
-        Assert.Equal(InvalidClimateProfileCode, humidityException.Code);
-        Assert.Equal("season", humidityException.PropertyName);
-        Assert.Equal(InvalidClimateProfileCode, kindException.Code);
-        Assert.Equal("season", kindException.PropertyName);
-    }
+            DomainException humidityException =
+                Assert.Throws<DomainException>(() => profile.GetHumidity((WeatherSeason)999));
+            DomainException kindException =
+                Assert.Throws<DomainException>(() => profile.GetDominantKind((WeatherSeason)999));
 
-    [Fact]
-    public void SeasonalWindProfile_GetAverage_ReturnsSeasonalValues_AndRejectsInvalidSeason()
-    {
-        var profile = WeatherTestData.CreateWindProfile();
+            Assert.Equal(
+                expected: InvalidClimateProfileCode,
+                actual: humidityException.Code);
+            Assert.Equal(
+                expected: "season",
+                actual: humidityException.PropertyName);
+            Assert.Equal(
+                expected: InvalidClimateProfileCode,
+                actual: kindException.Code);
+            Assert.Equal(
+                expected: "season",
+                actual: kindException.PropertyName);
+        }
 
-        Assert.Equal(profile.SpringAverage, profile.GetAverage(WeatherSeason.Spring));
-        Assert.Equal(profile.WinterAverage, profile.GetAverage(WeatherSeason.Winter));
+        [Fact]
+        public void SeasonalWindProfile_GetAverage_ReturnsSeasonalValues_AndRejectsInvalidSeason()
+        {
+            SeasonalWindProfile profile = WeatherTestData.CreateWindProfile();
 
-        var exception = Assert.Throws<DomainException>(() => profile.GetAverage((WeatherSeason)999));
+            Assert.Equal(
+                expected: profile.SpringAverage,
+                actual: profile.GetAverage(WeatherSeason.Spring));
+            Assert.Equal(
+                expected: profile.WinterAverage,
+                actual: profile.GetAverage(WeatherSeason.Winter));
 
-        Assert.Equal(InvalidClimateProfileCode, exception.Code);
-        Assert.Equal("season", exception.PropertyName);
-    }
+            DomainException exception = Assert.Throws<DomainException>(() => profile.GetAverage((WeatherSeason)999));
 
-    [Fact]
-    public void ExtremeWeatherProfile_Create_WithCalmSeverityAndCapabilities_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => ExtremeWeatherProfile.Create(
-            maxOverallSeverity: WeatherSeverity.Calm,
-            supportsThunderstorms: true,
-            supportsSnowstorms: false,
-            supportsFog: false,
-            supportsHeatwaves: false));
+            Assert.Equal(
+                expected: InvalidClimateProfileCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "season",
+                actual: exception.PropertyName);
+        }
 
-        Assert.Equal(InvalidClimateProfileCode, exception.Code);
-        Assert.Equal("maxOverallSeverity", exception.PropertyName);
-    }
+        [Fact]
+        public void ExtremeWeatherProfile_Create_WithCalmSeverityAndCapabilities_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => ExtremeWeatherProfile.Create(
+                maxOverallSeverity: WeatherSeverity.Calm,
+                supportsThunderstorms: true,
+                supportsSnowstorms: false,
+                supportsFog: false,
+                supportsHeatwaves: false));
 
-    [Fact]
-    public void ExtremeWeatherProfile_Create_WithInvalidSeverity_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => ExtremeWeatherProfile.Create(
-            maxOverallSeverity: (WeatherSeverity)999,
-            supportsThunderstorms: false,
-            supportsSnowstorms: false,
-            supportsFog: false,
-            supportsHeatwaves: false));
+            Assert.Equal(
+                expected: InvalidClimateProfileCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "maxOverallSeverity",
+                actual: exception.PropertyName);
+        }
 
-        Assert.Equal(InvalidEnumCode, exception.Code);
-        Assert.Equal("MaxOverallSeverity", exception.PropertyName);
-    }
+        [Fact]
+        public void ExtremeWeatherProfile_Create_WithInvalidSeverity_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => ExtremeWeatherProfile.Create(
+                maxOverallSeverity: (WeatherSeverity)999,
+                supportsThunderstorms: false,
+                supportsSnowstorms: false,
+                supportsFog: false,
+                supportsHeatwaves: false));
 
-    [Fact]
-    public void WeatherClimateProfile_Create_WithValidProfiles_CreatesClimateProfile_AndReturnsBaselines()
-    {
-        var temperatureProfile = WeatherTestData.CreateTemperatureProfile();
-        var precipitationProfile = WeatherTestData.CreatePrecipitationProfile();
-        var windProfile = WeatherTestData.CreateWindProfile();
-        var volatility = WeatherVolatility.From(0.25m);
-        var extremeWeatherProfile = WeatherTestData.CreateExtremeWeatherProfile();
+            Assert.Equal(
+                expected: InvalidEnumCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "MaxOverallSeverity",
+                actual: exception.PropertyName);
+        }
 
-        var profile = WeatherClimateProfile.Create(
-            climateZone: ClimateZone.Temperate,
-            temperatureProfile: temperatureProfile,
-            precipitationProfile: precipitationProfile,
-            windProfile: windProfile,
-            volatility: volatility,
-            extremeWeatherProfile: extremeWeatherProfile);
+        [Fact]
+        public void WeatherClimateProfile_Create_WithValidProfiles_CreatesClimateProfile_AndReturnsBaselines()
+        {
+            SeasonalTemperatureProfile temperatureProfile = WeatherTestData.CreateTemperatureProfile();
+            SeasonalPrecipitationProfile precipitationProfile = WeatherTestData.CreatePrecipitationProfile();
+            SeasonalWindProfile windProfile = WeatherTestData.CreateWindProfile();
+            var volatility = WeatherVolatility.From(0.25m);
+            ExtremeWeatherProfile extremeWeatherProfile = WeatherTestData.CreateExtremeWeatherProfile();
 
-        Assert.Equal(ClimateZone.Temperate, profile.ClimateZone);
-        Assert.Equal(temperatureProfile, profile.TemperatureProfile);
-        Assert.Equal(precipitationProfile, profile.PrecipitationProfile);
-        Assert.Equal(windProfile, profile.WindProfile);
-        Assert.Equal(volatility, profile.Volatility);
-        Assert.Equal(extremeWeatherProfile, profile.ExtremeWeatherProfile);
-        Assert.Equal(temperatureProfile.GetAverage(WeatherSeason.Summer), profile.GetBaselineTemperature(WeatherSeason.Summer));
-        Assert.Equal(precipitationProfile.GetHumidity(WeatherSeason.Winter), profile.GetBaselineHumidity(WeatherSeason.Winter));
-        Assert.Equal(precipitationProfile.GetDominantKind(WeatherSeason.Spring), profile.GetDominantPrecipitation(WeatherSeason.Spring));
-        Assert.Equal(windProfile.GetAverage(WeatherSeason.Autumn), profile.GetBaselineWindSpeed(WeatherSeason.Autumn));
-    }
+            var profile = WeatherClimateProfile.Create(
+                climateZone: ClimateZone.Temperate,
+                temperatureProfile: temperatureProfile,
+                precipitationProfile: precipitationProfile,
+                windProfile: windProfile,
+                volatility: volatility,
+                extremeWeatherProfile: extremeWeatherProfile);
 
-    [Fact]
-    public void WeatherClimateProfile_Create_WithInvalidClimateZone_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => WeatherClimateProfile.Create(
-            climateZone: (ClimateZone)999,
-            temperatureProfile: WeatherTestData.CreateTemperatureProfile(),
-            precipitationProfile: WeatherTestData.CreatePrecipitationProfile(),
-            windProfile: WeatherTestData.CreateWindProfile(),
-            volatility: WeatherVolatility.From(0.25m),
-            extremeWeatherProfile: WeatherTestData.CreateExtremeWeatherProfile()));
+            Assert.Equal(
+                expected: ClimateZone.Temperate,
+                actual: profile.ClimateZone);
+            Assert.Equal(
+                expected: temperatureProfile,
+                actual: profile.TemperatureProfile);
+            Assert.Equal(
+                expected: precipitationProfile,
+                actual: profile.PrecipitationProfile);
+            Assert.Equal(
+                expected: windProfile,
+                actual: profile.WindProfile);
+            Assert.Equal(
+                expected: volatility,
+                actual: profile.Volatility);
+            Assert.Equal(
+                expected: extremeWeatherProfile,
+                actual: profile.ExtremeWeatherProfile);
+            Assert.Equal(
+                expected: temperatureProfile.GetAverage(WeatherSeason.Summer),
+                actual: profile.GetBaselineTemperature(WeatherSeason.Summer));
+            Assert.Equal(
+                expected: precipitationProfile.GetHumidity(WeatherSeason.Winter),
+                actual: profile.GetBaselineHumidity(WeatherSeason.Winter));
+            Assert.Equal(
+                expected: precipitationProfile.GetDominantKind(WeatherSeason.Spring),
+                actual: profile.GetDominantPrecipitation(WeatherSeason.Spring));
+            Assert.Equal(
+                expected: windProfile.GetAverage(WeatherSeason.Autumn),
+                actual: profile.GetBaselineWindSpeed(WeatherSeason.Autumn));
+        }
 
-        Assert.Equal(InvalidEnumCode, exception.Code);
-        Assert.Equal("ClimateZone", exception.PropertyName);
-    }
+        [Fact]
+        public void WeatherClimateProfile_Create_WithInvalidClimateZone_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => WeatherClimateProfile.Create(
+                climateZone: (ClimateZone)999,
+                temperatureProfile: WeatherTestData.CreateTemperatureProfile(),
+                precipitationProfile: WeatherTestData.CreatePrecipitationProfile(),
+                windProfile: WeatherTestData.CreateWindProfile(),
+                volatility: WeatherVolatility.From(0.25m),
+                extremeWeatherProfile: WeatherTestData.CreateExtremeWeatherProfile()));
 
-    [Fact]
-    public void WeatherClimateProfile_Create_WithMissingTemperatureProfile_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => WeatherClimateProfile.Create(
-            climateZone: ClimateZone.Temperate,
-            temperatureProfile: null!,
-            precipitationProfile: WeatherTestData.CreatePrecipitationProfile(),
-            windProfile: WeatherTestData.CreateWindProfile(),
-            volatility: WeatherVolatility.From(0.25m),
-            extremeWeatherProfile: WeatherTestData.CreateExtremeWeatherProfile()));
+            Assert.Equal(
+                expected: InvalidEnumCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "ClimateZone",
+                actual: exception.PropertyName);
+        }
 
-        Assert.Equal(InvalidClimateProfileCode, exception.Code);
-        Assert.Equal("temperatureProfile", exception.PropertyName);
+        [Fact]
+        public void WeatherClimateProfile_Create_WithMissingTemperatureProfile_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => WeatherClimateProfile.Create(
+                climateZone: ClimateZone.Temperate,
+                temperatureProfile: null!,
+                precipitationProfile: WeatherTestData.CreatePrecipitationProfile(),
+                windProfile: WeatherTestData.CreateWindProfile(),
+                volatility: WeatherVolatility.From(0.25m),
+                extremeWeatherProfile: WeatherTestData.CreateExtremeWeatherProfile()));
+
+            Assert.Equal(
+                expected: InvalidClimateProfileCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "temperatureProfile",
+                actual: exception.PropertyName);
+        }
     }
 }

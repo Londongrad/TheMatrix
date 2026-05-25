@@ -67,9 +67,15 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
             Money serviceSpend,
             Money municipalSpend)
         {
-            decimal retailStoreAmount = decimal.Max(0m, retailStoreSpend.Amount);
-            decimal serviceAmount = decimal.Max(0m, serviceSpend.Amount);
-            decimal municipalAmount = decimal.Max(0m, municipalSpend.Amount);
+            decimal retailStoreAmount = decimal.Max(
+                x: 0m,
+                y: retailStoreSpend.Amount);
+            decimal serviceAmount = decimal.Max(
+                x: 0m,
+                y: serviceSpend.Amount);
+            decimal municipalAmount = decimal.Max(
+                x: 0m,
+                y: municipalSpend.Amount);
             decimal totalCategorizedAmount = retailStoreAmount + serviceAmount + municipalAmount;
 
             if (totalCategorizedAmount <= 0m)
@@ -84,11 +90,18 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
                 if (remainder != 0m)
                 {
                     if (retailStoreAmount > 0m)
-                        retailStoreAmount = decimal.Max(0m, retailStoreAmount + remainder);
-                    else if (serviceAmount > 0m)
-                        serviceAmount = decimal.Max(0m, serviceAmount + remainder);
+                        retailStoreAmount = decimal.Max(
+                            x: 0m,
+                            y: retailStoreAmount + remainder);
                     else
-                        municipalAmount = decimal.Max(0m, municipalAmount + remainder);
+                        if (serviceAmount > 0m)
+                            serviceAmount = decimal.Max(
+                                x: 0m,
+                                y: serviceAmount + remainder);
+                        else
+                            municipalAmount = decimal.Max(
+                                x: 0m,
+                                y: municipalAmount + remainder);
                 }
             }
 

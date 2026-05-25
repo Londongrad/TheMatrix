@@ -4,13 +4,13 @@ import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 export default function RoleCard({
-    role,
-    isDeleting = false,
-    onMembers,
-    onPermissions,
-    onRename,
-    onDelete,
-}: {
+                                     role,
+                                     isDeleting = false,
+                                     onMembers,
+                                     onPermissions,
+                                     onRename,
+                                     onDelete,
+                                 }: {
     role: RoleResponse;
     isDeleting?: boolean;
     onMembers: (role: RoleResponse) => void;

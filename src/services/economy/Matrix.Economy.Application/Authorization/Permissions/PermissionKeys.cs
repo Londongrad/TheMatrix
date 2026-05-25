@@ -16,6 +16,8 @@ namespace Matrix.Economy.Application.Authorization.Permissions
         public const string EconomyHouseholdAccountsManage = ContractPermissionKeys.EconomyHouseholdAccountsManage;
 
         public const string EconomyHouseholdObligationsRead = ContractPermissionKeys.EconomyHouseholdObligationsRead;
-        public const string EconomyHouseholdObligationsManage = ContractPermissionKeys.EconomyHouseholdObligationsManage;
+
+        public const string EconomyHouseholdObligationsManage =
+            ContractPermissionKeys.EconomyHouseholdObligationsManage;
     }
 }

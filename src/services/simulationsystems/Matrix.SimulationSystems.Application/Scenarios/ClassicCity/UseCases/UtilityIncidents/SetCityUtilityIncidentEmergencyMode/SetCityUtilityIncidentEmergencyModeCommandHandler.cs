@@ -2,12 +2,14 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.Common;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.SetCityUtilityIncidentEmergencyMode
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    SetCityUtilityIncidentEmergencyMode
 {
     public sealed class SetCityUtilityIncidentEmergencyModeCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -31,7 +33,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
 
             state.SetUtilityIncidentEmergencyMode(request.Enabled);
 
-            var refreshedSnapshot = policy.Recalculate(
+            CityEnvironmentalConditionSnapshot refreshedSnapshot = policy.Recalculate(
                 state: state,
                 pressure: pressureProfileFactory.Create(state),
                 asOfUtc: state.LastEvaluatedAtUtc);
@@ -39,7 +41,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
             state.ApplySnapshot(refreshedSnapshot);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal utilityIncidentSupport = pressureProfileFactory.Create(state).UtilityIncidentSupport;
+            decimal utilityIncidentSupport = pressureProfileFactory.Create(state)
+               .UtilityIncidentSupport;
 
             return CityUtilityIncidentStatusDto.FromState(
                 cityId: request.CityId,

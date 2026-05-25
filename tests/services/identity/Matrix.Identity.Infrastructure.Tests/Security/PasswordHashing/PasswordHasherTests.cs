@@ -1,43 +1,58 @@
+using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Infrastructure.Security.PasswordHashing;
 using Xunit;
 using static Matrix.Identity.Infrastructure.Tests.TestSupport.IdentityInfrastructureTestSupport;
 
-namespace Matrix.Identity.Infrastructure.Tests.Security.PasswordHashing;
-
-public sealed class PasswordHasherTests
+namespace Matrix.Identity.Infrastructure.Tests.Security.PasswordHashing
 {
-    [Fact]
-    public void Hash_WhenCalledTwice_ProducesDifferentSaltedHashes()
+    public sealed class PasswordHasherTests
     {
-        var passwordHasher = new PasswordHasher();
+        [Fact]
+        public void Hash_WhenCalledTwice_ProducesDifferentSaltedHashes()
+        {
+            var passwordHasher = new PasswordHasher();
 
-        string firstHash = passwordHasher.Hash("Tr1nity!42");
-        string secondHash = passwordHasher.Hash("Tr1nity!42");
+            string firstHash = passwordHasher.Hash("Tr1nity!42");
+            string secondHash = passwordHasher.Hash("Tr1nity!42");
 
-        Assert.NotEqual(firstHash, secondHash);
-    }
+            Assert.NotEqual(
+                expected: firstHash,
+                actual: secondHash);
+        }
 
-    [Fact]
-    public void Verify_WhenPasswordMatches_ReturnsSuccess()
-    {
-        var passwordHasher = new PasswordHasher();
-        var user = CreateUser();
-        string hash = passwordHasher.Hash("N3o!42");
+        [Fact]
+        public void Verify_WhenPasswordMatches_ReturnsSuccess()
+        {
+            var passwordHasher = new PasswordHasher();
+            User user = CreateUser();
+            string hash = passwordHasher.Hash("N3o!42");
 
-        var result = passwordHasher.Verify(user, hash, "N3o!42");
+            PasswordVerificationOutcome result = passwordHasher.Verify(
+                user: user,
+                passwordHash: hash,
+                providedPassword: "N3o!42");
 
-        Assert.NotEqual(Matrix.Identity.Application.Abstractions.Services.PasswordVerificationOutcome.Failed, result);
-    }
+            Assert.NotEqual(
+                expected: PasswordVerificationOutcome.Failed,
+                actual: result);
+        }
 
-    [Fact]
-    public void Verify_WhenPasswordDoesNotMatch_ReturnsFailed()
-    {
-        var passwordHasher = new PasswordHasher();
-        var user = CreateUser();
-        string hash = passwordHasher.Hash("correct-password");
+        [Fact]
+        public void Verify_WhenPasswordDoesNotMatch_ReturnsFailed()
+        {
+            var passwordHasher = new PasswordHasher();
+            User user = CreateUser();
+            string hash = passwordHasher.Hash("correct-password");
 
-        var result = passwordHasher.Verify(user, hash, "wrong-password");
+            PasswordVerificationOutcome result = passwordHasher.Verify(
+                user: user,
+                passwordHash: hash,
+                providedPassword: "wrong-password");
 
-        Assert.Equal(Matrix.Identity.Application.Abstractions.Services.PasswordVerificationOutcome.Failed, result);
+            Assert.Equal(
+                expected: PasswordVerificationOutcome.Failed,
+                actual: result);
+        }
     }
 }

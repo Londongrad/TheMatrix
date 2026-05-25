@@ -2,45 +2,64 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Topology;
-
-public sealed class CityAnchorNameTests
+namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Topology
 {
-    [Fact]
-    public void Constructor_TrimsAndStoresValue()
+    public sealed class CityAnchorNameTests
     {
-        var name = new CityAnchorName("  Central Station  ");
+        [Fact]
+        public void Constructor_TrimsAndStoresValue()
+        {
+            var name = new CityAnchorName("  Central Station  ");
 
-        Assert.Equal("Central Station", name.Value);
-        Assert.Equal("Central Station", name.ToString());
-    }
+            Assert.Equal(
+                expected: "Central Station",
+                actual: name.Value);
+            Assert.Equal(
+                expected: "Central Station",
+                actual: name.ToString());
+        }
 
-    [Fact]
-    public void Constructor_WhenValueIsNull_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => new CityAnchorName(null));
+        [Fact]
+        public void Constructor_WhenValueIsNull_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new CityAnchorName(null));
 
-        Assert.Equal("SimulationCore.Topology.CityAnchor.Name.NullOrEmpty", exception.Code);
-        Assert.Equal("Value", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "SimulationCore.Topology.CityAnchor.Name.NullOrEmpty",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Value",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Constructor_WhenValueIsWhitespace_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => new CityAnchorName("   "));
+        [Fact]
+        public void Constructor_WhenValueIsWhitespace_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new CityAnchorName("   "));
 
-        Assert.Equal("SimulationCore.Topology.CityAnchor.Name.NullOrEmpty", exception.Code);
-        Assert.Equal("Value", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "SimulationCore.Topology.CityAnchor.Name.NullOrEmpty",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Value",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Constructor_WhenValueIsTooLong_ThrowsDomainException()
-    {
-        var tooLong = new string('a', CityAnchorName.MaxLength + 1);
+        [Fact]
+        public void Constructor_WhenValueIsTooLong_ThrowsDomainException()
+        {
+            string tooLong = new(
+                c: 'a',
+                count: CityAnchorName.MaxLength + 1);
 
-        var exception = Assert.Throws<DomainException>(() => new CityAnchorName(tooLong));
+            DomainException exception = Assert.Throws<DomainException>(() => new CityAnchorName(tooLong));
 
-        Assert.Equal("SimulationCore.Topology.CityAnchor.Name.TooLong", exception.Code);
-        Assert.Equal("Value", exception.PropertyName);
+            Assert.Equal(
+                expected: "SimulationCore.Topology.CityAnchor.Name.TooLong",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Value",
+                actual: exception.PropertyName);
+        }
     }
 }

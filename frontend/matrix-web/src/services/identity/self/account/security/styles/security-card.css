@@ -246,12 +246,11 @@
     overflow: hidden;
     height: 72px;
     border-radius: 1rem;
-    background:
-        linear-gradient(
+    background: linear-gradient(
             145deg,
             color-mix(in srgb, var(--settings-pill-bg) 72%, transparent),
             color-mix(in srgb, var(--settings-card-bg) 86%, transparent)
-        );
+    );
     border: 1px solid color-mix(in srgb, var(--settings-pill-border) 56%, transparent);
 }
 
@@ -260,11 +259,11 @@
     position: absolute;
     inset: 0;
     background: linear-gradient(
-        105deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.06) 38%,
-        rgba(var(--shell-accent-rgb), 0.22) 50%,
-        transparent 72%
+            105deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.06) 38%,
+            rgba(var(--shell-accent-rgb), 0.22) 50%,
+            transparent 72%
     );
     transform: translateX(-125%);
     animation: settingsShimmer 1.9s ease-in-out infinite;
@@ -275,11 +274,11 @@ html[data-theme="matrix"] .settings-security-activity__skeletonLine::after {
     position: absolute;
     inset: 0;
     background: repeating-linear-gradient(
-        180deg,
-        rgba(var(--shell-accent-rgb), 0.08) 0,
-        rgba(var(--shell-accent-rgb), 0.08) 1px,
-        transparent 1px,
-        transparent 8px
+            180deg,
+            rgba(var(--shell-accent-rgb), 0.08) 0,
+            rgba(var(--shell-accent-rgb), 0.08) 1px,
+            transparent 1px,
+            transparent 8px
     );
     opacity: 0.26;
 }

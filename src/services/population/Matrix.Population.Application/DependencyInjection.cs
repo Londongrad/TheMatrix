@@ -5,7 +5,6 @@ using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity;
 using Matrix.Population.Domain.Services;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Population.Application

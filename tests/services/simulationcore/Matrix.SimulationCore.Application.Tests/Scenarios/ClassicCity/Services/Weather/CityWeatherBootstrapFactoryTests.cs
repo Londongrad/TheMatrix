@@ -8,91 +8,138 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services.Weather;
-
-public sealed class CityWeatherBootstrapFactoryTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services.Weather
 {
-    [Fact]
-    public void CreateInitial_WithManualProfile_UsesPlannerTemplateAndAppliesManualOverrides()
+    public sealed class CityWeatherBootstrapFactoryTests
     {
-        WeatherState templateState = WeatherTestSupport.CreateWeatherState();
-        var planner = new WeatherTestSupport.FakeWeatherStatePlanner
+        [Fact]
+        public void CreateInitial_WithManualProfile_UsesPlannerTemplateAndAppliesManualOverrides()
         {
-            Planner = (_, _, _, _, _) => templateState
-        };
-        var factory = new CityWeatherBootstrapFactory(planner);
-        City city = CreateCity(
-            climateZone: ClimateZone.Mountain,
-            initialWeatherProfile: CityInitialWeatherProfile.CreateManual(
-                manualType: WeatherType.Storm,
-                manualSeverity: WeatherSeverity.Extreme,
-                manualTemperature: TemperatureC.From(-3.5m)));
+            WeatherState templateState = WeatherTestSupport.CreateWeatherState();
+            var planner = new WeatherTestSupport.FakeWeatherStatePlanner
+            {
+                Planner = (
+                    _,
+                    _,
+                    _,
+                    _,
+                    _) => templateState
+            };
+            var factory = new CityWeatherBootstrapFactory(planner);
+            City city = CreateCity(
+                climateZone: ClimateZone.Mountain,
+                initialWeatherProfile: CityInitialWeatherProfile.CreateManual(
+                    manualType: WeatherType.Storm,
+                    manualSeverity: WeatherSeverity.Extreme,
+                    manualTemperature: TemperatureC.From(-3.5m)));
 
-        CityWeather weather = factory.CreateInitial(city, templateState.StartedAt);
+            CityWeather weather = factory.CreateInitial(
+                city: city,
+                initialTime: templateState.StartedAt);
 
-        Assert.Equal(city.Environment, planner.RequestedEnvironment);
-        Assert.NotNull(planner.RequestedClimateProfile);
-        Assert.Equal(ClimateZone.Mountain, planner.RequestedClimateProfile!.ClimateZone);
-        Assert.Equal(city.GenerationSeed, planner.RequestedGenerationSeed);
-        Assert.Equal(templateState.StartedAt, planner.RequestedEvaluatedAt);
-        Assert.Null(planner.RequestedPreviousState);
-        Assert.Equal(city.Id, weather.CityId);
-        Assert.Equal(ClimateZone.Mountain, weather.ClimateProfile.ClimateZone);
-        Assert.Equal(WeatherType.Storm, weather.CurrentState.Type);
-        Assert.Equal(WeatherSeverity.Extreme, weather.CurrentState.Severity);
-        Assert.Equal(TemperatureC.From(-3.5m), weather.CurrentState.Temperature);
-        Assert.Equal(templateState.StartedAt, weather.CurrentState.StartedAt);
-        Assert.Equal(templateState.ExpectedUntil, weather.CurrentState.ExpectedUntil);
-        Assert.True(weather.CurrentState.IsActiveAt(templateState.StartedAt));
-    }
+            Assert.Equal(
+                expected: city.Environment,
+                actual: planner.RequestedEnvironment);
+            Assert.NotNull(planner.RequestedClimateProfile);
+            Assert.Equal(
+                expected: ClimateZone.Mountain,
+                actual: planner.RequestedClimateProfile!.ClimateZone);
+            Assert.Equal(
+                expected: city.GenerationSeed,
+                actual: planner.RequestedGenerationSeed);
+            Assert.Equal(
+                expected: templateState.StartedAt,
+                actual: planner.RequestedEvaluatedAt);
+            Assert.Null(planner.RequestedPreviousState);
+            Assert.Equal(
+                expected: city.Id,
+                actual: weather.CityId);
+            Assert.Equal(
+                expected: ClimateZone.Mountain,
+                actual: weather.ClimateProfile.ClimateZone);
+            Assert.Equal(
+                expected: WeatherType.Storm,
+                actual: weather.CurrentState.Type);
+            Assert.Equal(
+                expected: WeatherSeverity.Extreme,
+                actual: weather.CurrentState.Severity);
+            Assert.Equal(
+                expected: TemperatureC.From(-3.5m),
+                actual: weather.CurrentState.Temperature);
+            Assert.Equal(
+                expected: templateState.StartedAt,
+                actual: weather.CurrentState.StartedAt);
+            Assert.Equal(
+                expected: templateState.ExpectedUntil,
+                actual: weather.CurrentState.ExpectedUntil);
+            Assert.True(weather.CurrentState.IsActiveAt(templateState.StartedAt));
+        }
 
-    [Fact]
-    public void CreateInitial_WithRandomProfile_IsDeterministicForSameCityAndTime()
-    {
-        WeatherState templateState = WeatherTestSupport.CreateWeatherState();
-        var planner = new WeatherTestSupport.FakeWeatherStatePlanner
+        [Fact]
+        public void CreateInitial_WithRandomProfile_IsDeterministicForSameCityAndTime()
         {
-            Planner = (_, _, _, _, _) => templateState
-        };
-        var factory = new CityWeatherBootstrapFactory(planner);
-        City city = CreateCity(
-            climateZone: ClimateZone.Arid,
-            initialWeatherProfile: CityInitialWeatherProfile.CreateRandom());
+            WeatherState templateState = WeatherTestSupport.CreateWeatherState();
+            var planner = new WeatherTestSupport.FakeWeatherStatePlanner
+            {
+                Planner = (
+                    _,
+                    _,
+                    _,
+                    _,
+                    _) => templateState
+            };
+            var factory = new CityWeatherBootstrapFactory(planner);
+            City city = CreateCity(
+                climateZone: ClimateZone.Arid,
+                initialWeatherProfile: CityInitialWeatherProfile.CreateRandom());
 
-        CityWeather first = factory.CreateInitial(city, templateState.StartedAt);
-        CityWeather second = factory.CreateInitial(city, templateState.StartedAt);
+            CityWeather first = factory.CreateInitial(
+                city: city,
+                initialTime: templateState.StartedAt);
+            CityWeather second = factory.CreateInitial(
+                city: city,
+                initialTime: templateState.StartedAt);
 
-        Assert.Equal(first.CurrentState, second.CurrentState);
-        Assert.Equal(first.ClimateProfile, second.ClimateProfile);
-        Assert.Equal(ClimateZone.Arid, first.ClimateProfile.ClimateZone);
-        Assert.True(first.CurrentState.IsActiveAt(templateState.StartedAt));
-        Assert.NotEqual(default, first.CurrentState.Type);
-    }
+            Assert.Equal(
+                expected: first.CurrentState,
+                actual: second.CurrentState);
+            Assert.Equal(
+                expected: first.ClimateProfile,
+                actual: second.ClimateProfile);
+            Assert.Equal(
+                expected: ClimateZone.Arid,
+                actual: first.ClimateProfile.ClimateZone);
+            Assert.True(first.CurrentState.IsActiveAt(templateState.StartedAt));
+            Assert.NotEqual(
+                expected: default(WeatherType),
+                actual: first.CurrentState.Type);
+        }
 
-    private static City CreateCity(
-        ClimateZone climateZone,
-        CityInitialWeatherProfile initialWeatherProfile)
-    {
-        return City.Create(
-            name: new CityName("Weather City"),
-            simulationKind: SimulationKind.ClassicCity,
-            environment: CityEnvironment.Create(
-                climateZone: climateZone,
-                hemisphere: Hemisphere.Northern,
-                utcOffset: CityUtcOffset.FromMinutes(180)),
-            generationSeed: new CityGenerationSeed("weather-seed"),
-            scenarioModelSetVersion: ScenarioModelSetVersion.Default(),
-            generationProfile: CityGenerationProfile.Create(
-                sizeTier: CitySizeTier.Medium,
-                urbanDensity: UrbanDensity.Balanced,
-                developmentLevel: CityDevelopmentLevel.Balanced,
-                economyProfile: CityEconomyProfile.Balanced,
-                populationOccupancyProfile: PopulationOccupancyProfile.Balanced,
-                plannedPeopleCount: 25_000),
-            initialWeatherProfile: initialWeatherProfile,
-            provisioningCorrelationId: null,
-            requiresPopulationBootstrap: true,
-            requiresEconomyBootstrap: true,
-            createdAtUtc: DateTimeOffset.Parse("2048-04-05T06:07:08+00:00"));
+        private static City CreateCity(
+            ClimateZone climateZone,
+            CityInitialWeatherProfile initialWeatherProfile)
+        {
+            return City.Create(
+                name: new CityName("Weather City"),
+                simulationKind: SimulationKind.ClassicCity,
+                environment: CityEnvironment.Create(
+                    climateZone: climateZone,
+                    hemisphere: Hemisphere.Northern,
+                    utcOffset: CityUtcOffset.FromMinutes(180)),
+                generationSeed: new CityGenerationSeed("weather-seed"),
+                scenarioModelSetVersion: ScenarioModelSetVersion.Default(),
+                generationProfile: CityGenerationProfile.Create(
+                    sizeTier: CitySizeTier.Medium,
+                    urbanDensity: UrbanDensity.Balanced,
+                    developmentLevel: CityDevelopmentLevel.Balanced,
+                    economyProfile: CityEconomyProfile.Balanced,
+                    populationOccupancyProfile: PopulationOccupancyProfile.Balanced,
+                    plannedPeopleCount: 25_000),
+                initialWeatherProfile: initialWeatherProfile,
+                provisioningCorrelationId: null,
+                requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true,
+                createdAtUtc: DateTimeOffset.Parse("2048-04-05T06:07:08+00:00"));
+        }
     }
 }

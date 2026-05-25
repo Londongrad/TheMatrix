@@ -1,101 +1,163 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityDistrictPowerDistributionConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityDistrictPowerDistributionConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
 using Matrix.SimulationSystems.Application.Tests.TestSupport;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityDistrictPowerDistributionConditions;
-
-public sealed class GetCityDistrictPowerDistributionConditionsQueryHandlerTests
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityDistrictPowerDistributionConditions
 {
-    private static readonly Guid FirstDistrictId = Guid.Parse("73000000-0000-0000-0000-000000000001");
-    private static readonly Guid SecondDistrictId = Guid.Parse("73000000-0000-0000-0000-000000000002");
-
-    [Fact]
-    public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+    public sealed class GetCityDistrictPowerDistributionConditionsQueryHandlerTests
     {
-        var repository = new FakeCityEnvironmentalConditionRepository();
-        var topologyClient = new FakeCityMapTopologyClient();
-        var handler = CreateHandler(repository, topologyClient);
+        private static readonly Guid FirstDistrictId = Guid.Parse("73000000-0000-0000-0000-000000000001");
+        private static readonly Guid SecondDistrictId = Guid.Parse("73000000-0000-0000-0000-000000000002");
 
-        var result = await handler.Handle(
-            new GetCityDistrictPowerDistributionConditionsQuery(SimulationSystemsApplicationTestSupport.CityId),
-            CancellationToken.None);
-
-        Assert.Null(result);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.CreateHostId(), repository.RequestedSimulationHostId);
-        Assert.Equal(0, topologyClient.GetRoadGraphCallCount);
-    }
-
-    [Fact]
-    public async Task Handle_WhenTopologyDoesNotExist_ReturnsNull()
-    {
-        var repository = new FakeCityEnvironmentalConditionRepository
+        [Fact]
+        public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
         {
-            State = SimulationSystemsApplicationTestSupport.CreateState()
-        };
-        var topologyClient = new FakeCityMapTopologyClient();
-        var handler = CreateHandler(repository, topologyClient);
+            var repository = new FakeCityEnvironmentalConditionRepository();
+            var topologyClient = new FakeCityMapTopologyClient();
+            GetCityDistrictPowerDistributionConditionsQueryHandler handler = CreateHandler(
+                repository: repository,
+                topologyClient: topologyClient);
 
-        var result = await handler.Handle(
-            new GetCityDistrictPowerDistributionConditionsQuery(SimulationSystemsApplicationTestSupport.CityId),
-            CancellationToken.None);
+            CityDistrictPowerDistributionConditionsDto? result = await handler.Handle(
+                request: new GetCityDistrictPowerDistributionConditionsQuery(
+                    SimulationSystemsApplicationTestSupport.CityId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Null(result);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.CityId, topologyClient.RequestedCityId);
-        Assert.Equal(1, topologyClient.GetRoadGraphCallCount);
-    }
+            Assert.Null(result);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.CreateHostId(),
+                actual: repository.RequestedSimulationHostId);
+            Assert.Equal(
+                expected: 0,
+                actual: topologyClient.GetRoadGraphCallCount);
+        }
 
-    [Fact]
-    public async Task Handle_WhenStateAndTopologyExist_ReturnsProjectedDistrictConditions()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var topologyClient = new FakeCityMapTopologyClient
+        [Fact]
+        public async Task Handle_WhenTopologyDoesNotExist_ReturnsNull()
         {
-            Topology = SimulationSystemsApplicationTestSupport.CreateTopology(
-                new CityDistrictTopologyDto(FirstDistrictId, 0m, 0m),
-                new CityDistrictTopologyDto(SecondDistrictId, 18m, 9m))
-        };
-        var profileFactory = new ClassicCityWeatherPressureProfileFactory();
-        var handler = new GetCityDistrictPowerDistributionConditionsQueryHandler(
-            repository,
-            topologyClient,
-            profileFactory,
-            new ClassicCityDistrictPowerDistributionProjectionPolicy());
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = SimulationSystemsApplicationTestSupport.CreateState()
+            };
+            var topologyClient = new FakeCityMapTopologyClient();
+            GetCityDistrictPowerDistributionConditionsQueryHandler handler = CreateHandler(
+                repository: repository,
+                topologyClient: topologyClient);
 
-        var result = await handler.Handle(
-            new GetCityDistrictPowerDistributionConditionsQuery(SimulationSystemsApplicationTestSupport.CityId),
-            CancellationToken.None);
+            CityDistrictPowerDistributionConditionsDto? result = await handler.Handle(
+                request: new GetCityDistrictPowerDistributionConditionsQuery(
+                    SimulationSystemsApplicationTestSupport.CityId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.CityId, result!.CityId);
-        Assert.Equal(state.LastAppliedTickId, result.EffectiveTickId);
-        Assert.Equal(state.LastEvaluatedAtUtc, result.LastEvaluatedAtUtc);
-        Assert.Equal(profileFactory.Create(state).PowerSupport, result.PowerSupportIndex);
-        Assert.Equal(2, result.Districts.Count);
-        Assert.Equal(
-            [FirstDistrictId, SecondDistrictId],
-            result.Districts.Select(x => x.DistrictId).OrderBy(x => x).ToArray());
-        Assert.True(result.Districts[0].MaintenancePriorityIndex >= result.Districts[1].MaintenancePriorityIndex);
-        Assert.All(result.Districts, district =>
+            Assert.Null(result);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.CityId,
+                actual: topologyClient.RequestedCityId);
+            Assert.Equal(
+                expected: 1,
+                actual: topologyClient.GetRoadGraphCallCount);
+        }
+
+        [Fact]
+        public async Task Handle_WhenStateAndTopologyExist_ReturnsProjectedDistrictConditions()
         {
-            Assert.InRange(district.PowerCoverageIndex, 0m, 1m);
-            Assert.InRange(district.PowerSupportIndex, 0m, 1m);
-            Assert.InRange(district.OutageRiskIndex, 0m, 1m);
-            Assert.InRange(district.RestorationStrainIndex, 0m, 1m);
-            Assert.InRange(district.MaintenancePriorityIndex, 0m, 1m);
-        });
-    }
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            var topologyClient = new FakeCityMapTopologyClient
+            {
+                Topology = SimulationSystemsApplicationTestSupport.CreateTopology(
+                    new CityDistrictTopologyDto(
+                        DistrictId: FirstDistrictId,
+                        AnchorX: 0m,
+                        AnchorY: 0m),
+                    new CityDistrictTopologyDto(
+                        DistrictId: SecondDistrictId,
+                        AnchorX: 18m,
+                        AnchorY: 9m))
+            };
+            var profileFactory = new ClassicCityWeatherPressureProfileFactory();
+            var handler = new GetCityDistrictPowerDistributionConditionsQueryHandler(
+                repository: repository,
+                cityMapTopologyClient: topologyClient,
+                pressureProfileFactory: profileFactory,
+                projectionPolicy: new ClassicCityDistrictPowerDistributionProjectionPolicy());
 
-    private static GetCityDistrictPowerDistributionConditionsQueryHandler CreateHandler(
-        FakeCityEnvironmentalConditionRepository repository,
-        FakeCityMapTopologyClient topologyClient)
-    {
-        return new GetCityDistrictPowerDistributionConditionsQueryHandler(
-            repository,
-            topologyClient,
-            new ClassicCityWeatherPressureProfileFactory(),
-            new ClassicCityDistrictPowerDistributionProjectionPolicy());
+            CityDistrictPowerDistributionConditionsDto? result = await handler.Handle(
+                request: new GetCityDistrictPowerDistributionConditionsQuery(
+                    SimulationSystemsApplicationTestSupport.CityId),
+                cancellationToken: CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.CityId,
+                actual: result!.CityId);
+            Assert.Equal(
+                expected: state.LastAppliedTickId,
+                actual: result.EffectiveTickId);
+            Assert.Equal(
+                expected: state.LastEvaluatedAtUtc,
+                actual: result.LastEvaluatedAtUtc);
+            Assert.Equal(
+                expected: profileFactory.Create(state)
+                   .PowerSupport,
+                actual: result.PowerSupportIndex);
+            Assert.Equal(
+                expected: 2,
+                actual: result.Districts.Count);
+            Assert.Equal(
+                expectedSpan:
+                [
+                    FirstDistrictId,
+                    SecondDistrictId
+                ],
+                actualArray: result.Districts.Select(x => x.DistrictId)
+                   .OrderBy(x => x)
+                   .ToArray());
+            Assert.True(result.Districts[0].MaintenancePriorityIndex >= result.Districts[1].MaintenancePriorityIndex);
+            Assert.All(
+                collection: result.Districts,
+                action: district =>
+                {
+                    Assert.InRange(
+                        actual: district.PowerCoverageIndex,
+                        low: 0m,
+                        high: 1m);
+                    Assert.InRange(
+                        actual: district.PowerSupportIndex,
+                        low: 0m,
+                        high: 1m);
+                    Assert.InRange(
+                        actual: district.OutageRiskIndex,
+                        low: 0m,
+                        high: 1m);
+                    Assert.InRange(
+                        actual: district.RestorationStrainIndex,
+                        low: 0m,
+                        high: 1m);
+                    Assert.InRange(
+                        actual: district.MaintenancePriorityIndex,
+                        low: 0m,
+                        high: 1m);
+                });
+        }
+
+        private static GetCityDistrictPowerDistributionConditionsQueryHandler CreateHandler(
+            FakeCityEnvironmentalConditionRepository repository,
+            FakeCityMapTopologyClient topologyClient)
+        {
+            return new GetCityDistrictPowerDistributionConditionsQueryHandler(
+                repository: repository,
+                cityMapTopologyClient: topologyClient,
+                pressureProfileFactory: new ClassicCityWeatherPressureProfileFactory(),
+                projectionPolicy: new ClassicCityDistrictPowerDistributionProjectionPolicy());
+        }
     }
 }

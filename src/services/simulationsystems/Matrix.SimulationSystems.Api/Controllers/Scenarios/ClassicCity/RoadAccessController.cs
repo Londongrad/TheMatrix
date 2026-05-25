@@ -1,8 +1,8 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.DispatchCityRoadAccessMaintenance;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadAccessStatus;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.SetCityRoadAccessEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Requests;
@@ -128,8 +128,8 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
                 RoadSupportIndex: dto.RoadSupportIndex,
                 Segments: dto.Segments
-                    .Select(MapToSegmentConditionView)
-                    .ToArray());
+                   .Select(MapToSegmentConditionView)
+                   .ToArray());
         }
 
         private static CityRoadSegmentConditionView MapToSegmentConditionView(CityRoadSegmentConditionDto dto)

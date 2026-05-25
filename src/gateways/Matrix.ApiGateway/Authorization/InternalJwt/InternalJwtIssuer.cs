@@ -13,8 +13,8 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
         IOptions<InternalUserContextJwtOptions> options,
         TimeProvider timeProvider) : IInternalJwtIssuer
     {
-        private readonly InternalUserContextJwtOptions _options = options.Value;
         private readonly InternalJwtResolvedKeyRing _keyRing = ValidateOptions(options.Value);
+        private readonly InternalUserContextJwtOptions _options = options.Value;
         private readonly TimeProvider _timeProvider = timeProvider;
 
         public string Issue(
@@ -61,7 +61,8 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
 
             DateTimeOffset now = _timeProvider.GetUtcNow();
             DateTime issuedAtUtc = now.UtcDateTime;
-            DateTime expiresAtUtc = now.AddSeconds(_options.LifetimeSeconds).UtcDateTime;
+            DateTime expiresAtUtc = now.AddSeconds(_options.LifetimeSeconds)
+               .UtcDateTime;
 
             var header = new JwtHeader(credentials)
             {
@@ -76,7 +77,9 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
                 expires: expiresAtUtc,
                 issuedAt: issuedAtUtc);
 
-            var token = new JwtSecurityToken(header, payload);
+            var token = new JwtSecurityToken(
+                header: header,
+                payload: payload);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

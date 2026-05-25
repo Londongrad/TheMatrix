@@ -1,16 +1,12 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
-using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
-using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Weather;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
@@ -22,14 +18,14 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
 using HouseholdEntity = Matrix.Population.Domain.Entities.Household;
-using EducationInstitutionId = Matrix.Population.Domain.ValueObjects.EducationInstitutionId;
 using WorkplaceId = Matrix.Population.Domain.ValueObjects.WorkplaceId;
 using Job = Matrix.Population.Domain.ValueObjects.Job;
 using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
 using DistrictId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.DistrictId;
 using ResidentialBuildingId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.ResidentialBuildingId;
-using CityEducationInstitutionBinding = Matrix.Population.Domain.Scenarios.ClassicCity.Models.CityEducationInstitutionBinding;
+using CityEducationInstitutionBinding =
+    Matrix.Population.Domain.Scenarios.ClassicCity.Models.CityEducationInstitutionBinding;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
@@ -168,8 +164,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
             List<ClassicCityHouseholdCashflowSettlementItemV1> pendingHouseholdCashflowItems = [];
             List<ClassicCityWorkplacePayrollSettlementItemV1> pendingWorkplacePayrollItems = [];
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId =
-                new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>();
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId =
+                    new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>();
 
             if ((requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure) && environment is null)
                 logger.LogWarning(
@@ -178,7 +175,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     request.CityId);
 
             if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure)
-            {
                 try
                 {
                     districtUtilityConditionsByDistrictId =
@@ -189,11 +185,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 catch (Exception ex)
                 {
                     logger.LogWarning(
-                        ex,
+                        exception: ex,
+                        message:
                         "Failed to load district utility conditions for cityId={CityId}. Falling back to synthetic district impact.",
                         request.CityId);
                 }
-            }
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -516,7 +512,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 cancellationToken: cancellationToken);
 
             if (personsSnapshot is not null && placementsSnapshot is not null)
-            {
                 try
                 {
                     await commuteTripSyncService.SyncAsync(
@@ -536,17 +531,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 catch (Exception ex)
                 {
                     logger.LogWarning(
-                        ex,
-                        "Failed to sync population commute trips for cityId={CityId} at tickId={TickId}.",
+                        exception: ex,
+                        message: "Failed to sync population commute trips for cityId={CityId} at tickId={TickId}.",
                         request.CityId,
                         request.TickId);
                 }
-            }
 
             return new AdvanceCityPopulationResult(
                 Status: AdvanceCityPopulationStatus.Applied,
                 AffectedPeopleCount: affectedPeopleCount);
         }
-
     }
 }

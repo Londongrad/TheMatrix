@@ -15,8 +15,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         IPopulationGenerationContentCatalog contentCatalog,
         CityPopulationAnchorSelectionPolicy anchorSelectionPolicy)
     {
-        private readonly IPopulationGenerationContentCatalog _contentCatalog = contentCatalog;
         private readonly CityPopulationAnchorSelectionPolicy _anchorSelectionPolicy = anchorSelectionPolicy;
+        private readonly IPopulationGenerationContentCatalog _contentCatalog = contentCatalog;
 
         public PopulationBootstrapResult GenerateStandalone(
             int peopleCount,
@@ -1509,9 +1509,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (shouldCreateNew)
             {
                 CityAnchorId? workplaceAnchorId = _anchorSelectionPolicy.SelectWorkplaceAnchor(
-                    anchors: cityAnchors,
-                    preferredDistrictId: preferredDistrictId,
-                    stableKey: stableKey)?.CityAnchorId;
+                        anchors: cityAnchors,
+                        preferredDistrictId: preferredDistrictId,
+                        stableKey: stableKey)
+                  ?.CityAnchorId;
                 var created = new Job(
                     workplaceId: WorkplaceId.New(),
                     title: title,
@@ -1544,9 +1545,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (shouldCreateNew)
             {
                 CityAnchorId? institutionAnchorId = _anchorSelectionPolicy.SelectSchoolAnchor(
-                    anchors: cityAnchors,
-                    preferredDistrictId: preferredDistrictId,
-                    stableKey: stableKey)?.CityAnchorId;
+                        anchors: cityAnchors,
+                        preferredDistrictId: preferredDistrictId,
+                        stableKey: stableKey)
+                  ?.CityAnchorId;
                 var created = new CityEducationInstitutionBinding(
                     InstitutionId: EducationInstitutionId.New(),
                     InstitutionAnchorId: institutionAnchorId);

@@ -45,8 +45,7 @@ namespace Matrix.Economy.Domain.Entities
             DateTimeOffset updatedAtUtc)
         {
             if (processedDate < LastProcessedDate)
-                throw new InvalidOperationException(
-                    "Economy progression date cannot move backwards.");
+                throw new InvalidOperationException("Economy progression date cannot move backwards.");
 
             LastProcessedDate = processedDate;
             UpdatedAtUtc = updatedAtUtc;
@@ -57,8 +56,7 @@ namespace Matrix.Economy.Domain.Entities
             DateTimeOffset updatedAtUtc)
         {
             if (tickId < LastCompletedTickId)
-                throw new InvalidOperationException(
-                    "Economy progression tick cannot move backwards.");
+                throw new InvalidOperationException("Economy progression tick cannot move backwards.");
 
             LastCompletedTickId = tickId;
             UpdatedAtUtc = updatedAtUtc;

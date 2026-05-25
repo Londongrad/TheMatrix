@@ -1,5 +1,3 @@
-using System.Net;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -35,9 +33,10 @@ namespace Matrix.BuildingBlocks.Api.Errors
             string? instance = null)
         {
             ProblemDetails problem = errors is not null
-                ? new ValidationProblemDetails(errors.ToDictionary(
-                    keySelector: kvp => kvp.Key,
-                    elementSelector: kvp => kvp.Value.ToArray()))
+                ? new ValidationProblemDetails(
+                    errors.ToDictionary(
+                        keySelector: kvp => kvp.Key,
+                        elementSelector: kvp => kvp.Value.ToArray()))
                 : new ProblemDetails();
 
             problem.Status = statusCode;
@@ -62,12 +61,13 @@ namespace Matrix.BuildingBlocks.Api.Errors
             string message,
             IReadOnlyDictionary<string, string[]>? errors = null)
         {
-            var result = new ObjectResult(Create(
-                context: context,
-                statusCode: statusCode,
-                code: code,
-                message: message,
-                errors: errors))
+            var result = new ObjectResult(
+                Create(
+                    context: context,
+                    statusCode: statusCode,
+                    code: code,
+                    message: message,
+                    errors: errors))
             {
                 StatusCode = statusCode
             };
@@ -93,7 +93,7 @@ namespace Matrix.BuildingBlocks.Api.Errors
                     code: code,
                     message: message,
                     errors: errors),
-                options: (JsonSerializerOptions?)null,
+                options: null,
                 contentType: ProblemContentType,
                 cancellationToken: cancellationToken);
         }

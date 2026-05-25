@@ -9,9 +9,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
     {
         public DispatchCityTripCommandValidator()
         {
-            RuleFor(x => x.CityId).NotEmpty();
-            RuleFor(x => x.FromId).NotEmpty();
-            RuleFor(x => x.ToId).NotEmpty();
+            RuleFor(x => x.CityId)
+               .NotEmpty();
+            RuleFor(x => x.FromId)
+               .NotEmpty();
+            RuleFor(x => x.ToId)
+               .NotEmpty();
             RuleFor(x => x.FromKind)
                .Must(value => CityRouteMapPointKinds.IsSupported(CityRouteMapPointKinds.Normalize(value)))
                .WithMessage("Unsupported origin point kind.");

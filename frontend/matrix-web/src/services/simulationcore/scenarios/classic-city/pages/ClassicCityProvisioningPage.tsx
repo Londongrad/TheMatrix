@@ -24,9 +24,9 @@ import {
     getBootstrapOutcome,
 } from "@services/simulationcore/scenarios/classic-city/utils/provisioning";
 import {
-    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_LIST_PATH,
     getClassicCityDetailsPath,
+    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
 } from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";

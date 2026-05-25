@@ -1,4 +1,3 @@
-using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;

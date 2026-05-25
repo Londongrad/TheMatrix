@@ -30,8 +30,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public decimal IncidentPressureIndex { get; private set; }
         public bool EmergencyModeEnabled { get; private set; }
 
-        public static CityRoadAccessInfrastructureState Create(
-            CityRoadAccessInfrastructureSnapshot snapshot)
+        public static CityRoadAccessInfrastructureState Create(CityRoadAccessInfrastructureSnapshot snapshot)
         {
             ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -121,10 +120,15 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
 
             CorridorAvailabilityIndex = ClampAndRound(CorridorAvailabilityIndex + (corridorBoost * intensityFactor));
             SurfaceIntegrityIndex = ClampAndRound(SurfaceIntegrityIndex + (surfaceBoost * intensityFactor));
-            TrafficControlReadinessIndex = ClampAndRound(TrafficControlReadinessIndex + (trafficBoost * intensityFactor));
+            TrafficControlReadinessIndex =
+                ClampAndRound(TrafficControlReadinessIndex + (trafficBoost * intensityFactor));
             IncidentPressureIndex = ClampAndRound(IncidentPressureIndex - (incidentRelief * intensityFactor));
             CrewReadinessIndex = ClampAndRound(
-                CrewReadinessIndex + (crewDelta * intensityFactor) + (EmergencyModeEnabled ? -0.0200m : 0.0200m));
+                CrewReadinessIndex +
+                (crewDelta * intensityFactor) +
+                (EmergencyModeEnabled
+                    ? -0.0200m
+                    : 0.0200m));
         }
 
         public CityRoadAccessInfrastructureSnapshot ToSnapshot()

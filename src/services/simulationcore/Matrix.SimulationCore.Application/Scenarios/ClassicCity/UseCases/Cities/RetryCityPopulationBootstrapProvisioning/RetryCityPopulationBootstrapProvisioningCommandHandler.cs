@@ -2,12 +2,14 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provision
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RestartPopulationBootstrap;
 using MediatR;
 
-namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RetryCityPopulationBootstrapProvisioning
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.
+    RetryCityPopulationBootstrapProvisioning
 {
     public sealed class RetryCityPopulationBootstrapProvisioningCommandHandler(
         IMediator mediator,
         IClassicCityProvisioningOrchestrator orchestrator)
-        : IRequestHandler<RetryCityPopulationBootstrapProvisioningCommand, RetryCityPopulationBootstrapProvisioningResult>
+        : IRequestHandler<RetryCityPopulationBootstrapProvisioningCommand,
+            RetryCityPopulationBootstrapProvisioningResult>
     {
         public async Task<RetryCityPopulationBootstrapProvisioningResult> Handle(
             RetryCityPopulationBootstrapProvisioningCommand request,
@@ -30,8 +32,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                     RetryCityPopulationBootstrapProvisioningResult.NotFound(),
                 RestartCityPopulationBootstrapStatus.NotAllowed =>
                     RetryCityPopulationBootstrapProvisioningResult.NotAllowed(),
-                _ => throw new InvalidOperationException(
-                    $"Unsupported retry provisioning status '{restarted.Status}'.")
+                _ => throw new InvalidOperationException($"Unsupported retry provisioning status '{restarted.Status}'.")
             };
         }
     }

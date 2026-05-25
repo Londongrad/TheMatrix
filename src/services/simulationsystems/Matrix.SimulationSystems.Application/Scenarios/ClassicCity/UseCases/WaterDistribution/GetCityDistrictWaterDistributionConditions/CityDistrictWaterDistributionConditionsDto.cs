@@ -1,4 +1,5 @@
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityDistrictWaterDistributionConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    GetCityDistrictWaterDistributionConditions
 {
     public sealed record CityDistrictWaterDistributionConditionsDto(
         Guid CityId,

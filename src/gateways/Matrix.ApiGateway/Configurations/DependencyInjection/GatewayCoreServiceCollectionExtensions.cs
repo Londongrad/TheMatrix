@@ -1,10 +1,9 @@
+using Matrix.ApiGateway.Configurations.Options;
+using Matrix.ApiGateway.Configurations.Security;
 using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
-using Matrix.ApiGateway.Configurations.Options;
-using Matrix.ApiGateway.Configurations.Security;
 using Matrix.BuildingBlocks.Api.Errors;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
 {
@@ -19,13 +18,16 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Bind(configuration.GetSection(CityOperationsDashboardOptions.SectionName))
                .Validate(
                     validation: options => options.PanelReadTimeoutSeconds > 0,
-                    failureMessage: $"{CityOperationsDashboardOptions.SectionName}:PanelReadTimeoutSeconds must be greater than 0.")
+                    failureMessage:
+                    $"{CityOperationsDashboardOptions.SectionName}:PanelReadTimeoutSeconds must be greater than 0.")
                .Validate(
                     validation: options => options.HealthProbeTimeoutSeconds > 0,
-                    failureMessage: $"{CityOperationsDashboardOptions.SectionName}:HealthProbeTimeoutSeconds must be greater than 0.")
+                    failureMessage:
+                    $"{CityOperationsDashboardOptions.SectionName}:HealthProbeTimeoutSeconds must be greater than 0.")
                .Validate(
                     validation: options => options.MaxConcurrentCitySnapshotLoads > 0,
-                    failureMessage: $"{CityOperationsDashboardOptions.SectionName}:MaxConcurrentCitySnapshotLoads must be greater than 0.")
+                    failureMessage:
+                    $"{CityOperationsDashboardOptions.SectionName}:MaxConcurrentCitySnapshotLoads must be greater than 0.")
                .ValidateOnStart();
 
             services.AddOptions<FrontendSecurityOptions>()
@@ -39,7 +41,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: options => !options.EnforceCookieOriginProtection ||
                                            options.AllowedOrigins.Any(x => !string.IsNullOrWhiteSpace(x)),
-                    failureMessage: $"{FrontendSecurityOptions.SectionName}:AllowedOrigins must contain at least one origin when cookie origin protection is enabled.")
+                    failureMessage:
+                    $"{FrontendSecurityOptions.SectionName}:AllowedOrigins must contain at least one origin when cookie origin protection is enabled.")
                .ValidateOnStart();
 
             services
@@ -53,7 +56,9 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .AddScoped<IClassicCitySetupSessionService, ClassicCitySetupSessionService>()
                .AddHostedService<ClassicCitySetupSessionRecoveryHostedService>()
                .AddGatewayControllers()
-               .AddGatewayCors(configuration, environment);
+               .AddGatewayCors(
+                    configuration: configuration,
+                    environment: environment);
 
             return services;
         }
@@ -92,9 +97,9 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         {
             string[] allowedOrigins = GetAllowedOrigins(
                 configuredOrigins: configuration
-               .GetSection(FrontendSecurityOptions.SectionName)
-               .GetSection(nameof(FrontendSecurityOptions.AllowedOrigins))
-               .Get<string[]>() ?? [],
+                   .GetSection(FrontendSecurityOptions.SectionName)
+                   .GetSection(nameof(FrontendSecurityOptions.AllowedOrigins))
+                   .Get<string[]>() ?? [],
                 environment: environment);
 
             services.AddCors(options =>
@@ -120,9 +125,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         {
             IEnumerable<string> allowedOrigins = configuredOrigins;
             if (environment.IsDevelopment())
-            {
                 allowedOrigins = allowedOrigins.Concat(FrontendSecurityOptions.DevelopmentLocalAllowedOrigins);
-            }
 
             return allowedOrigins
                .Where(x => !string.IsNullOrWhiteSpace(x))

@@ -1,8 +1,8 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
-using Matrix.Population.Application.UseCases.Person.ResurrectPerson;
-using Matrix.Population.Application.Tests.TestSupport;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.UseCases.Person.ResurrectPerson;
+using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
@@ -10,118 +10,161 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
 
-namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson;
-
-public sealed class ResurrectPersonCommandHandlerTests
+namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
 {
-    [Fact]
-    public async Task Handle_WhenPersonDoesNotExist_ThrowsNotFound()
+    public sealed class ResurrectPersonCommandHandlerTests
     {
-        var handler = CreateHandler(personReadRepository: new FakePersonReadRepository());
-
-        MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new ResurrectPersonCommand(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")),
-            CancellationToken.None));
-
-        Assert.Equal("Population.Person.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-    }
-
-    [Fact]
-    public async Task Handle_WhenPersonHasNoCity_ResurrectsAndSkipsClassicCitySideEffects()
-    {
-        Matrix.Population.Domain.Entities.Person person = CreatePerson(
-            lifeStatus: LifeStatus.Deceased,
-            health: 80,
-            birthDate: new DateOnly(2030, 5, 3));
-        var personReadRepository = new FakePersonReadRepository
+        [Fact]
+        public async Task Handle_WhenPersonDoesNotExist_ThrowsNotFound()
         {
-            PersonById = person
-        };
-        personReadRepository.PersonsById[person.Id] = person;
-        var personWriteRepository = new FakePersonWriteRepository();
-        var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
-        var activityJournalService = new FakeCityPopulationActivityJournalService();
-        var unitOfWork = new FakeUnitOfWork();
-        var handler = CreateHandler(
-            personReadRepository: personReadRepository,
-            personWriteRepository: personWriteRepository,
-            summaryProjectionService: summaryProjectionService,
-            activityJournalService: activityJournalService,
-            unitOfWork: unitOfWork);
+            ResurrectPersonCommandHandler handler = CreateHandler(personReadRepository: new FakePersonReadRepository());
 
-        var result = await handler.Handle(new ResurrectPersonCommand(person.Id.Value), CancellationToken.None);
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new ResurrectPersonCommand(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal(LifeStatus.Alive, person.LifeStatus);
-        Assert.Equal("Alive", result.LifeStatus);
-        Assert.Single(personWriteRepository.UpdatedPersons);
-        Assert.Empty(summaryProjectionService.RebuildCalls);
-        Assert.Empty(activityJournalService.Entries);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-    }
+            Assert.Equal(
+                expected: "Population.Person.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+        }
 
-    [Fact]
-    public async Task Handle_WhenPersonBelongsToCity_UsesProgressionDateAndRecordsActivity()
-    {
-        Matrix.Population.Domain.Entities.Person person = CreatePerson(
-            personId: Guid.Parse("11111111-aaaa-bbbb-cccc-111111111111"),
-            lifeStatus: LifeStatus.Deceased,
-            health: 80,
-            birthDate: new DateOnly(2030, 5, 3));
-        CityId cityId = CityId.From(Guid.Parse("22222222-aaaa-bbbb-cccc-222222222222"));
-        var personReadRepository = new FakePersonReadRepository
+        [Fact]
+        public async Task Handle_WhenPersonHasNoCity_ResurrectsAndSkipsClassicCitySideEffects()
         {
-            PersonById = person
-        };
-        personReadRepository.PersonsById[person.Id] = person;
-        var cityPopulationPersonReadRepository = new FakeCityPopulationPersonReadRepository
+            Domain.Entities.Person person = CreatePerson(
+                lifeStatus: LifeStatus.Deceased,
+                health: 80,
+                birthDate: new DateOnly(
+                    year: 2030,
+                    month: 5,
+                    day: 3));
+            var personReadRepository = new FakePersonReadRepository
+            {
+                PersonById = person
+            };
+            personReadRepository.PersonsById[person.Id] = person;
+            var personWriteRepository = new FakePersonWriteRepository();
+            var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
+            var activityJournalService = new FakeCityPopulationActivityJournalService();
+            var unitOfWork = new FakeUnitOfWork();
+            ResurrectPersonCommandHandler handler = CreateHandler(
+                personReadRepository: personReadRepository,
+                personWriteRepository: personWriteRepository,
+                summaryProjectionService: summaryProjectionService,
+                activityJournalService: activityJournalService,
+                unitOfWork: unitOfWork);
+
+            PersonDto result = await handler.Handle(
+                request: new ResurrectPersonCommand(person.Id.Value),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: LifeStatus.Alive,
+                actual: person.LifeStatus);
+            Assert.Equal(
+                expected: "Alive",
+                actual: result.LifeStatus);
+            Assert.Single(personWriteRepository.UpdatedPersons);
+            Assert.Empty(summaryProjectionService.RebuildCalls);
+            Assert.Empty(activityJournalService.Entries);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+        }
+
+        [Fact]
+        public async Task Handle_WhenPersonBelongsToCity_UsesProgressionDateAndRecordsActivity()
         {
-            CityIdByPersonId = cityId
-        };
-        var progressionStateRepository = new FakeCityPopulationProgressionStateRepository
+            Domain.Entities.Person person = CreatePerson(
+                personId: Guid.Parse("11111111-aaaa-bbbb-cccc-111111111111"),
+                lifeStatus: LifeStatus.Deceased,
+                health: 80,
+                birthDate: new DateOnly(
+                    year: 2030,
+                    month: 5,
+                    day: 3));
+            var cityId = CityId.From(Guid.Parse("22222222-aaaa-bbbb-cccc-222222222222"));
+            var personReadRepository = new FakePersonReadRepository
+            {
+                PersonById = person
+            };
+            personReadRepository.PersonsById[person.Id] = person;
+            var cityPopulationPersonReadRepository = new FakeCityPopulationPersonReadRepository
+            {
+                CityIdByPersonId = cityId
+            };
+            var progressionStateRepository = new FakeCityPopulationProgressionStateRepository
+            {
+                State = CityPopulationProgressionState.Create(
+                    cityId: cityId,
+                    lastProcessedTickId: 9,
+                    lastProcessedDate: new DateOnly(
+                        year: 2048,
+                        month: 4,
+                        day: 30),
+                    updatedAtUtc: UtcNow)
+            };
+            var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
+            var activityJournalService = new FakeCityPopulationActivityJournalService();
+            ResurrectPersonCommandHandler handler = CreateHandler(
+                personReadRepository: personReadRepository,
+                cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
+                progressionStateRepository: progressionStateRepository,
+                summaryProjectionService: summaryProjectionService,
+                activityJournalService: activityJournalService);
+
+            PersonDto result = await handler.Handle(
+                request: new ResurrectPersonCommand(person.Id.Value),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: "Alive",
+                actual: result.LifeStatus);
+            Assert.Single(summaryProjectionService.RebuildCalls);
+            Assert.Equal(
+                expected: (cityId, new DateOnly(
+                               year: 2048,
+                               month: 4,
+                               day: 30)),
+                actual: summaryProjectionService.RebuildCalls[0]);
+            CityPopulationActivityWriteModel activity = Assert.Single(activityJournalService.Entries);
+            Assert.Equal(
+                expected: CityPopulationActivityEventType.ResidentResurrected,
+                actual: activity.EventType);
+            Assert.Equal(
+                expected: new DateOnly(
+                    year: 2048,
+                    month: 4,
+                    day: 30),
+                actual: activity.CurrentDate);
+        }
+
+        private static ResurrectPersonCommandHandler CreateHandler(
+            FakePersonReadRepository? personReadRepository = null,
+            FakeCityPopulationPersonReadRepository? cityPopulationPersonReadRepository = null,
+            FakeCityPopulationProgressionStateRepository? progressionStateRepository = null,
+            FakeCityPopulationActivityJournalService? activityJournalService = null,
+            FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
+            FakePersonWriteRepository? personWriteRepository = null,
+            FakeUnitOfWork? unitOfWork = null)
         {
-            State = CityPopulationProgressionState.Create(
-                cityId: cityId,
-                lastProcessedTickId: 9,
-                lastProcessedDate: new DateOnly(2048, 4, 30),
-                updatedAtUtc: UtcNow)
-        };
-        var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
-        var activityJournalService = new FakeCityPopulationActivityJournalService();
-        var handler = CreateHandler(
-            personReadRepository: personReadRepository,
-            cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
-            progressionStateRepository: progressionStateRepository,
-            summaryProjectionService: summaryProjectionService,
-            activityJournalService: activityJournalService);
-
-        var result = await handler.Handle(new ResurrectPersonCommand(person.Id.Value), CancellationToken.None);
-
-        Assert.Equal("Alive", result.LifeStatus);
-        Assert.Single(summaryProjectionService.RebuildCalls);
-        Assert.Equal((cityId, new DateOnly(2048, 4, 30)), summaryProjectionService.RebuildCalls[0]);
-        CityPopulationActivityWriteModel activity = Assert.Single(activityJournalService.Entries);
-        Assert.Equal(CityPopulationActivityEventType.ResidentResurrected, activity.EventType);
-        Assert.Equal(new DateOnly(2048, 4, 30), activity.CurrentDate);
-    }
-
-    private static ResurrectPersonCommandHandler CreateHandler(
-        FakePersonReadRepository? personReadRepository = null,
-        FakeCityPopulationPersonReadRepository? cityPopulationPersonReadRepository = null,
-        FakeCityPopulationProgressionStateRepository? progressionStateRepository = null,
-        FakeCityPopulationActivityJournalService? activityJournalService = null,
-        FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
-        FakePersonWriteRepository? personWriteRepository = null,
-        FakeUnitOfWork? unitOfWork = null)
-    {
-        return new ResurrectPersonCommandHandler(
-            personReadRepository ?? new FakePersonReadRepository(),
-            cityPopulationPersonReadRepository ?? new FakeCityPopulationPersonReadRepository(),
-            progressionStateRepository ?? new FakeCityPopulationProgressionStateRepository(),
-            activityJournalService ?? new FakeCityPopulationActivityJournalService(),
-            summaryProjectionService ?? new FakeCityPopulationSummaryProjectionService(),
-            personWriteRepository ?? new FakePersonWriteRepository(),
-            new FakeTimeProvider(UtcNow),
-            unitOfWork ?? new FakeUnitOfWork());
+            return new ResurrectPersonCommandHandler(
+                personReadRepository: personReadRepository ?? new FakePersonReadRepository(),
+                cityPopulationPersonReadRepository: cityPopulationPersonReadRepository ??
+                                                    new FakeCityPopulationPersonReadRepository(),
+                cityPopulationProgressionStateRepository: progressionStateRepository ??
+                                                          new FakeCityPopulationProgressionStateRepository(),
+                cityPopulationActivityJournalService: activityJournalService ??
+                                                      new FakeCityPopulationActivityJournalService(),
+                cityPopulationSummaryProjectionService: summaryProjectionService ??
+                                                        new FakeCityPopulationSummaryProjectionService(),
+                personWriteRepository: personWriteRepository ?? new FakePersonWriteRepository(),
+                timeProvider: new FakeTimeProvider(UtcNow),
+                unitOfWork: unitOfWork ?? new FakeUnitOfWork());
+        }
     }
 }

@@ -29,32 +29,26 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
                 cancellationToken: cancellationToken);
 
             if (city is null)
-            {
                 return new DispatchCityTripResult(
                     Status: DispatchCityTripStatus.CityNotFound,
                     Trip: null,
                     FailureReason: "City was not found.");
-            }
 
             if (city.IsArchived || city.IsProvisioning)
-            {
                 return new DispatchCityTripResult(
                     Status: DispatchCityTripStatus.CityNotReady,
                     Trip: null,
                     FailureReason: "Trips can be dispatched only for active cities.");
-            }
 
             SimulationClock? clock = await clockRepository.GetBySimulationIdAsync(
                 simulationId: new SimulationId(request.CityId),
                 cancellationToken: cancellationToken);
 
             if (clock is null)
-            {
                 return new DispatchCityTripResult(
                     Status: DispatchCityTripStatus.CityNotReady,
                     Trip: null,
                     FailureReason: "Simulation clock is not available for this city.");
-            }
 
             CityRouteDto? route = await mediator.Send(
                 request: new ResolveCityRouteQuery(
@@ -67,30 +61,28 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
                 cancellationToken: cancellationToken);
 
             if (route is null)
-            {
                 return new DispatchCityTripResult(
                     Status: DispatchCityTripStatus.RouteUnavailable,
                     Trip: null,
                     FailureReason: "Trip route could not be resolved for the selected points.");
-            }
 
             if (!route.Accessible)
-            {
                 return new DispatchCityTripResult(
                     Status: DispatchCityTripStatus.RouteUnavailable,
                     Trip: null,
                     FailureReason: route.UnreachableReason ?? "No accessible route is currently available.");
-            }
 
             IReadOnlyList<RoadNode> roadNodes = await roadNodeRepository.ListByCityIdAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
-            Dictionary<Guid, RoadNode> roadNodeById = roadNodes.ToDictionary(
+            var roadNodeById = roadNodes.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
 
             IReadOnlyList<CityActiveTripSegment> segments = route.Segments
-               .Select((segment, index) => CreateSegmentSnapshot(
+               .Select((
+                    segment,
+                    index) => CreateSegmentSnapshot(
                     segment: segment,
                     sequence: index,
                     roadNodeById: roadNodeById))
@@ -102,7 +94,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
                 ? CityTripPurposeNames.ResolveDefaultSubject(normalizedPurpose)
                 : request.Subject.Trim();
 
-            CityActiveTrip trip = CityActiveTrip.Create(
+            var trip = CityActiveTrip.Create(
                 cityId: cityId,
                 travellerEntityId: request.TravellerEntityId,
                 subject: subject,
@@ -147,12 +139,14 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
             int sequence,
             IReadOnlyDictionary<Guid, RoadNode> roadNodeById)
         {
-            if (!roadNodeById.TryGetValue(segment.FromRoadNodeId, out RoadNode? fromRoadNode)
-             || !roadNodeById.TryGetValue(segment.ToRoadNodeId, out RoadNode? toRoadNode))
-            {
+            if (!roadNodeById.TryGetValue(
+                    key: segment.FromRoadNodeId,
+                    value: out RoadNode? fromRoadNode) ||
+                !roadNodeById.TryGetValue(
+                    key: segment.ToRoadNodeId,
+                    value: out RoadNode? toRoadNode))
                 throw new InvalidOperationException(
                     $"Road-node coordinates are missing for route segment '{segment.RoadSegmentId}'.");
-            }
 
             return CityActiveTripSegment.Create(
                 sequence: sequence,

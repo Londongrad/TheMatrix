@@ -1,28 +1,40 @@
+using FluentValidation.Results;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RenameCity;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.RenameCity;
-
-public sealed class RenameCityCommandValidatorTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.RenameCity
 {
-    private readonly RenameCityCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidValues_ReturnsNoErrors()
+    public sealed class RenameCityCommandValidatorTests
     {
-        var result = _validator.Validate(new RenameCityCommand(Guid.NewGuid(), "Neo Tokyo"));
+        private readonly RenameCityCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidValues_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new RenameCityCommand(
+                    CityId: Guid.NewGuid(),
+                    Name: "Neo Tokyo"));
 
-    [Fact]
-    public void Validate_WithInvalidValues_ReturnsErrors()
-    {
-        var result = _validator.Validate(new RenameCityCommand(Guid.Empty, ""));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.PropertyName == "CityId");
-        Assert.Contains(result.Errors, error => error.PropertyName == "Name");
+        [Fact]
+        public void Validate_WithInvalidValues_ReturnsErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new RenameCityCommand(
+                    CityId: Guid.Empty,
+                    Name: ""));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "CityId");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: error => error.PropertyName == "Name");
+        }
     }
 }

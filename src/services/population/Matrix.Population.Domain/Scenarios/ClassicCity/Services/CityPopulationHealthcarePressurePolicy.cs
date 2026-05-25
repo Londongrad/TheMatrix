@@ -55,16 +55,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             decimal residentCount = aliveResidents.Length;
             decimal healthcareQualityIndex = serviceQualityState?.HealthcareQualityIndex ?? 1m;
-            decimal medicineStockSupport = ResolvePositiveSupport(
-                essentialsState?.MedicineStockLevelIndex ?? 1m);
-            decimal medicineShortagePressure = ResolvePressureExcess(
-                essentialsState?.MedicineShortageRiskIndex ?? 1m);
+            decimal medicineStockSupport = ResolvePositiveSupport(essentialsState?.MedicineStockLevelIndex ?? 1m);
+            decimal medicineShortagePressure = ResolvePressureExcess(essentialsState?.MedicineShortageRiskIndex ?? 1m);
             decimal emergencyWaterShortagePressure = ResolvePressureExcess(
                 essentialsState?.EmergencyWaterShortageRiskIndex ?? 1m);
-            decimal roadAccessDeficit = ResolveCoverageDeficit(
-                livingConditionsState?.RoadAccessibilityIndex ?? 1m);
-            decimal powerCoverageDeficit = ResolveCoverageDeficit(
-                livingConditionsState?.PowerCoverageIndex ?? 1m);
+            decimal roadAccessDeficit = ResolveCoverageDeficit(livingConditionsState?.RoadAccessibilityIndex ?? 1m);
+            decimal powerCoverageDeficit = ResolveCoverageDeficit(livingConditionsState?.PowerCoverageIndex ?? 1m);
             decimal utilityContinuityDeficit = ResolveCoverageDeficit(
                 livingConditionsState?.UtilityContinuityIndex ?? 1m);
             decimal sanitationCoverageDeficit = ResolveCoverageDeficit(

@@ -1,29 +1,41 @@
+using FluentValidation.Results;
 using Matrix.SimulationCore.Application.UseCases.Simulation.SetClockSpeed;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.SetClockSpeed;
-
-public sealed class SetClockSpeedCommandValidatorTests
+namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.SetClockSpeed
 {
-    private readonly SetClockSpeedCommandValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidMultiplier_ReturnsNoErrors()
+    public sealed class SetClockSpeedCommandValidatorTests
     {
-        var result = _validator.Validate(new SetClockSpeedCommand(Guid.NewGuid(), 60m));
+        private readonly SetClockSpeedCommandValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidMultiplier_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new SetClockSpeedCommand(
+                    SimulationId: Guid.NewGuid(),
+                    Multiplier: 60m));
 
-    [Fact]
-    public void Validate_WithOutOfRangeMultiplier_ReturnsErrors()
-    {
-        var result = _validator.Validate(new SetClockSpeedCommand(Guid.Empty, SimSpeed.Max + 1));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "SimulationId");
-        Assert.Contains(result.Errors, x => x.PropertyName == "Multiplier");
+        [Fact]
+        public void Validate_WithOutOfRangeMultiplier_ReturnsErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new SetClockSpeedCommand(
+                    SimulationId: Guid.Empty,
+                    Multiplier: SimSpeed.Max + 1));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "SimulationId");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Multiplier");
+        }
     }
 }

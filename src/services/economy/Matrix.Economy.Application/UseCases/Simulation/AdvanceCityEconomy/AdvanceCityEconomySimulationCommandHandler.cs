@@ -2,6 +2,8 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
+using Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
+using Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
@@ -20,8 +22,8 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
             AdvanceCityEconomySimulationCommand request,
             CancellationToken cancellationToken)
         {
-            DateOnly fromDate = DateOnly.FromDateTime(request.FromSimTimeUtc.UtcDateTime);
-            DateOnly toDate = DateOnly.FromDateTime(request.ToSimTimeUtc.UtcDateTime);
+            var fromDate = DateOnly.FromDateTime(request.FromSimTimeUtc.UtcDateTime);
+            var toDate = DateOnly.FromDateTime(request.ToSimTimeUtc.UtcDateTime);
             CityEconomyProgressionState? state = await progressionStateRepository.GetByCityAsync(
                 cityId: request.CityId,
                 cancellationToken: cancellationToken);
@@ -59,78 +61,83 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
             foreach (DateOnly cycleDate in EnumerateUnprocessedDates(
                          previousDate: previousDate,
                          currentDate: toDate))
-            {
-                await unitOfWork.ExecuteInTransactionAsync(async ct =>
+                await unitOfWork.ExecuteInTransactionAsync(
+                    action: async ct =>
+                    {
+                        DateTimeOffset cycleAsOfUtc = ResolveCycleAsOfUtc(
+                            cycleDate: cycleDate,
+                            finalDate: toDate,
+                            finalSimTimeUtc: request.ToSimTimeUtc);
+                        ClassicCityCostOfLivingSnapshotV1? costOfLivingSnapshot =
+                            await recurringCycleExecutionService.ExecuteCostOfLivingAsync(
+                                cityId: request.CityId,
+                                asOfUtc: cycleAsOfUtc,
+                                cancellationToken: ct);
+
+                        CityEconomyBillingCycleExecutionResult billingResult =
+                            await recurringCycleExecutionService.ExecuteBillingAsync(
+                                cityId: request.CityId,
+                                asOfUtc: cycleAsOfUtc,
+                                cancellationToken: ct);
+                        RunCityBusinessTaxCycleResultDto taxResult =
+                            await recurringCycleExecutionService.ExecuteTaxCycleAsync(
+                                cityId: request.CityId,
+                                budgetCategory: CityBudgetCategory.Taxation,
+                                cancellationToken: ct);
+                        RunCityMunicipalOperatingCycleResultDto municipalResult =
+                            await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
+                                cityId: request.CityId,
+                                cancellationToken: ct);
+                        ClassicCityServiceQualitySnapshotV1 serviceQualitySnapshot =
+                            await recurringCycleExecutionService.ExecuteServiceQualityAsync(
+                                cityId: request.CityId,
+                                asOfUtc: cycleAsOfUtc,
+                                cancellationToken: ct);
+
+                        chargedObligations += billingResult.Result.ChargedObligations;
+                        remittedBusinesses += taxResult.RemittedBusinesses;
+                        municipalProviderPayments += municipalResult.ProviderPayments;
+                        totalChargedAmount += billingResult.Result.TotalChargedAmount;
+                        totalTaxRemittedAmount += taxResult.TotalRemittedAmount;
+                        totalMunicipalDisbursedAmount += municipalResult.TotalDisbursedAmount;
+
+                        state.AdvanceProcessedDate(
+                            processedDate: cycleDate,
+                            updatedAtUtc: timeProvider.GetUtcNow());
+                        await unitOfWork.SaveChangesAsync(ct);
+
+                        if (costOfLivingSnapshot is not null)
+                            await cityPopulationSignalPublisher.PublishClassicCityCostOfLivingSnapshotAsync(
+                                snapshot: costOfLivingSnapshot,
+                                cancellationToken: ct);
+
+                        await cityPopulationSignalPublisher.PublishClassicCityServiceQualitySnapshotAsync(
+                            snapshot: serviceQualitySnapshot,
+                            cancellationToken: ct);
+
+                        foreach (ClassicCityHouseholdFinancialStressBatchV1 batch in billingResult
+                                    .FinancialStressBatches)
+                            await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
+                                batch: batch,
+                                cancellationToken: ct);
+
+                        await unitOfWork.SaveChangesAsync(ct);
+                        processedDays++;
+                    },
+                    cancellationToken: cancellationToken);
+
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async ct =>
                 {
-                    DateTimeOffset cycleAsOfUtc = ResolveCycleAsOfUtc(
-                        cycleDate: cycleDate,
-                        finalDate: toDate,
-                        finalSimTimeUtc: request.ToSimTimeUtc);
-                    ClassicCityCostOfLivingSnapshotV1? costOfLivingSnapshot =
-                        await recurringCycleExecutionService.ExecuteCostOfLivingAsync(
-                            cityId: request.CityId,
-                            asOfUtc: cycleAsOfUtc,
-                            cancellationToken: ct);
-
-                    CityEconomyBillingCycleExecutionResult billingResult =
-                        await recurringCycleExecutionService.ExecuteBillingAsync(
-                            cityId: request.CityId,
-                            asOfUtc: cycleAsOfUtc,
-                            cancellationToken: ct);
-                    var taxResult = await recurringCycleExecutionService.ExecuteTaxCycleAsync(
-                        cityId: request.CityId,
-                        budgetCategory: CityBudgetCategory.Taxation,
-                        cancellationToken: ct);
-                    var municipalResult = await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
-                        cityId: request.CityId,
-                        cancellationToken: ct);
-                    ClassicCityServiceQualitySnapshotV1 serviceQualitySnapshot =
-                        await recurringCycleExecutionService.ExecuteServiceQualityAsync(
-                            cityId: request.CityId,
-                            asOfUtc: cycleAsOfUtc,
-                            cancellationToken: ct);
-
-                    chargedObligations += billingResult.Result.ChargedObligations;
-                    remittedBusinesses += taxResult.RemittedBusinesses;
-                    municipalProviderPayments += municipalResult.ProviderPayments;
-                    totalChargedAmount += billingResult.Result.TotalChargedAmount;
-                    totalTaxRemittedAmount += taxResult.TotalRemittedAmount;
-                    totalMunicipalDisbursedAmount += municipalResult.TotalDisbursedAmount;
-
                     state.AdvanceProcessedDate(
-                        processedDate: cycleDate,
+                        processedDate: toDate,
+                        updatedAtUtc: timeProvider.GetUtcNow());
+                    state.MarkTickCompleted(
+                        tickId: request.TickId,
                         updatedAtUtc: timeProvider.GetUtcNow());
                     await unitOfWork.SaveChangesAsync(ct);
-
-                    if (costOfLivingSnapshot is not null)
-                        await cityPopulationSignalPublisher.PublishClassicCityCostOfLivingSnapshotAsync(
-                            snapshot: costOfLivingSnapshot,
-                            cancellationToken: ct);
-
-                    await cityPopulationSignalPublisher.PublishClassicCityServiceQualitySnapshotAsync(
-                        snapshot: serviceQualitySnapshot,
-                        cancellationToken: ct);
-
-                    foreach (ClassicCityHouseholdFinancialStressBatchV1 batch in billingResult.FinancialStressBatches)
-                        await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
-                            batch: batch,
-                            cancellationToken: ct);
-
-                    await unitOfWork.SaveChangesAsync(ct);
-                    processedDays++;
-                }, cancellationToken);
-            }
-
-            await unitOfWork.ExecuteInTransactionAsync(async ct =>
-            {
-                state.AdvanceProcessedDate(
-                    processedDate: toDate,
-                    updatedAtUtc: timeProvider.GetUtcNow());
-                state.MarkTickCompleted(
-                    tickId: request.TickId,
-                    updatedAtUtc: timeProvider.GetUtcNow());
-                await unitOfWork.SaveChangesAsync(ct);
-            }, cancellationToken);
+                },
+                cancellationToken: cancellationToken);
 
             return new AdvanceCityEconomySimulationResult(
                 Status: AdvanceCityEconomySimulationStatus.Applied,
@@ -159,15 +166,14 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
             if (cycleDate == finalDate)
                 return finalSimTimeUtc;
 
-            DateTime endOfDayUtc = DateTime.SpecifyKind(
+            var endOfDayUtc = DateTime.SpecifyKind(
                 value: cycleDate.ToDateTime(TimeOnly.MaxValue),
                 kind: DateTimeKind.Utc);
 
             return new DateTimeOffset(endOfDayUtc);
         }
 
-        private static AdvanceCityEconomySimulationResult CreateResult(
-            AdvanceCityEconomySimulationStatus status)
+        private static AdvanceCityEconomySimulationResult CreateResult(AdvanceCityEconomySimulationStatus status)
         {
             return new AdvanceCityEconomySimulationResult(
                 Status: status,

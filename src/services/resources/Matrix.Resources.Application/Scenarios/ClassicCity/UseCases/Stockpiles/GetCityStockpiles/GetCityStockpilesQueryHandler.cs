@@ -1,12 +1,12 @@
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.Common;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.GetCityStockpiles
 {
-    public sealed class GetCityStockpilesQueryHandler(
-        ICityStockpileRepository repository)
+    public sealed class GetCityStockpilesQueryHandler(ICityStockpileRepository repository)
         : IRequestHandler<GetCityStockpilesQuery, CityStockpilesDto?>
     {
         public async Task<CityStockpilesDto?> Handle(
@@ -15,7 +15,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         {
             SimulationHostId simulationHostId = new(request.CityId);
 
-            var state = await repository.GetBySimulationHostIdAsync(
+            CityStockpileState? state = await repository.GetBySimulationHostIdAsync(
                 simulationHostId: simulationHostId,
                 cancellationToken: cancellationToken);
 

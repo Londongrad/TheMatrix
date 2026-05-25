@@ -41,7 +41,9 @@ namespace Matrix.BuildingBlocks.Api.Forwarding
                .ValidateOnStart();
 
             services.AddOptions<ForwardedHeadersOptions>()
-               .Configure<IOptions<TrustedForwardedHeadersOptions>>((forwardedHeaders, trustedOptions) =>
+               .Configure<IOptions<TrustedForwardedHeadersOptions>>((
+                    forwardedHeaders,
+                    trustedOptions) =>
                 {
                     TrustedForwardedHeadersOptions options = trustedOptions.Value;
                     if (!options.Enabled)
@@ -128,8 +130,8 @@ namespace Matrix.BuildingBlocks.Api.Forwarding
         {
             return !string.IsNullOrWhiteSpace(value) &&
                    AspNetCoreIPNetwork.TryParse(
-                       value.AsSpan(),
-                       out _);
+                       networkSpan: value.AsSpan(),
+                       network: out _);
         }
     }
 }

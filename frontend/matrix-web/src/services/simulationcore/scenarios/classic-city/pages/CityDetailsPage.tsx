@@ -2,7 +2,9 @@ import {useEffect} from "react";
 import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDashboardCard} from "@services/simulationcore/scenarios/classic-city/components/CityDashboardCard";
 import {CityEconomyCard} from "@services/simulationcore/scenarios/classic-city/components/CityEconomyCard";
-import {CityInfrastructureCard} from "@services/simulationcore/scenarios/classic-city/components/CityInfrastructureCard";
+import {
+    CityInfrastructureCard
+} from "@services/simulationcore/scenarios/classic-city/components/CityInfrastructureCard";
 import {CityOverviewCard} from "@services/simulationcore/scenarios/classic-city/components/CityOverviewCard";
 import {
     CityPopulationSummaryCard
@@ -10,12 +12,11 @@ import {
 import {CityWeatherCard} from "@services/simulationcore/scenarios/classic-city/components/CityWeatherCard";
 import {CityWorldMapCard} from "@services/simulationcore/scenarios/classic-city/components/CityWorldMapCard";
 import {useCityDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDetails";
-import {useCityLifecycleMutations} from "@services/simulationcore/scenarios/classic-city/hooks/useCityLifecycleMutations";
-import {getCityStatusTone, isArchivedCity,} from "@services/simulationcore/scenarios/classic-city/utils/presentation";
 import {
-    CLASSIC_CITY_LIST_PATH,
-    getClassicCityProvisioningPath,
-} from "@services/simulationcore/scenarios/registry";
+    useCityLifecycleMutations
+} from "@services/simulationcore/scenarios/classic-city/hooks/useCityLifecycleMutations";
+import {getCityStatusTone, isArchivedCity,} from "@services/simulationcore/scenarios/classic-city/utils/presentation";
+import {CLASSIC_CITY_LIST_PATH, getClassicCityProvisioningPath,} from "@services/simulationcore/scenarios/registry";
 import SimulationPanel from "@services/simulationcore/simulation/components/SimulationPanel";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";

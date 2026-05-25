@@ -1,5 +1,5 @@
-using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Forwarding;
+using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Middleware;
 using Matrix.Identity.Api.Authorization.Internal;
 

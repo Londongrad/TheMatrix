@@ -70,7 +70,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount
                 return;
             }
 
-            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
                 userId: user.Id,

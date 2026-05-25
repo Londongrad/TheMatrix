@@ -8,16 +8,14 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
-using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
 using Matrix.Resources.Infrastructure.Economy;
 using Matrix.Resources.Infrastructure.Options;
-using Matrix.Resources.Infrastructure.Persistence;
-using Matrix.Resources.Infrastructure.Persistence.Repositories;
 using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Outbox.RabbitMq;
+using Matrix.Resources.Infrastructure.Persistence;
+using Matrix.Resources.Infrastructure.Persistence.Repositories;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Resources.Infrastructure.SimulationCore;
-using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +23,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
+using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Resources.Infrastructure
 {
@@ -47,7 +47,9 @@ namespace Matrix.Resources.Infrastructure
             services.AddPostgresResilienceOptions(configuration);
             services.TryAddSingleton(TimeProvider.System);
 
-            services.AddDbContext<ResourcesDbContext>((sp, options) =>
+            services.AddDbContext<ResourcesDbContext>((
+                sp,
+                options) =>
             {
                 PostgresResilienceOptions resilience = sp.GetRequiredService<IOptions<PostgresResilienceOptions>>()
                    .Value;
@@ -77,7 +79,9 @@ namespace Matrix.Resources.Infrastructure
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityStockpileSnapshotOutboxWriter, CityStockpileSnapshotOutboxWriter>();
             services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
-            services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((sp, client) =>
+            services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;
@@ -92,7 +96,9 @@ namespace Matrix.Resources.Infrastructure
                .AddInternalServiceAuthentication(
                     identity: InternalServicePrincipals.Resources,
                     EconomyPermissionKeys.EconomyBudgetAuthorize);
-            services.AddHttpClient<ICityResupplyTripDispatcher, CityResupplyTripDispatcher>((sp, client) =>
+            services.AddHttpClient<ICityResupplyTripDispatcher, CityResupplyTripDispatcher>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;
@@ -115,7 +121,9 @@ namespace Matrix.Resources.Infrastructure
                 x.AddRabbitMqEndpointHygiene();
                 x.AddClassicCityScenarioConsumers();
 
-                x.UsingRabbitMq((context, cfg) =>
+                x.UsingRabbitMq((
+                    context,
+                    cfg) =>
                 {
                     RabbitMqOptions rmq = context.GetRequiredService<IOptions<RabbitMqOptions>>()
                        .Value;

@@ -1,40 +1,47 @@
+using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityEconomyProgressionStateRepositoryTests
+namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task GetByCityAsync_ReturnsStoredState()
+    public sealed class CityEconomyProgressionStateRepositoryTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task GetByCityAsync_ReturnsStoredState()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityEconomyProgressionStates.Add(CreateProgressionState(cityId));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityEconomyProgressionStates.Add(CreateProgressionState(cityId));
+            await dbContext.SaveChangesAsync();
 
-        CityEconomyProgressionStateRepository repository = new(dbContext);
+            CityEconomyProgressionStateRepository repository = new(dbContext);
 
-        var state = await repository.GetByCityAsync(cityId);
+            CityEconomyProgressionState? state = await repository.GetByCityAsync(cityId);
 
-        Assert.NotNull(state);
-        Assert.Equal(cityId, state.CityId);
-        Assert.Equal(12, state.LastCompletedTickId);
-    }
+            Assert.NotNull(state);
+            Assert.Equal(
+                expected: cityId,
+                actual: state.CityId);
+            Assert.Equal(
+                expected: 12,
+                actual: state.LastCompletedTickId);
+        }
 
-    [Fact]
-    public async Task AddAsync_PersistsState()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task AddAsync_PersistsState()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        CityEconomyProgressionStateRepository repository = new(dbContext);
+            await using EconomyDbContext dbContext = CreateDbContext();
+            CityEconomyProgressionStateRepository repository = new(dbContext);
 
-        await repository.AddAsync(CreateProgressionState(cityId));
-        await dbContext.SaveChangesAsync();
+            await repository.AddAsync(CreateProgressionState(cityId));
+            await dbContext.SaveChangesAsync();
 
-        Assert.Single(dbContext.CityEconomyProgressionStates);
+            Assert.Single(dbContext.CityEconomyProgressionStates);
+        }
     }
 }

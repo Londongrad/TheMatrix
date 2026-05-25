@@ -23,7 +23,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
             if (policy is not null)
                 return policy;
 
-            policy = DefaultUserAccessPolicy.CreateDefault(_timeProvider.GetUtcNow().UtcDateTime);
+            policy = DefaultUserAccessPolicy.CreateDefault(
+                _timeProvider.GetUtcNow()
+                   .UtcDateTime);
             await _db.DefaultUserAccessPolicies.AddAsync(
                 entity: policy,
                 cancellationToken: cancellationToken);
@@ -42,7 +44,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
             return version ?? 1;
         }
 
-        public async Task<IReadOnlyDictionary<string, PermissionEffect>> GetOverridesAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyDictionary<string, PermissionEffect>> GetOverridesAsync(
+            CancellationToken cancellationToken)
         {
             List<DefaultUserAccessOverride> overrides = await _db.DefaultUserAccessOverrides
                .AsNoTracking()

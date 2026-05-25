@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
@@ -94,9 +94,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired(
                     propertyName: nameof(sanitationInfrastructure)));
             PowerDistribution = powerDistribution ?? CreateDefaultPowerDistribution();
-            PowerDistributionInfrastructure = powerDistributionInfrastructure ?? CreateDefaultPowerDistributionInfrastructure();
+            PowerDistributionInfrastructure =
+                powerDistributionInfrastructure ?? CreateDefaultPowerDistributionInfrastructure();
             UtilityIncidents = utilityIncidents ?? CreateDefaultUtilityIncidents();
-            UtilityIncidentInfrastructure = utilityIncidentInfrastructure ?? CreateDefaultUtilityIncidentInfrastructure();
+            UtilityIncidentInfrastructure =
+                utilityIncidentInfrastructure ?? CreateDefaultUtilityIncidentInfrastructure();
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
@@ -106,7 +108,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             PowerCoverageIndex = powerCoverageIndex ?? PowerCoverageIndex.From(1m);
             UtilityContinuityIndex = utilityContinuityIndex ?? UtilityContinuityIndex.From(1m);
             ResourceSupply = resourceSupply ?? CityResourceSupplySnapshot.Neutral(evaluatedAtUtc);
-            OperationalBudgetPressure = operationalBudgetPressure ?? CityOperationalBudgetPressureSnapshot.Neutral(evaluatedAtUtc);
+            OperationalBudgetPressure = operationalBudgetPressure ??
+                                        CityOperationalBudgetPressureSnapshot.Neutral(evaluatedAtUtc);
             EvaluatedAtUtc = EnsureUtc(
                 value: evaluatedAtUtc,
                 paramName: nameof(evaluatedAtUtc));

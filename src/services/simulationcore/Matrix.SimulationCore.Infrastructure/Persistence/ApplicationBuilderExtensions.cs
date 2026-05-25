@@ -1,6 +1,4 @@
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.SimulationCore.Infrastructure.Persistence
 {
@@ -11,9 +9,9 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence
             CancellationToken cancellationToken = default)
         {
             await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<SimulationCoreDbContext>(
-                services,
+                services: services,
                 serviceName: "SimulationCore",
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
     }
 }

@@ -5,7 +5,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityUtilityIncidentStatus
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    GetCityUtilityIncidentStatus
 {
     public sealed class GetCityUtilityIncidentStatusQueryHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -25,7 +26,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
             if (state is null)
                 return null;
 
-            decimal utilityIncidentSupport = pressureProfileFactory.Create(state).UtilityIncidentSupport;
+            decimal utilityIncidentSupport = pressureProfileFactory.Create(state)
+               .UtilityIncidentSupport;
 
             return CityUtilityIncidentStatusDto.FromState(
                 cityId: request.CityId,

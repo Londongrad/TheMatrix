@@ -1,9 +1,9 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Contracts.HouseholdAccounts.Requests;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount;
+using Matrix.Economy.Contracts.HouseholdAccounts.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,112 +1,192 @@
-using Matrix.Economy.Application.Tests.TestSupport;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayroll;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RecordCityBusinessPayroll;
-
-public sealed class RecordCityBusinessPayrollCommandHandlerTests
+namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RecordCityBusinessPayroll
 {
-    [Fact]
-    public async Task Handle_RecordsPayrollAndCreatesBudgetWithFrozenTimestamp()
+    public sealed class RecordCityBusinessPayrollCommandHandlerTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        CityBusiness business = CreateBusiness(cityId, "Factory", CityBusinessKind.Employer, 400m);
-        CityHouseholdAccount householdAccount = CreateHouseholdAccount(cityId, "Worker Household", 10m);
-        var businessRepository = new FakeCityBusinessRepository { Businesses = [business] };
-        var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
-        var householdAccountRepository = new FakeCityHouseholdAccountRepository { Accounts = [householdAccount] };
-        var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
-        var budgetRepository = new FakeCityBudgetRepository();
-        var budgetLedgerRepository = new FakeCityBudgetLedgerRepository();
-        var unitOfWork = new FakeEconomyUnitOfWork();
-        var timeProvider = new FrozenTimeProvider(new DateTimeOffset(2048, 5, 8, 12, 10, 0, TimeSpan.Zero));
-        var handler = new RecordCityBusinessPayrollCommandHandler(
-            businessRepository,
-            businessLedgerRepository,
-            householdAccountRepository,
-            householdLedgerRepository,
-            budgetRepository,
-            budgetLedgerRepository,
-            unitOfWork,
-            timeProvider);
-        var command = new RecordCityBusinessPayrollCommand(
-            BusinessId: business.Id,
-            HouseholdAccountId: householdAccount.Id,
-            GrossAmount: 90m,
-            IncomeTaxAmount: 10m,
-            Title: "Payroll Run",
-            Description: "Weekly wages");
+        [Fact]
+        public async Task Handle_RecordsPayrollAndCreatesBudgetWithFrozenTimestamp()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityBusiness business = CreateBusiness(
+                cityId: cityId,
+                name: "Factory",
+                kind: CityBusinessKind.Employer,
+                initialCapital: 400m);
+            CityHouseholdAccount householdAccount = CreateHouseholdAccount(
+                cityId: cityId,
+                name: "Worker Household",
+                openingBalance: 10m);
+            var businessRepository = new FakeCityBusinessRepository
+            {
+                Businesses = [business]
+            };
+            var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
+            var householdAccountRepository = new FakeCityHouseholdAccountRepository
+            {
+                Accounts = [householdAccount]
+            };
+            var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
+            var budgetRepository = new FakeCityBudgetRepository();
+            var budgetLedgerRepository = new FakeCityBudgetLedgerRepository();
+            var unitOfWork = new FakeEconomyUnitOfWork();
+            var timeProvider = new FrozenTimeProvider(
+                new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 8,
+                    hour: 12,
+                    minute: 10,
+                    second: 0,
+                    offset: TimeSpan.Zero));
+            var handler = new RecordCityBusinessPayrollCommandHandler(
+                businessRepository: businessRepository,
+                businessLedgerRepository: businessLedgerRepository,
+                householdAccountRepository: householdAccountRepository,
+                householdLedgerRepository: householdLedgerRepository,
+                budgetRepository: budgetRepository,
+                budgetLedgerRepository: budgetLedgerRepository,
+                unitOfWork: unitOfWork,
+                timeProvider: timeProvider);
+            var command = new RecordCityBusinessPayrollCommand(
+                BusinessId: business.Id,
+                HouseholdAccountId: householdAccount.Id,
+                GrossAmount: 90m,
+                IncomeTaxAmount: 10m,
+                Title: "Payroll Run",
+                Description: "Weekly wages");
 
-        CityBusinessLedgerEntryDto result = await handler.Handle(command, CancellationToken.None);
+            CityBusinessLedgerEntryDto result = await handler.Handle(
+                request: command,
+                cancellationToken: CancellationToken.None);
 
-        var businessEntry = Assert.Single(businessLedgerRepository.AddedEntries);
-        var householdEntry = Assert.Single(householdLedgerRepository.AddedEntries);
-        var budgetEntry = Assert.Single(budgetLedgerRepository.AddedEntries);
-        CityBudget budget = Assert.Single(budgetRepository.AddedBudgets);
+            CityBusinessLedgerEntry businessEntry = Assert.Single(businessLedgerRepository.AddedEntries);
+            CityHouseholdAccountLedgerEntry householdEntry = Assert.Single(householdLedgerRepository.AddedEntries);
+            CityBudgetLedgerEntry budgetEntry = Assert.Single(budgetLedgerRepository.AddedEntries);
+            CityBudget budget = Assert.Single(budgetRepository.AddedBudgets);
 
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
-        Assert.Equal(timeProvider.UtcNow, businessEntry.OccurredAtUtc);
-        Assert.Equal(timeProvider.UtcNow, householdEntry.OccurredAtUtc);
-        Assert.Equal(timeProvider.UtcNow, budgetEntry.OccurredAtUtc);
-        Assert.Equal("PayrollExpense", result.Kind);
-        Assert.Equal(90m, result.Amount);
-        Assert.Equal(10m, result.TaxAmount);
-        Assert.Equal(310m, business.Balance.Amount);
-        Assert.Equal(90m, business.TotalOperatingExpenses.Amount);
-        Assert.Equal(90m, householdAccount.Balance.Amount);
-        Assert.Equal(80m, householdAccount.TotalPayrollIncome.Amount);
-        Assert.Equal(10m, budget.Balance.Amount);
-        Assert.Equal(CityBudgetCategory.Taxation, budgetEntry.Category);
-        Assert.Equal(CityBudgetLedgerEntrySource.PayrollWithholding, budgetEntry.Source);
-        Assert.Equal("Payroll", householdEntry.Source.ToString());
-        Assert.Equal(business.Id.ToString("N"), householdEntry.ReferenceCode);
-    }
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: timeProvider.UtcNow,
+                actual: businessEntry.OccurredAtUtc);
+            Assert.Equal(
+                expected: timeProvider.UtcNow,
+                actual: householdEntry.OccurredAtUtc);
+            Assert.Equal(
+                expected: timeProvider.UtcNow,
+                actual: budgetEntry.OccurredAtUtc);
+            Assert.Equal(
+                expected: "PayrollExpense",
+                actual: result.Kind);
+            Assert.Equal(
+                expected: 90m,
+                actual: result.Amount);
+            Assert.Equal(
+                expected: 10m,
+                actual: result.TaxAmount);
+            Assert.Equal(
+                expected: 310m,
+                actual: business.Balance.Amount);
+            Assert.Equal(
+                expected: 90m,
+                actual: business.TotalOperatingExpenses.Amount);
+            Assert.Equal(
+                expected: 90m,
+                actual: householdAccount.Balance.Amount);
+            Assert.Equal(
+                expected: 80m,
+                actual: householdAccount.TotalPayrollIncome.Amount);
+            Assert.Equal(
+                expected: 10m,
+                actual: budget.Balance.Amount);
+            Assert.Equal(
+                expected: CityBudgetCategory.Taxation,
+                actual: budgetEntry.Category);
+            Assert.Equal(
+                expected: CityBudgetLedgerEntrySource.PayrollWithholding,
+                actual: budgetEntry.Source);
+            Assert.Equal(
+                expected: "Payroll",
+                actual: householdEntry.Source.ToString());
+            Assert.Equal(
+                expected: business.Id.ToString("N"),
+                actual: householdEntry.ReferenceCode);
+        }
 
-    [Fact]
-    public async Task Handle_ThrowsWhenBusinessAndHouseholdBelongToDifferentCities()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        CityBusiness business = CreateBusiness(cityId, "Factory", CityBusinessKind.Employer, 400m);
-        CityHouseholdAccount householdAccount = CreateHouseholdAccount(
-            Guid.Parse("11111111-2222-3333-4444-555555555555"),
-            "Foreign Household",
-            10m);
-        var businessRepository = new FakeCityBusinessRepository { Businesses = [business] };
-        var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
-        var householdAccountRepository = new FakeCityHouseholdAccountRepository { Accounts = [householdAccount] };
-        var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
-        var budgetRepository = new FakeCityBudgetRepository();
-        var budgetLedgerRepository = new FakeCityBudgetLedgerRepository();
-        var unitOfWork = new FakeEconomyUnitOfWork();
-        var timeProvider = new FrozenTimeProvider(new DateTimeOffset(2048, 5, 8, 12, 10, 0, TimeSpan.Zero));
-        var handler = new RecordCityBusinessPayrollCommandHandler(
-            businessRepository,
-            businessLedgerRepository,
-            householdAccountRepository,
-            householdLedgerRepository,
-            budgetRepository,
-            budgetLedgerRepository,
-            unitOfWork,
-            timeProvider);
-        var command = new RecordCityBusinessPayrollCommand(
-            BusinessId: business.Id,
-            HouseholdAccountId: householdAccount.Id,
-            GrossAmount: 90m,
-            IncomeTaxAmount: 10m,
-            Title: "Payroll Run",
-            Description: null);
+        [Fact]
+        public async Task Handle_ThrowsWhenBusinessAndHouseholdBelongToDifferentCities()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityBusiness business = CreateBusiness(
+                cityId: cityId,
+                name: "Factory",
+                kind: CityBusinessKind.Employer,
+                initialCapital: 400m);
+            CityHouseholdAccount householdAccount = CreateHouseholdAccount(
+                cityId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                name: "Foreign Household",
+                openingBalance: 10m);
+            var businessRepository = new FakeCityBusinessRepository
+            {
+                Businesses = [business]
+            };
+            var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
+            var householdAccountRepository = new FakeCityHouseholdAccountRepository
+            {
+                Accounts = [householdAccount]
+            };
+            var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
+            var budgetRepository = new FakeCityBudgetRepository();
+            var budgetLedgerRepository = new FakeCityBudgetLedgerRepository();
+            var unitOfWork = new FakeEconomyUnitOfWork();
+            var timeProvider = new FrozenTimeProvider(
+                new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 8,
+                    hour: 12,
+                    minute: 10,
+                    second: 0,
+                    offset: TimeSpan.Zero));
+            var handler = new RecordCityBusinessPayrollCommandHandler(
+                businessRepository: businessRepository,
+                businessLedgerRepository: businessLedgerRepository,
+                householdAccountRepository: householdAccountRepository,
+                householdLedgerRepository: householdLedgerRepository,
+                budgetRepository: budgetRepository,
+                budgetLedgerRepository: budgetLedgerRepository,
+                unitOfWork: unitOfWork,
+                timeProvider: timeProvider);
+            var command = new RecordCityBusinessPayrollCommand(
+                BusinessId: business.Id,
+                HouseholdAccountId: householdAccount.Id,
+                GrossAmount: 90m,
+                IncomeTaxAmount: 10m,
+                Title: "Payroll Run",
+                Description: null);
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => handler.Handle(command, CancellationToken.None));
+            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(()
+                => handler.Handle(
+                    request: command,
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Business and household account must belong to the same city.", exception.Message);
-        Assert.Empty(businessLedgerRepository.AddedEntries);
-        Assert.Empty(householdLedgerRepository.AddedEntries);
-        Assert.Empty(budgetLedgerRepository.AddedEntries);
-        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: "Business and household account must belong to the same city.",
+                actual: exception.Message);
+            Assert.Empty(businessLedgerRepository.AddedEntries);
+            Assert.Empty(householdLedgerRepository.AddedEntries);
+            Assert.Empty(budgetLedgerRepository.AddedEntries);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCallCount);
+        }
     }
 }

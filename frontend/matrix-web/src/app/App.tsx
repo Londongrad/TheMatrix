@@ -6,7 +6,7 @@ import {RequireAuth} from "@services/identity/api/self/auth/RequireAuth";
 import {LoadingScreen} from "@services/identity/self/auth/components/LoadingScreen";
 import {ConfirmProvider} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
-import {simulationCoreCatalogRoutes, classicCityRoutes} from "@app/router/SimulationCoreRoutes";
+import {classicCityRoutes, simulationCoreCatalogRoutes} from "@app/router/SimulationCoreRoutes";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {RouteErrorBoundary} from "@app/errors/RouteErrorBoundary";
 

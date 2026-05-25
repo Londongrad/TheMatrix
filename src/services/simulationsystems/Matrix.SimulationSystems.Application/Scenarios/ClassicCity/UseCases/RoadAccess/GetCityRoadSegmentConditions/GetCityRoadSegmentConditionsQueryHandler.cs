@@ -34,7 +34,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ro
             if (topology is null)
                 return null;
 
-            decimal roadSupportIndex = pressureProfileFactory.Create(state).RoadSupport;
+            decimal roadSupportIndex = pressureProfileFactory.Create(state)
+               .RoadSupport;
             IReadOnlyList<CityRoadSegmentConditionDto> segments = projectionPolicy.Project(
                 topology: topology,
                 state: state,

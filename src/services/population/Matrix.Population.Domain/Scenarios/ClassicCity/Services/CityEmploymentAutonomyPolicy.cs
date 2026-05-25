@@ -137,10 +137,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             CityHouseholdEconomyProfile householdEconomy,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId)
         {
-            CityPopulationEmployerFinancialStressState? employerStressState = person.Employment.Job is { } job &&
+            CityPopulationEmployerFinancialStressState? employerStressState = person.Employment.Job is
+                                                                                  { } job &&
                                                                               employerStressByWorkplaceId.TryGetValue(
                                                                                   key: job.WorkplaceId,
-                                                                                  value: out CityPopulationEmployerFinancialStressState? resolvedState)
+                                                                                  value: out
+                                                                                  CityPopulationEmployerFinancialStressState
+                                                                                      ? resolvedState)
                 ? resolvedState
                 : null;
             double chancePerReview = ResolveJobLossChancePerReview(
@@ -177,11 +180,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 workplacePools[jobTitle] = titlePool;
             }
 
-            List<Job> openPool = titlePool
+            var openPool = titlePool
                .Where(job => !employerStressByWorkplaceId.TryGetValue(
-                                         key: job.WorkplaceId,
-                                         value: out CityPopulationEmployerFinancialStressState? stressState) ||
-                                     !stressState.HasHiringFreeze)
+                                 key: job.WorkplaceId,
+                                 value: out CityPopulationEmployerFinancialStressState? stressState) ||
+                             !stressState.HasHiringFreeze)
                .ToList();
             List<Job> orderedOpenPool = OrderByPreferredAnchors(
                 jobs: openPool,
@@ -204,10 +207,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (shouldCreateNew)
             {
                 CityAnchorId? workplaceAnchorId = anchorSelectionPolicy.SelectWorkplaceAnchor(
-                    anchors: workplaceAnchors,
-                    preferredDistrictId: preferredDistrictId,
-                    stableKey: person.Id.Value,
-                    preferredAnchorIds: preferredWorkplaceAnchorIds)?.CityAnchorId;
+                        anchors: workplaceAnchors,
+                        preferredDistrictId: preferredDistrictId,
+                        stableKey: person.Id.Value,
+                        preferredAnchorIds: preferredWorkplaceAnchorIds)
+                  ?.CityAnchorId;
                 var created = new Job(
                     workplaceId: WorkplaceId.New(),
                     title: jobTitle,
@@ -382,7 +386,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     chance += Math.Min(
                         val1: 0.030d,
                         val2: (double)(employerStressState.MissedGrossPayrollAmount /
-                                       Math.Max(1m, employerStressState.RequestedGrossPayrollAmount)) * 0.030d);
+                                       Math.Max(
+                                           val1: 1m,
+                                           val2: employerStressState.RequestedGrossPayrollAmount)) *
+                              0.030d);
 
                 if (employerStressState.CurrentBalanceAmount < 0m)
                     chance += 0.020d;
@@ -429,9 +436,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return false;
 
             double combinedChance = 1d -
-                Math.Pow(
-                    x: 1d - chancePerReview,
-                    y: reviewWindows);
+                                    Math.Pow(
+                                        x: 1d - chancePerReview,
+                                        y: reviewWindows);
             return GetStableFraction(
                        personId: personId,
                        currentDate: currentDate,
@@ -487,17 +494,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Job> jobs,
             IReadOnlyCollection<CityAnchorId>? preferredWorkplaceAnchorIds)
         {
-            List<Job> orderedJobs = jobs.ToList();
+            var orderedJobs = jobs.ToList();
             if (preferredWorkplaceAnchorIds is null || preferredWorkplaceAnchorIds.Count == 0)
                 return orderedJobs;
 
             var preferredOrder = preferredWorkplaceAnchorIds
-               .Select(
-                    (anchorId, index) => new
-                    {
-                        anchorId,
-                        index
-                    })
+               .Select((
+                    anchorId,
+                    index) => new
+                {
+                    anchorId,
+                    index
+                })
                .ToDictionary(
                     keySelector: x => x.anchorId,
                     elementSelector: x => x.index);
@@ -506,9 +514,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                .OrderBy(x => x.WorkplaceAnchorId is not null && preferredOrder.ContainsKey(x.WorkplaceAnchorId.Value)
                     ? 0
                     : 1)
-               .ThenBy(x => x.WorkplaceAnchorId is not null && preferredOrder.TryGetValue(
-                    key: x.WorkplaceAnchorId.Value,
-                    value: out int order)
+               .ThenBy(x => x.WorkplaceAnchorId is not null &&
+                            preferredOrder.TryGetValue(
+                                key: x.WorkplaceAnchorId.Value,
+                                value: out int order)
                     ? order
                     : int.MaxValue)
                .ToList();

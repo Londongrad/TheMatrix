@@ -2,42 +2,57 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Identity.Domain.ValueObjects;
 using Xunit;
 
-namespace Matrix.Identity.Domain.Tests.ValueObjects;
-
-public sealed class UsernameTests
+namespace Matrix.Identity.Domain.Tests.ValueObjects
 {
-    [Fact]
-    public void Create_TrimsAndStoresUsername()
+    public sealed class UsernameTests
     {
-        var username = Username.Create("  matrix  ");
+        [Fact]
+        public void Create_TrimsAndStoresUsername()
+        {
+            var username = Username.Create("  matrix  ");
 
-        Assert.Equal("matrix", username.Value);
-    }
+            Assert.Equal(
+                expected: "matrix",
+                actual: username.Value);
+        }
 
-    [Fact]
-    public void Create_WithWhitespaceUsername_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => Username.Create("   "));
+        [Fact]
+        public void Create_WithWhitespaceUsername_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => Username.Create("   "));
 
-        Assert.Equal("Identity.User.Username.Empty", exception.Code);
-        Assert.Equal("Username", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "Identity.User.Username.Empty",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Username",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Create_WhenUsernameIsTooShort_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => Username.Create("ab"));
+        [Fact]
+        public void Create_WhenUsernameIsTooShort_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => Username.Create("ab"));
 
-        Assert.Equal("Identity.User.Username.InvalidLength", exception.Code);
-        Assert.Equal("Username", exception.PropertyName);
-    }
+            Assert.Equal(
+                expected: "Identity.User.Username.InvalidLength",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Username",
+                actual: exception.PropertyName);
+        }
 
-    [Fact]
-    public void Create_WhenUsernameIsTooLong_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => Username.Create("abcdefghijklmnopq"));
+        [Fact]
+        public void Create_WhenUsernameIsTooLong_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => Username.Create("abcdefghijklmnopq"));
 
-        Assert.Equal("Identity.User.Username.InvalidLength", exception.Code);
-        Assert.Equal("Username", exception.PropertyName);
+            Assert.Equal(
+                expected: "Identity.User.Username.InvalidLength",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Username",
+                actual: exception.PropertyName);
+        }
     }
 }

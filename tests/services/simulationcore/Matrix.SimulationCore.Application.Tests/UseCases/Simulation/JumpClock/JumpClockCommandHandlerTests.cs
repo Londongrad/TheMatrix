@@ -2,27 +2,40 @@ using Matrix.SimulationCore.Application.UseCases.Simulation.JumpClock;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.JumpClock;
-
-public sealed class JumpClockCommandHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.JumpClock
 {
-    [Fact]
-    public async Task Handle_DelegatesMutationAndJumpsClockTime()
+    public sealed class JumpClockCommandHandlerTests
     {
-        var clock = SimulationTestSupport.CreateClock();
-        DateTimeOffset newTimeUtc = SimulationTestSupport.SimStartTimeUtc.AddHours(5);
-        var executor = new SimulationTestSupport.FakeSimulationClockMutationExecutor
+        [Fact]
+        public async Task Handle_DelegatesMutationAndJumpsClockTime()
         {
-            Clock = clock,
-            Result = true
-        };
-        var handler = new JumpClockCommandHandler(executor);
+            SimulationClock clock = SimulationTestSupport.CreateClock();
+            DateTimeOffset newTimeUtc = SimulationTestSupport.SimStartTimeUtc.AddHours(5);
+            var executor = new SimulationTestSupport.FakeSimulationClockMutationExecutor
+            {
+                Clock = clock,
+                Result = true
+            };
+            var handler = new JumpClockCommandHandler(executor);
 
-        var result = await handler.Handle(new JumpClockCommand(clock.SimulationId.Value, newTimeUtc), CancellationToken.None);
+            bool result = await handler.Handle(
+                request: new JumpClockCommand(
+                    SimulationId: clock.SimulationId.Value,
+                    NewSimTimeUtc: newTimeUtc),
+                cancellationToken: CancellationToken.None);
 
-        Assert.True(result);
-        Assert.Equal(clock.SimulationId.Value, executor.RequestedSimulationId!.Value.Value);
-        Assert.Equal(newTimeUtc, clock.CurrentTime.ValueUtc);
-        Assert.Equal(TickId.Start().Next().Value, clock.TickId.Value);
+            Assert.True(result);
+            Assert.Equal(
+                expected: clock.SimulationId.Value,
+                actual: executor.RequestedSimulationId!.Value.Value);
+            Assert.Equal(
+                expected: newTimeUtc,
+                actual: clock.CurrentTime.ValueUtc);
+            Assert.Equal(
+                expected: TickId.Start()
+                   .Next()
+                   .Value,
+                actual: clock.TickId.Value);
+        }
     }
 }

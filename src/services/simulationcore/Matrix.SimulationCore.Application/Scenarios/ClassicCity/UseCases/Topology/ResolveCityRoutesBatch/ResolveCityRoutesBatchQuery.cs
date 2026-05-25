@@ -21,8 +21,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
         Guid ToId,
         string Profile);
 
-    public sealed record ResolveCityRoutesBatchResult(
-        IReadOnlyList<ResolvedCityRouteBatchItemDto> Routes);
+    public sealed record ResolveCityRoutesBatchResult(IReadOnlyList<ResolvedCityRouteBatchItemDto> Routes);
 
     public sealed record ResolvedCityRouteBatchItemDto(
         int Index,

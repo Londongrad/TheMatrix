@@ -4,7 +4,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects
 {
     /// <summary>
-    ///     Normalized power coverage in the range [0..1], where 0 means citywide electrical collapse and 1 means stable grid distribution.
+    ///     Normalized power coverage in the range [0..1], where 0 means citywide electrical collapse and 1 means stable grid
+    ///     distribution.
     /// </summary>
     public readonly record struct PowerCoverageIndex
     {

@@ -46,14 +46,16 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
 
                 case AdvanceCityStockpilesStatus.Duplicate:
                     logger.LogDebug(
-                        message: "Skipped duplicate classic city stockpile time progression for cityId={CityId}, tickId={TickId}.",
+                        message:
+                        "Skipped duplicate classic city stockpile time progression for cityId={CityId}, tickId={TickId}.",
                         message.CityId,
                         message.TickId);
                     break;
 
                 case AdvanceCityStockpilesStatus.OutOfOrder:
                     logger.LogDebug(
-                        message: "Skipped out-of-order classic city stockpile time progression for cityId={CityId}, tickId={TickId}.",
+                        message:
+                        "Skipped out-of-order classic city stockpile time progression for cityId={CityId}, tickId={TickId}.",
                         message.CityId,
                         message.TickId);
                     break;

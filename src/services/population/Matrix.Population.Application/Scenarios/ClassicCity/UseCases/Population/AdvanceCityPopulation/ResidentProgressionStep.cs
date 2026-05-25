@@ -1,5 +1,4 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
-using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
@@ -37,7 +36,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationLivingConditionsState? livingConditionsState,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationServiceQualityState? serviceQualityState,
             CityPopulationHealthcarePressureProfile healthcarePressureProfile,

@@ -2,68 +2,88 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Simulation;
-
-public sealed class SimSpeedTests
+namespace Matrix.SimulationCore.Domain.Tests.Simulation
 {
-    private const string MultiplierOutOfRangeErrorCode = "SimulationCore.SimSpeed.Multiplier.OutOfRange";
-    private const string RealDeltaNotPositiveErrorCode = "SimulationCore.SimSpeed.RealDelta.NotPositive";
-
-    [Fact]
-    public void RealTime_ReturnsMultiplierOfOne()
+    public sealed class SimSpeedTests
     {
-        var speed = SimSpeed.RealTime();
+        private const string MultiplierOutOfRangeErrorCode = "SimulationCore.SimSpeed.Multiplier.OutOfRange";
+        private const string RealDeltaNotPositiveErrorCode = "SimulationCore.SimSpeed.RealDelta.NotPositive";
 
-        Assert.Equal(1.0m, speed.Multiplier);
-    }
+        [Fact]
+        public void RealTime_ReturnsMultiplierOfOne()
+        {
+            var speed = SimSpeed.RealTime();
 
-    [Fact]
-    public void From_AcceptsBoundaryValues()
-    {
-        var min = SimSpeed.From(SimSpeed.Min);
-        var max = SimSpeed.From(SimSpeed.Max);
+            Assert.Equal(
+                expected: 1.0m,
+                actual: speed.Multiplier);
+        }
 
-        Assert.Equal(SimSpeed.Min, min.Multiplier);
-        Assert.Equal(SimSpeed.Max, max.Multiplier);
-    }
+        [Fact]
+        public void From_AcceptsBoundaryValues()
+        {
+            var min = SimSpeed.From(SimSpeed.Min);
+            var max = SimSpeed.From(SimSpeed.Max);
 
-    [Fact]
-    public void From_WhenBelowMin_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => SimSpeed.From(SimSpeed.Min - 0.0001m));
+            Assert.Equal(
+                expected: SimSpeed.Min,
+                actual: min.Multiplier);
+            Assert.Equal(
+                expected: SimSpeed.Max,
+                actual: max.Multiplier);
+        }
 
-        Assert.Equal(MultiplierOutOfRangeErrorCode, exception.Code);
-    }
+        [Fact]
+        public void From_WhenBelowMin_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => SimSpeed.From(SimSpeed.Min - 0.0001m));
 
-    [Fact]
-    public void From_WhenAboveMax_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => SimSpeed.From(SimSpeed.Max + 0.0001m));
+            Assert.Equal(
+                expected: MultiplierOutOfRangeErrorCode,
+                actual: exception.Code);
+        }
 
-        Assert.Equal(MultiplierOutOfRangeErrorCode, exception.Code);
-    }
+        [Fact]
+        public void From_WhenAboveMax_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => SimSpeed.From(SimSpeed.Max + 0.0001m));
 
-    [Fact]
-    public void Apply_ScalesTime_UsingTickRoundingAwayFromZero()
-    {
-        var scaled = SimSpeed.From(1.5m).Apply(TimeSpan.FromTicks(1));
+            Assert.Equal(
+                expected: MultiplierOutOfRangeErrorCode,
+                actual: exception.Code);
+        }
 
-        Assert.Equal(TimeSpan.FromTicks(2), scaled);
-    }
+        [Fact]
+        public void Apply_ScalesTime_UsingTickRoundingAwayFromZero()
+        {
+            TimeSpan scaled = SimSpeed.From(1.5m)
+               .Apply(TimeSpan.FromTicks(1));
 
-    [Fact]
-    public void Apply_WithZeroDelta_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => SimSpeed.RealTime().Apply(TimeSpan.Zero));
+            Assert.Equal(
+                expected: TimeSpan.FromTicks(2),
+                actual: scaled);
+        }
 
-        Assert.Equal(RealDeltaNotPositiveErrorCode, exception.Code);
-    }
+        [Fact]
+        public void Apply_WithZeroDelta_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => SimSpeed.RealTime()
+               .Apply(TimeSpan.Zero));
 
-    [Fact]
-    public void Apply_WithNegativeDelta_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => SimSpeed.RealTime().Apply(TimeSpan.FromSeconds(-1)));
+            Assert.Equal(
+                expected: RealDeltaNotPositiveErrorCode,
+                actual: exception.Code);
+        }
 
-        Assert.Equal(RealDeltaNotPositiveErrorCode, exception.Code);
+        [Fact]
+        public void Apply_WithNegativeDelta_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => SimSpeed.RealTime()
+               .Apply(TimeSpan.FromSeconds(-1)));
+
+            Assert.Equal(
+                expected: RealDeltaNotPositiveErrorCode,
+                actual: exception.Code);
+        }
     }
 }

@@ -1,87 +1,108 @@
+using FluentValidation.Results;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.SetCityEmergencyRationing;
+using Matrix.Resources.Application.Tests.TestSupport;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Xunit;
-using Matrix.Resources.Application.Tests.TestSupport;
 using static Matrix.Resources.Application.Tests.TestSupport.ResourcesApplicationTestSupport;
 
-namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stockpiles.SetCityEmergencyRationing;
-
-public sealed class SetCityEmergencyRationingTests
+namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stockpiles.SetCityEmergencyRationing
 {
-    [Fact]
-    public void Validator_RejectsEmptyCityId()
+    public sealed class SetCityEmergencyRationingTests
     {
-        var validator = new SetCityEmergencyRationingCommandValidator();
-
-        var result = validator.Validate(new SetCityEmergencyRationingCommand(Guid.Empty, true));
-
-        Assert.False(result.IsValid);
-    }
-
-    [Fact]
-    public async Task Handler_ReturnsNotInitializedWhenStateIsMissing()
-    {
-        var handler = new SetCityEmergencyRationingCommandHandler(
-            new FakeCityStockpileRepository(),
-            new FakeUnitOfWork(),
-            new FakeCityStockpileSnapshotOutboxWriter(),
-            new CityStockpilePolicy(),
-            CreateTimeProvider());
-
-        SetCityEmergencyRationingResult result = await handler.Handle(
-            new SetCityEmergencyRationingCommand(CityId, true),
-            CancellationToken.None);
-
-        Assert.Equal(SetCityEmergencyRationingStatus.NotInitialized, result.Status);
-    }
-
-    [Fact]
-    public async Task Handler_ReturnsDuplicateWhenRequestedFlagMatchesCurrentState()
-    {
-        var repository = new FakeCityStockpileRepository
+        [Fact]
+        public void Validator_RejectsEmptyCityId()
         {
-            State = CreateState(emergencyRationingEnabled: true)
-        };
-        var handler = new SetCityEmergencyRationingCommandHandler(
-            repository,
-            new FakeUnitOfWork(),
-            new FakeCityStockpileSnapshotOutboxWriter(),
-            new CityStockpilePolicy(),
-            CreateTimeProvider());
+            var validator = new SetCityEmergencyRationingCommandValidator();
 
-        SetCityEmergencyRationingResult result = await handler.Handle(
-            new SetCityEmergencyRationingCommand(CityId, true),
-            CancellationToken.None);
+            ValidationResult? result = validator.Validate(
+                new SetCityEmergencyRationingCommand(
+                    CityId: Guid.Empty,
+                    Enabled: true));
 
-        Assert.Equal(SetCityEmergencyRationingStatus.Duplicate, result.Status);
-        Assert.True(result.EmergencyRationingEnabled);
-    }
+            Assert.False(result.IsValid);
+        }
 
-    [Fact]
-    public async Task Handler_AppliesRationingAndWritesSnapshotWithInjectedTime()
-    {
-        var repository = new FakeCityStockpileRepository
+        [Fact]
+        public async Task Handler_ReturnsNotInitializedWhenStateIsMissing()
         {
-            State = CreateState(emergencyRationingEnabled: false)
-        };
-        var unitOfWork = new FakeUnitOfWork();
-        var outboxWriter = new FakeCityStockpileSnapshotOutboxWriter();
-        DateTimeOffset occurredAtUtc = LaterUtc.AddMinutes(30);
-        var handler = new SetCityEmergencyRationingCommandHandler(
-            repository,
-            unitOfWork,
-            outboxWriter,
-            new CityStockpilePolicy(),
-            CreateTimeProvider(occurredAtUtc));
+            var handler = new SetCityEmergencyRationingCommandHandler(
+                repository: new FakeCityStockpileRepository(),
+                unitOfWork: new FakeUnitOfWork(),
+                outboxWriter: new FakeCityStockpileSnapshotOutboxWriter(),
+                policy: new CityStockpilePolicy(),
+                timeProvider: CreateTimeProvider());
 
-        SetCityEmergencyRationingResult result = await handler.Handle(
-            new SetCityEmergencyRationingCommand(CityId, true),
-            CancellationToken.None);
+            SetCityEmergencyRationingResult result = await handler.Handle(
+                request: new SetCityEmergencyRationingCommand(
+                    CityId: CityId,
+                    Enabled: true),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(SetCityEmergencyRationingStatus.Applied, result.Status);
-        Assert.True(repository.State!.EmergencyRationingEnabled);
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
-        Assert.Single(outboxWriter.Snapshots);
-        Assert.Equal(occurredAtUtc, outboxWriter.Snapshots[0].OccurredAtUtc);
+            Assert.Equal(
+                expected: SetCityEmergencyRationingStatus.NotInitialized,
+                actual: result.Status);
+        }
+
+        [Fact]
+        public async Task Handler_ReturnsDuplicateWhenRequestedFlagMatchesCurrentState()
+        {
+            var repository = new FakeCityStockpileRepository
+            {
+                State = CreateState(emergencyRationingEnabled: true)
+            };
+            var handler = new SetCityEmergencyRationingCommandHandler(
+                repository: repository,
+                unitOfWork: new FakeUnitOfWork(),
+                outboxWriter: new FakeCityStockpileSnapshotOutboxWriter(),
+                policy: new CityStockpilePolicy(),
+                timeProvider: CreateTimeProvider());
+
+            SetCityEmergencyRationingResult result = await handler.Handle(
+                request: new SetCityEmergencyRationingCommand(
+                    CityId: CityId,
+                    Enabled: true),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: SetCityEmergencyRationingStatus.Duplicate,
+                actual: result.Status);
+            Assert.True(result.EmergencyRationingEnabled);
+        }
+
+        [Fact]
+        public async Task Handler_AppliesRationingAndWritesSnapshotWithInjectedTime()
+        {
+            var repository = new FakeCityStockpileRepository
+            {
+                State = CreateState(emergencyRationingEnabled: false)
+            };
+            var unitOfWork = new FakeUnitOfWork();
+            var outboxWriter = new FakeCityStockpileSnapshotOutboxWriter();
+            DateTimeOffset occurredAtUtc = LaterUtc.AddMinutes(30);
+            var handler = new SetCityEmergencyRationingCommandHandler(
+                repository: repository,
+                unitOfWork: unitOfWork,
+                outboxWriter: outboxWriter,
+                policy: new CityStockpilePolicy(),
+                timeProvider: CreateTimeProvider(occurredAtUtc));
+
+            SetCityEmergencyRationingResult result = await handler.Handle(
+                request: new SetCityEmergencyRationingCommand(
+                    CityId: CityId,
+                    Enabled: true),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: SetCityEmergencyRationingStatus.Applied,
+                actual: result.Status);
+            Assert.True(repository.State!.EmergencyRationingEnabled);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Single(outboxWriter.Snapshots);
+            Assert.Equal(
+                expected: occurredAtUtc,
+                actual: outboxWriter.Snapshots[0].OccurredAtUtc);
+        }
     }
 }

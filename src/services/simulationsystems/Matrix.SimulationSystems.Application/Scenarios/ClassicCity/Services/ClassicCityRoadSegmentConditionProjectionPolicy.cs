@@ -26,8 +26,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 
             foreach (CityRoadSegmentTopologyDto segment in topology.RoadSegments)
             {
-                CityDistrictTopologyDto? district = topology.Districts.FirstOrDefault(
-                    x => x.DistrictId == segment.DistrictId);
+                CityDistrictTopologyDto? district =
+                    topology.Districts.FirstOrDefault(x => x.DistrictId == segment.DistrictId);
                 decimal districtDistanceFactor = district is null
                     ? 0.5m
                     : Normalize(
@@ -84,7 +84,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                            (passabilityIndex * 0.78m) -
                            (slipRiskIndex * 0.14m));
                 decimal maintenancePriorityIndex = Clamp(
-                    value: (1m - passabilityIndex) * 0.46m +
+                    value: ((1m - passabilityIndex) * 0.46m) +
                            (closureRiskIndex * 0.34m) +
                            (slipRiskIndex * 0.20m));
 
@@ -105,9 +105,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             }
 
             return segments
-                .OrderByDescending(x => x.MaintenancePriorityIndex)
-                .ThenBy(x => x.Name, StringComparer.Ordinal)
-                .ToArray();
+               .OrderByDescending(x => x.MaintenancePriorityIndex)
+               .ThenBy(
+                    keySelector: x => x.Name,
+                    comparer: StringComparer.Ordinal)
+               .ToArray();
         }
 
         private static (decimal CenterX, decimal CenterY) ResolveCityCenter(
@@ -137,13 +139,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 return 1m;
 
             decimal maxDistance = topology.Districts
-                .Select(x => Distance(
+               .Select(x => Distance(
                     fromX: x.AnchorX,
                     fromY: x.AnchorY,
                     toX: centerX,
                     toY: centerY))
-                .DefaultIfEmpty(1m)
-                .Max();
+               .DefaultIfEmpty(1m)
+               .Max();
 
             return maxDistance <= 0m
                 ? 1m

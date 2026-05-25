@@ -1,27 +1,36 @@
+using FluentValidation.Results;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.SyncCitySystemsDemand;
 using Xunit;
-using static Matrix.Resources.Application.Tests.TestSupport.ResourcesApplicationTestSupport;
 
-namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stockpiles.SyncCitySystemsDemand;
-
-public sealed class SyncCitySystemsDemandValidatorTests
+namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stockpiles.SyncCitySystemsDemand
 {
-    [Fact]
-    public void Validator_RejectsInvalidIdentifiersAndDemandValues()
+    public sealed class SyncCitySystemsDemandValidatorTests
     {
-        var validator = new SyncCitySystemsDemandCommandValidator();
+        [Fact]
+        public void Validator_RejectsInvalidIdentifiersAndDemandValues()
+        {
+            var validator = new SyncCitySystemsDemandCommandValidator();
 
-        var result = validator.Validate(new SyncCitySystemsDemandCommand(
-            CityId: Guid.Empty,
-            FuelDemandPressureIndex: -0.1m,
-            SparePartsDemandPressureIndex: 0.2m,
-            FiltersDemandPressureIndex: 1.4m,
-            EmergencyWaterDemandPressureIndex: 0.3m,
-            OverallDemandPressureIndex: 1.1m,
-            EffectiveTickId: -1,
-            EffectiveAtUtc: new DateTimeOffset(2049, 1, 1, 18, 0, 0, TimeSpan.FromHours(9))));
+            ValidationResult? result = validator.Validate(
+                new SyncCitySystemsDemandCommand(
+                    CityId: Guid.Empty,
+                    FuelDemandPressureIndex: -0.1m,
+                    SparePartsDemandPressureIndex: 0.2m,
+                    FiltersDemandPressureIndex: 1.4m,
+                    EmergencyWaterDemandPressureIndex: 0.3m,
+                    OverallDemandPressureIndex: 1.1m,
+                    EffectiveTickId: -1,
+                    EffectiveAtUtc: new DateTimeOffset(
+                        year: 2049,
+                        month: 1,
+                        day: 1,
+                        hour: 18,
+                        minute: 0,
+                        second: 0,
+                        offset: TimeSpan.FromHours(9))));
 
-        Assert.False(result.IsValid);
-        Assert.True(result.Errors.Count >= 5);
+            Assert.False(result.IsValid);
+            Assert.True(result.Errors.Count >= 5);
+        }
     }
 }

@@ -29,8 +29,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             return await _dbContext.CityBusinessLedgerEntries
                .AsNoTracking()
                .AnyAsync(
-                predicate: x => x.BusinessId == businessId && x.Kind == kind && x.ReferenceCode == referenceCode,
-                cancellationToken: cancellationToken);
+                    predicate: x => x.BusinessId == businessId && x.Kind == kind && x.ReferenceCode == referenceCode,
+                    cancellationToken: cancellationToken);
         }
 
         public async Task<CursorPagedResult<CityBusinessLedgerEntry>> GetSliceByBusinessAsync(
@@ -47,9 +47,10 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
 
             if (cursor.HasValue)
             {
-                DateTimeOffset cursorOccurredAtUtc = new(new DateTime(
-                    ticks: cursor.Value.UtcTicks,
-                    kind: DateTimeKind.Utc));
+                DateTimeOffset cursorOccurredAtUtc = new(
+                    new DateTime(
+                        ticks: cursor.Value.UtcTicks,
+                        kind: DateTimeKind.Utc));
                 Guid cursorEntryId = cursor.Value.EntryId;
 
                 query = query.Where(x => x.OccurredAtUtc < cursorOccurredAtUtc ||
@@ -64,7 +65,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
 
             bool hasNext = fetchedItems.Length > normalizedPageSize;
             CityBusinessLedgerEntry[] pageItems = hasNext
-                ? fetchedItems.Take(normalizedPageSize).ToArray()
+                ? fetchedItems.Take(normalizedPageSize)
+                   .ToArray()
                 : fetchedItems;
 
             string? nextCursor = hasNext

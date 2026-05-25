@@ -25,7 +25,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
             if (state is null)
                 return null;
 
-            decimal snowRemovalSupport = pressureProfileFactory.Create(state).SnowRemovalSupport;
+            decimal snowRemovalSupport = pressureProfileFactory.Create(state)
+               .SnowRemovalSupport;
 
             return CitySnowRemovalStatusDto.FromState(
                 cityId: request.CityId,

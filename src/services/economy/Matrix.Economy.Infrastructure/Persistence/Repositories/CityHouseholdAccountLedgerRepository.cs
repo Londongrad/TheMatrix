@@ -30,9 +30,11 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             return await _dbContext.CityHouseholdAccountLedgerEntries
                .AsNoTracking()
                .AnyAsync(
-                predicate: x
-                    => x.HouseholdAccountId == householdAccountId && x.Kind == kind && x.ReferenceCode == referenceCode,
-                cancellationToken: cancellationToken);
+                    predicate: x
+                        => x.HouseholdAccountId == householdAccountId &&
+                           x.Kind == kind &&
+                           x.ReferenceCode == referenceCode,
+                    cancellationToken: cancellationToken);
         }
 
         public async Task<CursorPagedResult<CityHouseholdAccountLedgerEntry>> GetSliceByHouseholdAccountAsync(
@@ -49,9 +51,10 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
 
             if (cursor.HasValue)
             {
-                DateTimeOffset cursorOccurredAtUtc = new(new DateTime(
-                    ticks: cursor.Value.UtcTicks,
-                    kind: DateTimeKind.Utc));
+                DateTimeOffset cursorOccurredAtUtc = new(
+                    new DateTime(
+                        ticks: cursor.Value.UtcTicks,
+                        kind: DateTimeKind.Utc));
                 Guid cursorEntryId = cursor.Value.EntryId;
 
                 query = query.Where(x => x.OccurredAtUtc < cursorOccurredAtUtc ||
@@ -66,7 +69,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
 
             bool hasNext = fetchedItems.Length > normalizedPageSize;
             CityHouseholdAccountLedgerEntry[] pageItems = hasNext
-                ? fetchedItems.Take(normalizedPageSize).ToArray()
+                ? fetchedItems.Take(normalizedPageSize)
+                   .ToArray()
                 : fetchedItems;
 
             string? nextCursor = hasNext

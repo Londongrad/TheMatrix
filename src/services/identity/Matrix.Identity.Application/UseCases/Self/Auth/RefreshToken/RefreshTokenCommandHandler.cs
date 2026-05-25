@@ -35,7 +35,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                             tokenHash: hash,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.InvalidRefreshToken();
-            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime utcNow = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             if (!user.CanLogin())
             {

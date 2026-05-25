@@ -25,7 +25,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
             if (state is null)
                 return null;
 
-            decimal drainageSupport = pressureProfileFactory.Create(state).DrainageSupport;
+            decimal drainageSupport = pressureProfileFactory.Create(state)
+               .DrainageSupport;
 
             return CityDrainageStatusDto.FromState(
                 cityId: request.CityId,

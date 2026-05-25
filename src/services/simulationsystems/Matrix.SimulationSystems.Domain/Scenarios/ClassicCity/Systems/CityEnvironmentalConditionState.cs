@@ -1,8 +1,8 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
-using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.SimulationSystems.Domain.Simulation;
 
@@ -130,32 +130,32 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         }
 
         public SimulationHostId SimulationHostId => Id;
-        public CitySystemState Drainage { get; private set; }
-        public CityDrainageInfrastructureState DrainageInfrastructure { get; private set; }
-        public CitySystemState SnowRemoval { get; private set; }
-        public CitySnowRemovalInfrastructureState SnowRemovalInfrastructure { get; private set; }
-        public CitySystemState RoadAccess { get; private set; }
-        public CityRoadAccessInfrastructureState RoadAccessInfrastructure { get; private set; }
-        public CitySystemState Heating { get; private set; }
-        public CityHeatingInfrastructureState HeatingInfrastructure { get; private set; }
-        public CitySystemState WaterDistribution { get; private set; }
-        public CityWaterDistributionInfrastructureState WaterDistributionInfrastructure { get; private set; }
-        public CitySystemState Sanitation { get; private set; }
-        public CitySanitationInfrastructureState SanitationInfrastructure { get; private set; }
-        public CitySystemState PowerDistribution { get; private set; }
-        public CityPowerDistributionInfrastructureState PowerDistributionInfrastructure { get; private set; }
-        public CitySystemState UtilityIncidents { get; private set; }
-        public CityUtilityIncidentInfrastructureState UtilityIncidentInfrastructure { get; private set; }
-        public CityPendingOperationalWorkState PendingDrainageMaintenance { get; private set; }
-        public CityPendingOperationalWorkState PendingSnowRemovalMaintenance { get; private set; }
-        public CityPendingOperationalWorkState PendingRoadAccessMaintenance { get; private set; }
-        public CityPendingOperationalWorkState PendingHeatingMaintenance { get; private set; }
-        public CityPendingOperationalWorkState PendingWaterDistributionMaintenance { get; private set; }
-        public CityPendingOperationalWorkState PendingSanitationMaintenance { get; private set; }
-        public CityPendingOperationalWorkState PendingPowerDistributionMaintenance { get; private set; }
-        public CityPendingOperationalWorkState PendingUtilityIncidentResponse { get; private set; }
-        public CityResourceSupplyState ResourceSupply { get; private set; }
-        public CityOperationalBudgetPressureState OperationalBudgetPressure { get; private set; }
+        public CitySystemState Drainage { get; }
+        public CityDrainageInfrastructureState DrainageInfrastructure { get; }
+        public CitySystemState SnowRemoval { get; }
+        public CitySnowRemovalInfrastructureState SnowRemovalInfrastructure { get; }
+        public CitySystemState RoadAccess { get; }
+        public CityRoadAccessInfrastructureState RoadAccessInfrastructure { get; }
+        public CitySystemState Heating { get; }
+        public CityHeatingInfrastructureState HeatingInfrastructure { get; }
+        public CitySystemState WaterDistribution { get; }
+        public CityWaterDistributionInfrastructureState WaterDistributionInfrastructure { get; }
+        public CitySystemState Sanitation { get; }
+        public CitySanitationInfrastructureState SanitationInfrastructure { get; }
+        public CitySystemState PowerDistribution { get; }
+        public CityPowerDistributionInfrastructureState PowerDistributionInfrastructure { get; }
+        public CitySystemState UtilityIncidents { get; }
+        public CityUtilityIncidentInfrastructureState UtilityIncidentInfrastructure { get; }
+        public CityPendingOperationalWorkState PendingDrainageMaintenance { get; }
+        public CityPendingOperationalWorkState PendingSnowRemovalMaintenance { get; }
+        public CityPendingOperationalWorkState PendingRoadAccessMaintenance { get; }
+        public CityPendingOperationalWorkState PendingHeatingMaintenance { get; }
+        public CityPendingOperationalWorkState PendingWaterDistributionMaintenance { get; }
+        public CityPendingOperationalWorkState PendingSanitationMaintenance { get; }
+        public CityPendingOperationalWorkState PendingPowerDistributionMaintenance { get; }
+        public CityPendingOperationalWorkState PendingUtilityIncidentResponse { get; }
+        public CityResourceSupplyState ResourceSupply { get; }
+        public CityOperationalBudgetPressureState OperationalBudgetPressure { get; }
         public CityWeatherPressureProfile WeatherPressure { get; private set; }
         public FloodingIndex FloodingIndex { get; private set; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; private set; }
@@ -187,13 +187,16 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 heating: CitySystemState.Create(seed.Heating),
                 heatingInfrastructure: CityHeatingInfrastructureState.Create(seed.HeatingInfrastructure),
                 waterDistribution: CitySystemState.Create(seed.WaterDistribution),
-                waterDistributionInfrastructure: CityWaterDistributionInfrastructureState.Create(seed.WaterDistributionInfrastructure),
+                waterDistributionInfrastructure: CityWaterDistributionInfrastructureState.Create(
+                    seed.WaterDistributionInfrastructure),
                 sanitation: CitySystemState.Create(seed.Sanitation),
                 sanitationInfrastructure: CitySanitationInfrastructureState.Create(seed.SanitationInfrastructure),
                 powerDistribution: CitySystemState.Create(seed.PowerDistribution),
-                powerDistributionInfrastructure: CityPowerDistributionInfrastructureState.Create(seed.PowerDistributionInfrastructure),
+                powerDistributionInfrastructure: CityPowerDistributionInfrastructureState.Create(
+                    seed.PowerDistributionInfrastructure),
                 utilityIncidents: CitySystemState.Create(seed.UtilityIncidents),
-                utilityIncidentInfrastructure: CityUtilityIncidentInfrastructureState.Create(seed.UtilityIncidentInfrastructure),
+                utilityIncidentInfrastructure: CityUtilityIncidentInfrastructureState.Create(
+                    seed.UtilityIncidentInfrastructure),
                 pendingDrainageMaintenance: CityPendingOperationalWorkState.None(),
                 pendingSnowRemovalMaintenance: CityPendingOperationalWorkState.None(),
                 pendingRoadAccessMaintenance: CityPendingOperationalWorkState.None(),
@@ -545,8 +548,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             if (PendingDrainageMaintenance.IsReady(tickId))
             {
                 DispatchDrainageMaintenance(
-                    focus: Enum.Parse<DrainageMaintenanceFocus>(PendingDrainageMaintenance.Focus, true),
-                    intensity: Enum.Parse<DrainageMaintenanceIntensity>(PendingDrainageMaintenance.Intensity, true));
+                    focus: Enum.Parse<DrainageMaintenanceFocus>(
+                        value: PendingDrainageMaintenance.Focus,
+                        ignoreCase: true),
+                    intensity: Enum.Parse<DrainageMaintenanceIntensity>(
+                        value: PendingDrainageMaintenance.Intensity,
+                        ignoreCase: true));
                 PendingDrainageMaintenance.Clear();
                 applied = true;
             }
@@ -554,8 +561,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             if (PendingSnowRemovalMaintenance.IsReady(tickId))
             {
                 DispatchSnowRemovalMaintenance(
-                    focus: Enum.Parse<SnowRemovalMaintenanceFocus>(PendingSnowRemovalMaintenance.Focus, true),
-                    intensity: Enum.Parse<SnowRemovalMaintenanceIntensity>(PendingSnowRemovalMaintenance.Intensity, true));
+                    focus: Enum.Parse<SnowRemovalMaintenanceFocus>(
+                        value: PendingSnowRemovalMaintenance.Focus,
+                        ignoreCase: true),
+                    intensity: Enum.Parse<SnowRemovalMaintenanceIntensity>(
+                        value: PendingSnowRemovalMaintenance.Intensity,
+                        ignoreCase: true));
                 PendingSnowRemovalMaintenance.Clear();
                 applied = true;
             }
@@ -563,8 +574,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             if (PendingRoadAccessMaintenance.IsReady(tickId))
             {
                 DispatchRoadAccessMaintenance(
-                    focus: Enum.Parse<RoadAccessMaintenanceFocus>(PendingRoadAccessMaintenance.Focus, true),
-                    intensity: Enum.Parse<RoadAccessMaintenanceIntensity>(PendingRoadAccessMaintenance.Intensity, true));
+                    focus: Enum.Parse<RoadAccessMaintenanceFocus>(
+                        value: PendingRoadAccessMaintenance.Focus,
+                        ignoreCase: true),
+                    intensity: Enum.Parse<RoadAccessMaintenanceIntensity>(
+                        value: PendingRoadAccessMaintenance.Intensity,
+                        ignoreCase: true));
                 PendingRoadAccessMaintenance.Clear();
                 applied = true;
             }
@@ -572,8 +587,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             if (PendingHeatingMaintenance.IsReady(tickId))
             {
                 DispatchHeatingMaintenance(
-                    focus: Enum.Parse<HeatingMaintenanceFocus>(PendingHeatingMaintenance.Focus, true),
-                    intensity: Enum.Parse<HeatingMaintenanceIntensity>(PendingHeatingMaintenance.Intensity, true));
+                    focus: Enum.Parse<HeatingMaintenanceFocus>(
+                        value: PendingHeatingMaintenance.Focus,
+                        ignoreCase: true),
+                    intensity: Enum.Parse<HeatingMaintenanceIntensity>(
+                        value: PendingHeatingMaintenance.Intensity,
+                        ignoreCase: true));
                 PendingHeatingMaintenance.Clear();
                 applied = true;
             }
@@ -581,8 +600,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             if (PendingWaterDistributionMaintenance.IsReady(tickId))
             {
                 DispatchWaterDistributionMaintenance(
-                    focus: Enum.Parse<WaterDistributionMaintenanceFocus>(PendingWaterDistributionMaintenance.Focus, true),
-                    intensity: Enum.Parse<WaterDistributionMaintenanceIntensity>(PendingWaterDistributionMaintenance.Intensity, true));
+                    focus: Enum.Parse<WaterDistributionMaintenanceFocus>(
+                        value: PendingWaterDistributionMaintenance.Focus,
+                        ignoreCase: true),
+                    intensity: Enum.Parse<WaterDistributionMaintenanceIntensity>(
+                        value: PendingWaterDistributionMaintenance.Intensity,
+                        ignoreCase: true));
                 PendingWaterDistributionMaintenance.Clear();
                 applied = true;
             }
@@ -590,8 +613,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             if (PendingSanitationMaintenance.IsReady(tickId))
             {
                 DispatchSanitationMaintenance(
-                    focus: Enum.Parse<SanitationMaintenanceFocus>(PendingSanitationMaintenance.Focus, true),
-                    intensity: Enum.Parse<SanitationMaintenanceIntensity>(PendingSanitationMaintenance.Intensity, true));
+                    focus: Enum.Parse<SanitationMaintenanceFocus>(
+                        value: PendingSanitationMaintenance.Focus,
+                        ignoreCase: true),
+                    intensity: Enum.Parse<SanitationMaintenanceIntensity>(
+                        value: PendingSanitationMaintenance.Intensity,
+                        ignoreCase: true));
                 PendingSanitationMaintenance.Clear();
                 applied = true;
             }
@@ -599,8 +626,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             if (PendingPowerDistributionMaintenance.IsReady(tickId))
             {
                 DispatchPowerDistributionMaintenance(
-                    focus: Enum.Parse<PowerDistributionMaintenanceFocus>(PendingPowerDistributionMaintenance.Focus, true),
-                    intensity: Enum.Parse<PowerDistributionMaintenanceIntensity>(PendingPowerDistributionMaintenance.Intensity, true));
+                    focus: Enum.Parse<PowerDistributionMaintenanceFocus>(
+                        value: PendingPowerDistributionMaintenance.Focus,
+                        ignoreCase: true),
+                    intensity: Enum.Parse<PowerDistributionMaintenanceIntensity>(
+                        value: PendingPowerDistributionMaintenance.Intensity,
+                        ignoreCase: true));
                 PendingPowerDistributionMaintenance.Clear();
                 applied = true;
             }
@@ -608,8 +639,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             if (PendingUtilityIncidentResponse.IsReady(tickId))
             {
                 DispatchUtilityIncidentResponse(
-                    focus: Enum.Parse<UtilityIncidentResponseFocus>(PendingUtilityIncidentResponse.Focus, true),
-                    intensity: Enum.Parse<UtilityIncidentResponseIntensity>(PendingUtilityIncidentResponse.Intensity, true));
+                    focus: Enum.Parse<UtilityIncidentResponseFocus>(
+                        value: PendingUtilityIncidentResponse.Focus,
+                        ignoreCase: true),
+                    intensity: Enum.Parse<UtilityIncidentResponseIntensity>(
+                        value: PendingUtilityIncidentResponse.Intensity,
+                        ignoreCase: true));
                 PendingUtilityIncidentResponse.Clear();
                 applied = true;
             }

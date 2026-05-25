@@ -4,103 +4,109 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Infrastructure.Tests.TestSupport;
-
-[CollectionDefinition(Name, DisableParallelization = true)]
-public sealed class CurrentDirectorySensitiveCollection : ICollectionFixture<CurrentDirectorySensitiveFixture>
+namespace Matrix.SimulationSystems.Infrastructure.Tests.TestSupport
 {
-    public const string Name = "CurrentDirectorySensitive";
-}
-
-public sealed class CurrentDirectorySensitiveFixture
-{
-}
-
-internal static class StartupTestSupport
-{
-    internal static IConfiguration BuildValidInfrastructureConfiguration()
+    [CollectionDefinition(
+        Name,
+        DisableParallelization = true)]
+    public sealed class CurrentDirectorySensitiveCollection : ICollectionFixture<CurrentDirectorySensitiveFixture>
     {
-        Dictionary<string, string?> values = new()
+        public const string Name = "CurrentDirectorySensitive";
+    }
+
+    public sealed class CurrentDirectorySensitiveFixture { }
+
+    internal static class StartupTestSupport
+    {
+        internal static IConfiguration BuildValidInfrastructureConfiguration()
         {
-            ["ConnectionStrings:SimulationSystemsDb"] = "Host=localhost;Database=simulationsystems_test;Username=test;Password=test",
-            ["PostgresResilience:MaxRetryCount"] = "3",
-            ["PostgresResilience:MaxRetryDelaySeconds"] = "2",
-            ["RabbitMq:Host"] = "localhost",
-            ["RabbitMq:Username"] = "guest",
-            ["RabbitMq:Password"] = "guest",
-            ["DownstreamServices:Economy"] = "https://economy.test",
-            ["DownstreamServices:SimulationCore"] = "https://simulationcore.test"
-        };
+            Dictionary<string, string?> values = new()
+            {
+                ["ConnectionStrings:SimulationSystemsDb"] =
+                    "Host=localhost;Database=simulationsystems_test;Username=test;Password=test",
+                ["PostgresResilience:MaxRetryCount"] = "3",
+                ["PostgresResilience:MaxRetryDelaySeconds"] = "2",
+                ["RabbitMq:Host"] = "localhost",
+                ["RabbitMq:Username"] = "guest",
+                ["RabbitMq:Password"] = "guest",
+                ["DownstreamServices:Economy"] = "https://economy.test",
+                ["DownstreamServices:SimulationCore"] = "https://simulationcore.test"
+            };
 
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(values)
-            .Build();
-    }
+            return new ConfigurationBuilder()
+               .AddInMemoryCollection(values)
+               .Build();
+        }
 
-    internal static IConfiguration BuildInternalServiceJwtConfiguration()
-    {
-        Dictionary<string, string?> values = new()
+        internal static IConfiguration BuildInternalServiceJwtConfiguration()
         {
-            [$"{InternalServiceJwtOptions.SectionName}:Issuer"] = "internal-issuer",
-            [$"{InternalServiceJwtOptions.SectionName}:Audience"] = "internal-audience",
-            [$"{InternalServiceJwtOptions.SectionName}:SigningKey"] = "abcdefghijklmnopqrstuvwxyz123456",
-            [$"{InternalServiceJwtOptions.SectionName}:LifetimeSeconds"] = "300"
-        };
+            Dictionary<string, string?> values = new()
+            {
+                [$"{InternalServiceJwtOptions.SectionName}:Issuer"] = "internal-issuer",
+                [$"{InternalServiceJwtOptions.SectionName}:Audience"] = "internal-audience",
+                [$"{InternalServiceJwtOptions.SectionName}:SigningKey"] = "abcdefghijklmnopqrstuvwxyz123456",
+                [$"{InternalServiceJwtOptions.SectionName}:LifetimeSeconds"] = "300"
+            };
 
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(values)
-            .Build();
-    }
-}
-
-internal sealed class FakeHostEnvironment : IHostEnvironment
-{
-    public string EnvironmentName { get; set; } = Environments.Production;
-    public string ApplicationName { get; set; } = "Matrix.SimulationSystems.Infrastructure.Tests";
-    public string ContentRootPath { get; set; } = Directory.GetCurrentDirectory();
-    public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
-}
-
-internal sealed class TemporaryCurrentDirectory : IDisposable
-{
-    private readonly string _previous = Directory.GetCurrentDirectory();
-
-    private TemporaryCurrentDirectory()
-    {
+            return new ConfigurationBuilder()
+               .AddInMemoryCollection(values)
+               .Build();
+        }
     }
 
-    public static TemporaryCurrentDirectory Change(string path)
+    internal sealed class FakeHostEnvironment : IHostEnvironment
     {
-        Directory.SetCurrentDirectory(path);
-        return new TemporaryCurrentDirectory();
+        public string EnvironmentName { get; set; } = Environments.Production;
+        public string ApplicationName { get; set; } = "Matrix.SimulationSystems.Infrastructure.Tests";
+        public string ContentRootPath { get; set; } = Directory.GetCurrentDirectory();
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 
-    public void Dispose()
+    internal sealed class TemporaryCurrentDirectory : IDisposable
     {
-        Directory.SetCurrentDirectory(_previous);
-    }
-}
+        private readonly string _previous = Directory.GetCurrentDirectory();
 
-internal sealed class TemporaryEnvironmentVariable : IDisposable
-{
-    private readonly string _name;
-    private readonly string? _previous;
+        private TemporaryCurrentDirectory() { }
 
-    private TemporaryEnvironmentVariable(string name)
-    {
-        _name = name;
-        _previous = Environment.GetEnvironmentVariable(name);
-    }
+        public void Dispose()
+        {
+            Directory.SetCurrentDirectory(_previous);
+        }
 
-    public static TemporaryEnvironmentVariable Set(string name, string? value)
-    {
-        var scope = new TemporaryEnvironmentVariable(name);
-        Environment.SetEnvironmentVariable(name, value);
-        return scope;
+        public static TemporaryCurrentDirectory Change(string path)
+        {
+            Directory.SetCurrentDirectory(path);
+            return new TemporaryCurrentDirectory();
+        }
     }
 
-    public void Dispose()
+    internal sealed class TemporaryEnvironmentVariable : IDisposable
     {
-        Environment.SetEnvironmentVariable(_name, _previous);
+        private readonly string _name;
+        private readonly string? _previous;
+
+        private TemporaryEnvironmentVariable(string name)
+        {
+            _name = name;
+            _previous = Environment.GetEnvironmentVariable(name);
+        }
+
+        public void Dispose()
+        {
+            Environment.SetEnvironmentVariable(
+                variable: _name,
+                value: _previous);
+        }
+
+        public static TemporaryEnvironmentVariable Set(
+            string name,
+            string? value)
+        {
+            var scope = new TemporaryEnvironmentVariable(name);
+            Environment.SetEnvironmentVariable(
+                variable: name,
+                value: value);
+            return scope;
+        }
     }
 }

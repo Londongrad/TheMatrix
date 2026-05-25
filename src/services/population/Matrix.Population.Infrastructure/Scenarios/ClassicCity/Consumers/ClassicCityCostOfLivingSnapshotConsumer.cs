@@ -25,8 +25,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
             CancellationToken cancellationToken)
         {
             if (messageId is null)
-                throw new InvalidOperationException(
-                    "ClassicCityCostOfLivingSnapshot message must have a MessageId.");
+                throw new InvalidOperationException("ClassicCityCostOfLivingSnapshot message must have a MessageId.");
 
             ApplyCityCostOfLivingSnapshotResult result = await mediator.Send(
                 request: new ApplyCityCostOfLivingSnapshotCommand(

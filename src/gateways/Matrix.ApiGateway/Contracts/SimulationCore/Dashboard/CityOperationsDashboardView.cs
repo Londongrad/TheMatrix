@@ -1,7 +1,7 @@
-using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 

@@ -8,9 +8,10 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.DispatchCitySanitationMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.
+    DispatchCitySanitationMaintenance
 {
-public sealed class DispatchCitySanitationMaintenanceCommandHandler(
+    public sealed class DispatchCitySanitationMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
@@ -57,7 +58,8 @@ public sealed class DispatchCitySanitationMaintenanceCommandHandler(
 
             if (authorizationDecision.Denied)
             {
-                decimal deniedSupport = pressureProfileFactory.Create(state).SanitationSupport;
+                decimal deniedSupport = pressureProfileFactory.Create(state)
+                   .SanitationSupport;
 
                 return CitySanitationStatusDto.FromState(
                     cityId: request.CityId,
@@ -102,7 +104,8 @@ public sealed class DispatchCitySanitationMaintenanceCommandHandler(
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal sanitationSupport = pressureProfileFactory.Create(state).SanitationSupport;
+            decimal sanitationSupport = pressureProfileFactory.Create(state)
+               .SanitationSupport;
 
             return CitySanitationStatusDto.FromState(
                 cityId: request.CityId,
@@ -129,7 +132,9 @@ public sealed class DispatchCitySanitationMaintenanceCommandHandler(
                 ? 2
                 : 1;
 
-            return Math.Max(0, currentTickId + delay);
+            return Math.Max(
+                val1: 0,
+                val2: currentTickId + delay);
         }
     }
 }

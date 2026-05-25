@@ -1,6 +1,8 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Simulation;
 
 namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
@@ -63,15 +65,15 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         }
 
         public SimulationHostId SimulationHostId => Id;
-        public CityResourceStockLineState Fuel { get; private set; }
-        public CityResourceStockLineState Food { get; private set; }
-        public CityResourceStockLineState Medicine { get; private set; }
-        public CityResourceStockLineState SpareParts { get; private set; }
-        public CityResourceStockLineState Filters { get; private set; }
-        public CityResourceStockLineState EmergencyWater { get; private set; }
-        public CityPendingResupplyState PendingResupply { get; private set; }
-        public CitySystemsResourceDemandState SystemsDemand { get; private set; }
-        public CityOperationalBudgetPressureState OperationalBudgetPressure { get; private set; }
+        public CityResourceStockLineState Fuel { get; }
+        public CityResourceStockLineState Food { get; }
+        public CityResourceStockLineState Medicine { get; }
+        public CityResourceStockLineState SpareParts { get; }
+        public CityResourceStockLineState Filters { get; }
+        public CityResourceStockLineState EmergencyWater { get; }
+        public CityPendingResupplyState PendingResupply { get; }
+        public CitySystemsResourceDemandState SystemsDemand { get; }
+        public CityOperationalBudgetPressureState OperationalBudgetPressure { get; }
         public decimal SupplyStressIndex { get; private set; }
         public bool EmergencyRationingEnabled { get; private set; }
         public long LastAppliedTickId { get; private set; }
@@ -163,8 +165,8 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         }
 
         public void ScheduleResupply(
-            Enums.ResupplyFocus focus,
-            Enums.ResupplyIntensity intensity,
+            ResupplyFocus focus,
+            ResupplyIntensity intensity,
             Guid? focusDistrictId,
             long readyAtTickId)
         {
@@ -178,7 +180,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         }
 
         public bool ApplyDueResupply(
-            Services.CityStockpilePolicy policy,
+            CityStockpilePolicy policy,
             long tickId)
         {
             ArgumentNullException.ThrowIfNull(policy);
@@ -186,10 +188,10 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             if (!PendingResupply.IsReady(tickId))
                 return false;
 
-            Enums.ResupplyFocus focus = Enum.Parse<Enums.ResupplyFocus>(
+            ResupplyFocus focus = Enum.Parse<ResupplyFocus>(
                 value: PendingResupply.Focus,
                 ignoreCase: true);
-            Enums.ResupplyIntensity intensity = Enum.Parse<Enums.ResupplyIntensity>(
+            ResupplyIntensity intensity = Enum.Parse<ResupplyIntensity>(
                 value: PendingResupply.Intensity,
                 ignoreCase: true);
             CityStockpileSnapshot refreshedSnapshot = policy.DispatchResupply(

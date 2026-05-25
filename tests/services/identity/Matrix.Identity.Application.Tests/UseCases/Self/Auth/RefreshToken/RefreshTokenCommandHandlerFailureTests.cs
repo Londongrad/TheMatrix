@@ -1,160 +1,217 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
-using Matrix.Identity.Application.Tests.UseCases.Self;
+using Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Xunit;
 using DomainRefreshToken = Matrix.Identity.Domain.Entities.RefreshToken;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RefreshToken;
-
-public sealed class RefreshTokenCommandHandlerFailureTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RefreshToken
 {
-    [Fact]
-    public async Task Handle_WhenRefreshTokenUnknown_ThrowsInvalidRefreshToken()
+    public sealed class RefreshTokenCommandHandlerFailureTests
     {
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository();
-        var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository();
-        var accessTokenService = new SelfServiceHandlerTestSupport.FakeAccessTokenService();
-        var refreshTokenProvider = new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider();
-        var geoLocationService = new SelfServiceHandlerTestSupport.FakeGeoLocationService();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var permissionsService = new SelfServiceHandlerTestSupport.FakeEffectivePermissionsService();
-        var handler = SelfServiceHandlerTestSupport.CreateRefreshHandler(
-            userRepository,
-            userSessionRepository,
-            accessTokenService,
-            refreshTokenProvider,
-            geoLocationService,
-            unitOfWork,
-            permissionsService);
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateRefreshCommand(refreshToken: "presented-token"),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.InvalidRefreshToken", exception.Code);
-        Assert.Equal(ApplicationErrorType.Unauthorized, exception.ErrorType);
-        Assert.Equal(new[] { "presented-token" }, refreshTokenProvider.ComputeHashInputs);
-        Assert.Equal(refreshTokenProvider.ComputedHash, userRepository.RequestedRefreshTokenHash);
-        Assert.Equal(0, unitOfWork.SaveChangesCalls);
-        Assert.Empty(userSessionRepository.Sessions);
-        Assert.Null(accessTokenService.RequestedUserId);
-    }
-
-    [Theory]
-    [InlineData(false, true, "Identity.AccountDeleted", RefreshTokenRevocationReason.AccountDeleted)]
-    [InlineData(true, false, "Identity.UserBlocked", RefreshTokenRevocationReason.UserLocked)]
-    public async Task Handle_WhenUserCannotLogin_RevokesActiveTokenAndThrowsExpectedError(
-        bool isLocked,
-        bool isDeleted,
-        string expectedCode,
-        RefreshTokenRevocationReason expectedReason)
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser(
-            isLocked: isLocked,
-            isDeleted: isDeleted);
-        var session = SelfServiceHandlerTestSupport.CreateSession(user);
-        DomainRefreshToken token = SelfServiceHandlerTestSupport.SeedRefreshToken(
-            user,
-            sessionId: session.Id,
-            tokenHash: "incoming-refresh-token-hash");
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenRefreshTokenUnknown_ThrowsInvalidRefreshToken()
         {
-            UserByRefreshTokenHash = user
-        };
-        var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository();
+            var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository();
+            var accessTokenService = new SelfServiceHandlerTestSupport.FakeAccessTokenService();
+            var refreshTokenProvider = new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider();
+            var geoLocationService = new SelfServiceHandlerTestSupport.FakeGeoLocationService();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var permissionsService = new SelfServiceHandlerTestSupport.FakeEffectivePermissionsService();
+            RefreshTokenCommandHandler handler = SelfServiceHandlerTestSupport.CreateRefreshHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                accessTokenService: accessTokenService,
+                refreshTokenProvider: refreshTokenProvider,
+                geoLocationService: geoLocationService,
+                unitOfWork: unitOfWork,
+                permissionsService: permissionsService);
+
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateRefreshCommand(refreshToken: "presented-token"),
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal(
+                expected: "Identity.InvalidRefreshToken",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Unauthorized,
+                actual: exception.ErrorType);
+            Assert.Equal(
+                expected: new[]
+                {
+                    "presented-token"
+                },
+                actual: refreshTokenProvider.ComputeHashInputs);
+            Assert.Equal(
+                expected: refreshTokenProvider.ComputedHash,
+                actual: userRepository.RequestedRefreshTokenHash);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCalls);
+            Assert.Empty(userSessionRepository.Sessions);
+            Assert.Null(accessTokenService.RequestedUserId);
+        }
+
+        [Theory]
+        [InlineData(
+            false,
+            true,
+            "Identity.AccountDeleted",
+            RefreshTokenRevocationReason.AccountDeleted)]
+        [InlineData(
+            true,
+            false,
+            "Identity.UserBlocked",
+            RefreshTokenRevocationReason.UserLocked)]
+        public async Task Handle_WhenUserCannotLogin_RevokesActiveTokenAndThrowsExpectedError(
+            bool isLocked,
+            bool isDeleted,
+            string expectedCode,
+            RefreshTokenRevocationReason expectedReason)
         {
-            Sessions = { session }
-        };
-        var handler = SelfServiceHandlerTestSupport.CreateRefreshHandler(
-            userRepository,
-            userSessionRepository,
-            new SelfServiceHandlerTestSupport.FakeAccessTokenService(),
-            new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
-            new SelfServiceHandlerTestSupport.FakeGeoLocationService(),
-            new SelfServiceHandlerTestSupport.FakeUnitOfWork(),
-            new SelfServiceHandlerTestSupport.FakeEffectivePermissionsService());
+            User user = SelfServiceHandlerTestSupport.CreateUser(
+                isLocked: isLocked,
+                isDeleted: isDeleted);
+            UserSession session = SelfServiceHandlerTestSupport.CreateSession(user);
+            DomainRefreshToken token = SelfServiceHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: session.Id,
+                tokenHash: "incoming-refresh-token-hash");
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+            {
+                UserByRefreshTokenHash = user
+            };
+            var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository
+            {
+                Sessions =
+                {
+                    session
+                }
+            };
+            RefreshTokenCommandHandler handler = SelfServiceHandlerTestSupport.CreateRefreshHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                accessTokenService: new SelfServiceHandlerTestSupport.FakeAccessTokenService(),
+                refreshTokenProvider: new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
+                geoLocationService: new SelfServiceHandlerTestSupport.FakeGeoLocationService(),
+                unitOfWork: new SelfServiceHandlerTestSupport.FakeUnitOfWork(),
+                permissionsService: new SelfServiceHandlerTestSupport.FakeEffectivePermissionsService());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateRefreshCommand(),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateRefreshCommand(),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal(expectedCode, exception.Code);
-        Assert.True(token.IsRevoked);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, token.RevokedAtUtc);
-        Assert.Equal(expectedReason, token.RevokedReason);
-    }
+            Assert.Equal(
+                expected: expectedCode,
+                actual: exception.Code);
+            Assert.True(token.IsRevoked);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: token.RevokedAtUtc);
+            Assert.Equal(
+                expected: expectedReason,
+                actual: token.RevokedReason);
+        }
 
-    [Fact]
-    public async Task Handle_WhenSessionMissing_ThrowsInvalidRefreshToken()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser();
-        SelfServiceHandlerTestSupport.SeedRefreshToken(
-            user,
-            sessionId: Guid.NewGuid(),
-            tokenHash: "incoming-refresh-token-hash");
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenSessionMissing_ThrowsInvalidRefreshToken()
         {
-            UserByRefreshTokenHash = user
-        };
-        var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var handler = SelfServiceHandlerTestSupport.CreateRefreshHandler(
-            userRepository,
-            userSessionRepository,
-            new SelfServiceHandlerTestSupport.FakeAccessTokenService(),
-            new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
-            new SelfServiceHandlerTestSupport.FakeGeoLocationService(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeEffectivePermissionsService());
+            User user = SelfServiceHandlerTestSupport.CreateUser();
+            SelfServiceHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: Guid.NewGuid(),
+                tokenHash: "incoming-refresh-token-hash");
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+            {
+                UserByRefreshTokenHash = user
+            };
+            var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            RefreshTokenCommandHandler handler = SelfServiceHandlerTestSupport.CreateRefreshHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                accessTokenService: new SelfServiceHandlerTestSupport.FakeAccessTokenService(),
+                refreshTokenProvider: new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
+                geoLocationService: new SelfServiceHandlerTestSupport.FakeGeoLocationService(),
+                unitOfWork: unitOfWork,
+                permissionsService: new SelfServiceHandlerTestSupport.FakeEffectivePermissionsService());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateRefreshCommand(),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateRefreshCommand(),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.InvalidRefreshToken", exception.Code);
-        Assert.Equal(0, unitOfWork.SaveChangesCalls);
-    }
+            Assert.Equal(
+                expected: "Identity.InvalidRefreshToken",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCalls);
+        }
 
-    [Fact]
-    public async Task Handle_WhenDeviceIdDoesNotMatch_RevokesTokenAndSessionAndThrowsInvalidRefreshToken()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser();
-        var session = SelfServiceHandlerTestSupport.CreateSession(user, deviceId: "device-1");
-        DomainRefreshToken token = SelfServiceHandlerTestSupport.SeedRefreshToken(
-            user,
-            sessionId: session.Id,
-            tokenHash: "incoming-refresh-token-hash",
-            deviceId: "device-1");
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenDeviceIdDoesNotMatch_RevokesTokenAndSessionAndThrowsInvalidRefreshToken()
         {
-            UserByRefreshTokenHash = user
-        };
-        var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository
-        {
-            Sessions = { session }
-        };
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var handler = SelfServiceHandlerTestSupport.CreateRefreshHandler(
-            userRepository,
-            userSessionRepository,
-            new SelfServiceHandlerTestSupport.FakeAccessTokenService(),
-            new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
-            new SelfServiceHandlerTestSupport.FakeGeoLocationService(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeEffectivePermissionsService());
+            User user = SelfServiceHandlerTestSupport.CreateUser();
+            UserSession session = SelfServiceHandlerTestSupport.CreateSession(
+                user: user,
+                deviceId: "device-1");
+            DomainRefreshToken token = SelfServiceHandlerTestSupport.SeedRefreshToken(
+                user: user,
+                sessionId: session.Id,
+                tokenHash: "incoming-refresh-token-hash",
+                deviceId: "device-1");
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+            {
+                UserByRefreshTokenHash = user
+            };
+            var userSessionRepository = new SelfServiceHandlerTestSupport.FakeUserSessionRepository
+            {
+                Sessions =
+                {
+                    session
+                }
+            };
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            RefreshTokenCommandHandler handler = SelfServiceHandlerTestSupport.CreateRefreshHandler(
+                userRepository: userRepository,
+                userSessionRepository: userSessionRepository,
+                accessTokenService: new SelfServiceHandlerTestSupport.FakeAccessTokenService(),
+                refreshTokenProvider: new SelfServiceHandlerTestSupport.FakeRefreshTokenProvider(),
+                geoLocationService: new SelfServiceHandlerTestSupport.FakeGeoLocationService(),
+                unitOfWork: unitOfWork,
+                permissionsService: new SelfServiceHandlerTestSupport.FakeEffectivePermissionsService());
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateRefreshCommand(deviceId: "device-2"),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateRefreshCommand(deviceId: "device-2"),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.InvalidRefreshToken", exception.Code);
-        Assert.True(token.IsRevoked);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, token.RevokedAtUtc);
-        Assert.Equal(RefreshTokenRevocationReason.SecurityEvent, token.RevokedReason);
-        Assert.True(session.IsRevoked);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, session.RevokedAtUtc);
-        Assert.Equal(RefreshTokenRevocationReason.SecurityEvent, session.RevokedReason);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
+            Assert.Equal(
+                expected: "Identity.InvalidRefreshToken",
+                actual: exception.Code);
+            Assert.True(token.IsRevoked);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: token.RevokedAtUtc);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.SecurityEvent,
+                actual: token.RevokedReason);
+            Assert.True(session.IsRevoked);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: session.RevokedAtUtc);
+            Assert.Equal(
+                expected: RefreshTokenRevocationReason.SecurityEvent,
+                actual: session.RevokedReason);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+        }
     }
 }

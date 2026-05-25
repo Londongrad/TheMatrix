@@ -153,7 +153,9 @@ namespace Matrix.Population.Infrastructure.SimulationCore
                 return 1m;
 
             decimal overflow = travelMinutes - targetTravelMinutes;
-            decimal tolerance = Math.Max(1m, maxComfortMinutes - targetTravelMinutes);
+            decimal tolerance = Math.Max(
+                val1: 1m,
+                val2: maxComfortMinutes - targetTravelMinutes);
 
             return decimal.Round(
                 d: Math.Clamp(

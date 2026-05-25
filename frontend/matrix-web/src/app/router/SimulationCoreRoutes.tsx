@@ -2,8 +2,6 @@ import {Fragment, lazy} from "react";
 import {Navigate, Route} from "react-router-dom";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
 import {
-    SIMULATIONCORE_NEW_SIMULATION_PATH,
-    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_CIVIL_REGISTRY_PATH_PATTERN,
     CLASSIC_CITY_DETAILS_PATH_PATTERN,
     CLASSIC_CITY_EDUCATION_PATH_PATTERN,
@@ -15,6 +13,8 @@ import {
     CLASSIC_CITY_SETUP_PATH,
     CLASSIC_CITY_SETUP_PROVISIONING_PATH_PATTERN,
     CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN,
+    SIMULATIONCORE_NEW_SIMULATION_PATH,
+    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
 } from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 

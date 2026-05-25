@@ -137,15 +137,14 @@
 }
 
 html[data-theme="matrix"] .confirm-dialog::after {
-    background:
-        linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.12), transparent 20%),
-        repeating-linear-gradient(
+    background: linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.12), transparent 20%),
+    repeating-linear-gradient(
             180deg,
             rgba(var(--shell-accent-rgb), 0.08) 0,
             rgba(var(--shell-accent-rgb), 0.08) 1px,
             transparent 1px,
             transparent 8px
-        );
+    );
     opacity: 0.34;
 }
 

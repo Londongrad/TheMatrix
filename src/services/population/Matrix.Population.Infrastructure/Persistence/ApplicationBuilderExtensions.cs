@@ -1,6 +1,4 @@
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Population.Infrastructure.Persistence
 {
@@ -11,9 +9,9 @@ namespace Matrix.Population.Infrastructure.Persistence
             CancellationToken cancellationToken = default)
         {
             await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<PopulationDbContext>(
-                services,
+                services: services,
                 serviceName: "Population",
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
     }
 }

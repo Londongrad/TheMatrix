@@ -1,3 +1,4 @@
+using Matrix.Identity.Api.Authorization.Internal;
 using Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail;
 using Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.SendEmailConfirmation;
@@ -13,7 +14,6 @@ using Matrix.Identity.Contracts.Self.Auth.Requests;
 using Matrix.Identity.Contracts.Self.Auth.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Matrix.Identity.Api.Authorization.Internal;
 
 namespace Matrix.Identity.Api.Controllers.Self
 {

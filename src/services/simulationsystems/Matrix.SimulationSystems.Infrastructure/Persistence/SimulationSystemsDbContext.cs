@@ -8,7 +8,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence
     public class SimulationSystemsDbContext(DbContextOptions<SimulationSystemsDbContext> options)
         : DbContext(options)
     {
-        public DbSet<CityEnvironmentalConditionState> CityEnvironmentalConditions => Set<CityEnvironmentalConditionState>();
+        public DbSet<CityEnvironmentalConditionState> CityEnvironmentalConditions
+            => Set<CityEnvironmentalConditionState>();
+
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

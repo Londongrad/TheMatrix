@@ -2,8 +2,12 @@ import {useMemo} from "react";
 import {Link} from "react-router-dom";
 import Button from "@shared/ui/controls/Button/Button";
 import Card from "@shared/ui/controls/Card/Card";
-import {useCityDistrictInfrastructure} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictInfrastructure";
-import {useCityDistrictOperatorActions} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictOperatorActions";
+import {
+    useCityDistrictInfrastructure
+} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictInfrastructure";
+import {
+    useCityDistrictOperatorActions
+} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictOperatorActions";
 import type {
     CityDistrictHeatingConditionView,
     CityDistrictInfrastructureView,
@@ -146,15 +150,15 @@ function buildRows(
 }
 
 function InfrastructureRow({
-    cityId,
-    row,
-    canDispatch,
-    isPendingUtility,
-    isPendingResupply,
-    notice,
-    onUtilityResponse,
-    onResupply,
-}: {
+                               cityId,
+                               row,
+                               canDispatch,
+                               isPendingUtility,
+                               isPendingResupply,
+                               notice,
+                               onUtilityResponse,
+                               onResupply,
+                           }: {
     cityId: string;
     row: DistrictInfrastructureRow;
     canDispatch: boolean;
@@ -226,27 +230,32 @@ function InfrastructureRow({
                 <div className="city-infra-row__metric">
                     <span className="city-infra-row__metric-label">Heating</span>
                     <strong>{formatIndex(row.heating?.heatingCoverageIndex)}</strong>
-                    <span className="city-infra-row__metric-note">Stress {formatIndex(row.heating?.comfortStressIndex)}</span>
+                    <span
+                        className="city-infra-row__metric-note">Stress {formatIndex(row.heating?.comfortStressIndex)}</span>
                 </div>
                 <div className="city-infra-row__metric">
                     <span className="city-infra-row__metric-label">Water</span>
                     <strong>{formatIndex(row.water?.waterCoverageIndex)}</strong>
-                    <span className="city-infra-row__metric-note">Quality risk {formatIndex(row.water?.qualityRiskIndex)}</span>
+                    <span
+                        className="city-infra-row__metric-note">Quality risk {formatIndex(row.water?.qualityRiskIndex)}</span>
                 </div>
                 <div className="city-infra-row__metric">
                     <span className="city-infra-row__metric-label">Power</span>
                     <strong>{formatIndex(row.power?.powerCoverageIndex)}</strong>
-                    <span className="city-infra-row__metric-note">Outage risk {formatIndex(row.power?.outageRiskIndex)}</span>
+                    <span
+                        className="city-infra-row__metric-note">Outage risk {formatIndex(row.power?.outageRiskIndex)}</span>
                 </div>
                 <div className="city-infra-row__metric">
                     <span className="city-infra-row__metric-label">Sanitation</span>
                     <strong>{formatIndex(row.sanitation?.sanitationCoverageIndex)}</strong>
-                    <span className="city-infra-row__metric-note">Overflow {formatIndex(row.sanitation?.overflowRiskIndex)}</span>
+                    <span
+                        className="city-infra-row__metric-note">Overflow {formatIndex(row.sanitation?.overflowRiskIndex)}</span>
                 </div>
                 <div className="city-infra-row__metric">
                     <span className="city-infra-row__metric-label">Incidents</span>
                     <strong>{formatIndex(row.incidents?.utilityContinuityIndex)}</strong>
-                    <span className="city-infra-row__metric-note">Pressure {formatIndex(row.incidents?.incidentPressureIndex)}</span>
+                    <span
+                        className="city-infra-row__metric-note">Pressure {formatIndex(row.incidents?.incidentPressureIndex)}</span>
                 </div>
             </div>
         </article>
@@ -254,10 +263,10 @@ function InfrastructureRow({
 }
 
 export function CityInfrastructureCard({
-    cityId,
-    cityName,
-    isArchived = false,
-}: Props) {
+                                           cityId,
+                                           cityName,
+                                           isArchived = false,
+                                       }: Props) {
     const infrastructureQuery = useCityDistrictInfrastructure(cityId, isArchived ? 0 : 30000);
     const topologyQuery = useCityMapTopology(cityId);
     const {can} = usePermissions();
@@ -310,7 +319,8 @@ export function CityInfrastructureCard({
                 <div className="city-infra-loading" role="status" aria-live="polite">
                     <div className="city-infra-loading__title">Loading district infrastructure</div>
                     <div className="city-infra-loading__text">
-                        Pulling district heating, water, power, sanitation, and utility incident slices for {cityName ?? "the selected city"}.
+                        Pulling district heating, water, power, sanitation, and utility incident slices
+                        for {cityName ?? "the selected city"}.
                     </div>
                 </div>
             ) : null}
@@ -320,7 +330,8 @@ export function CityInfrastructureCard({
                     <section className="city-infra-hero">
                         <div className="city-infra-hero__content">
                             <div className="city-infra-hero__title-row">
-                                <h3 className="city-infra-hero__title">{cityName ?? "Classic City"} infrastructure surface</h3>
+                                <h3 className="city-infra-hero__title">{cityName ?? "Classic City"} infrastructure
+                                    surface</h3>
                                 <span className="city-infra-hero__badge">
                                     {isArchived ? "Archived snapshot" : "Live district view"}
                                 </span>
@@ -333,32 +344,39 @@ export function CityInfrastructureCard({
 
                         <div className="city-infra-hero__aside">
                             <span className="city-infra-hero__aside-label">Generated</span>
-                            <strong className="city-infra-hero__aside-value">{formatDateTime(infrastructure.generatedAtUtc)}</strong>
+                            <strong
+                                className="city-infra-hero__aside-value">{formatDateTime(infrastructure.generatedAtUtc)}</strong>
                             <span className="city-infra-hero__aside-label">Tick</span>
-                            <strong className="city-infra-hero__aside-value">{infrastructure.heating.effectiveTickId}</strong>
+                            <strong
+                                className="city-infra-hero__aside-value">{infrastructure.heating.effectiveTickId}</strong>
                         </div>
                     </section>
 
                     <section className="city-infra-summary-grid" aria-label="District infrastructure summary">
                         <article className="city-infra-summary-card">
                             <span className="city-infra-summary-card__label">Heating support</span>
-                            <strong className="city-infra-summary-card__value">{formatIndex(infrastructure.heating.heatingSupportIndex)}</strong>
+                            <strong
+                                className="city-infra-summary-card__value">{formatIndex(infrastructure.heating.heatingSupportIndex)}</strong>
                         </article>
                         <article className="city-infra-summary-card">
                             <span className="city-infra-summary-card__label">Water support</span>
-                            <strong className="city-infra-summary-card__value">{formatIndex(infrastructure.waterDistribution.waterSupportIndex)}</strong>
+                            <strong
+                                className="city-infra-summary-card__value">{formatIndex(infrastructure.waterDistribution.waterSupportIndex)}</strong>
                         </article>
                         <article className="city-infra-summary-card">
                             <span className="city-infra-summary-card__label">Power support</span>
-                            <strong className="city-infra-summary-card__value">{formatIndex(infrastructure.powerDistribution.powerSupportIndex)}</strong>
+                            <strong
+                                className="city-infra-summary-card__value">{formatIndex(infrastructure.powerDistribution.powerSupportIndex)}</strong>
                         </article>
                         <article className="city-infra-summary-card">
                             <span className="city-infra-summary-card__label">Sanitation support</span>
-                            <strong className="city-infra-summary-card__value">{formatIndex(infrastructure.sanitation.sanitationSupportIndex)}</strong>
+                            <strong
+                                className="city-infra-summary-card__value">{formatIndex(infrastructure.sanitation.sanitationSupportIndex)}</strong>
                         </article>
                         <article className="city-infra-summary-card">
                             <span className="city-infra-summary-card__label">Incident support</span>
-                            <strong className="city-infra-summary-card__value">{formatIndex(infrastructure.utilityIncidents.utilityIncidentSupportIndex)}</strong>
+                            <strong
+                                className="city-infra-summary-card__value">{formatIndex(infrastructure.utilityIncidents.utilityIncidentSupportIndex)}</strong>
                         </article>
                     </section>
 

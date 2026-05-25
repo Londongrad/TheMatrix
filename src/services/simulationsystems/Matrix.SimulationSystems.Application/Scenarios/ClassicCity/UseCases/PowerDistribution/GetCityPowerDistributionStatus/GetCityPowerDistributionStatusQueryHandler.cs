@@ -5,7 +5,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityPowerDistributionStatus
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityPowerDistributionStatus
 {
     public sealed class GetCityPowerDistributionStatusQueryHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -25,7 +26,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
             if (state is null)
                 return null;
 
-            decimal powerSupport = pressureProfileFactory.Create(state).PowerSupport;
+            decimal powerSupport = pressureProfileFactory.Create(state)
+               .PowerSupport;
 
             return CityPowerDistributionStatusDto.FromState(
                 cityId: request.CityId,

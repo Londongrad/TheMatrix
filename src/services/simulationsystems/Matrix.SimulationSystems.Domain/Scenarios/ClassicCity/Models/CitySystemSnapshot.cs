@@ -18,8 +18,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         {
             Kind = GuardHelper.AgainstInvalidEnum(
                 value: kind,
-                errorFactory: ClassicCityDomainErrorsFactory.InvalidCitySystemKind,
-                propertyName: nameof(kind));
+                errorFactory: ClassicCityDomainErrorsFactory.InvalidCitySystemKind);
             LoadIndex = NormalizeIndex(
                 value: loadIndex,
                 paramName: nameof(loadIndex));

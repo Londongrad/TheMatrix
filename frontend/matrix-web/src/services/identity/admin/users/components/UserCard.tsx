@@ -13,12 +13,12 @@ import {
 import UserBadge from "./UserBadge";
 
 export default function UserCard({
-    user,
-    onOpenAccess,
-    onToggleLock,
-    onRestore,
-    isLoading,
-}: {
+                                     user,
+                                     onOpenAccess,
+                                     onToggleLock,
+                                     onRestore,
+                                     isLoading,
+                                 }: {
     user: UserListItemResponse;
     onOpenAccess: (id: string) => void;
     onToggleLock: (user: UserListItemResponse) => void;

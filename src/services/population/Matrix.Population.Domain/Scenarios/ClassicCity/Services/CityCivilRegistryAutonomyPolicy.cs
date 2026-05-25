@@ -296,9 +296,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 value: first.Personality.Optimism + second.Personality.Optimism,
                 divisor: 200d);
             double healthBurden = 1d -
-                Normalize(
-                    value: first.Health.Value + second.Health.Value,
-                    divisor: 200d);
+                                  Normalize(
+                                      value: first.Health.Value + second.Health.Value,
+                                      divisor: 200d);
 
             double chance = 0.0004d +
                             ((1d - averageHappiness) * 0.012d) +
@@ -396,9 +396,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return false;
 
             double combinedChance = 1d -
-                Math.Pow(
-                    x: 1d - chancePerReview,
-                    y: reviewWindows);
+                                    Math.Pow(
+                                        x: 1d - chancePerReview,
+                                        y: reviewWindows);
             return GetStableFraction(
                        personId: personId,
                        currentDate: currentDate,
@@ -418,9 +418,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return false;
 
             double combinedChance = 1d -
-                Math.Pow(
-                    x: 1d - chancePerReview,
-                    y: reviewWindows);
+                                    Math.Pow(
+                                        x: 1d - chancePerReview,
+                                        y: reviewWindows);
             return GetStableFraction(
                        firstResidentId: firstResidentId,
                        secondResidentId: secondResidentId,

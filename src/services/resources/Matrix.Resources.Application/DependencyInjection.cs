@@ -4,7 +4,6 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.Resources.Application.Errors;
 using Matrix.Resources.Application.Scenarios.ClassicCity;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Resources.Application

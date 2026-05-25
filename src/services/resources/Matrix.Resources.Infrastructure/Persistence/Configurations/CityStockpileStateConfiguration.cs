@@ -199,37 +199,49 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
 
             builder.OwnsOne(
                 navigationExpression: x => x.Fuel,
-                buildAction: stock => ConfigureLine(stock, "Fuel"));
+                buildAction: stock => ConfigureLine(
+                    builder: stock,
+                    prefix: "Fuel"));
             builder.Navigation(x => x.Fuel)
                .IsRequired();
 
             builder.OwnsOne(
                 navigationExpression: x => x.Food,
-                buildAction: stock => ConfigureLine(stock, "Food"));
+                buildAction: stock => ConfigureLine(
+                    builder: stock,
+                    prefix: "Food"));
             builder.Navigation(x => x.Food)
                .IsRequired();
 
             builder.OwnsOne(
                 navigationExpression: x => x.Medicine,
-                buildAction: stock => ConfigureLine(stock, "Medicine"));
+                buildAction: stock => ConfigureLine(
+                    builder: stock,
+                    prefix: "Medicine"));
             builder.Navigation(x => x.Medicine)
                .IsRequired();
 
             builder.OwnsOne(
                 navigationExpression: x => x.SpareParts,
-                buildAction: stock => ConfigureLine(stock, "SpareParts"));
+                buildAction: stock => ConfigureLine(
+                    builder: stock,
+                    prefix: "SpareParts"));
             builder.Navigation(x => x.SpareParts)
                .IsRequired();
 
             builder.OwnsOne(
                 navigationExpression: x => x.Filters,
-                buildAction: stock => ConfigureLine(stock, "Filters"));
+                buildAction: stock => ConfigureLine(
+                    builder: stock,
+                    prefix: "Filters"));
             builder.Navigation(x => x.Filters)
                .IsRequired();
 
             builder.OwnsOne(
                 navigationExpression: x => x.EmergencyWater,
-                buildAction: stock => ConfigureLine(stock, "EmergencyWater"));
+                buildAction: stock => ConfigureLine(
+                    builder: stock,
+                    prefix: "EmergencyWater"));
             builder.Navigation(x => x.EmergencyWater)
                .IsRequired();
         }

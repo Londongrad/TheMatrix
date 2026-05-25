@@ -1,4 +1,5 @@
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityDistrictPowerDistributionConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityDistrictPowerDistributionConditions
 {
     public sealed record CityDistrictPowerDistributionConditionsDto(
         Guid CityId,

@@ -65,13 +65,11 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
         {
             string? refreshToken = Request.Cookies[RefreshCookieName];
             if (string.IsNullOrWhiteSpace(refreshToken))
-            {
                 return ApiProblemDetailsFactory.CreateObjectResult(
                     context: HttpContext,
                     statusCode: StatusCodes.Status401Unauthorized,
                     code: "Auth.NoRefreshCookie",
                     message: "No refresh token cookie.");
-            }
 
             var downstreamRequest = new RefreshRequest
             {

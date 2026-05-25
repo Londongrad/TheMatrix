@@ -17,7 +17,8 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.CreateRole
             CreateRoleCommand request,
             CancellationToken cancellationToken)
         {
-            DateTime createdAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+            DateTime createdAtUtc = timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             var role = Role.Create(
                 name: request.Name,

@@ -4,7 +4,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects
 {
     /// <summary>
-    ///     Normalized sanitation coverage in the range [0..1], where 0 means wide sanitation failure and 1 means stable wastewater and hygiene operations.
+    ///     Normalized sanitation coverage in the range [0..1], where 0 means wide sanitation failure and 1 means stable
+    ///     wastewater and hygiene operations.
     /// </summary>
     public readonly record struct SanitationCoverageIndex
     {

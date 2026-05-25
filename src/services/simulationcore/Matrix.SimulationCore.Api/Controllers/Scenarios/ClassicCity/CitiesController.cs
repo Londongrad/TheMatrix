@@ -1,3 +1,4 @@
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.ArchiveCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Common;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
@@ -16,13 +17,12 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Li
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RenameCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RestartPopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RetryCityPopulationBootstrapProvisioning;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCityEnvironment;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityAnchors;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityRoadGraph;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityRoadGraph;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weather.GetWeather;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
@@ -380,7 +380,8 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
 
             return result.Status switch
             {
-                RetryCityPopulationBootstrapProvisioningStatus.Accepted => Results.Ok(MapToProvisioningView(result.Provisioning!)),
+                RetryCityPopulationBootstrapProvisioningStatus.Accepted => Results.Ok(
+                    MapToProvisioningView(result.Provisioning!)),
                 RetryCityPopulationBootstrapProvisioningStatus.NotFound => Results.NotFound(),
                 RetryCityPopulationBootstrapProvisioningStatus.NotAllowed => Results.Conflict(
                     new
@@ -596,11 +597,14 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 Status: model.Status,
                 PlannedPeopleCount: model.PlannedPeopleCount,
                 ResidentialCapacity: model.ResidentialCapacity,
-                Summary: model.Summary is null ? null : MapToPopulationBootstrapSummaryView(model.Summary),
+                Summary: model.Summary is null
+                    ? null
+                    : MapToPopulationBootstrapSummaryView(model.Summary),
                 FailureCode: model.FailureCode);
         }
 
-        private static CityPopulationBootstrapSummaryView MapToPopulationBootstrapSummaryView(CityPopulationBootstrapSummaryModel model)
+        private static CityPopulationBootstrapSummaryView MapToPopulationBootstrapSummaryView(
+            CityPopulationBootstrapSummaryModel model)
         {
             return new CityPopulationBootstrapSummaryView(
                 CityId: model.CityId,

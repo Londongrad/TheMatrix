@@ -19,10 +19,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             AgeGroup ageGroup = resident.GetAgeGroup(currentDate);
             Money grossIncome = ResolveResidentGrossIncome(
-                resident: resident,
-                ageGroup: ageGroup,
-                costOfLivingState: costOfLivingState)
-               .Multiply(Math.Clamp(incomeMultiplier, 0m, 1m));
+                    resident: resident,
+                    ageGroup: ageGroup,
+                    costOfLivingState: costOfLivingState)
+               .Multiply(
+                    Math.Clamp(
+                        value: incomeMultiplier,
+                        min: 0m,
+                        max: 1m));
             Money taxWithheld = grossIncome.Multiply(ResolveTaxRate(resident));
 
             return new CityResidentIncomeSettlementProfile(
@@ -61,7 +65,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 if (ageGroup is AgeGroup.Child or AgeGroup.Youth)
                     childCount++;
 
-                if (resident.GetAge(currentDate).Years == 0)
+                if (resident.GetAge(currentDate)
+                       .Years ==
+                    0)
                     infantCount++;
 
                 CityResidentIncomeSettlementProfile residentIncome = BuildResidentIncome(
@@ -227,11 +233,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 : 0m;
         }
 
-        private static (Money total, Money retailStore, Money service, Money municipal) ResolveResidentDailyExpenseBreakdown(
-            Person resident,
-            AgeGroup ageGroup,
-            DateOnly currentDate,
-            CityPopulationCostOfLivingState? costOfLivingState)
+        private static (Money total, Money retailStore, Money service, Money municipal)
+            ResolveResidentDailyExpenseBreakdown(
+                Person resident,
+                AgeGroup ageGroup,
+                DateOnly currentDate,
+                CityPopulationCostOfLivingState? costOfLivingState)
         {
             decimal amount = ageGroup switch
             {
@@ -242,7 +249,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 6m
             };
 
-            if (resident.GetAge(currentDate).Years == 0)
+            if (resident.GetAge(currentDate)
+                   .Years ==
+                0)
                 amount += 2m;
 
             if (resident.HasActiveIllness)
@@ -286,8 +295,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (municipalAmount < 0m)
             {
                 serviceAmount = decimal.Max(
-                    0m,
-                    serviceAmount + municipalAmount);
+                    x: 0m,
+                    y: serviceAmount + municipalAmount);
                 municipalAmount = decimal.Round(
                     d: totalAmount - retailStoreAmount - serviceAmount,
                     decimals: 2,
@@ -326,7 +335,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     break;
             }
 
-            if (resident.GetAge(currentDate).Years == 0)
+            if (resident.GetAge(currentDate)
+                   .Years ==
+                0)
             {
                 retailStoreShare += 0.06m;
                 serviceShare -= 0.03m;
@@ -365,15 +376,30 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 };
             }
 
-            retailStoreShare = decimal.Max(0.15m, retailStoreShare);
-            serviceShare = decimal.Max(0.05m, serviceShare);
-            municipalShare = decimal.Max(0.03m, municipalShare);
+            retailStoreShare = decimal.Max(
+                x: 0.15m,
+                y: retailStoreShare);
+            serviceShare = decimal.Max(
+                x: 0.05m,
+                y: serviceShare);
+            municipalShare = decimal.Max(
+                x: 0.03m,
+                y: municipalShare);
 
             decimal total = retailStoreShare + serviceShare + municipalShare;
             return (
-                decimal.Round(retailStoreShare / total, 4, MidpointRounding.AwayFromZero),
-                decimal.Round(serviceShare / total, 4, MidpointRounding.AwayFromZero),
-                decimal.Round(municipalShare / total, 4, MidpointRounding.AwayFromZero));
+                decimal.Round(
+                    d: retailStoreShare / total,
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero),
+                decimal.Round(
+                    d: serviceShare / total,
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero),
+                decimal.Round(
+                    d: municipalShare / total,
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero));
         }
 
         private static Money ResolveHousingExpense(

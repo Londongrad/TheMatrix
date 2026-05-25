@@ -1,38 +1,49 @@
+using FluentValidation.Results;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.DispatchCityHeatingMaintenance;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.Heating.DispatchCityHeatingMaintenance;
-
-public sealed class DispatchCityHeatingMaintenanceCommandValidatorTests
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.Heating.
+    DispatchCityHeatingMaintenance
 {
-    [Fact]
-    public void Validate_WithValidCommand_ReturnsNoErrors()
+    public sealed class DispatchCityHeatingMaintenanceCommandValidatorTests
     {
-        var validator = new DispatchCityHeatingMaintenanceCommandValidator();
+        [Fact]
+        public void Validate_WithValidCommand_ReturnsNoErrors()
+        {
+            var validator = new DispatchCityHeatingMaintenanceCommandValidator();
 
-        var result = validator.Validate(new DispatchCityHeatingMaintenanceCommand(
-            CityId: Guid.Parse("ffffffff-aaaa-bbbb-cccc-dddddddddddd"),
-            Focus: "PlantRepairs",
-            Intensity: "Heavy",
-            EmergencyOverride: false));
+            ValidationResult? result = validator.Validate(
+                new DispatchCityHeatingMaintenanceCommand(
+                    CityId: Guid.Parse("ffffffff-aaaa-bbbb-cccc-dddddddddddd"),
+                    Focus: "PlantRepairs",
+                    Intensity: "Heavy",
+                    EmergencyOverride: false));
 
-        Assert.True(result.IsValid);
-    }
+            Assert.True(result.IsValid);
+        }
 
-    [Fact]
-    public void Validate_WithInvalidInputs_ReturnsErrors()
-    {
-        var validator = new DispatchCityHeatingMaintenanceCommandValidator();
+        [Fact]
+        public void Validate_WithInvalidInputs_ReturnsErrors()
+        {
+            var validator = new DispatchCityHeatingMaintenanceCommandValidator();
 
-        var result = validator.Validate(new DispatchCityHeatingMaintenanceCommand(
-            CityId: Guid.Empty,
-            Focus: "Unknown",
-            Intensity: "Ultra",
-            EmergencyOverride: true));
+            ValidationResult? result = validator.Validate(
+                new DispatchCityHeatingMaintenanceCommand(
+                    CityId: Guid.Empty,
+                    Focus: "Unknown",
+                    Intensity: "Ultra",
+                    EmergencyOverride: true));
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "CityId");
-        Assert.Contains(result.Errors, x => x.PropertyName == "Focus");
-        Assert.Contains(result.Errors, x => x.PropertyName == "Intensity");
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "CityId");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Focus");
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "Intensity");
+        }
     }
 }

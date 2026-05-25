@@ -20,15 +20,21 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
                     convertFromProviderExpression: value => CityId.From(value));
 
             builder.Property(x => x.HealthcareQualityIndex)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.EducationQualityIndex)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.HousingSupportIndex)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.LastEvaluatedAtUtc)

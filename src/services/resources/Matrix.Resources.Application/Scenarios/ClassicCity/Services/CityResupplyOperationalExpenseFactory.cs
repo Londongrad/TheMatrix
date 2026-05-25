@@ -1,3 +1,4 @@
+using System.Text;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
 
@@ -114,7 +115,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
             if (string.IsNullOrWhiteSpace(value))
                 return string.Empty;
 
-            var builder = new System.Text.StringBuilder(capacity: value.Length + 4);
+            var builder = new StringBuilder(capacity: value.Length + 4);
 
             for (int index = 0; index < value.Length; index++)
             {

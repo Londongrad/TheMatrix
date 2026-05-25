@@ -2,27 +2,54 @@ using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox;
-
-public sealed class OutboxEventTypeMapTests
+namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
 {
-    [Fact]
-    public void Map_ContainsAllSupportedSimulationCoreEventTypes()
+    public sealed class OutboxEventTypeMapTests
     {
-        IReadOnlyDictionary<string, Type> map = OutboxEventTypeMap.Map;
+        [Fact]
+        public void Map_ContainsAllSupportedSimulationCoreEventTypes()
+        {
+            IReadOnlyDictionary<string, Type> map = OutboxEventTypeMap.Map;
 
-        Assert.Equal(12, map.Count);
-        Assert.Equal(typeof(CityCreatedV1), map[SimulationCoreEventTypes.CityCreatedV1]);
-        Assert.Equal(typeof(CityArchivedV1), map[SimulationCoreEventTypes.CityArchivedV1]);
-        Assert.Equal(typeof(CityDeletedV1), map[SimulationCoreEventTypes.CityDeletedV1]);
-        Assert.Equal(typeof(CityEnvironmentChangedV1), map[SimulationCoreEventTypes.CityEnvironmentChangedV1]);
-        Assert.Equal(typeof(CityTimeAdvancedV1), map[SimulationCoreEventTypes.CityTimeAdvancedV1]);
-        Assert.Equal(typeof(CityTickPhaseReachedV1), map[SimulationCoreEventTypes.CityTickPhaseReachedV1]);
-        Assert.Equal(typeof(CityWeatherCreatedV1), map[SimulationCoreEventTypes.CityWeatherCreatedV1]);
-        Assert.Equal(typeof(CityWeatherChangedV1), map[SimulationCoreEventTypes.CityWeatherChangedV1]);
-        Assert.Equal(typeof(WeatherOverrideStartedV1), map[SimulationCoreEventTypes.WeatherOverrideStartedV1]);
-        Assert.Equal(typeof(WeatherOverrideCancelledV1), map[SimulationCoreEventTypes.WeatherOverrideCancelledV1]);
-        Assert.Equal(typeof(WeatherOverrideExpiredV1), map[SimulationCoreEventTypes.WeatherOverrideExpiredV1]);
-        Assert.Equal(typeof(ClimateProfileChangedV1), map[SimulationCoreEventTypes.ClimateProfileChangedV1]);
+            Assert.Equal(
+                expected: 12,
+                actual: map.Count);
+            Assert.Equal(
+                expected: typeof(CityCreatedV1),
+                actual: map[SimulationCoreEventTypes.CityCreatedV1]);
+            Assert.Equal(
+                expected: typeof(CityArchivedV1),
+                actual: map[SimulationCoreEventTypes.CityArchivedV1]);
+            Assert.Equal(
+                expected: typeof(CityDeletedV1),
+                actual: map[SimulationCoreEventTypes.CityDeletedV1]);
+            Assert.Equal(
+                expected: typeof(CityEnvironmentChangedV1),
+                actual: map[SimulationCoreEventTypes.CityEnvironmentChangedV1]);
+            Assert.Equal(
+                expected: typeof(CityTimeAdvancedV1),
+                actual: map[SimulationCoreEventTypes.CityTimeAdvancedV1]);
+            Assert.Equal(
+                expected: typeof(CityTickPhaseReachedV1),
+                actual: map[SimulationCoreEventTypes.CityTickPhaseReachedV1]);
+            Assert.Equal(
+                expected: typeof(CityWeatherCreatedV1),
+                actual: map[SimulationCoreEventTypes.CityWeatherCreatedV1]);
+            Assert.Equal(
+                expected: typeof(CityWeatherChangedV1),
+                actual: map[SimulationCoreEventTypes.CityWeatherChangedV1]);
+            Assert.Equal(
+                expected: typeof(WeatherOverrideStartedV1),
+                actual: map[SimulationCoreEventTypes.WeatherOverrideStartedV1]);
+            Assert.Equal(
+                expected: typeof(WeatherOverrideCancelledV1),
+                actual: map[SimulationCoreEventTypes.WeatherOverrideCancelledV1]);
+            Assert.Equal(
+                expected: typeof(WeatherOverrideExpiredV1),
+                actual: map[SimulationCoreEventTypes.WeatherOverrideExpiredV1]);
+            Assert.Equal(
+                expected: typeof(ClimateProfileChangedV1),
+                actual: map[SimulationCoreEventTypes.ClimateProfileChangedV1]);
+        }
     }
 }

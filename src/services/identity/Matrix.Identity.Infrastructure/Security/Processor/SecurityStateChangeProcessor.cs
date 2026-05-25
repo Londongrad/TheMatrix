@@ -77,7 +77,7 @@ namespace Matrix.Identity.Infrastructure.Security.Processor
                         missing);
                 }
 
-                foreach (var version in versions)
+                foreach (UserPermissionsVersionProjection version in versions)
                 {
                     var payload = new UserSecurityStateChangedV1(
                         UserId: version.Id,

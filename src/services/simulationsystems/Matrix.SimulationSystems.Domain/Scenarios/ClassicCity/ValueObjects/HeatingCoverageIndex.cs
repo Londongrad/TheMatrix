@@ -4,7 +4,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects
 {
     /// <summary>
-    ///     Normalized heating coverage in the range [0..1], where 0 means citywide heating failure and 1 means stable heat availability.
+    ///     Normalized heating coverage in the range [0..1], where 0 means citywide heating failure and 1 means stable heat
+    ///     availability.
     /// </summary>
     public readonly record struct HeatingCoverageIndex
     {

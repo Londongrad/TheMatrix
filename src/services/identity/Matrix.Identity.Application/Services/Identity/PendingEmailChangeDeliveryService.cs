@@ -53,7 +53,8 @@ namespace Matrix.Identity.Application.Services.Identity
                 throw ApplicationErrorsFactory.EmailChangeRequestThrottled();
             }
 
-            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
             TimeSpan cooldown = oneTimeTokenService.GetDeliveryCooldown(OneTimeTokenPurpose.EmailChange);
 
             if (cooldown > TimeSpan.Zero)

@@ -2,33 +2,40 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Economy.Domain.ValueObjects;
 using Xunit;
 
-namespace Matrix.Economy.Domain.Tests.ValueObjects;
-
-public sealed class CityBudgetIdTests
+namespace Matrix.Economy.Domain.Tests.ValueObjects
 {
-    [Fact]
-    public void Constructor_WhenGuidIsValid_PreservesValue()
+    public sealed class CityBudgetIdTests
     {
-        Guid value = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        [Fact]
+        public void Constructor_WhenGuidIsValid_PreservesValue()
+        {
+            var value = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var budgetId = new CityBudgetId(value);
+            var budgetId = new CityBudgetId(value);
 
-        Assert.Equal(value, budgetId.Value);
-    }
+            Assert.Equal(
+                expected: value,
+                actual: budgetId.Value);
+        }
 
-    [Fact]
-    public void Constructor_WhenGuidIsEmpty_ThrowsDomainException()
-    {
-        DomainException exception = Assert.Throws<DomainException>(() => new CityBudgetId(Guid.Empty));
+        [Fact]
+        public void Constructor_WhenGuidIsEmpty_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new CityBudgetId(Guid.Empty));
 
-        Assert.Equal("Domain.Guard.EmptyGuid", exception.Code);
-    }
+            Assert.Equal(
+                expected: "Domain.Guard.EmptyGuid",
+                actual: exception.Code);
+        }
 
-    [Fact]
-    public void New_WhenCalled_ReturnsNonEmptyGuid()
-    {
-        CityBudgetId budgetId = CityBudgetId.New();
+        [Fact]
+        public void New_WhenCalled_ReturnsNonEmptyGuid()
+        {
+            var budgetId = CityBudgetId.New();
 
-        Assert.NotEqual(Guid.Empty, budgetId.Value);
+            Assert.NotEqual(
+                expected: Guid.Empty,
+                actual: budgetId.Value);
+        }
     }
 }

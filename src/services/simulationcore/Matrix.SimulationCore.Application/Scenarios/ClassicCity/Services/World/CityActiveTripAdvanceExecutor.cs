@@ -1,6 +1,7 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World
 {
@@ -17,17 +18,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World
             if (toSimTimeUtc <= fromSimTimeUtc)
                 return;
 
-            IReadOnlyList<Domain.Scenarios.ClassicCity.World.CityActiveTrip> activeTrips =
+            IReadOnlyList<CityActiveTrip> activeTrips =
                 await tripRepository.ListActiveForUpdateByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
 
-            foreach (Domain.Scenarios.ClassicCity.World.CityActiveTrip activeTrip in activeTrips)
-            {
+            foreach (CityActiveTrip activeTrip in activeTrips)
                 activeTrip.AdvanceTo(
                     toSimTimeUtc: toSimTimeUtc,
                     tickId: tickId);
-            }
         }
     }
 }

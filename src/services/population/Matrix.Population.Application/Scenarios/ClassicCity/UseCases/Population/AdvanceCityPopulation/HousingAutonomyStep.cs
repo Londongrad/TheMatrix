@@ -2,7 +2,6 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -24,7 +23,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationServiceQualityState? serviceQualityState,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId,
             CityHousingAutonomyPolicy housingAutonomyPolicy,
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
@@ -59,21 +59,23 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 placements.ToDictionary(
                     keySelector: x => x.HouseholdId,
                     elementSelector: x => x.ResidentialBuildingId);
-            IReadOnlyDictionary<HouseholdId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByHouseholdId =
-                placements
-                   .Where(x => x.DistrictId.HasValue)
-                   .Select(x => new
-                    {
-                        x.HouseholdId,
-                        Snapshot = ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
-                            districtId: x.DistrictId,
-                            districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId)
-                    })
-                   .Where(x => x.Snapshot is not null)
-                   .ToDictionary(
-                        keySelector: x => x.HouseholdId,
-                        elementSelector: x => x.Snapshot!);
-            var commutePressureProfilesByHouseholdId = new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile>();
+            IReadOnlyDictionary<HouseholdId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByHouseholdId =
+                    placements
+                       .Where(x => x.DistrictId.HasValue)
+                       .Select(x => new
+                        {
+                            x.HouseholdId,
+                            Snapshot = ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
+                                districtId: x.DistrictId,
+                                districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId)
+                        })
+                       .Where(x => x.Snapshot is not null)
+                       .ToDictionary(
+                            keySelector: x => x.HouseholdId,
+                            elementSelector: x => x.Snapshot!);
+            var commutePressureProfilesByHouseholdId =
+                new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile>();
 
             foreach (ClassicCityHouseholdPlacement placement in placements)
             {

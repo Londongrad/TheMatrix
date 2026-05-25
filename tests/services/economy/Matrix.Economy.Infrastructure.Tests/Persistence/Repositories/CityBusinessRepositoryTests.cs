@@ -1,53 +1,89 @@
+using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
-using Matrix.Economy.Infrastructure.Tests.TestSupport;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityBusinessRepositoryTests
+namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task GetByExternalReferenceAndTemplateKey_ReturnsMatchingBusiness()
+    public sealed class CityBusinessRepositoryTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var bakery = CreateBusiness(cityId, "Bakery", "biz-bakery", "tpl-bakery");
+        [Fact]
+        public async Task GetByExternalReferenceAndTemplateKey_ReturnsMatchingBusiness()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityBusiness bakery = CreateBusiness(
+                cityId: cityId,
+                name: "Bakery",
+                externalReferenceCode: "biz-bakery",
+                templateKey: "tpl-bakery");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityBusinesses.AddRange(
-            bakery,
-            CreateBusiness(Guid.Parse("11111111-2222-3333-4444-555555555555"), "Other", "biz-other", "tpl-other"));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityBusinesses.AddRange(
+                bakery,
+                CreateBusiness(
+                    cityId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                    name: "Other",
+                    externalReferenceCode: "biz-other",
+                    templateKey: "tpl-other"));
+            await dbContext.SaveChangesAsync();
 
-        CityBusinessRepository repository = new(dbContext);
+            CityBusinessRepository repository = new(dbContext);
 
-        var byReference = await repository.GetByCityAndExternalReferenceCodeAsync(cityId, "biz-bakery");
-        var byTemplate = await repository.GetByCityAndTemplateKeyAsync(cityId, "tpl-bakery");
+            CityBusiness? byReference = await repository.GetByCityAndExternalReferenceCodeAsync(
+                cityId: cityId,
+                externalReferenceCode: "biz-bakery");
+            CityBusiness? byTemplate = await repository.GetByCityAndTemplateKeyAsync(
+                cityId: cityId,
+                templateKey: "tpl-bakery");
 
-        Assert.Equal(bakery.Id, byReference?.Id);
-        Assert.Equal(bakery.Id, byTemplate?.Id);
-    }
+            Assert.Equal(
+                expected: bakery.Id,
+                actual: byReference?.Id);
+            Assert.Equal(
+                expected: bakery.Id,
+                actual: byTemplate?.Id);
+        }
 
-    [Fact]
-    public async Task ListByCityAsync_FiltersAndOrdersByName()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task ListByCityAsync_FiltersAndOrdersByName()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityBusinesses.AddRange(
-            CreateBusiness(cityId, "Zoo", "biz-zoo", "tpl-zoo"),
-            CreateBusiness(cityId, "Bakery", "biz-bakery", "tpl-bakery"),
-            CreateBusiness(Guid.Parse("11111111-2222-3333-4444-555555555555"), "Clinic", "biz-clinic", "tpl-clinic"));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityBusinesses.AddRange(
+                CreateBusiness(
+                    cityId: cityId,
+                    name: "Zoo",
+                    externalReferenceCode: "biz-zoo",
+                    templateKey: "tpl-zoo"),
+                CreateBusiness(
+                    cityId: cityId,
+                    name: "Bakery",
+                    externalReferenceCode: "biz-bakery",
+                    templateKey: "tpl-bakery"),
+                CreateBusiness(
+                    cityId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                    name: "Clinic",
+                    externalReferenceCode: "biz-clinic",
+                    templateKey: "tpl-clinic"));
+            await dbContext.SaveChangesAsync();
 
-        CityBusinessRepository repository = new(dbContext);
+            CityBusinessRepository repository = new(dbContext);
 
-        var businesses = await repository.ListByCityAsync(cityId);
+            IReadOnlyList<CityBusiness> businesses = await repository.ListByCityAsync(cityId);
 
-        Assert.Equal(2, businesses.Count);
-        Assert.Collection(
-            businesses,
-            x => Assert.Equal("Bakery", x.Name),
-            x => Assert.Equal("Zoo", x.Name));
+            Assert.Equal(
+                expected: 2,
+                actual: businesses.Count);
+            Assert.Collection(
+                collection: businesses,
+                x => Assert.Equal(
+                    expected: "Bakery",
+                    actual: x.Name),
+                x => Assert.Equal(
+                    expected: "Zoo",
+                    actual: x.Name));
+        }
     }
 }

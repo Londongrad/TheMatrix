@@ -1,144 +1,202 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.DispatchCityHeatingMaintenance;
 using Matrix.SimulationSystems.Application.Tests.TestSupport;
-using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.Heating.DispatchCityHeatingMaintenance;
-
-public sealed class DispatchCityHeatingMaintenanceCommandHandlerTests
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.Heating.
+    DispatchCityHeatingMaintenance
 {
-    [Fact]
-    public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+    public sealed class DispatchCityHeatingMaintenanceCommandHandlerTests
     {
-        var handler = CreateHandler(
-            repository: new FakeCityEnvironmentalConditionRepository(),
-            unitOfWork: new FakeUnitOfWork(),
-            outboxWriter: new FakeCityOperationalExpenseOutboxWriter(),
-            client: new FakeCityBudgetAuthorizationClient(),
-            timeProvider: SimulationSystemsApplicationTestSupport.CreateTimeProvider());
-
-        var result = await handler.Handle(CreateCommand(), CancellationToken.None);
-
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task Handle_WhenAuthorizationIsDenied_ReturnsBudgetDecisionWithoutMutations()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var unitOfWork = new FakeUnitOfWork();
-        var outboxWriter = new FakeCityOperationalExpenseOutboxWriter();
-        var client = new FakeCityBudgetAuthorizationClient
+        [Fact]
+        public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
         {
-            Decision = new CityBudgetAuthorizationDecision(
-                Status: "Denied",
-                RequestedIntensity: "Heavy",
-                ApprovedIntensity: null,
-                AuthorizationLevel: "Low",
-                AvailableAmount: 120m,
-                PressureIndex: 0.74m,
-                EmergencyOverrideRequested: false,
-                AuthorizedByEmergencyOverride: false,
-                Summary: "Budget pressure blocks heavy heating maintenance.")
-        };
-        var handler = CreateHandler(
-            repository,
-            unitOfWork,
-            outboxWriter,
-            client,
-            SimulationSystemsApplicationTestSupport.CreateTimeProvider());
+            DispatchCityHeatingMaintenanceCommandHandler handler = CreateHandler(
+                repository: new FakeCityEnvironmentalConditionRepository(),
+                unitOfWork: new FakeUnitOfWork(),
+                outboxWriter: new FakeCityOperationalExpenseOutboxWriter(),
+                client: new FakeCityBudgetAuthorizationClient(),
+                timeProvider: SimulationSystemsApplicationTestSupport.CreateTimeProvider());
 
-        var result = await handler.Handle(
-            CreateCommand(focus: "PlantRepairs", intensity: "Heavy"),
-            CancellationToken.None);
+            CityHeatingStatusDto? result = await handler.Handle(
+                request: CreateCommand(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.Equal("Denied", result!.BudgetAuthorizationStatus);
-        Assert.Equal("Low", result.BudgetAuthorizationLevel);
-        Assert.Equal(120m, result.BudgetAvailableAmount);
-        Assert.Null(result.AppliedIntensity);
-        Assert.False(state.PendingHeatingMaintenance.IsScheduled);
-        Assert.Empty(outboxWriter.Expenses);
-        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
-        Assert.Equal(1, client.AuthorizeCallCount);
-        Assert.NotNull(client.LastRequest);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.CityId, client.LastRequest!.CityId);
-        Assert.Equal("Infrastructure", client.LastRequest.Category);
-        Assert.Equal("HeatingMaintenanceDispatch", client.LastRequest.OperationKind);
-        Assert.Equal("Heavy", client.LastRequest.RequestedIntensity);
-        Assert.Equal(
-            CityMaintenanceOperationalExpenseFactory.EstimateInfrastructureMaintenanceAmount(
-                systemName: "Heating",
-                focus: "PlantRepairs",
-                intensity: "Heavy"),
-            client.LastRequest.EstimatedAmount);
-    }
+            Assert.Null(result);
+        }
 
-    [Fact]
-    public async Task Handle_WhenDispatchIsApplied_SchedulesWorkAndWritesExpense()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var unitOfWork = new FakeUnitOfWork();
-        var outboxWriter = new FakeCityOperationalExpenseOutboxWriter();
-        var client = new FakeCityBudgetAuthorizationClient();
-        var timeProvider = SimulationSystemsApplicationTestSupport.CreateTimeProvider(
-            SimulationSystemsApplicationTestSupport.LaterUtc.AddHours(5));
-        var handler = CreateHandler(repository, unitOfWork, outboxWriter, client, timeProvider);
+        [Fact]
+        public async Task Handle_WhenAuthorizationIsDenied_ReturnsBudgetDecisionWithoutMutations()
+        {
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            var unitOfWork = new FakeUnitOfWork();
+            var outboxWriter = new FakeCityOperationalExpenseOutboxWriter();
+            var client = new FakeCityBudgetAuthorizationClient
+            {
+                Decision = new CityBudgetAuthorizationDecision(
+                    Status: "Denied",
+                    RequestedIntensity: "Heavy",
+                    ApprovedIntensity: null,
+                    AuthorizationLevel: "Low",
+                    AvailableAmount: 120m,
+                    PressureIndex: 0.74m,
+                    EmergencyOverrideRequested: false,
+                    AuthorizedByEmergencyOverride: false,
+                    Summary: "Budget pressure blocks heavy heating maintenance.")
+            };
+            DispatchCityHeatingMaintenanceCommandHandler handler = CreateHandler(
+                repository: repository,
+                unitOfWork: unitOfWork,
+                outboxWriter: outboxWriter,
+                client: client,
+                timeProvider: SimulationSystemsApplicationTestSupport.CreateTimeProvider());
 
-        var result = await handler.Handle(
-            CreateCommand(focus: "NetworkStabilization", intensity: "Standard"),
-            CancellationToken.None);
+            CityHeatingStatusDto? result = await handler.Handle(
+                request: CreateCommand(
+                    focus: "PlantRepairs",
+                    intensity: "Heavy"),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.Equal("NotRequired", result!.BudgetAuthorizationStatus);
-        Assert.Equal("Standard", result.RequestedIntensity);
-        Assert.Equal("Standard", result.AppliedIntensity);
-        Assert.Equal("Standard", result.BudgetAuthorizedIntensity);
-        Assert.Equal(0, client.AuthorizeCallCount);
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
-        Assert.True(state.PendingHeatingMaintenance.IsScheduled);
-        Assert.Equal("NetworkStabilization", state.PendingHeatingMaintenance.Focus);
-        Assert.Equal("Standard", state.PendingHeatingMaintenance.Intensity);
-        Assert.Equal(1, state.PendingHeatingMaintenance.ReadyAtTickId);
-        Assert.Single(outboxWriter.Expenses);
-        Assert.Equal(timeProvider.GetUtcNow(), outboxWriter.Expenses[0].OccurredAtUtc);
-        Assert.Equal(
-            CityMaintenanceOperationalExpenseFactory.EstimateInfrastructureMaintenanceAmount(
-                systemName: "Heating",
-                focus: "NetworkStabilization",
-                intensity: "Standard"),
-            outboxWriter.Expenses[0].Amount);
-    }
+            Assert.NotNull(result);
+            Assert.Equal(
+                expected: "Denied",
+                actual: result!.BudgetAuthorizationStatus);
+            Assert.Equal(
+                expected: "Low",
+                actual: result.BudgetAuthorizationLevel);
+            Assert.Equal(
+                expected: 120m,
+                actual: result.BudgetAvailableAmount);
+            Assert.Null(result.AppliedIntensity);
+            Assert.False(state.PendingHeatingMaintenance.IsScheduled);
+            Assert.Empty(outboxWriter.Expenses);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: 1,
+                actual: client.AuthorizeCallCount);
+            Assert.NotNull(client.LastRequest);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.CityId,
+                actual: client.LastRequest!.CityId);
+            Assert.Equal(
+                expected: "Infrastructure",
+                actual: client.LastRequest.Category);
+            Assert.Equal(
+                expected: "HeatingMaintenanceDispatch",
+                actual: client.LastRequest.OperationKind);
+            Assert.Equal(
+                expected: "Heavy",
+                actual: client.LastRequest.RequestedIntensity);
+            Assert.Equal(
+                expected: CityMaintenanceOperationalExpenseFactory.EstimateInfrastructureMaintenanceAmount(
+                    systemName: "Heating",
+                    focus: "PlantRepairs",
+                    intensity: "Heavy"),
+                actual: client.LastRequest.EstimatedAmount);
+        }
 
-    private static DispatchCityHeatingMaintenanceCommandHandler CreateHandler(
-        FakeCityEnvironmentalConditionRepository repository,
-        FakeUnitOfWork unitOfWork,
-        FakeCityOperationalExpenseOutboxWriter outboxWriter,
-        FakeCityBudgetAuthorizationClient client,
-        FrozenTimeProvider timeProvider)
-    {
-        return new DispatchCityHeatingMaintenanceCommandHandler(
-            repository,
-            unitOfWork,
-            outboxWriter,
-            new ClassicCityWeatherPressureProfileFactory(),
-            new CityMaintenanceBudgetGuard(),
-            new CityMaintenanceBudgetAuthorizationService(client),
-            timeProvider);
-    }
+        [Fact]
+        public async Task Handle_WhenDispatchIsApplied_SchedulesWorkAndWritesExpense()
+        {
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            var unitOfWork = new FakeUnitOfWork();
+            var outboxWriter = new FakeCityOperationalExpenseOutboxWriter();
+            var client = new FakeCityBudgetAuthorizationClient();
+            FrozenTimeProvider timeProvider = SimulationSystemsApplicationTestSupport.CreateTimeProvider(
+                SimulationSystemsApplicationTestSupport.LaterUtc.AddHours(5));
+            DispatchCityHeatingMaintenanceCommandHandler handler = CreateHandler(
+                repository: repository,
+                unitOfWork: unitOfWork,
+                outboxWriter: outboxWriter,
+                client: client,
+                timeProvider: timeProvider);
 
-    private static DispatchCityHeatingMaintenanceCommand CreateCommand(
-        string focus = "Balanced",
-        string intensity = "Standard",
-        bool emergencyOverride = false)
-    {
-        return new DispatchCityHeatingMaintenanceCommand(
-            CityId: SimulationSystemsApplicationTestSupport.CityId,
-            Focus: focus,
-            Intensity: intensity,
-            EmergencyOverride: emergencyOverride);
+            CityHeatingStatusDto? result = await handler.Handle(
+                request: CreateCommand(
+                    focus: "NetworkStabilization",
+                    intensity: "Standard"),
+                cancellationToken: CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.Equal(
+                expected: "NotRequired",
+                actual: result!.BudgetAuthorizationStatus);
+            Assert.Equal(
+                expected: "Standard",
+                actual: result.RequestedIntensity);
+            Assert.Equal(
+                expected: "Standard",
+                actual: result.AppliedIntensity);
+            Assert.Equal(
+                expected: "Standard",
+                actual: result.BudgetAuthorizedIntensity);
+            Assert.Equal(
+                expected: 0,
+                actual: client.AuthorizeCallCount);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.True(state.PendingHeatingMaintenance.IsScheduled);
+            Assert.Equal(
+                expected: "NetworkStabilization",
+                actual: state.PendingHeatingMaintenance.Focus);
+            Assert.Equal(
+                expected: "Standard",
+                actual: state.PendingHeatingMaintenance.Intensity);
+            Assert.Equal(
+                expected: 1,
+                actual: state.PendingHeatingMaintenance.ReadyAtTickId);
+            Assert.Single(outboxWriter.Expenses);
+            Assert.Equal(
+                expected: timeProvider.GetUtcNow(),
+                actual: outboxWriter.Expenses[0].OccurredAtUtc);
+            Assert.Equal(
+                expected: CityMaintenanceOperationalExpenseFactory.EstimateInfrastructureMaintenanceAmount(
+                    systemName: "Heating",
+                    focus: "NetworkStabilization",
+                    intensity: "Standard"),
+                actual: outboxWriter.Expenses[0].Amount);
+        }
+
+        private static DispatchCityHeatingMaintenanceCommandHandler CreateHandler(
+            FakeCityEnvironmentalConditionRepository repository,
+            FakeUnitOfWork unitOfWork,
+            FakeCityOperationalExpenseOutboxWriter outboxWriter,
+            FakeCityBudgetAuthorizationClient client,
+            FrozenTimeProvider timeProvider)
+        {
+            return new DispatchCityHeatingMaintenanceCommandHandler(
+                repository: repository,
+                unitOfWork: unitOfWork,
+                operationalExpenseOutboxWriter: outboxWriter,
+                pressureProfileFactory: new ClassicCityWeatherPressureProfileFactory(),
+                budgetGuard: new CityMaintenanceBudgetGuard(),
+                budgetAuthorizationService: new CityMaintenanceBudgetAuthorizationService(client),
+                timeProvider: timeProvider);
+        }
+
+        private static DispatchCityHeatingMaintenanceCommand CreateCommand(
+            string focus = "Balanced",
+            string intensity = "Standard",
+            bool emergencyOverride = false)
+        {
+            return new DispatchCityHeatingMaintenanceCommand(
+                CityId: SimulationSystemsApplicationTestSupport.CityId,
+                Focus: focus,
+                Intensity: intensity,
+                EmergencyOverride: emergencyOverride);
+        }
     }
 }

@@ -27,7 +27,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
             if (tickOptions.MaxStepsPerSimulationPerCycle <= 0)
                 throw new InvalidOperationException("SimulationCore:Tick:MaxStepsPerSimulationPerCycle must be > 0.");
 
-            TimeSpan fixedStep = TimeSpan.FromSeconds(tickOptions.FixedStepSeconds);
+            var fixedStep = TimeSpan.FromSeconds(tickOptions.FixedStepSeconds);
 
             using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(tickOptions.PeriodMilliseconds));
             var stopwatch = Stopwatch.StartNew();
@@ -62,7 +62,6 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
                             result.TotalStepsProcessed);
 
                         if (result.LaggingCount > 0)
-                        {
                             logger.LogWarning(
                                 message:
                                 "SimulationCore fixed-step backlog remains for {LaggingCount} simulations after processing {TotalStepsProcessed} fixed steps. Max steps per simulation per cycle: {MaxStepsPerSimulationPerCycle}, fixed step size: {FixedStep}.",
@@ -70,7 +69,6 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
                                 result.TotalStepsProcessed,
                                 tickOptions.MaxStepsPerSimulationPerCycle,
                                 fixedStep);
-                        }
                     }
                     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {

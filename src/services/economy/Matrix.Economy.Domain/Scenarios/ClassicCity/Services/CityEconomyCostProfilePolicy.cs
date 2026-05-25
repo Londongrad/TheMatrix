@@ -49,16 +49,16 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
         {
             decimal housingSupport = ResolveAllocationSupport(
                 allocations: allocations,
-                CityBudgetCategory.Housing,
-                CityBudgetCategory.General);
+                primaryCategory: CityBudgetCategory.Housing,
+                secondaryCategory: CityBudgetCategory.General);
             decimal commerceSupport = ResolveAllocationSupport(
                 allocations: allocations,
-                CityBudgetCategory.Commerce,
-                CityBudgetCategory.General);
+                primaryCategory: CityBudgetCategory.Commerce,
+                secondaryCategory: CityBudgetCategory.General);
             decimal infrastructureSupport = ResolveAllocationSupport(
                 allocations: allocations,
-                CityBudgetCategory.Infrastructure,
-                CityBudgetCategory.Operations);
+                primaryCategory: CityBudgetCategory.Infrastructure,
+                secondaryCategory: CityBudgetCategory.Operations);
             decimal overallPressure = ResolveBudgetPressure(
                 budget: budget,
                 allocations: allocations);
@@ -83,34 +83,38 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
                 CityBusinessKind.Utility,
                 CityBusinessKind.MunicipalVendor);
 
-            decimal wageTarget = state.BaseWageMultiplier * Clamp(
-                value: 0.90m +
-                       (employerLiquidity * 0.24m) +
-                       (commerceSupport * 0.08m) -
-                       (overallPressure * 0.10m),
-                min: 0.75m,
-                max: 1.35m);
-            decimal retailTarget = state.BaseRetailPriceMultiplier * Clamp(
-                value: 1.09m -
-                       (retailLiquidity * 0.14m) -
-                       (commerceSupport * 0.05m) +
-                       (overallPressure * 0.08m),
-                min: 0.75m,
-                max: 1.45m);
-            decimal housingTarget = state.BaseHousingCostMultiplier * Clamp(
-                value: 1.07m -
-                       (housingSupport * 0.10m) -
-                       (landlordLiquidity * 0.08m) +
-                       (overallPressure * 0.12m),
-                min: 0.75m,
-                max: 1.50m);
-            decimal utilityTarget = state.BaseUtilityCostMultiplier * Clamp(
-                value: 1.04m -
-                       (infrastructureSupport * 0.08m) -
-                       (utilityLiquidity * 0.09m) +
-                       (overallPressure * 0.10m),
-                min: 0.75m,
-                max: 1.45m);
+            decimal wageTarget = state.BaseWageMultiplier *
+                                 Clamp(
+                                     value: 0.90m +
+                                            (employerLiquidity * 0.24m) +
+                                            (commerceSupport * 0.08m) -
+                                            (overallPressure * 0.10m),
+                                     min: 0.75m,
+                                     max: 1.35m);
+            decimal retailTarget = state.BaseRetailPriceMultiplier *
+                                   Clamp(
+                                       value: 1.09m -
+                                              (retailLiquidity * 0.14m) -
+                                              (commerceSupport * 0.05m) +
+                                              (overallPressure * 0.08m),
+                                       min: 0.75m,
+                                       max: 1.45m);
+            decimal housingTarget = state.BaseHousingCostMultiplier *
+                                    Clamp(
+                                        value: 1.07m -
+                                               (housingSupport * 0.10m) -
+                                               (landlordLiquidity * 0.08m) +
+                                               (overallPressure * 0.12m),
+                                        min: 0.75m,
+                                        max: 1.50m);
+            decimal utilityTarget = state.BaseUtilityCostMultiplier *
+                                    Clamp(
+                                        value: 1.04m -
+                                               (infrastructureSupport * 0.08m) -
+                                               (utilityLiquidity * 0.09m) +
+                                               (overallPressure * 0.10m),
+                                        min: 0.75m,
+                                        max: 1.45m);
 
             decimal wageMultiplier = Smooth(
                 current: state.WageMultiplier,
@@ -135,7 +139,10 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
                 mode: MidpointRounding.AwayFromZero);
             decimal affordabilityIndex = decimal.Round(
                 d: Clamp(
-                    value: wageMultiplier / Math.Max(0.35m, costOfLivingIndex),
+                    value: wageMultiplier /
+                    Math.Max(
+                        val1: 0.35m,
+                        val2: costOfLivingIndex),
                     min: 0.45m,
                     max: 1.60m),
                 decimals: 4,
@@ -184,12 +191,17 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
                 return 0.65m;
 
             decimal spentRatio = allocation.TotalSpent.Amount / allocation.TargetAmount.Amount;
-            decimal availableRatio = allocation.GetAvailableAmount().Amount / allocation.TargetAmount.Amount;
+            decimal availableRatio = allocation.GetAvailableAmount()
+                                        .Amount /
+                                     allocation.TargetAmount.Amount;
 
             return Clamp(
                 value: 0.72m +
                        (availableRatio * 0.35m) -
-                       (Math.Max(0m, spentRatio - 1m) * 0.28m),
+                       (Math.Max(
+                            val1: 0m,
+                            val2: spentRatio - 1m) *
+                        0.28m),
                 min: 0.20m,
                 max: 1.30m);
         }
@@ -210,9 +222,11 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
             decimal overrunPressure = allocations.Count == 0
                 ? 0m
                 : allocations.Average(x => Math.Max(
-                    0m,
-                    x.TotalSpent.Amount - x.TargetAmount.Amount) /
-                          Math.Max(1m, x.TargetAmount.Amount));
+                                               val1: 0m,
+                                               val2: x.TotalSpent.Amount - x.TargetAmount.Amount) /
+                                           Math.Max(
+                                               val1: 1m,
+                                               val2: x.TargetAmount.Amount));
 
             return decimal.Round(
                 d: Clamp(
@@ -236,7 +250,9 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
 
             decimal support = scopedBusinesses.Average(x =>
             {
-                decimal capitalBase = Math.Max(1m, x.TotalCapitalInjections.Amount);
+                decimal capitalBase = Math.Max(
+                    val1: 1m,
+                    val2: x.TotalCapitalInjections.Amount);
                 decimal taxBurden = x.TaxReserve.Amount / capitalBase;
                 decimal balanceRatio = x.Balance.Amount / capitalBase;
 

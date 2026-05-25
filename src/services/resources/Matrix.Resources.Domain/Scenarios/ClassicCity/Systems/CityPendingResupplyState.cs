@@ -46,7 +46,9 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             Focus = focus.ToString();
             Intensity = intensity.ToString();
             FocusDistrictId = focusDistrictId;
-            ReadyAtTickId = Math.Max(0, readyAtTickId);
+            ReadyAtTickId = Math.Max(
+                val1: 0,
+                val2: readyAtTickId);
         }
 
         public bool IsReady(long tickId)

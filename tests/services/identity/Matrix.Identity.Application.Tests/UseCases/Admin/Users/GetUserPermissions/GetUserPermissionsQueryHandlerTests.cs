@@ -4,69 +4,91 @@ using Matrix.Identity.Application.UseCases.Admin.Users.GetUserPermissions;
 using Matrix.Identity.Domain.Enums;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.GetUserPermissions;
-
-public sealed class GetUserPermissionsQueryHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.GetUserPermissions
 {
-    [Fact]
-    public async Task Handle_WhenOverridesExist_ReturnsOverridesWithoutExistenceCheck()
+    public sealed class GetUserPermissionsQueryHandlerTests
     {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository();
-        var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
+        [Fact]
+        public async Task Handle_WhenOverridesExist_ReturnsOverridesWithoutExistenceCheck()
         {
-            GetUserPermissionsResult =
-            [
-                new UserPermissionOverrideResult
-                {
-                    PermissionKey = "users.read",
-                    Effect = PermissionEffect.Allow
-                }
-            ]
-        };
-        var handler = new GetUserPermissionsQueryHandler(userRepository, permissionsRepository);
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository();
+            var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
+            {
+                GetUserPermissionsResult =
+                [
+                    new UserPermissionOverrideResult
+                    {
+                        PermissionKey = "users.read",
+                        Effect = PermissionEffect.Allow
+                    }
+                ]
+            };
+            var handler = new GetUserPermissionsQueryHandler(
+                userRepository: userRepository,
+                permissionsRepository: permissionsRepository);
 
-        var result = await handler.Handle(new GetUserPermissionsQuery(userId), CancellationToken.None);
+            IReadOnlyCollection<UserPermissionOverrideResult> result = await handler.Handle(
+                request: new GetUserPermissionsQuery(userId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(userId, permissionsRepository.RequestedUserId);
-        Assert.Null(userRepository.RequestedUserId);
-        Assert.Single(result);
-    }
+            Assert.Equal(
+                expected: userId,
+                actual: permissionsRepository.RequestedUserId);
+            Assert.Null(userRepository.RequestedUserId);
+            Assert.Single(result);
+        }
 
-    [Fact]
-    public async Task Handle_WhenOverridesEmptyAndUserDoesNotExist_ThrowsNotFound()
-    {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenOverridesEmptyAndUserDoesNotExist_ThrowsNotFound()
         {
-            ExistsAsyncResult = false
-        };
-        var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository();
-        var handler = new GetUserPermissionsQueryHandler(userRepository, permissionsRepository);
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = false
+            };
+            var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository();
+            var handler = new GetUserPermissionsQueryHandler(
+                userRepository: userRepository,
+                permissionsRepository: permissionsRepository);
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            new GetUserPermissionsQuery(userId),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: new GetUserPermissionsQuery(userId),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.User.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-        Assert.Equal(userId, userRepository.RequestedUserId);
-    }
+            Assert.Equal(
+                expected: "Identity.User.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+            Assert.Equal(
+                expected: userId,
+                actual: userRepository.RequestedUserId);
+        }
 
-    [Fact]
-    public async Task Handle_WhenUserExistsAndOverridesEmpty_ReturnsEmptyCollection()
-    {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenUserExistsAndOverridesEmpty_ReturnsEmptyCollection()
         {
-            ExistsAsyncResult = true
-        };
-        var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository();
-        var handler = new GetUserPermissionsQueryHandler(userRepository, permissionsRepository);
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = true
+            };
+            var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository();
+            var handler = new GetUserPermissionsQueryHandler(
+                userRepository: userRepository,
+                permissionsRepository: permissionsRepository);
 
-        var result = await handler.Handle(new GetUserPermissionsQuery(userId), CancellationToken.None);
+            IReadOnlyCollection<UserPermissionOverrideResult> result = await handler.Handle(
+                request: new GetUserPermissionsQuery(userId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Empty(result);
-        Assert.Equal(userId, userRepository.RequestedUserId);
+            Assert.Empty(result);
+            Assert.Equal(
+                expected: userId,
+                actual: userRepository.RequestedUserId);
+        }
     }
 }

@@ -25,9 +25,9 @@ export default defineConfig({
     server: {
         https: hasLocalHttpsCertificates
             ? {
-                  key: fs.readFileSync(localhostKeyPath),
-                  cert: fs.readFileSync(localhostCertPath),
-              }
+                key: fs.readFileSync(localhostKeyPath),
+                cert: fs.readFileSync(localhostCertPath),
+            }
             : false,
         host: "localhost",
         port: 5173,

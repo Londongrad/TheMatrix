@@ -1,53 +1,86 @@
+using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories;
-
-public sealed class CityBudgetAllocationRepositoryTests
+namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories
 {
-    [Fact]
-    public async Task GetByCityAndCategoryAsync_ReturnsMatchingAllocation()
+    public sealed class CityBudgetAllocationRepositoryTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task GetByCityAndCategoryAsync_ReturnsMatchingAllocation()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityBudgetAllocations.AddRange(
-            CreateBudgetAllocation(cityId, CityBudgetCategory.Operations, 100m),
-            CreateBudgetAllocation(cityId, CityBudgetCategory.Infrastructure, 150m),
-            CreateBudgetAllocation(Guid.Parse("11111111-2222-3333-4444-555555555555"), CityBudgetCategory.Operations, 200m));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityBudgetAllocations.AddRange(
+                CreateBudgetAllocation(
+                    cityId: cityId,
+                    category: CityBudgetCategory.Operations,
+                    targetAmount: 100m),
+                CreateBudgetAllocation(
+                    cityId: cityId,
+                    category: CityBudgetCategory.Infrastructure,
+                    targetAmount: 150m),
+                CreateBudgetAllocation(
+                    cityId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                    category: CityBudgetCategory.Operations,
+                    targetAmount: 200m));
+            await dbContext.SaveChangesAsync();
 
-        CityBudgetAllocationRepository repository = new(dbContext);
+            CityBudgetAllocationRepository repository = new(dbContext);
 
-        var allocation = await repository.GetByCityAndCategoryAsync(cityId, CityBudgetCategory.Infrastructure);
+            CityBudgetAllocation? allocation = await repository.GetByCityAndCategoryAsync(
+                cityId: cityId,
+                category: CityBudgetCategory.Infrastructure);
 
-        Assert.NotNull(allocation);
-        Assert.Equal(CityBudgetCategory.Infrastructure, allocation.Category);
-        Assert.Equal(cityId, allocation.CityId);
-    }
+            Assert.NotNull(allocation);
+            Assert.Equal(
+                expected: CityBudgetCategory.Infrastructure,
+                actual: allocation.Category);
+            Assert.Equal(
+                expected: cityId,
+                actual: allocation.CityId);
+        }
 
-    [Fact]
-    public async Task ListByCityAsync_FiltersAndOrdersByCategory()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        [Fact]
+        public async Task ListByCityAsync_FiltersAndOrdersByCategory()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
 
-        await using var dbContext = CreateDbContext();
-        dbContext.CityBudgetAllocations.AddRange(
-            CreateBudgetAllocation(cityId, CityBudgetCategory.Operations, 100m),
-            CreateBudgetAllocation(cityId, CityBudgetCategory.General, 80m),
-            CreateBudgetAllocation(Guid.Parse("11111111-2222-3333-4444-555555555555"), CityBudgetCategory.Infrastructure, 200m));
-        await dbContext.SaveChangesAsync();
+            await using EconomyDbContext dbContext = CreateDbContext();
+            dbContext.CityBudgetAllocations.AddRange(
+                CreateBudgetAllocation(
+                    cityId: cityId,
+                    category: CityBudgetCategory.Operations,
+                    targetAmount: 100m),
+                CreateBudgetAllocation(
+                    cityId: cityId,
+                    category: CityBudgetCategory.General,
+                    targetAmount: 80m),
+                CreateBudgetAllocation(
+                    cityId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                    category: CityBudgetCategory.Infrastructure,
+                    targetAmount: 200m));
+            await dbContext.SaveChangesAsync();
 
-        CityBudgetAllocationRepository repository = new(dbContext);
+            CityBudgetAllocationRepository repository = new(dbContext);
 
-        var allocations = await repository.ListByCityAsync(cityId);
+            IReadOnlyList<CityBudgetAllocation> allocations = await repository.ListByCityAsync(cityId);
 
-        Assert.Equal(2, allocations.Count);
-        Assert.Collection(
-            allocations,
-            x => Assert.Equal(CityBudgetCategory.General, x.Category),
-            x => Assert.Equal(CityBudgetCategory.Operations, x.Category));
+            Assert.Equal(
+                expected: 2,
+                actual: allocations.Count);
+            Assert.Collection(
+                collection: allocations,
+                x => Assert.Equal(
+                    expected: CityBudgetCategory.General,
+                    actual: x.Category),
+                x => Assert.Equal(
+                    expected: CityBudgetCategory.Operations,
+                    actual: x.Category));
+        }
     }
 }

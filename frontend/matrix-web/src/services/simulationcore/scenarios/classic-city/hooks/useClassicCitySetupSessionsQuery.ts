@@ -1,6 +1,8 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {listClassicCitySetupSessions} from "@services/simulationcore/scenarios/classic-city/api/setupSessionsApi";
-import type {ClassicCitySetupSessionView} from "@services/simulationcore/scenarios/classic-city/contracts/setupSessionContracts";
+import type {
+    ClassicCitySetupSessionView
+} from "@services/simulationcore/scenarios/classic-city/contracts/setupSessionContracts";
 
 const cacheKey = "classic-city-setup-sessions";
 const setupSessionsCache = new Map<string, ClassicCitySetupSessionView[]>();

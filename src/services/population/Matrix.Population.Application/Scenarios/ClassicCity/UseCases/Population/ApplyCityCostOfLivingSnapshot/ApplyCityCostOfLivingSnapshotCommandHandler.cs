@@ -3,7 +3,6 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityCostOfLivingSnapshot
@@ -35,14 +34,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cancellationToken: ct);
 
                     if (!markedAsProcessed)
-                        return new ApplyCityCostOfLivingSnapshotResult(
-                            ApplyCityCostOfLivingSnapshotStatus.Duplicate);
+                        return new ApplyCityCostOfLivingSnapshotResult(ApplyCityCostOfLivingSnapshotStatus.Duplicate);
 
                     if (await cityPopulationDeletionStateRepository.GetByCityAsync(
                             cityId: cityId,
                             cancellationToken: ct) is not null)
-                        return new ApplyCityCostOfLivingSnapshotResult(
-                            ApplyCityCostOfLivingSnapshotStatus.CityDeleted);
+                        return new ApplyCityCostOfLivingSnapshotResult(ApplyCityCostOfLivingSnapshotStatus.CityDeleted);
 
                     if (await cityPopulationArchiveStateRepository.GetByCityAsync(
                             cityId: cityId,
@@ -56,8 +53,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             cancellationToken: ct);
 
                     if (state is not null && occurredAtUtc < state.LastEvaluatedAtUtc)
-                        return new ApplyCityCostOfLivingSnapshotResult(
-                            ApplyCityCostOfLivingSnapshotStatus.Stale);
+                        return new ApplyCityCostOfLivingSnapshotResult(ApplyCityCostOfLivingSnapshotStatus.Stale);
 
                     DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
 
@@ -91,8 +87,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     await unitOfWork.SaveChangesAsync(ct);
 
-                    return new ApplyCityCostOfLivingSnapshotResult(
-                        ApplyCityCostOfLivingSnapshotStatus.Applied);
+                    return new ApplyCityCostOfLivingSnapshotResult(ApplyCityCostOfLivingSnapshotStatus.Applied);
                 },
                 cancellationToken: cancellationToken);
         }

@@ -11,12 +11,21 @@ namespace Matrix.Population.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<CityPopulationArchiveState> CityPopulationArchiveStates => Set<CityPopulationArchiveState>();
-        public DbSet<CityPopulationCostOfLivingState> CityPopulationCostOfLivingStates => Set<CityPopulationCostOfLivingState>();
+
+        public DbSet<CityPopulationCostOfLivingState> CityPopulationCostOfLivingStates
+            => Set<CityPopulationCostOfLivingState>();
+
         public DbSet<CityPopulationDeletionState> CityPopulationDeletionStates => Set<CityPopulationDeletionState>();
         public DbSet<CityPopulationEnvironment> CityPopulationEnvironments => Set<CityPopulationEnvironment>();
-        public DbSet<CityPopulationEssentialsState> CityPopulationEssentialsStates => Set<CityPopulationEssentialsState>();
-        public DbSet<CityPopulationLivingConditionsState> CityPopulationLivingConditionsStates => Set<CityPopulationLivingConditionsState>();
-        public DbSet<CityPopulationServiceQualityState> CityPopulationServiceQualityStates => Set<CityPopulationServiceQualityState>();
+
+        public DbSet<CityPopulationEssentialsState> CityPopulationEssentialsStates
+            => Set<CityPopulationEssentialsState>();
+
+        public DbSet<CityPopulationLivingConditionsState> CityPopulationLivingConditionsStates
+            => Set<CityPopulationLivingConditionsState>();
+
+        public DbSet<CityPopulationServiceQualityState> CityPopulationServiceQualityStates
+            => Set<CityPopulationServiceQualityState>();
 
         public DbSet<CityPopulationEmployerFinancialStressState> CityPopulationEmployerFinancialStressStates
             => Set<CityPopulationEmployerFinancialStressState>();
@@ -25,6 +34,7 @@ namespace Matrix.Population.Infrastructure.Persistence
             => Set<CityPopulationHouseholdFinancialStressState>();
 
         public DbSet<CityPopulationActivityEvent> CityPopulationActivityEvents => Set<CityPopulationActivityEvent>();
+
         public DbSet<CityPopulationAnchorCatalogItem> CityPopulationAnchorCatalogItems
             => Set<CityPopulationAnchorCatalogItem>();
 

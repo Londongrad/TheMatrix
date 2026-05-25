@@ -31,11 +31,11 @@ export function createProfileResponse(
 }
 
 export function createAuthContextValue({
-    user,
-    token = "access-token",
-    isLoading = false,
-    permissions = [],
-}: AuthTestOptions = {}): AuthContextValue {
+                                           user,
+                                           token = "access-token",
+                                           isLoading = false,
+                                           permissions = [],
+                                       }: AuthTestOptions = {}): AuthContextValue {
     const resolvedUser = user === undefined ? createProfileResponse(permissions) : user;
 
     return {

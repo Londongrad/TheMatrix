@@ -20,14 +20,13 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
             IReadOnlyList<RoadSegment> roadSegments,
             CityRoadSegmentConditionsSnapshot? segmentConditions)
         {
-            Dictionary<Guid, RoadNode> roadNodeById = roadNodes.ToDictionary(
+            var roadNodeById = roadNodes.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
             Dictionary<Guid, SegmentConditionState> conditionBySegmentId =
                 BuildConditionIndex(segmentConditions);
 
             if (from.RoadNodeId == to.RoadNodeId)
-            {
                 return new CityRouteDto(
                     CityId: cityId,
                     Profile: profile,
@@ -42,7 +41,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
                     OverallPassabilityIndex: 1m,
                     UnreachableReason: null,
                     Segments: Array.Empty<CityRouteSegmentDto>());
-            }
 
             Dictionary<Guid, List<TraversalEdge>> adjacency = BuildAdjacency(
                 roadSegments: roadSegments,
@@ -50,7 +48,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
                 profile: profile);
 
             if (!adjacency.ContainsKey(from.RoadNodeId) || !roadNodeById.ContainsKey(to.RoadNodeId))
-            {
                 return CreateUnreachable(
                     cityId: cityId,
                     profile: profile,
@@ -58,13 +55,17 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
                     to: to,
                     segmentConditions: segmentConditions,
                     reason: "No traversable route could be built for the selected map points.");
-            }
 
             PriorityQueue<Guid, decimal> frontier = new();
-            Dictionary<Guid, decimal> costByRoadNodeId = new() { [from.RoadNodeId] = 0m };
+            Dictionary<Guid, decimal> costByRoadNodeId = new()
+            {
+                [from.RoadNodeId] = 0m
+            };
             Dictionary<Guid, PreviousStep> previousByRoadNodeId = new();
 
-            frontier.Enqueue(from.RoadNodeId, 0m);
+            frontier.Enqueue(
+                element: from.RoadNodeId,
+                priority: 0m);
 
             while (frontier.Count > 0)
             {
@@ -74,29 +75,32 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
                 if (currentRoadNodeId == to.RoadNodeId)
                     break;
 
-                if (!adjacency.TryGetValue(currentRoadNodeId, out List<TraversalEdge>? edges))
+                if (!adjacency.TryGetValue(
+                        key: currentRoadNodeId,
+                        value: out List<TraversalEdge>? edges))
                     continue;
 
                 foreach (TraversalEdge edge in edges)
                 {
                     decimal nextCost = currentCost + edge.TraversalMinutes;
 
-                    if (costByRoadNodeId.TryGetValue(edge.ToRoadNodeId, out decimal existingCost)
-                     && existingCost <= nextCost)
-                    {
+                    if (costByRoadNodeId.TryGetValue(
+                            key: edge.ToRoadNodeId,
+                            value: out decimal existingCost) &&
+                        existingCost <= nextCost)
                         continue;
-                    }
 
                     costByRoadNodeId[edge.ToRoadNodeId] = nextCost;
                     previousByRoadNodeId[edge.ToRoadNodeId] = new PreviousStep(
                         PreviousRoadNodeId: currentRoadNodeId,
                         Edge: edge);
-                    frontier.Enqueue(edge.ToRoadNodeId, nextCost);
+                    frontier.Enqueue(
+                        element: edge.ToRoadNodeId,
+                        priority: nextCost);
                 }
             }
 
             if (!previousByRoadNodeId.ContainsKey(to.RoadNodeId))
-            {
                 return CreateUnreachable(
                     cityId: cityId,
                     profile: profile,
@@ -104,7 +108,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
                     to: to,
                     segmentConditions: segmentConditions,
                     reason: "No traversable route is currently available between the selected points.");
-            }
 
             List<CityRouteSegmentDto> routeSegments = new();
             Guid traversalRoadNodeId = to.RoadNodeId;
@@ -117,19 +120,20 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
                 PreviousStep step = previousByRoadNodeId[traversalRoadNodeId];
                 TraversalEdge edge = step.Edge;
 
-                routeSegments.Add(new CityRouteSegmentDto(
-                    RoadSegmentId: edge.RoadSegment.Id.Value,
-                    DistrictId: edge.RoadSegment.DistrictId.Value,
-                    FromRoadNodeId: edge.FromRoadNodeId,
-                    ToRoadNodeId: edge.ToRoadNodeId,
-                    Name: edge.RoadSegment.Name,
-                    Type: edge.RoadSegment.Type.ToString(),
-                    LengthMeters: edge.RoadSegment.LengthMeters,
-                    EstimatedTraversalMinutes: edge.TraversalMinutes,
-                    PassabilityIndex: edge.Condition.PassabilityIndex,
-                    SpeedMultiplierIndex: edge.Condition.SpeedMultiplierIndex,
-                    SlipRiskIndex: edge.Condition.SlipRiskIndex,
-                    ClosureRiskIndex: edge.Condition.ClosureRiskIndex));
+                routeSegments.Add(
+                    new CityRouteSegmentDto(
+                        RoadSegmentId: edge.RoadSegment.Id.Value,
+                        DistrictId: edge.RoadSegment.DistrictId.Value,
+                        FromRoadNodeId: edge.FromRoadNodeId,
+                        ToRoadNodeId: edge.ToRoadNodeId,
+                        Name: edge.RoadSegment.Name,
+                        Type: edge.RoadSegment.Type.ToString(),
+                        LengthMeters: edge.RoadSegment.LengthMeters,
+                        EstimatedTraversalMinutes: edge.TraversalMinutes,
+                        PassabilityIndex: edge.Condition.PassabilityIndex,
+                        SpeedMultiplierIndex: edge.Condition.SpeedMultiplierIndex,
+                        SlipRiskIndex: edge.Condition.SlipRiskIndex,
+                        ClosureRiskIndex: edge.Condition.ClosureRiskIndex));
 
                 totalDistanceMeters += edge.RoadSegment.LengthMeters;
                 totalTraversalMinutes += edge.TraversalMinutes;
@@ -154,8 +158,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
                 ConditionsLastEvaluatedAtUtc: segmentConditions?.LastEvaluatedAtUtc,
                 From: from,
                 To: to,
-                TotalDistanceMeters: decimal.Round(totalDistanceMeters, 2),
-                EstimatedTravelTimeMinutes: decimal.Round(totalTraversalMinutes, 2),
+                TotalDistanceMeters: decimal.Round(
+                    d: totalDistanceMeters,
+                    decimals: 2),
+                EstimatedTravelTimeMinutes: decimal.Round(
+                    d: totalTraversalMinutes,
+                    decimals: 2),
                 OverallPassabilityIndex: overallPassabilityIndex,
                 UnreachableReason: null,
                 Segments: routeSegments);
@@ -209,7 +217,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
             IDictionary<Guid, List<TraversalEdge>> adjacency,
             TraversalEdge edge)
         {
-            if (!adjacency.TryGetValue(edge.FromRoadNodeId, out List<TraversalEdge>? edges))
+            if (!adjacency.TryGetValue(
+                    key: edge.FromRoadNodeId,
+                    value: out List<TraversalEdge>? edges))
             {
                 edges = new List<TraversalEdge>();
                 adjacency[edge.FromRoadNodeId] = edges;
@@ -268,10 +278,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
             RoadSegmentType roadSegmentType)
         {
             if (string.Equals(
-                a: profile,
-                b: CityRouteProfiles.Pedestrian,
-                comparisonType: StringComparison.OrdinalIgnoreCase))
-            {
+                    a: profile,
+                    b: CityRouteProfiles.Pedestrian,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                 return roadSegmentType switch
                 {
                     RoadSegmentType.Arterial => 0.92m,
@@ -279,7 +288,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
                     RoadSegmentType.LocalAccess => 1.04m,
                     _ => 1m
                 };
-            }
 
             return roadSegmentType switch
             {
@@ -292,8 +300,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routi
 
         private static bool IsTraversable(SegmentConditionState condition)
         {
-            return condition.PassabilityIndex >= MinimumTraversablePassability
-                && condition.ClosureRiskIndex < MaximumClosureRisk;
+            return condition.PassabilityIndex >= MinimumTraversablePassability &&
+                   condition.ClosureRiskIndex < MaximumClosureRisk;
         }
 
         private static CityRouteDto CreateUnreachable(

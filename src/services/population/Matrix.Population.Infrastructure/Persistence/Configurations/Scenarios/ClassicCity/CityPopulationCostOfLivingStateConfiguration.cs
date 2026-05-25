@@ -20,27 +20,39 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
                     convertFromProviderExpression: value => CityId.From(value));
 
             builder.Property(x => x.WageMultiplier)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.RetailPriceMultiplier)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.HousingCostMultiplier)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.UtilityCostMultiplier)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.CostOfLivingIndex)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.AffordabilityIndex)
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.LastEvaluatedAtUtc)

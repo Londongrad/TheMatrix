@@ -3,19 +3,22 @@ using Matrix.Identity.Application.Authorization.Permissions;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Account.GetMySecurityActivity;
-
-public sealed class GetMySecurityActivityQueryPermissionTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Account.GetMySecurityActivity
 {
-    [Fact]
-    public void Query_RequiresIdentityMeSessionsReadPermission()
+    public sealed class GetMySecurityActivityQueryPermissionTests
     {
-        var query = new GetMySecurityActivityQuery(
-            Cursor: null,
-            PageSize: SecurityActivityPageSizePolicy.DefaultPageSize);
+        [Fact]
+        public void Query_RequiresIdentityMeSessionsReadPermission()
+        {
+            var query = new GetMySecurityActivityQuery(
+                Cursor: null,
+                PageSize: SecurityActivityPageSizePolicy.DefaultPageSize);
 
-        var permissionRequest = Assert.IsAssignableFrom<IRequirePermission>(query);
+            IRequirePermission permissionRequest = Assert.IsAssignableFrom<IRequirePermission>(query);
 
-        Assert.Equal(PermissionKeys.IdentityMeSessionsRead, permissionRequest.PermissionKey);
+            Assert.Equal(
+                expected: PermissionKeys.IdentityMeSessionsRead,
+                actual: permissionRequest.PermissionKey);
+        }
     }
 }

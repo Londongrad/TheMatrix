@@ -1,12 +1,8 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using CityEconomyBootstrapView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityEconomyBootstrapModel;
-using CityPopulationBootstrapSummaryView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityPopulationBootstrapSummaryModel;
-using CityPopulationBootstrapView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityPopulationBootstrapModel;
-using CityProvisioningView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityProvisioningModel;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompletePopulationBootstrap;
@@ -19,6 +15,14 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Domain.Simulation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using CityEconomyBootstrapView =
+    Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityEconomyBootstrapModel;
+using CityPopulationBootstrapSummaryView =
+    Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityPopulationBootstrapSummaryModel;
+using CityPopulationBootstrapView =
+    Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityPopulationBootstrapModel;
+using CityProvisioningView =
+    Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityProvisioningModel;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning
 {
@@ -233,7 +237,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                     request: new FailCityPopulationBootstrapCommand(
                         CityId: city.Id.Value,
                         OperationId: operationId,
-                        FailureCode: bootstrap.FailureCode ?? PopulationBootstrapFailureCodes.PopulationUnexpectedError),
+                        FailureCode: bootstrap.FailureCode ??
+                                     PopulationBootstrapFailureCodes.PopulationUnexpectedError),
                     cancellationToken: cancellationToken);
 
             return bootstrap;
@@ -345,7 +350,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                         Environment: new CityPopulationBootstrapEnvironment(
                             ClimateZone: city.Environment.ClimateZone.ToString(),
                             Hemisphere: city.Environment.Hemisphere.ToString(),
-                            UtcOffsetMinutes: (int)city.Environment.UtcOffset.TotalMinutes),
+                            UtcOffsetMinutes: city.Environment.UtcOffset.TotalMinutes),
                         Tuning: BuildBootstrapTuning(
                             city: city,
                             plannedPeopleCount: plannedPeopleCount.Value,
@@ -450,8 +455,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
             ICitySimulationBootstrapStrategy? strategy =
                 simulationBootstrapStrategies.SingleOrDefault(x => x.Kind == simulationKind);
 
-            return strategy ?? throw new InvalidOperationException(
-                $"City simulation bootstrap strategy is not registered for kind '{simulationKind}'.");
+            return strategy ??
+                   throw new InvalidOperationException(
+                       $"City simulation bootstrap strategy is not registered for kind '{simulationKind}'.");
         }
 
         private async Task<City> GetCityOrThrowAsync(
@@ -462,7 +468,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                 cityId: new CityId(cityId),
                 cancellationToken: cancellationToken);
 
-            return city ?? throw new InvalidOperationException($"City '{cityId}' was not found after provisioning orchestration started.");
+            return city ??
+                   throw new InvalidOperationException(
+                       $"City '{cityId}' was not found after provisioning orchestration started.");
         }
 
         private static CityEconomyBootstrapView BuildEconomyBootstrapFromState(
@@ -948,9 +956,11 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                 HttpRequestException downstreamException when
                     downstreamException.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity =>
                     PopulationBootstrapFailureCodes.PopulationValidationFailed,
-                HttpRequestException downstreamException when downstreamException.StatusCode == HttpStatusCode.Conflict =>
+                HttpRequestException downstreamException when downstreamException.StatusCode == HttpStatusCode.Conflict
+                    =>
                     PopulationBootstrapFailureCodes.PopulationConflict,
-                HttpRequestException downstreamException when downstreamException.StatusCode == HttpStatusCode.NotFound =>
+                HttpRequestException downstreamException when downstreamException.StatusCode == HttpStatusCode.NotFound
+                    =>
                     PopulationBootstrapFailureCodes.PopulationDependencyNotFound,
                 HttpRequestException downstreamException when
                     downstreamException.StatusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout =>
@@ -972,9 +982,11 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                 HttpRequestException downstreamException when
                     downstreamException.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity =>
                     EconomyBootstrapFailureCodes.EconomyValidationFailed,
-                HttpRequestException downstreamException when downstreamException.StatusCode == HttpStatusCode.Conflict =>
+                HttpRequestException downstreamException when downstreamException.StatusCode == HttpStatusCode.Conflict
+                    =>
                     EconomyBootstrapFailureCodes.EconomyConflict,
-                HttpRequestException downstreamException when downstreamException.StatusCode == HttpStatusCode.NotFound =>
+                HttpRequestException downstreamException when downstreamException.StatusCode == HttpStatusCode.NotFound
+                    =>
                     EconomyBootstrapFailureCodes.EconomyDependencyNotFound,
                 HttpRequestException downstreamException when
                     downstreamException.StatusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout =>

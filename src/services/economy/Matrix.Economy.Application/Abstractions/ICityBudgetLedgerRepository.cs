@@ -1,8 +1,8 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Domain.Entities;
-using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
+using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Enums;
 
 namespace Matrix.Economy.Application.Abstractions
 {

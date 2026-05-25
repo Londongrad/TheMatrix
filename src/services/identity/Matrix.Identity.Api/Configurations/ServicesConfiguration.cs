@@ -3,7 +3,6 @@ using Matrix.BuildingBlocks.Api.Defaults;
 using Matrix.BuildingBlocks.Api.Forwarding;
 using Matrix.BuildingBlocks.Api.OptionsValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Application.Security.InternalApiKey;
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;

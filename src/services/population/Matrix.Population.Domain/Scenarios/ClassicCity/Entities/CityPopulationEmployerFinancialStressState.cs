@@ -225,7 +225,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             if (decimal.Round(
                     d: paidGrossPayrollAmount + missedGrossPayrollAmount,
                     decimals: 2,
-                    mode: MidpointRounding.AwayFromZero) > requestedGrossPayrollAmount + 0.01m)
+                    mode: MidpointRounding.AwayFromZero) >
+                requestedGrossPayrollAmount + 0.01m)
                 throw new ArgumentOutOfRangeException(nameof(missedGrossPayrollAmount));
 
             if (distressScore is < 0m or > 1m)

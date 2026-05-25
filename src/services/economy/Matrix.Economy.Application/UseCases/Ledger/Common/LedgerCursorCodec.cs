@@ -7,15 +7,15 @@ namespace Matrix.Economy.Application.UseCases.Ledger.Common
         public static string Encode(LedgerCursor cursor)
         {
             return string.Create(
-                CultureInfo.InvariantCulture,
-                $"{cursor.UtcTicks}:{cursor.EntryId:N}");
+                provider: CultureInfo.InvariantCulture,
+                handler: $"{cursor.UtcTicks}:{cursor.EntryId:N}");
         }
 
         public static bool TryDecode(
             string? rawCursor,
             out LedgerCursor cursor)
         {
-            cursor = default;
+            cursor = default(LedgerCursor);
 
             if (string.IsNullOrWhiteSpace(rawCursor))
                 return false;

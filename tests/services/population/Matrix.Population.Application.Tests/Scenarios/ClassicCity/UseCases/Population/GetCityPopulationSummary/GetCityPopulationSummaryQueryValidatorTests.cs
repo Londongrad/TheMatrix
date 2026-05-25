@@ -1,27 +1,32 @@
+using FluentValidation.Results;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Xunit;
 
-namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
-
-public sealed class GetCityPopulationSummaryQueryValidatorTests
+namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary
 {
-    private readonly GetCityPopulationSummaryQueryValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidQuery_ReturnsNoErrors()
+    public sealed class GetCityPopulationSummaryQueryValidatorTests
     {
-        var result = _validator.Validate(new GetCityPopulationSummaryQuery(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")));
+        private readonly GetCityPopulationSummaryQueryValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidQuery_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(
+                new GetCityPopulationSummaryQuery(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")));
 
-    [Fact]
-    public void Validate_WithEmptyCityId_ReturnsError()
-    {
-        var result = _validator.Validate(new GetCityPopulationSummaryQuery(Guid.Empty));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "CityId");
+        [Fact]
+        public void Validate_WithEmptyCityId_ReturnsError()
+        {
+            ValidationResult? result = _validator.Validate(new GetCityPopulationSummaryQuery(Guid.Empty));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "CityId");
+        }
     }
 }

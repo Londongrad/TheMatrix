@@ -1,6 +1,7 @@
 using FluentValidation;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.AdvanceCityEnvironmentalConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    AdvanceCityEnvironmentalConditions
 {
     public sealed class AdvanceCityEnvironmentalConditionsCommandValidator
         : AbstractValidator<AdvanceCityEnvironmentalConditionsCommand>

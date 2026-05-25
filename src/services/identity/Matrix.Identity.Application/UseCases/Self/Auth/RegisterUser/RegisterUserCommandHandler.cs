@@ -59,7 +59,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
                                         throw ApplicationErrorsFactory.RequiredSystemRoleMissing(assignedRoleName);
 
                     string passwordHash = passwordHasher.Hash(request.Password);
-                    DateTime createdAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
+                    DateTime createdAtUtc = _timeProvider.GetUtcNow()
+                       .UtcDateTime;
 
                     var user = User.CreateNew(
                         email: email,

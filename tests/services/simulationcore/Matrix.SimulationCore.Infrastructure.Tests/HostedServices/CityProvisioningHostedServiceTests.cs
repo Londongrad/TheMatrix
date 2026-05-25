@@ -7,124 +7,171 @@ using Matrix.SimulationCore.Infrastructure.Options;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices;
-
-public sealed class CityProvisioningHostedServiceTests
+namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
 {
-    [Fact]
-    public async Task ExecuteAsync_UsesInjectedTimeProviderForRecoveryAndHeartbeat()
+    public sealed class CityProvisioningHostedServiceTests
     {
-        DateTimeOffset createdAtUtc = new(2048, 2, 3, 4, 5, 6, TimeSpan.Zero);
-        DateTimeOffset recoveryAtUtc = createdAtUtc.AddMinutes(15);
-        DateTimeOffset heartbeatAtUtc = recoveryAtUtc.AddMinutes(2);
-        var timeProvider = new HostedServicesTestSupport.MutableTimeProvider(recoveryAtUtc);
-        City city = HostedServicesTestSupport.CreateProvisioningCity(createdAtUtc);
-        var cityRepository = new HostedServicesTestSupport.FakeCityRepository
+        [Fact]
+        public async Task ExecuteAsync_UsesInjectedTimeProviderForRecoveryAndHeartbeat()
         {
-            RecoverableCities = [city]
-        };
-        cityRepository.CitiesById[city.Id.Value] = city;
-        var unitOfWork = new HostedServicesTestSupport.FakeUnitOfWork();
-        var orchestrator = new HostedServicesTestSupport.FakeClassicCityProvisioningOrchestrator
-        {
-            OnProvisionAsync = async (heartbeatAsync, cancellationToken) =>
+            DateTimeOffset createdAtUtc = new(
+                year: 2048,
+                month: 2,
+                day: 3,
+                hour: 4,
+                minute: 5,
+                second: 6,
+                offset: TimeSpan.Zero);
+            DateTimeOffset recoveryAtUtc = createdAtUtc.AddMinutes(15);
+            DateTimeOffset heartbeatAtUtc = recoveryAtUtc.AddMinutes(2);
+            var timeProvider = new HostedServicesTestSupport.MutableTimeProvider(recoveryAtUtc);
+            City city = HostedServicesTestSupport.CreateProvisioningCity(createdAtUtc);
+            var cityRepository = new HostedServicesTestSupport.FakeCityRepository
             {
-                Assert.NotNull(heartbeatAsync);
-
-                timeProvider.SetUtcNow(heartbeatAtUtc);
-                await heartbeatAsync!(cancellationToken);
-            }
-        };
-        using var service = CreateService(
-            cityRepository,
-            unitOfWork,
-            orchestrator,
-            timeProvider,
-            new ProvisioningRecoveryOptions
+                RecoverableCities = [city]
+            };
+            cityRepository.CitiesById[city.Id.Value] = city;
+            var unitOfWork = new HostedServicesTestSupport.FakeUnitOfWork();
+            var orchestrator = new HostedServicesTestSupport.FakeClassicCityProvisioningOrchestrator
             {
-                PollIntervalSeconds = 60,
-                LeaseDurationSeconds = 180,
-                MaxBatchSize = 8
-            });
+                OnProvisionAsync = async (
+                    heartbeatAsync,
+                    cancellationToken) =>
+                {
+                    Assert.NotNull(heartbeatAsync);
 
-        await service.StartAsync(CancellationToken.None);
-        await orchestrator.ProvisionCalled.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        await service.StopAsync(CancellationToken.None);
+                    timeProvider.SetUtcNow(heartbeatAtUtc);
+                    await heartbeatAsync!(cancellationToken);
+                }
+            };
+            using CityProvisioningHostedService service = CreateService(
+                cityRepository: cityRepository,
+                unitOfWork: unitOfWork,
+                orchestrator: orchestrator,
+                timeProvider: timeProvider,
+                options: new ProvisioningRecoveryOptions
+                {
+                    PollIntervalSeconds = 60,
+                    LeaseDurationSeconds = 180,
+                    MaxBatchSize = 8
+                });
 
-        Assert.Equal(recoveryAtUtc, cityRepository.RequestedRecoverableAsOfUtc);
-        Assert.Equal(8, cityRepository.RequestedRecoverableLimit);
-        Assert.Equal(city.Id, Assert.Single(cityRepository.RequestedCityIds));
-        Assert.Equal(2, unitOfWork.SaveChangesCallCount);
-        Assert.Equal(city.Id.Value, orchestrator.RequestedCityId);
-        Assert.Equal(city.SimulationKind.ToString(), orchestrator.RequestedSimulationKind);
-        Assert.Equal(city.GenerationProfile.PlannedPeopleCount, orchestrator.RequestedPlannedPeopleCountOverride);
-        Assert.Equal(heartbeatAtUtc, city.ProvisioningHeartbeatAtUtc);
-        Assert.Equal(heartbeatAtUtc.AddSeconds(180), city.ProvisioningLeaseExpiresAtUtc);
-        Assert.Equal(1, city.ProvisioningAttemptCount);
-    }
+            await service.StartAsync(CancellationToken.None);
+            await orchestrator.ProvisionCalled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await service.StopAsync(CancellationToken.None);
 
-    [Fact]
-    public async Task ExecuteAsync_WhenProvisioningLeaseIsStillActive_SkipsOrchestration()
-    {
-        DateTimeOffset createdAtUtc = new(2048, 2, 3, 4, 5, 6, TimeSpan.Zero);
-        DateTimeOffset leasedAtUtc = createdAtUtc.AddMinutes(10);
-        DateTimeOffset recoveryAtUtc = leasedAtUtc.AddSeconds(30);
-        var timeProvider = new HostedServicesTestSupport.MutableTimeProvider(recoveryAtUtc);
-        City city = HostedServicesTestSupport.CreateProvisioningCity(createdAtUtc);
-        bool leaseAcquired = city.TryAcquireProvisioningLease(
-            acquiredAtUtc: leasedAtUtc,
-            leaseDuration: TimeSpan.FromMinutes(5));
-        Assert.True(leaseAcquired);
+            Assert.Equal(
+                expected: recoveryAtUtc,
+                actual: cityRepository.RequestedRecoverableAsOfUtc);
+            Assert.Equal(
+                expected: 8,
+                actual: cityRepository.RequestedRecoverableLimit);
+            Assert.Equal(
+                expected: city.Id,
+                actual: Assert.Single(cityRepository.RequestedCityIds));
+            Assert.Equal(
+                expected: 2,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: city.Id.Value,
+                actual: orchestrator.RequestedCityId);
+            Assert.Equal(
+                expected: city.SimulationKind.ToString(),
+                actual: orchestrator.RequestedSimulationKind);
+            Assert.Equal(
+                expected: city.GenerationProfile.PlannedPeopleCount,
+                actual: orchestrator.RequestedPlannedPeopleCountOverride);
+            Assert.Equal(
+                expected: heartbeatAtUtc,
+                actual: city.ProvisioningHeartbeatAtUtc);
+            Assert.Equal(
+                expected: heartbeatAtUtc.AddSeconds(180),
+                actual: city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Equal(
+                expected: 1,
+                actual: city.ProvisioningAttemptCount);
+        }
 
-        var cityRepository = new HostedServicesTestSupport.FakeCityRepository
+        [Fact]
+        public async Task ExecuteAsync_WhenProvisioningLeaseIsStillActive_SkipsOrchestration()
         {
-            RecoverableCities = [city]
-        };
-        cityRepository.CitiesById[city.Id.Value] = city;
-        var unitOfWork = new HostedServicesTestSupport.FakeUnitOfWork();
-        var orchestrator = new HostedServicesTestSupport.FakeClassicCityProvisioningOrchestrator();
-        using var service = CreateService(
-            cityRepository,
-            unitOfWork,
-            orchestrator,
-            timeProvider,
-            new ProvisioningRecoveryOptions
+            DateTimeOffset createdAtUtc = new(
+                year: 2048,
+                month: 2,
+                day: 3,
+                hour: 4,
+                minute: 5,
+                second: 6,
+                offset: TimeSpan.Zero);
+            DateTimeOffset leasedAtUtc = createdAtUtc.AddMinutes(10);
+            DateTimeOffset recoveryAtUtc = leasedAtUtc.AddSeconds(30);
+            var timeProvider = new HostedServicesTestSupport.MutableTimeProvider(recoveryAtUtc);
+            City city = HostedServicesTestSupport.CreateProvisioningCity(createdAtUtc);
+            bool leaseAcquired = city.TryAcquireProvisioningLease(
+                acquiredAtUtc: leasedAtUtc,
+                leaseDuration: TimeSpan.FromMinutes(5));
+            Assert.True(leaseAcquired);
+
+            var cityRepository = new HostedServicesTestSupport.FakeCityRepository
             {
-                PollIntervalSeconds = 60,
-                LeaseDurationSeconds = 180,
-                MaxBatchSize = 4
-            });
+                RecoverableCities = [city]
+            };
+            cityRepository.CitiesById[city.Id.Value] = city;
+            var unitOfWork = new HostedServicesTestSupport.FakeUnitOfWork();
+            var orchestrator = new HostedServicesTestSupport.FakeClassicCityProvisioningOrchestrator();
+            using CityProvisioningHostedService service = CreateService(
+                cityRepository: cityRepository,
+                unitOfWork: unitOfWork,
+                orchestrator: orchestrator,
+                timeProvider: timeProvider,
+                options: new ProvisioningRecoveryOptions
+                {
+                    PollIntervalSeconds = 60,
+                    LeaseDurationSeconds = 180,
+                    MaxBatchSize = 4
+                });
 
-        await service.StartAsync(CancellationToken.None);
-        await cityRepository.GetByIdCalled.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        await service.StopAsync(CancellationToken.None);
+            await service.StartAsync(CancellationToken.None);
+            await cityRepository.GetByIdCalled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await service.StopAsync(CancellationToken.None);
 
-        Assert.Equal(0, orchestrator.ProvisionCallCount);
-        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
-        Assert.Equal(leasedAtUtc, city.ProvisioningHeartbeatAtUtc);
-        Assert.Equal(leasedAtUtc.AddMinutes(5), city.ProvisioningLeaseExpiresAtUtc);
-        Assert.Equal(1, city.ProvisioningAttemptCount);
-    }
+            Assert.Equal(
+                expected: 0,
+                actual: orchestrator.ProvisionCallCount);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: leasedAtUtc,
+                actual: city.ProvisioningHeartbeatAtUtc);
+            Assert.Equal(
+                expected: leasedAtUtc.AddMinutes(5),
+                actual: city.ProvisioningLeaseExpiresAtUtc);
+            Assert.Equal(
+                expected: 1,
+                actual: city.ProvisioningAttemptCount);
+        }
 
-    private static CityProvisioningHostedService CreateService(
-        HostedServicesTestSupport.FakeCityRepository cityRepository,
-        HostedServicesTestSupport.FakeUnitOfWork unitOfWork,
-        HostedServicesTestSupport.FakeClassicCityProvisioningOrchestrator orchestrator,
-        TimeProvider timeProvider,
-        ProvisioningRecoveryOptions options)
-    {
-        var services = new Dictionary<Type, object>
+        private static CityProvisioningHostedService CreateService(
+            HostedServicesTestSupport.FakeCityRepository cityRepository,
+            HostedServicesTestSupport.FakeUnitOfWork unitOfWork,
+            HostedServicesTestSupport.FakeClassicCityProvisioningOrchestrator orchestrator,
+            TimeProvider timeProvider,
+            ProvisioningRecoveryOptions options)
         {
-            [typeof(ICityRepository)] = cityRepository,
-            [typeof(IUnitOfWork)] = unitOfWork,
-            [typeof(IClassicCityProvisioningOrchestrator)] = orchestrator
-        };
+            var services = new Dictionary<Type, object>
+            {
+                [typeof(ICityRepository)] = cityRepository,
+                [typeof(IUnitOfWork)] = unitOfWork,
+                [typeof(IClassicCityProvisioningOrchestrator)] = orchestrator
+            };
 
-        return new CityProvisioningHostedService(
-            new HostedServicesTestSupport.TestServiceScopeFactory(
-                new HostedServicesTestSupport.DictionaryServiceProvider(services)),
-            Microsoft.Extensions.Options.Options.Create(options),
-            timeProvider,
-            NullLogger<CityProvisioningHostedService>.Instance);
+            return new CityProvisioningHostedService(
+                scopeFactory: new HostedServicesTestSupport.TestServiceScopeFactory(
+                    new HostedServicesTestSupport.DictionaryServiceProvider(services)),
+                options: Microsoft.Extensions.Options.Options.Create(options),
+                timeProvider: timeProvider,
+                logger: NullLogger<CityProvisioningHostedService>.Instance);
+        }
     }
 }

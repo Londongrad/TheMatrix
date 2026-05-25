@@ -1,7 +1,7 @@
 import {afterEach, describe, expect, it, vi} from "vitest";
 
-import {apiRequest, configureHttpAuth, HttpError, request} from "./http";
 import type {AuthRefreshResult} from "./http";
+import {apiRequest, configureHttpAuth, HttpError, request} from "./http";
 
 function mockFetchResponse(response: Response) {
     const fetchMock = vi.fn().mockResolvedValue(response);

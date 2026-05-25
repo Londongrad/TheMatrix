@@ -1,7 +1,6 @@
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -43,7 +42,9 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.Property(x => x.MovementCapabilityIndex)
-               .HasPrecision(5, 2)
+               .HasPrecision(
+                    precision: 5,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.UsedDynamicRoadConditions)
@@ -71,23 +72,33 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.Property(x => x.TotalDistanceMeters)
-               .HasPrecision(12, 2)
+               .HasPrecision(
+                    precision: 12,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.PlannedTravelTimeMinutes)
-               .HasPrecision(12, 2)
+               .HasPrecision(
+                    precision: 12,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.AdjustedTravelTimeMinutes)
-               .HasPrecision(12, 2)
+               .HasPrecision(
+                    precision: 12,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.ProgressIndex)
-               .HasPrecision(6, 4)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.DistanceTravelledMeters)
-               .HasPrecision(12, 2)
+               .HasPrecision(
+                    precision: 12,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.FromKind)
@@ -114,11 +125,15 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.Property(x => x.FromPositionX)
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.FromPositionY)
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.ToKind)
@@ -145,11 +160,15 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.Property(x => x.ToPositionX)
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.ToPositionY)
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .IsRequired();
 
             builder.Property(x => x.CurrentDistrictId)
@@ -165,19 +184,25 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                         : (Guid?)null,
                     convertFromProviderExpression: x => x.HasValue
                         ? new RoadSegmentId(x.Value)
-                        : (RoadSegmentId?)null)
+                        : null)
                .IsRequired(false);
 
             builder.Property(x => x.CurrentSegmentProgressIndex)
-               .HasPrecision(6, 4)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.CurrentPositionX)
-               .HasPrecision(6, 4)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.CurrentPositionY)
-               .HasPrecision(6, 4)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 4)
                .IsRequired();
 
             builder.Property(x => x.Status)
@@ -188,8 +213,18 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => x.Status);
-            builder.HasIndex(x => new { x.CityId, x.Status });
-            builder.HasIndex(x => new { x.CityId, x.Status, x.StartedAtSimTimeUtc, x.Id });
+            builder.HasIndex(x => new
+            {
+                x.CityId,
+                x.Status
+            });
+            builder.HasIndex(x => new
+            {
+                x.CityId,
+                x.Status,
+                x.StartedAtSimTimeUtc,
+                x.Id
+            });
             builder.HasIndex(x => x.TravellerEntityId);
 
             builder
@@ -248,7 +283,9 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                             convertToProviderExpression: x => x.Value,
                             convertFromProviderExpression: x => new CityActiveTripId(x));
 
-                    tripSegment.HasKey("CityActiveTripId", nameof(CityActiveTripSegment.Sequence));
+                    tripSegment.HasKey(
+                        "CityActiveTripId",
+                        nameof(CityActiveTripSegment.Sequence));
 
                     tripSegment.Property(x => x.Sequence)
                        .IsRequired();
@@ -286,27 +323,39 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                        .IsRequired();
 
                     tripSegment.Property(x => x.LengthMeters)
-                       .HasPrecision(12, 2)
+                       .HasPrecision(
+                            precision: 12,
+                            scale: 2)
                        .IsRequired();
 
                     tripSegment.Property(x => x.EstimatedTraversalMinutes)
-                       .HasPrecision(12, 2)
+                       .HasPrecision(
+                            precision: 12,
+                            scale: 2)
                        .IsRequired();
 
                     tripSegment.Property(x => x.FromPositionX)
-                       .HasPrecision(6, 2)
+                       .HasPrecision(
+                            precision: 6,
+                            scale: 2)
                        .IsRequired();
 
                     tripSegment.Property(x => x.FromPositionY)
-                       .HasPrecision(6, 2)
+                       .HasPrecision(
+                            precision: 6,
+                            scale: 2)
                        .IsRequired();
 
                     tripSegment.Property(x => x.ToPositionX)
-                       .HasPrecision(6, 2)
+                       .HasPrecision(
+                            precision: 6,
+                            scale: 2)
                        .IsRequired();
 
                     tripSegment.Property(x => x.ToPositionY)
-                       .HasPrecision(6, 2)
+                       .HasPrecision(
+                            precision: 6,
+                            scale: 2)
                        .IsRequired();
 
                     tripSegment.HasIndex("CityActiveTripId");

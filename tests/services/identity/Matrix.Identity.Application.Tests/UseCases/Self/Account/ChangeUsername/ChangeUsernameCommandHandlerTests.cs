@@ -2,238 +2,334 @@ using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
-using Matrix.Identity.Application.Tests.UseCases.Self;
+using Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Self.Account.ChangeUsername;
-
-public sealed class ChangeUsernameCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Self.Account.ChangeUsername
 {
-    [Fact]
-    public async Task Handle_WhenUserMissing_ThrowsUserNotFound()
+    public sealed class ChangeUsernameCommandHandlerTests
     {
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository();
-        var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var currentUser = new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+        [Fact]
+        public async Task Handle_WhenUserMissing_ThrowsUserNotFound()
         {
-            UserId = Guid.Parse("90000000-0000-0000-0000-000000000002")
-        };
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler(
-            userRepository,
-            passwordHasher,
-            securityAuditService,
-            emailSender,
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            currentUser,
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository();
+            var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var currentUser = new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+            {
+                UserId = Guid.Parse("90000000-0000-0000-0000-000000000002")
+            };
+            var handler = new ChangeUsernameCommandHandler(
+                userRepository: userRepository,
+                passwordHasher: passwordHasher,
+                securityAuditService: securityAuditService,
+                emailSender: emailSender,
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: currentUser,
+                logger: NullLogger<ChangeUsernameCommandHandler>.Instance);
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(),
-            CancellationToken.None));
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(),
+                    cancellationToken: CancellationToken.None));
 
-        Assert.Equal("Identity.User.NotFound", exception.Code);
-        Assert.Equal(ApplicationErrorType.NotFound, exception.ErrorType);
-        Assert.Equal(currentUser.UserId, userRepository.RequestedUserId);
-        Assert.Empty(passwordHasher.VerifyCalls);
-        Assert.Empty(securityAuditService.Entries);
-        Assert.Empty(emailSender.UsernameChangedEmails);
-        Assert.Equal(0, unitOfWork.SaveChangesCalls);
-    }
+            Assert.Equal(
+                expected: "Identity.User.NotFound",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.NotFound,
+                actual: exception.ErrorType);
+            Assert.Equal(
+                expected: currentUser.UserId,
+                actual: userRepository.RequestedUserId);
+            Assert.Empty(passwordHasher.VerifyCalls);
+            Assert.Empty(securityAuditService.Entries);
+            Assert.Empty(emailSender.UsernameChangedEmails);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCalls);
+        }
 
-    [Fact]
-    public async Task Handle_WhenUsernameSame_ReturnsExistingUsernameWithoutSideEffects()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser(username: "neo");
-        var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler(
-            new SelfServiceHandlerTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenUsernameSame_ReturnsExistingUsernameWithoutSideEffects()
+        {
+            User user = SelfServiceHandlerTestSupport.CreateUser(username: "neo");
+            var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var handler = new ChangeUsernameCommandHandler(
+                userRepository: new SelfServiceHandlerTestSupport.FakeUserRepository
+                {
+                    UserById = user
+                },
+                passwordHasher: passwordHasher,
+                securityAuditService: securityAuditService,
+                emailSender: emailSender,
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<ChangeUsernameCommandHandler>.Instance);
+
+            string result = await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo"),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: "neo",
+                actual: result);
+            Assert.Empty(passwordHasher.VerifyCalls);
+            Assert.Empty(securityAuditService.Entries);
+            Assert.Empty(emailSender.UsernameChangedEmails);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCalls);
+        }
+
+        [Fact]
+        public async Task Handle_WhenCurrentPasswordInvalid_WritesAuditAndThrows()
+        {
+            User user = SelfServiceHandlerTestSupport.CreateUser(
+                username: "neo",
+                passwordHash: "stored-hash");
+            var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher
+            {
+                VerifyOutcome = PasswordVerificationOutcome.Failed
+            };
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var handler = new ChangeUsernameCommandHandler(
+                userRepository: new SelfServiceHandlerTestSupport.FakeUserRepository
+                {
+                    UserById = user
+                },
+                passwordHasher: passwordHasher,
+                securityAuditService: securityAuditService,
+                emailSender: new SelfServiceHandlerTestSupport.FakeEmailSender(),
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<ChangeUsernameCommandHandler>.Instance);
+
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(
+                        username: "neo-prime",
+                        currentPassword: "WrongPa$$w0rd"),
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal(
+                expected: "Identity.InvalidCurrentPassword",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Unauthorized,
+                actual: exception.ErrorType);
+            Assert.Single(passwordHasher.VerifyCalls);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.Equal(
+                expected: SecurityAuditEventType.UsernameChanged,
+                actual: audit.EventType);
+            Assert.False(audit.IsSuccessful);
+            Assert.Equal(
+                expected: user.Id,
+                actual: audit.UserId);
+            Assert.Equal(
+                expected: "neo-prime",
+                actual: audit.Subject);
+            Assert.Equal(
+                expected: "InvalidCurrentPassword",
+                actual: audit.Details);
+        }
+
+        [Fact]
+        public async Task Handle_WhenCooldownActive_WritesAuditAndThrows()
+        {
+            User user = SelfServiceHandlerTestSupport.CreateUser(username: "neo");
+            user.ChangeUsername(
+                username: Username.Create("neo-prime"),
+                changedAtUtc: SelfServiceHandlerTestSupport.UtcNow.AddDays(-1));
+            var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var handler = new ChangeUsernameCommandHandler(
+                userRepository: new SelfServiceHandlerTestSupport.FakeUserRepository
+                {
+                    UserById = user
+                },
+                passwordHasher: passwordHasher,
+                securityAuditService: securityAuditService,
+                emailSender: new SelfServiceHandlerTestSupport.FakeEmailSender(),
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<ChangeUsernameCommandHandler>.Instance);
+
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo-ultimate"),
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal(
+                expected: "Identity.UsernameChangeCooldown",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Validation,
+                actual: exception.ErrorType);
+            Assert.Single(passwordHasher.VerifyCalls);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.False(audit.IsSuccessful);
+            Assert.Equal(
+                expected: "neo-ultimate",
+                actual: audit.Subject);
+            Assert.Equal(
+                expected: $"CooldownUntil:{SelfServiceHandlerTestSupport.UtcNow.AddDays(-1).AddDays(30):O}",
+                actual: audit.Details);
+        }
+
+        [Fact]
+        public async Task Handle_WhenUsernameTaken_WritesAuditAndThrowsConflict()
+        {
+            User user = SelfServiceHandlerTestSupport.CreateUser(username: "neo");
+            var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
+            {
+                UserById = user,
+                IsUsernameTakenAsyncResult = true
+            };
+            var handler = new ChangeUsernameCommandHandler(
+                userRepository: userRepository,
+                passwordHasher: passwordHasher,
+                securityAuditService: securityAuditService,
+                emailSender: new SelfServiceHandlerTestSupport.FakeEmailSender(),
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<ChangeUsernameCommandHandler>.Instance);
+
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
+                => handler.Handle(
+                    request: SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo-prime"),
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal(
+                expected: "Identity.UsernameAlreadyInUse",
+                actual: exception.Code);
+            Assert.Equal(
+                expected: ApplicationErrorType.Conflict,
+                actual: exception.ErrorType);
+            Assert.Equal(
+                expected: "neo-prime",
+                actual: userRepository.RequestedUsername);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.False(audit.IsSuccessful);
+            Assert.Equal(
+                expected: "neo-prime",
+                actual: audit.Subject);
+            Assert.Equal(
+                expected: "UsernameAlreadyInUse",
+                actual: audit.Details);
+        }
+
+        [Fact]
+        public async Task Handle_WhenRequestValid_ChangesUsernameWritesAuditAndSendsEmail()
+        {
+            User user = SelfServiceHandlerTestSupport.CreateUser(username: "neo");
+            var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
+            var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
+            var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
+            var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
+            var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
             {
                 UserById = user
-            },
-            passwordHasher,
-            securityAuditService,
-            emailSender,
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
+            };
+            var handler = new ChangeUsernameCommandHandler(
+                userRepository: userRepository,
+                passwordHasher: passwordHasher,
+                securityAuditService: securityAuditService,
+                emailSender: emailSender,
+                timeProvider: SelfServiceHandlerTestSupport.CreateTimeProvider(),
+                unitOfWork: unitOfWork,
+                currentUser: new SelfServiceHandlerTestSupport.FakeCurrentUserContext
+                {
+                    UserId = user.Id
+                },
+                logger: NullLogger<ChangeUsernameCommandHandler>.Instance);
 
-        string result = await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo"),
-            CancellationToken.None);
+            string result = await handler.Handle(
+                request: SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo-prime"),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal("neo", result);
-        Assert.Empty(passwordHasher.VerifyCalls);
-        Assert.Empty(securityAuditService.Entries);
-        Assert.Empty(emailSender.UsernameChangedEmails);
-        Assert.Equal(0, unitOfWork.SaveChangesCalls);
-    }
+            Assert.Equal(
+                expected: "neo-prime",
+                actual: result);
+            Assert.Equal(
+                expected: "neo-prime",
+                actual: user.Username.Value);
+            Assert.Equal(
+                expected: SelfServiceHandlerTestSupport.UtcNow,
+                actual: user.LastUsernameChangedAtUtc);
+            Assert.Equal(
+                expected: "neo-prime",
+                actual: userRepository.RequestedUsername);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCalls);
 
-    [Fact]
-    public async Task Handle_WhenCurrentPasswordInvalid_WritesAuditAndThrows()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser(username: "neo", passwordHash: "stored-hash");
-        var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher
-        {
-            VerifyOutcome = PasswordVerificationOutcome.Failed
-        };
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler(
-            new SelfServiceHandlerTestSupport.FakeUserRepository
-            {
-                UserById = user
-            },
-            passwordHasher,
-            securityAuditService,
-            new SelfServiceHandlerTestSupport.FakeEmailSender(),
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
+            SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
+            Assert.Equal(
+                expected: SecurityAuditEventType.UsernameChanged,
+                actual: audit.EventType);
+            Assert.True(audit.IsSuccessful);
+            Assert.Equal(
+                expected: user.Id,
+                actual: audit.UserId);
+            Assert.Equal(
+                expected: "neo-prime",
+                actual: audit.Subject);
+            Assert.Equal(
+                expected: "PreviousUsername:neo",
+                actual: audit.Details);
 
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo-prime", currentPassword: "WrongPa$$w0rd"),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.InvalidCurrentPassword", exception.Code);
-        Assert.Equal(ApplicationErrorType.Unauthorized, exception.ErrorType);
-        Assert.Single(passwordHasher.VerifyCalls);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-        SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
-        Assert.Equal(SecurityAuditEventType.UsernameChanged, audit.EventType);
-        Assert.False(audit.IsSuccessful);
-        Assert.Equal(user.Id, audit.UserId);
-        Assert.Equal("neo-prime", audit.Subject);
-        Assert.Equal("InvalidCurrentPassword", audit.Details);
-    }
-
-    [Fact]
-    public async Task Handle_WhenCooldownActive_WritesAuditAndThrows()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser(username: "neo");
-        user.ChangeUsername(
-            username: Username.Create("neo-prime"),
-            changedAtUtc: SelfServiceHandlerTestSupport.UtcNow.AddDays(-1));
-        var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler(
-            new SelfServiceHandlerTestSupport.FakeUserRepository
-            {
-                UserById = user
-            },
-            passwordHasher,
-            securityAuditService,
-            new SelfServiceHandlerTestSupport.FakeEmailSender(),
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo-ultimate"),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.UsernameChangeCooldown", exception.Code);
-        Assert.Equal(ApplicationErrorType.Validation, exception.ErrorType);
-        Assert.Single(passwordHasher.VerifyCalls);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-        SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
-        Assert.False(audit.IsSuccessful);
-        Assert.Equal("neo-ultimate", audit.Subject);
-        Assert.Equal(
-            $"CooldownUntil:{SelfServiceHandlerTestSupport.UtcNow.AddDays(-1).AddDays(30):O}",
-            audit.Details);
-    }
-
-    [Fact]
-    public async Task Handle_WhenUsernameTaken_WritesAuditAndThrowsConflict()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser(username: "neo");
-        var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
-        {
-            UserById = user,
-            IsUsernameTakenAsyncResult = true
-        };
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler(
-            userRepository,
-            passwordHasher,
-            securityAuditService,
-            new SelfServiceHandlerTestSupport.FakeEmailSender(),
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
-
-        var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
-            SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo-prime"),
-            CancellationToken.None));
-
-        Assert.Equal("Identity.UsernameAlreadyInUse", exception.Code);
-        Assert.Equal(ApplicationErrorType.Conflict, exception.ErrorType);
-        Assert.Equal("neo-prime", userRepository.RequestedUsername);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-        SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
-        Assert.False(audit.IsSuccessful);
-        Assert.Equal("neo-prime", audit.Subject);
-        Assert.Equal("UsernameAlreadyInUse", audit.Details);
-    }
-
-    [Fact]
-    public async Task Handle_WhenRequestValid_ChangesUsernameWritesAuditAndSendsEmail()
-    {
-        var user = SelfServiceHandlerTestSupport.CreateUser(username: "neo");
-        var passwordHasher = new SelfServiceHandlerTestSupport.FakePasswordHasher();
-        var securityAuditService = new SelfServiceHandlerTestSupport.FakeSecurityAuditService();
-        var emailSender = new SelfServiceHandlerTestSupport.FakeEmailSender();
-        var unitOfWork = new SelfServiceHandlerTestSupport.FakeUnitOfWork();
-        var userRepository = new SelfServiceHandlerTestSupport.FakeUserRepository
-        {
-            UserById = user
-        };
-        var handler = new Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler(
-            userRepository,
-            passwordHasher,
-            securityAuditService,
-            emailSender,
-            SelfServiceHandlerTestSupport.CreateTimeProvider(),
-            unitOfWork,
-            new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
-            NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
-
-        string result = await handler.Handle(
-            SelfServiceHandlerTestSupport.CreateChangeUsernameCommand(username: "neo-prime"),
-            CancellationToken.None);
-
-        Assert.Equal("neo-prime", result);
-        Assert.Equal("neo-prime", user.Username.Value);
-        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, user.LastUsernameChangedAtUtc);
-        Assert.Equal("neo-prime", userRepository.RequestedUsername);
-        Assert.Equal(1, unitOfWork.SaveChangesCalls);
-
-        SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
-        Assert.Equal(SecurityAuditEventType.UsernameChanged, audit.EventType);
-        Assert.True(audit.IsSuccessful);
-        Assert.Equal(user.Id, audit.UserId);
-        Assert.Equal("neo-prime", audit.Subject);
-        Assert.Equal("PreviousUsername:neo", audit.Details);
-
-        var email = Assert.Single(emailSender.UsernameChangedEmails);
-        Assert.Equal(user.Email.Value, email.ToEmail);
-        Assert.Equal("neo", email.PreviousUsername);
-        Assert.Equal("neo-prime", email.NewUsername);
+            (string ToEmail, string PreviousUsername, string NewUsername) email =
+                Assert.Single(emailSender.UsernameChangedEmails);
+            Assert.Equal(
+                expected: user.Email.Value,
+                actual: email.ToEmail);
+            Assert.Equal(
+                expected: "neo",
+                actual: email.PreviousUsername);
+            Assert.Equal(
+                expected: "neo-prime",
+                actual: email.NewUsername);
+        }
     }
 }

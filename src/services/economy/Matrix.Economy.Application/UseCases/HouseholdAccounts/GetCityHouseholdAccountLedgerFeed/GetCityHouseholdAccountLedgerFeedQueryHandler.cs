@@ -21,11 +21,12 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHousehold
         {
             LedgerCursor? cursor = ParseCursor(request.Cursor);
 
-            CursorPagedResult<CityHouseholdAccountLedgerEntry> page = await ledgerRepository.GetSliceByHouseholdAccountAsync(
-                householdAccountId: request.HouseholdAccountId,
-                cursor: cursor,
-                pageSize: request.PageSize,
-                cancellationToken: cancellationToken);
+            CursorPagedResult<CityHouseholdAccountLedgerEntry> page =
+                await ledgerRepository.GetSliceByHouseholdAccountAsync(
+                    householdAccountId: request.HouseholdAccountId,
+                    cursor: cursor,
+                    pageSize: request.PageSize,
+                    cancellationToken: cancellationToken);
 
             CityHouseholdAccount account =
                 await householdAccountRepository.GetByIdAsync(

@@ -15,19 +15,53 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
             builder.HasKey(x => x.CityId);
 
             builder.Property(x => x.CityId)
-                .HasConversion(id => id.Value, value => CityId.From(value));
+               .HasConversion(
+                    convertToProviderExpression: id => id.Value,
+                    convertFromProviderExpression: value => CityId.From(value));
 
-            builder.Property(x => x.SupplyStressIndex).HasPrecision(8, 4).IsRequired();
-            builder.Property(x => x.EmergencyRationingEnabled).IsRequired();
-            builder.Property(x => x.FoodStockLevelIndex).HasPrecision(8, 4).IsRequired();
-            builder.Property(x => x.FoodShortageRiskIndex).HasPrecision(8, 4).IsRequired();
-            builder.Property(x => x.MedicineStockLevelIndex).HasPrecision(8, 4).IsRequired();
-            builder.Property(x => x.MedicineShortageRiskIndex).HasPrecision(8, 4).IsRequired();
-            builder.Property(x => x.EmergencyWaterStockLevelIndex).HasPrecision(8, 4).IsRequired();
-            builder.Property(x => x.EmergencyWaterShortageRiskIndex).HasPrecision(8, 4).IsRequired();
-            builder.Property(x => x.EffectiveTickId).IsRequired();
-            builder.Property(x => x.EffectiveAtUtc).IsRequired();
-            builder.Property(x => x.UpdatedAtUtc).IsRequired();
+            builder.Property(x => x.SupplyStressIndex)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
+            builder.Property(x => x.EmergencyRationingEnabled)
+               .IsRequired();
+            builder.Property(x => x.FoodStockLevelIndex)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
+            builder.Property(x => x.FoodShortageRiskIndex)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
+            builder.Property(x => x.MedicineStockLevelIndex)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
+            builder.Property(x => x.MedicineShortageRiskIndex)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
+            builder.Property(x => x.EmergencyWaterStockLevelIndex)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
+            builder.Property(x => x.EmergencyWaterShortageRiskIndex)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
+            builder.Property(x => x.EffectiveTickId)
+               .IsRequired();
+            builder.Property(x => x.EffectiveAtUtc)
+               .IsRequired();
+            builder.Property(x => x.UpdatedAtUtc)
+               .IsRequired();
 
             builder.HasIndex(x => x.UpdatedAtUtc);
             builder.HasIndex(x => x.EffectiveTickId);

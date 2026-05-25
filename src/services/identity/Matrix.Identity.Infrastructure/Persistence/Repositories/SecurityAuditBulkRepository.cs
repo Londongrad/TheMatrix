@@ -11,7 +11,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken)
         {
             if (db.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
-            {
                 return db.Database.ExecuteSqlInterpolatedAsync(
                     sql: $"""
                           DELETE FROM "SecurityAuditEvents"
@@ -24,7 +23,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                           )
                           """,
                     cancellationToken: cancellationToken);
-            }
 
             return db.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""

@@ -8,7 +8,6 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
-using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
 using Matrix.SimulationSystems.Infrastructure.Economy;
 using Matrix.SimulationSystems.Infrastructure.Options;
 using Matrix.SimulationSystems.Infrastructure.Outbox;
@@ -17,7 +16,6 @@ using Matrix.SimulationSystems.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;
-using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +23,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
+using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationSystems.Infrastructure
 {
@@ -78,9 +78,12 @@ namespace Matrix.SimulationSystems.Infrastructure
             services.AddOutbox<SimulationSystemsDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
-            services.AddScoped<ICityPopulationLivingConditionsOutboxWriter, CityPopulationLivingConditionsOutboxWriter>();
+            services
+               .AddScoped<ICityPopulationLivingConditionsOutboxWriter, CityPopulationLivingConditionsOutboxWriter>();
             services.AddScoped<ICitySystemsResourceDemandOutboxWriter, CitySystemsResourceDemandOutboxWriter>();
-            services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((sp, client) =>
+            services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;
@@ -95,7 +98,9 @@ namespace Matrix.SimulationSystems.Infrastructure
                .AddInternalServiceAuthentication(
                     identity: InternalServicePrincipals.SimulationSystems,
                     EconomyPermissionKeys.EconomyBudgetAuthorize);
-            services.AddHttpClient<ICityMapTopologyClient, CityMapTopologyClient>((sp, client) =>
+            services.AddHttpClient<ICityMapTopologyClient, CityMapTopologyClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;
@@ -110,7 +115,9 @@ namespace Matrix.SimulationSystems.Infrastructure
                .AddInternalServiceAuthentication(
                     identity: InternalServicePrincipals.SimulationSystems,
                     SimulationCorePermissionKeys.SimulationCoreClassicCityRead);
-            services.AddHttpClient<ICityOperationalTripDispatcher, CityOperationalTripDispatcher>((sp, client) =>
+            services.AddHttpClient<ICityOperationalTripDispatcher, CityOperationalTripDispatcher>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;

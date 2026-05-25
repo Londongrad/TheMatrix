@@ -3,40 +3,49 @@ using Matrix.Identity.Infrastructure.Security.Tokens;
 using Xunit;
 using static Matrix.Identity.Infrastructure.Tests.TestSupport.IdentityInfrastructureTestSupport;
 
-namespace Matrix.Identity.Infrastructure.Tests.Security.Tokens;
-
-public sealed class OneTimeTokenServiceTests
+namespace Matrix.Identity.Infrastructure.Tests.Security.Tokens
 {
-    [Fact]
-    public void HashToken_TrimsWhitespaceAndReturnsStableHash()
+    public sealed class OneTimeTokenServiceTests
     {
-        var service = new OneTimeTokenService(CreateOneTimeTokenOptions());
+        [Fact]
+        public void HashToken_TrimsWhitespaceAndReturnsStableHash()
+        {
+            var service = new OneTimeTokenService(CreateOneTimeTokenOptions());
 
-        string trimmed = service.HashToken("token-value");
-        string padded = service.HashToken("  token-value  ");
+            string trimmed = service.HashToken("token-value");
+            string padded = service.HashToken("  token-value  ");
 
-        Assert.Equal(trimmed, padded);
-    }
+            Assert.Equal(
+                expected: trimmed,
+                actual: padded);
+        }
 
-    [Fact]
-    public void GetPolicyValues_WhenPurposeIsPasswordReset_ReturnsConfiguredSettings()
-    {
-        var service = new OneTimeTokenService(CreateOneTimeTokenOptions());
+        [Fact]
+        public void GetPolicyValues_WhenPurposeIsPasswordReset_ReturnsConfiguredSettings()
+        {
+            var service = new OneTimeTokenService(CreateOneTimeTokenOptions());
 
-        TimeSpan ttl = service.GetTtl(OneTimeTokenPurpose.PasswordReset);
-        TimeSpan cooldown = service.GetDeliveryCooldown(OneTimeTokenPurpose.PasswordReset);
-        int maxAttempts = service.GetMaxDeliveryAttemptsPerHour(OneTimeTokenPurpose.PasswordReset);
+            TimeSpan ttl = service.GetTtl(OneTimeTokenPurpose.PasswordReset);
+            TimeSpan cooldown = service.GetDeliveryCooldown(OneTimeTokenPurpose.PasswordReset);
+            int maxAttempts = service.GetMaxDeliveryAttemptsPerHour(OneTimeTokenPurpose.PasswordReset);
 
-        Assert.Equal(TimeSpan.FromMinutes(60), ttl);
-        Assert.Equal(TimeSpan.FromSeconds(60), cooldown);
-        Assert.Equal(5, maxAttempts);
-    }
+            Assert.Equal(
+                expected: TimeSpan.FromMinutes(60),
+                actual: ttl);
+            Assert.Equal(
+                expected: TimeSpan.FromSeconds(60),
+                actual: cooldown);
+            Assert.Equal(
+                expected: 5,
+                actual: maxAttempts);
+        }
 
-    [Fact]
-    public void GetTtl_WhenPurposeIsUnsupported_ThrowsArgumentOutOfRangeException()
-    {
-        var service = new OneTimeTokenService(CreateOneTimeTokenOptions());
+        [Fact]
+        public void GetTtl_WhenPurposeIsUnsupported_ThrowsArgumentOutOfRangeException()
+        {
+            var service = new OneTimeTokenService(CreateOneTimeTokenOptions());
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => service.GetTtl((OneTimeTokenPurpose)999));
+            Assert.Throws<ArgumentOutOfRangeException>(() => service.GetTtl((OneTimeTokenPurpose)999));
+        }
     }
 }

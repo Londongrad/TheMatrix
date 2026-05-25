@@ -7,8 +7,8 @@ namespace Matrix.Identity.Infrastructure.Security.PasswordHashing
     public sealed class PasswordHasher : IPasswordHasher
     {
         private static readonly object HashingContext = new();
-        private readonly Microsoft.AspNetCore.Identity.PasswordHasher<object> _hashingHasher = new();
-        private readonly Microsoft.AspNetCore.Identity.PasswordHasher<User> _verificationHasher = new();
+        private readonly PasswordHasher<object> _hashingHasher = new();
+        private readonly PasswordHasher<User> _verificationHasher = new();
 
         public string Hash(string password)
         {

@@ -3,17 +3,20 @@ using Matrix.Population.Application.Authorization.Permissions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Xunit;
 
-namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
-
-public sealed class GetCityDashboardQueryPermissionTests
+namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard
 {
-    [Fact]
-    public void Query_RequiresPopulationPeopleReadPermission()
+    public sealed class GetCityDashboardQueryPermissionTests
     {
-        var query = new GetCityDashboardQuery(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
+        [Fact]
+        public void Query_RequiresPopulationPeopleReadPermission()
+        {
+            var query = new GetCityDashboardQuery(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
 
-        var permissionRequest = Assert.IsAssignableFrom<IRequirePermission>(query);
+            IRequirePermission permissionRequest = Assert.IsAssignableFrom<IRequirePermission>(query);
 
-        Assert.Equal(PermissionKeys.PopulationPeopleRead, permissionRequest.PermissionKey);
+            Assert.Equal(
+                expected: PermissionKeys.PopulationPeopleRead,
+                actual: permissionRequest.PermissionKey);
+        }
     }
 }

@@ -3,7 +3,8 @@ using Matrix.SimulationSystems.Application.Authorization.Permissions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.Common;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.DispatchCityUtilityIncidentResponse
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    DispatchCityUtilityIncidentResponse
 {
     public sealed record DispatchCityUtilityIncidentResponseCommand(
         Guid CityId,

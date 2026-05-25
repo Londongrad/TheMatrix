@@ -81,7 +81,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken)
         {
             if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
-            {
                 return _db.Database.ExecuteSqlInterpolatedAsync(
                     sql: $"""
                           DELETE FROM "UserRefreshTokens"
@@ -94,7 +93,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                           )
                           """,
                     cancellationToken: cancellationToken);
-            }
 
             return _db.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""
@@ -118,7 +116,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken)
         {
             if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
-            {
                 return _db.Database.ExecuteSqlInterpolatedAsync(
                     sql: $"""
                           DELETE FROM "UserRefreshTokens"
@@ -133,7 +130,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                           )
                           """,
                     cancellationToken: cancellationToken);
-            }
 
             return _db.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""

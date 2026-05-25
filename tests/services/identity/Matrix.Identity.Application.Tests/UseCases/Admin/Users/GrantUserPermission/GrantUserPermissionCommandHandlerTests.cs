@@ -4,81 +4,100 @@ using Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission;
 using Matrix.Identity.Domain.Enums;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.GrantUserPermission;
-
-public sealed class GrantUserPermissionCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.GrantUserPermission
 {
-    [Fact]
-    public async Task Handle_WhenPermissionAlreadyApplied_DoesNotMarkUserChanged()
+    public sealed class GrantUserPermissionCommandHandlerTests
     {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenPermissionAlreadyApplied_DoesNotMarkUserChanged()
         {
-            ExistsAsyncResult = true
-        };
-        var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
-        {
-            UpsertResult = false
-        };
-        var permissionReadRepository = new AdminUsersTestSupport.FakePermissionReadRepository();
-        permissionReadRepository.PermissionByKey["users.read"] = new PermissionCatalogItemResult
-        {
-            Key = "users.read",
-            Service = "identity",
-            Group = "users",
-            Description = "Read users."
-        };
-        var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
-        var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
-        var handler = new GrantUserPermissionCommandHandler(
-            userRepository,
-            permissionsRepository,
-            permissionReadRepository,
-            new AdminUsersTestSupport.FakeAdminUserGuard(),
-            securityStateChangeCollector,
-            unitOfWork);
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = true
+            };
+            var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
+            {
+                UpsertResult = false
+            };
+            var permissionReadRepository = new AdminUsersTestSupport.FakePermissionReadRepository();
+            permissionReadRepository.PermissionByKey["users.read"] = new PermissionCatalogItemResult
+            {
+                Key = "users.read",
+                Service = "identity",
+                Group = "users",
+                Description = "Read users."
+            };
+            var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
+            var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
+            var handler = new GrantUserPermissionCommandHandler(
+                userRepository: userRepository,
+                permissionsRepository: permissionsRepository,
+                permissionReadRepository: permissionReadRepository,
+                adminUserGuard: new AdminUsersTestSupport.FakeAdminUserGuard(),
+                securityStateChangeCollector: securityStateChangeCollector,
+                unitOfWork: unitOfWork);
 
-        await handler.Handle(new GrantUserPermissionCommand(userId, "users.read"), CancellationToken.None);
+            await handler.Handle(
+                request: new GrantUserPermissionCommand(
+                    UserId: userId,
+                    TargetPermissionKey: "users.read"),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal("users.read", permissionsRepository.RequestedPermissionKey);
-        Assert.Equal(PermissionEffect.Allow, permissionsRepository.RequestedEffect);
-        Assert.Empty(securityStateChangeCollector.ChangedUsers);
-        Assert.Equal(1, unitOfWork.TransactionCalls);
-    }
+            Assert.Equal(
+                expected: "users.read",
+                actual: permissionsRepository.RequestedPermissionKey);
+            Assert.Equal(
+                expected: PermissionEffect.Allow,
+                actual: permissionsRepository.RequestedEffect);
+            Assert.Empty(securityStateChangeCollector.ChangedUsers);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.TransactionCalls);
+        }
 
-    [Fact]
-    public async Task Handle_WhenPermissionChanges_MarksUserChanged()
-    {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenPermissionChanges_MarksUserChanged()
         {
-            ExistsAsyncResult = true
-        };
-        var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
-        {
-            UpsertResult = true
-        };
-        var permissionReadRepository = new AdminUsersTestSupport.FakePermissionReadRepository();
-        permissionReadRepository.PermissionByKey["users.read"] = new PermissionCatalogItemResult
-        {
-            Key = "users.read",
-            Service = "identity",
-            Group = "users",
-            Description = "Read users."
-        };
-        var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
-        var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
-        var handler = new GrantUserPermissionCommandHandler(
-            userRepository,
-            permissionsRepository,
-            permissionReadRepository,
-            new AdminUsersTestSupport.FakeAdminUserGuard(),
-            securityStateChangeCollector,
-            unitOfWork);
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = true
+            };
+            var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
+            {
+                UpsertResult = true
+            };
+            var permissionReadRepository = new AdminUsersTestSupport.FakePermissionReadRepository();
+            permissionReadRepository.PermissionByKey["users.read"] = new PermissionCatalogItemResult
+            {
+                Key = "users.read",
+                Service = "identity",
+                Group = "users",
+                Description = "Read users."
+            };
+            var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
+            var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
+            var handler = new GrantUserPermissionCommandHandler(
+                userRepository: userRepository,
+                permissionsRepository: permissionsRepository,
+                permissionReadRepository: permissionReadRepository,
+                adminUserGuard: new AdminUsersTestSupport.FakeAdminUserGuard(),
+                securityStateChangeCollector: securityStateChangeCollector,
+                unitOfWork: unitOfWork);
 
-        await handler.Handle(new GrantUserPermissionCommand(userId, "users.read"), CancellationToken.None);
+            await handler.Handle(
+                request: new GrantUserPermissionCommand(
+                    UserId: userId,
+                    TargetPermissionKey: "users.read"),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal([userId], securityStateChangeCollector.ChangedUsers);
-        Assert.Equal(1, unitOfWork.TransactionCalls);
+            Assert.Equal(
+                expected: [userId],
+                actual: securityStateChangeCollector.ChangedUsers);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.TransactionCalls);
+        }
     }
 }

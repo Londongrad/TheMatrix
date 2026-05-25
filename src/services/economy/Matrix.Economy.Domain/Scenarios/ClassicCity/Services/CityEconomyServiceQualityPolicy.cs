@@ -99,12 +99,17 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
                 return 0.72m;
 
             decimal spentRatio = allocation.TotalSpent.Amount / allocation.TargetAmount.Amount;
-            decimal availableRatio = allocation.GetAvailableAmount().Amount / allocation.TargetAmount.Amount;
+            decimal availableRatio = allocation.GetAvailableAmount()
+                                        .Amount /
+                                     allocation.TargetAmount.Amount;
 
             return Clamp(
                 value: 0.76m +
                        (availableRatio * 0.32m) -
-                       (Math.Max(0m, spentRatio - 1m) * 0.30m),
+                       (Math.Max(
+                            val1: 0m,
+                            val2: spentRatio - 1m) *
+                        0.30m),
                 min: 0.20m,
                 max: 1.35m);
         }
@@ -125,9 +130,11 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
             decimal overrunPressure = allocations.Count == 0
                 ? 0m
                 : allocations.Average(x => Math.Max(
-                    0m,
-                    x.TotalSpent.Amount - x.TargetAmount.Amount) /
-                          Math.Max(1m, x.TargetAmount.Amount));
+                                               val1: 0m,
+                                               val2: x.TotalSpent.Amount - x.TargetAmount.Amount) /
+                                           Math.Max(
+                                               val1: 1m,
+                                               val2: x.TargetAmount.Amount));
 
             return decimal.Round(
                 d: Clamp(
@@ -153,7 +160,9 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
 
             decimal support = scopedBusinesses.Average(x =>
             {
-                decimal capitalBase = Math.Max(1m, x.TotalCapitalInjections.Amount);
+                decimal capitalBase = Math.Max(
+                    val1: 1m,
+                    val2: x.TotalCapitalInjections.Amount);
                 decimal balanceRatio = x.Balance.Amount / capitalBase;
                 decimal taxBurden = x.TaxReserve.Amount / capitalBase;
 

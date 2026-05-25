@@ -17,43 +17,63 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                .HasColumnName("city_id");
             builder.Property(x => x.BaseWageMultiplier)
                .HasColumnName("base_wage_multiplier")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.BaseRetailPriceMultiplier)
                .HasColumnName("base_retail_price_multiplier")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.BaseHousingCostMultiplier)
                .HasColumnName("base_housing_cost_multiplier")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.BaseUtilityCostMultiplier)
                .HasColumnName("base_utility_cost_multiplier")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.WageMultiplier)
                .HasColumnName("wage_multiplier")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.RetailPriceMultiplier)
                .HasColumnName("retail_price_multiplier")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.HousingCostMultiplier)
                .HasColumnName("housing_cost_multiplier")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.UtilityCostMultiplier)
                .HasColumnName("utility_cost_multiplier")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.CostOfLivingIndex)
                .HasColumnName("cost_of_living_index")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.AffordabilityIndex)
                .HasColumnName("affordability_index")
-               .HasPrecision(8, 4)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
                .IsRequired();
             builder.Property(x => x.LastEvaluatedAtUtc)
                .HasColumnName("last_evaluated_at_utc")

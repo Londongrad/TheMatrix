@@ -3,171 +3,221 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World.Dis
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.World.DispatchCityTrip;
-
-public sealed class DispatchCityTripCommandHandlerFailureTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.World.DispatchCityTrip
 {
-    [Fact]
-    public async Task Handle_WhenCityDoesNotExist_ReturnsCityNotFound()
+    public sealed class DispatchCityTripCommandHandlerFailureTests
     {
-        Guid cityId = Guid.NewGuid();
-        var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
-        var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
-        var roadNodeRepository = new TopologyTestSupport.FakeRoadNodeRepository();
-        var tripRepository = new WorldTestSupport.FakeCityActiveTripRepository();
-        var mediator = new WorldTestSupport.FakeMediator();
-        var unitOfWork = new WorldTestSupport.FakeUnitOfWork();
-        var handler = new DispatchCityTripCommandHandler(
-            cityRepository,
-            clockRepository,
-            roadNodeRepository,
-            tripRepository,
-            mediator,
-            unitOfWork);
-
-        var result = await handler.Handle(
-            WorldTestSupport.CreateDispatchCommand(cityId, Guid.NewGuid(), Guid.NewGuid()),
-            CancellationToken.None);
-
-        Assert.Equal(DispatchCityTripStatus.CityNotFound, result.Status);
-        Assert.Null(result.Trip);
-        Assert.Equal("City was not found.", result.FailureReason);
-        Assert.Null(mediator.Requested);
-        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
-        Assert.Null(tripRepository.AddedTrip);
-    }
-
-    [Fact]
-    public async Task Handle_WhenCityIsNotReady_ReturnsCityNotReady()
-    {
-        var city = ClassicCityTestSupport.CreateCity(requiresPopulationBootstrap: true);
-        var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+        [Fact]
+        public async Task Handle_WhenCityDoesNotExist_ReturnsCityNotFound()
         {
-            CityById = city
-        };
-        var handler = CreateHandler(cityRepository, new SimulationTestSupport.FakeSimulationClockRepository());
+            var cityId = Guid.NewGuid();
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
+            var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
+            var roadNodeRepository = new TopologyTestSupport.FakeRoadNodeRepository();
+            var tripRepository = new WorldTestSupport.FakeCityActiveTripRepository();
+            var mediator = new WorldTestSupport.FakeMediator();
+            var unitOfWork = new WorldTestSupport.FakeUnitOfWork();
+            var handler = new DispatchCityTripCommandHandler(
+                cityRepository: cityRepository,
+                clockRepository: clockRepository,
+                roadNodeRepository: roadNodeRepository,
+                tripRepository: tripRepository,
+                mediator: mediator,
+                unitOfWork: unitOfWork);
 
-        var result = await handler.Handle(
-            WorldTestSupport.CreateDispatchCommand(city.Id.Value, Guid.NewGuid(), Guid.NewGuid()),
-            CancellationToken.None);
+            DispatchCityTripResult result = await handler.Handle(
+                request: WorldTestSupport.CreateDispatchCommand(
+                    cityId: cityId,
+                    fromId: Guid.NewGuid(),
+                    toId: Guid.NewGuid()),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(DispatchCityTripStatus.CityNotReady, result.Status);
-        Assert.Equal("Trips can be dispatched only for active cities.", result.FailureReason);
-    }
+            Assert.Equal(
+                expected: DispatchCityTripStatus.CityNotFound,
+                actual: result.Status);
+            Assert.Null(result.Trip);
+            Assert.Equal(
+                expected: "City was not found.",
+                actual: result.FailureReason);
+            Assert.Null(mediator.Requested);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Null(tripRepository.AddedTrip);
+        }
 
-    [Fact]
-    public async Task Handle_WhenClockIsMissing_ReturnsCityNotReady()
-    {
-        var city = ClassicCityTestSupport.CreateCity();
-        var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+        [Fact]
+        public async Task Handle_WhenCityIsNotReady_ReturnsCityNotReady()
         {
-            CityById = city
-        };
-        var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
-        var handler = CreateHandler(cityRepository, clockRepository);
+            City city = ClassicCityTestSupport.CreateCity(requiresPopulationBootstrap: true);
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+            {
+                CityById = city
+            };
+            DispatchCityTripCommandHandler handler = CreateHandler(
+                cityRepository: cityRepository,
+                clockRepository: new SimulationTestSupport.FakeSimulationClockRepository());
 
-        var result = await handler.Handle(
-            WorldTestSupport.CreateDispatchCommand(city.Id.Value, Guid.NewGuid(), Guid.NewGuid()),
-            CancellationToken.None);
+            DispatchCityTripResult result = await handler.Handle(
+                request: WorldTestSupport.CreateDispatchCommand(
+                    cityId: city.Id.Value,
+                    fromId: Guid.NewGuid(),
+                    toId: Guid.NewGuid()),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(DispatchCityTripStatus.CityNotReady, result.Status);
-        Assert.Equal("Simulation clock is not available for this city.", result.FailureReason);
-    }
+            Assert.Equal(
+                expected: DispatchCityTripStatus.CityNotReady,
+                actual: result.Status);
+            Assert.Equal(
+                expected: "Trips can be dispatched only for active cities.",
+                actual: result.FailureReason);
+        }
 
-    [Fact]
-    public async Task Handle_WhenRouteIsUnavailable_ReturnsRouteUnavailable()
-    {
-        var city = ClassicCityTestSupport.CreateCity();
-        var clock = SimulationTestSupport.CreateClock(city.Id.Value);
-        var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+        [Fact]
+        public async Task Handle_WhenClockIsMissing_ReturnsCityNotReady()
         {
-            CityById = city
-        };
-        var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository
+            City city = ClassicCityTestSupport.CreateCity();
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+            {
+                CityById = city
+            };
+            var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
+            DispatchCityTripCommandHandler handler = CreateHandler(
+                cityRepository: cityRepository,
+                clockRepository: clockRepository);
+
+            DispatchCityTripResult result = await handler.Handle(
+                request: WorldTestSupport.CreateDispatchCommand(
+                    cityId: city.Id.Value,
+                    fromId: Guid.NewGuid(),
+                    toId: Guid.NewGuid()),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: DispatchCityTripStatus.CityNotReady,
+                actual: result.Status);
+            Assert.Equal(
+                expected: "Simulation clock is not available for this city.",
+                actual: result.FailureReason);
+        }
+
+        [Fact]
+        public async Task Handle_WhenRouteIsUnavailable_ReturnsRouteUnavailable()
         {
-            ClockBySimulationId = clock
-        };
-        var roadNodeRepository = new TopologyTestSupport.FakeRoadNodeRepository();
-        var tripRepository = new WorldTestSupport.FakeCityActiveTripRepository();
-        var mediator = new WorldTestSupport.FakeMediator
+            City city = ClassicCityTestSupport.CreateCity();
+            SimulationClock clock = SimulationTestSupport.CreateClock(city.Id.Value);
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+            {
+                CityById = city
+            };
+            var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository
+            {
+                ClockBySimulationId = clock
+            };
+            var roadNodeRepository = new TopologyTestSupport.FakeRoadNodeRepository();
+            var tripRepository = new WorldTestSupport.FakeCityActiveTripRepository();
+            var mediator = new WorldTestSupport.FakeMediator
+            {
+                Response = null
+            };
+            var unitOfWork = new WorldTestSupport.FakeUnitOfWork();
+            var handler = new DispatchCityTripCommandHandler(
+                cityRepository: cityRepository,
+                clockRepository: clockRepository,
+                roadNodeRepository: roadNodeRepository,
+                tripRepository: tripRepository,
+                mediator: mediator,
+                unitOfWork: unitOfWork);
+
+            DispatchCityTripResult result = await handler.Handle(
+                request: WorldTestSupport.CreateDispatchCommand(
+                    cityId: city.Id.Value,
+                    fromId: Guid.NewGuid(),
+                    toId: Guid.NewGuid()),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: DispatchCityTripStatus.RouteUnavailable,
+                actual: result.Status);
+            Assert.Equal(
+                expected: "Trip route could not be resolved for the selected points.",
+                actual: result.FailureReason);
+            ResolveCityRouteQuery request = Assert.IsType<ResolveCityRouteQuery>(mediator.Requested);
+            Assert.Equal(
+                expected: city.Id.Value,
+                actual: request.CityId);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Null(tripRepository.AddedTrip);
+        }
+
+        [Fact]
+        public async Task Handle_WhenRouteIsInaccessible_ReturnsRouteUnavailable()
         {
-            Response = null
-        };
-        var unitOfWork = new WorldTestSupport.FakeUnitOfWork();
-        var handler = new DispatchCityTripCommandHandler(
-            cityRepository,
-            clockRepository,
-            roadNodeRepository,
-            tripRepository,
-            mediator,
-            unitOfWork);
+            City city = ClassicCityTestSupport.CreateCity();
+            SimulationClock clock = SimulationTestSupport.CreateClock(city.Id.Value);
+            var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+            {
+                CityById = city
+            };
+            var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository
+            {
+                ClockBySimulationId = clock
+            };
+            CityRouteDto inaccessibleRoute = WorldTestSupport.CreateRoute(
+                cityId: city.Id.Value,
+                fromDistrictId: Guid.NewGuid(),
+                fromRoadNodeId: Guid.NewGuid(),
+                fromEntityId: Guid.NewGuid(),
+                toDistrictId: Guid.NewGuid(),
+                toRoadNodeId: Guid.NewGuid(),
+                toEntityId: Guid.NewGuid(),
+                roadSegmentId: Guid.NewGuid(),
+                accessible: false,
+                unreachableReason: "Bridge closed");
+            var handler = new DispatchCityTripCommandHandler(
+                cityRepository: cityRepository,
+                clockRepository: clockRepository,
+                roadNodeRepository: new TopologyTestSupport.FakeRoadNodeRepository(),
+                tripRepository: new WorldTestSupport.FakeCityActiveTripRepository(),
+                mediator: new WorldTestSupport.FakeMediator
+                {
+                    Response = inaccessibleRoute
+                },
+                unitOfWork: new WorldTestSupport.FakeUnitOfWork());
 
-        var result = await handler.Handle(
-            WorldTestSupport.CreateDispatchCommand(city.Id.Value, Guid.NewGuid(), Guid.NewGuid()),
-            CancellationToken.None);
+            DispatchCityTripResult result = await handler.Handle(
+                request: WorldTestSupport.CreateDispatchCommand(
+                    cityId: city.Id.Value,
+                    fromId: inaccessibleRoute.From.EntityId,
+                    toId: inaccessibleRoute.To.EntityId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(DispatchCityTripStatus.RouteUnavailable, result.Status);
-        Assert.Equal("Trip route could not be resolved for the selected points.", result.FailureReason);
-        var request = Assert.IsType<ResolveCityRouteQuery>(mediator.Requested);
-        Assert.Equal(city.Id.Value, request.CityId);
-        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
-        Assert.Null(tripRepository.AddedTrip);
-    }
+            Assert.Equal(
+                expected: DispatchCityTripStatus.RouteUnavailable,
+                actual: result.Status);
+            Assert.Equal(
+                expected: "Bridge closed",
+                actual: result.FailureReason);
+            Assert.Null(result.Trip);
+        }
 
-    [Fact]
-    public async Task Handle_WhenRouteIsInaccessible_ReturnsRouteUnavailable()
-    {
-        var city = ClassicCityTestSupport.CreateCity();
-        var clock = SimulationTestSupport.CreateClock(city.Id.Value);
-        var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+        private static DispatchCityTripCommandHandler CreateHandler(
+            ClassicCityTestSupport.FakeCityRepository cityRepository,
+            SimulationTestSupport.FakeSimulationClockRepository clockRepository)
         {
-            CityById = city
-        };
-        var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository
-        {
-            ClockBySimulationId = clock
-        };
-        var inaccessibleRoute = WorldTestSupport.CreateRoute(
-            cityId: city.Id.Value,
-            fromDistrictId: Guid.NewGuid(),
-            fromRoadNodeId: Guid.NewGuid(),
-            fromEntityId: Guid.NewGuid(),
-            toDistrictId: Guid.NewGuid(),
-            toRoadNodeId: Guid.NewGuid(),
-            toEntityId: Guid.NewGuid(),
-            roadSegmentId: Guid.NewGuid(),
-            accessible: false,
-            unreachableReason: "Bridge closed");
-        var handler = new DispatchCityTripCommandHandler(
-            cityRepository,
-            clockRepository,
-            new TopologyTestSupport.FakeRoadNodeRepository(),
-            new WorldTestSupport.FakeCityActiveTripRepository(),
-            new WorldTestSupport.FakeMediator { Response = inaccessibleRoute },
-            new WorldTestSupport.FakeUnitOfWork());
-
-        var result = await handler.Handle(
-            WorldTestSupport.CreateDispatchCommand(city.Id.Value, inaccessibleRoute.From.EntityId, inaccessibleRoute.To.EntityId),
-            CancellationToken.None);
-
-        Assert.Equal(DispatchCityTripStatus.RouteUnavailable, result.Status);
-        Assert.Equal("Bridge closed", result.FailureReason);
-        Assert.Null(result.Trip);
-    }
-
-    private static DispatchCityTripCommandHandler CreateHandler(
-        ClassicCityTestSupport.FakeCityRepository cityRepository,
-        SimulationTestSupport.FakeSimulationClockRepository clockRepository)
-    {
-        return new DispatchCityTripCommandHandler(
-            cityRepository,
-            clockRepository,
-            new TopologyTestSupport.FakeRoadNodeRepository(),
-            new WorldTestSupport.FakeCityActiveTripRepository(),
-            new WorldTestSupport.FakeMediator(),
-            new WorldTestSupport.FakeUnitOfWork());
+            return new DispatchCityTripCommandHandler(
+                cityRepository: cityRepository,
+                clockRepository: clockRepository,
+                roadNodeRepository: new TopologyTestSupport.FakeRoadNodeRepository(),
+                tripRepository: new WorldTestSupport.FakeCityActiveTripRepository(),
+                mediator: new WorldTestSupport.FakeMediator(),
+                unitOfWork: new WorldTestSupport.FakeUnitOfWork());
+        }
     }
 }

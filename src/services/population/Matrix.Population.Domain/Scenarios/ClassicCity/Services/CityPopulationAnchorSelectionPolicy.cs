@@ -62,7 +62,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyList<CityPopulationAnchorCatalogItem> typedAnchors = anchors
                .Where(x => x.Type == type)
                .OrderBy(x => x.DistrictId.Value)
-               .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+               .ThenBy(
+                    keySelector: x => x.Name,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .ThenBy(x => x.CityAnchorId.Value)
                .ToArray();
 
@@ -81,8 +83,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyList<CityPopulationAnchorCatalogItem> effectiveAnchors = preferredByRouteAnchors.Count > 0
                 ? preferredByRouteAnchors
                 : preferredAnchors.Count > 0
-                ? preferredAnchors
-                : typedAnchors;
+                    ? preferredAnchors
+                    : typedAnchors;
 
             int candidateCount = Math.Min(
                 val1: effectiveAnchors.Count,

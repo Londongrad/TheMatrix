@@ -1,4 +1,3 @@
-using Matrix.BuildingBlocks.Domain;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors;
 
 namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology

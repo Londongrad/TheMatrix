@@ -9,7 +9,8 @@ namespace Matrix.Resources.Infrastructure.Outbox
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
                 [ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1] = typeof(ClassicCityStockpileSnapshotV1),
-                [ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] = typeof(ClassicCityOperationalExpenseIncurredV1)
+                [ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] =
+                    typeof(ClassicCityOperationalExpenseIncurredV1)
             };
     }
 }

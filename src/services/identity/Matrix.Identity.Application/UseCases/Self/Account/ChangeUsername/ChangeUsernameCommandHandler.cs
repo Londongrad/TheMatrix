@@ -61,7 +61,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername
                 throw ApplicationErrorsFactory.InvalidCurrentPassword();
             }
 
-            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             if (user.LastUsernameChangedAtUtc is DateTime lastChangedAtUtc)
             {

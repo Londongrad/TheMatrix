@@ -30,8 +30,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public decimal IncidentPressureIndex { get; private set; }
         public bool EmergencyModeEnabled { get; private set; }
 
-        public static CitySnowRemovalInfrastructureState Create(
-            CitySnowRemovalInfrastructureSnapshot snapshot)
+        public static CitySnowRemovalInfrastructureState Create(CitySnowRemovalInfrastructureSnapshot snapshot)
         {
             ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -124,7 +123,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             DeicingReadinessIndex = ClampAndRound(DeicingReadinessIndex + (deicingBoost * intensityFactor));
             IncidentPressureIndex = ClampAndRound(IncidentPressureIndex - (incidentRelief * intensityFactor));
             CrewReadinessIndex = ClampAndRound(
-                CrewReadinessIndex + (crewDelta * intensityFactor) + (EmergencyModeEnabled ? -0.0200m : 0.0200m));
+                CrewReadinessIndex +
+                (crewDelta * intensityFactor) +
+                (EmergencyModeEnabled
+                    ? -0.0200m
+                    : 0.0200m));
         }
 
         public CitySnowRemovalInfrastructureSnapshot ToSnapshot()

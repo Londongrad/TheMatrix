@@ -3,12 +3,11 @@ import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
-import {useAdminPermissions} from "../hooks/useAdminPermissions";
+import {DEFAULT_USER_ACCESS_SCOPE_ID, useAdminPermissions} from "../hooks/useAdminPermissions";
 import PermissionsMatrix from "../components/PermissionsMatrix";
 import RoleList from "../components/RoleList";
 
 import "../styles/admin-permissions-page.css";
-import {DEFAULT_USER_ACCESS_SCOPE_ID} from "../hooks/useAdminPermissions";
 
 export default function AdminPermissionsPage() {
     const {

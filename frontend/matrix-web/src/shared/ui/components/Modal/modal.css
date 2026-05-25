@@ -37,9 +37,8 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background:
-        radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.12), transparent 36%),
-        linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.1), transparent 18%);
+    background: radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.1), transparent 18%);
     opacity: 0.78;
 }
 
@@ -97,14 +96,13 @@
 }
 
 html[data-theme="matrix"] .mx-modal::after {
-    background:
-        repeating-linear-gradient(
+    background: repeating-linear-gradient(
             180deg,
             rgba(var(--shell-accent-rgb), 0.08) 0,
             rgba(var(--shell-accent-rgb), 0.08) 1px,
             transparent 1px,
             transparent 10px
-        );
+    );
     border-top: 1px solid rgba(var(--shell-accent-rgb), 0.34);
     opacity: 0.34;
 }

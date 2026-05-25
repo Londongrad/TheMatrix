@@ -1,56 +1,71 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.SetCityDrainageEmergencyMode;
 using Matrix.SimulationSystems.Application.Tests.TestSupport;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.Drainage.SetCityDrainageEmergencyMode;
-
-public sealed class SetCityDrainageEmergencyModeCommandHandlerTests
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.Drainage.
+    SetCityDrainageEmergencyMode
 {
-    [Fact]
-    public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+    public sealed class SetCityDrainageEmergencyModeCommandHandlerTests
     {
-        var repository = new FakeCityEnvironmentalConditionRepository();
-        var handler = new SetCityDrainageEmergencyModeCommandHandler(
-            repository,
-            new FakeUnitOfWork(),
-            new CityEnvironmentalConditionPolicy(),
-            new ClassicCityWeatherPressureProfileFactory());
+        [Fact]
+        public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+        {
+            var repository = new FakeCityEnvironmentalConditionRepository();
+            var handler = new SetCityDrainageEmergencyModeCommandHandler(
+                repository: repository,
+                unitOfWork: new FakeUnitOfWork(),
+                policy: new CityEnvironmentalConditionPolicy(),
+                pressureProfileFactory: new ClassicCityWeatherPressureProfileFactory());
 
-        var result = await handler.Handle(
-            new SetCityDrainageEmergencyModeCommand(
-                CityId: SimulationSystemsApplicationTestSupport.CityId,
-                Enabled: true),
-            CancellationToken.None);
+            CityDrainageStatusDto? result = await handler.Handle(
+                request: new SetCityDrainageEmergencyModeCommand(
+                    CityId: SimulationSystemsApplicationTestSupport.CityId,
+                    Enabled: true),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Null(result);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.CreateHostId(), repository.RequestedSimulationHostId);
-    }
+            Assert.Null(result);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.CreateHostId(),
+                actual: repository.RequestedSimulationHostId);
+        }
 
-    [Fact]
-    public async Task Handle_WhenStateExists_TogglesEmergencyModeAndReturnsUpdatedDto()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var unitOfWork = new FakeUnitOfWork();
-        var handler = new SetCityDrainageEmergencyModeCommandHandler(
-            repository,
-            unitOfWork,
-            new CityEnvironmentalConditionPolicy(),
-            new ClassicCityWeatherPressureProfileFactory());
+        [Fact]
+        public async Task Handle_WhenStateExists_TogglesEmergencyModeAndReturnsUpdatedDto()
+        {
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            var unitOfWork = new FakeUnitOfWork();
+            var handler = new SetCityDrainageEmergencyModeCommandHandler(
+                repository: repository,
+                unitOfWork: unitOfWork,
+                policy: new CityEnvironmentalConditionPolicy(),
+                pressureProfileFactory: new ClassicCityWeatherPressureProfileFactory());
 
-        var result = await handler.Handle(
-            new SetCityDrainageEmergencyModeCommand(
-                CityId: SimulationSystemsApplicationTestSupport.CityId,
-                Enabled: true),
-            CancellationToken.None);
+            CityDrainageStatusDto? result = await handler.Handle(
+                request: new SetCityDrainageEmergencyModeCommand(
+                    CityId: SimulationSystemsApplicationTestSupport.CityId,
+                    Enabled: true),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.True(state.DrainageInfrastructure.EmergencyModeEnabled);
-        Assert.True(result!.EmergencyModeEnabled);
-        Assert.Equal(state.LastEvaluatedAtUtc, result.LastEvaluatedAtUtc);
-        Assert.Equal(state.DrainageInfrastructure.PumpCapacityIndex, result.PumpCapacityIndex);
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
+            Assert.NotNull(result);
+            Assert.True(state.DrainageInfrastructure.EmergencyModeEnabled);
+            Assert.True(result!.EmergencyModeEnabled);
+            Assert.Equal(
+                expected: state.LastEvaluatedAtUtc,
+                actual: result.LastEvaluatedAtUtc);
+            Assert.Equal(
+                expected: state.DrainageInfrastructure.PumpCapacityIndex,
+                actual: result.PumpCapacityIndex);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+        }
     }
 }

@@ -1,6 +1,6 @@
 using MassTransit;
-using Matrix.SimulationCore.Contracts.Events;
 using Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy;
+using Matrix.SimulationCore.Contracts.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -12,14 +12,15 @@ namespace Matrix.Economy.Infrastructure.Consumers
     {
         public async Task Consume(ConsumeContext<CityTickPhaseReachedV1> context)
         {
-            await ConsumeAsync(context.Message, context.CancellationToken);
+            await ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
         }
 
         internal async Task ConsumeAsync(
             CityTickPhaseReachedV1 message,
             CancellationToken cancellationToken)
         {
-
             if (message.TickContext.Phase != CityTickPhaseV1.BudgetSettlement)
                 return;
 

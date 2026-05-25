@@ -1,7 +1,7 @@
 using MassTransit;
-using Matrix.SimulationCore.Contracts.Events;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityWeatherImpact;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityWeatherExposureState;
+using Matrix.SimulationCore.Contracts.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

@@ -1,145 +1,256 @@
-using Matrix.Economy.Application.Tests.TestSupport;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.HouseholdObligations.Common;
-
-public sealed class HouseholdObligationChargeSupportTests
+namespace Matrix.Economy.Application.Tests.UseCases.HouseholdObligations.Common
 {
-    [Fact]
-    public async Task TryChargeAsync_ReturnsNotDueWhenFrozenClockIsBeforeDueDate()
+    public sealed class HouseholdObligationChargeSupportTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        CityHouseholdAccount householdAccount = CreateHouseholdAccount(cityId, "Tenant Household", 300m);
-        CityBusiness providerBusiness = CreateBusiness(cityId, "Landlord", CityBusinessKind.Landlord, 500m);
-        CityHouseholdObligation obligation = CreateHouseholdObligation(
-            cityId,
-            householdAccount.Id,
-            providerBusiness.Id,
-            "Monthly Rent",
-            CityHouseholdObligationKind.Rent,
-            CityHouseholdObligationBillingCadence.Monthly,
-            80m,
-            8m);
-        var householdAccountRepository = new FakeCityHouseholdAccountRepository { Accounts = [householdAccount] };
-        var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
-        var businessRepository = new FakeCityBusinessRepository { Businesses = [providerBusiness] };
-        var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
-        var timeProvider = new FrozenTimeProvider(new DateTimeOffset(2048, 5, 6, 8, 0, 0, TimeSpan.Zero));
-        var support = new HouseholdObligationChargeSupport(
-            householdAccountRepository,
-            householdLedgerRepository,
-            businessRepository,
-            businessLedgerRepository,
-            timeProvider);
+        [Fact]
+        public async Task TryChargeAsync_ReturnsNotDueWhenFrozenClockIsBeforeDueDate()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityHouseholdAccount householdAccount = CreateHouseholdAccount(
+                cityId: cityId,
+                name: "Tenant Household",
+                openingBalance: 300m);
+            CityBusiness providerBusiness = CreateBusiness(
+                cityId: cityId,
+                name: "Landlord",
+                kind: CityBusinessKind.Landlord,
+                initialCapital: 500m);
+            CityHouseholdObligation obligation = CreateHouseholdObligation(
+                cityId: cityId,
+                householdAccountId: householdAccount.Id,
+                providerBusinessId: providerBusiness.Id,
+                name: "Monthly Rent",
+                kind: CityHouseholdObligationKind.Rent,
+                cadence: CityHouseholdObligationBillingCadence.Monthly,
+                chargeAmount: 80m,
+                taxAmount: 8m);
+            var householdAccountRepository = new FakeCityHouseholdAccountRepository
+            {
+                Accounts = [householdAccount]
+            };
+            var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
+            var businessRepository = new FakeCityBusinessRepository
+            {
+                Businesses = [providerBusiness]
+            };
+            var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
+            var timeProvider = new FrozenTimeProvider(
+                new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 8,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero));
+            var support = new HouseholdObligationChargeSupport(
+                householdAccountRepository: householdAccountRepository,
+                householdLedgerRepository: householdLedgerRepository,
+                businessRepository: businessRepository,
+                businessLedgerRepository: businessLedgerRepository,
+                timeProvider: timeProvider);
 
-        HouseholdObligationChargeAttemptResult result = await support.TryChargeAsync(
-            obligation,
-            description: "pre-due check",
-            occurredAtUtc: null,
-            cancellationToken: CancellationToken.None);
+            HouseholdObligationChargeAttemptResult result = await support.TryChargeAsync(
+                obligation: obligation,
+                description: "pre-due check",
+                occurredAtUtc: null,
+                cancellationToken: CancellationToken.None);
 
-        Assert.False(result.Succeeded);
-        Assert.Equal("NotDue", result.FailureCode);
-        Assert.Empty(householdLedgerRepository.AddedEntries);
-        Assert.Empty(businessLedgerRepository.AddedEntries);
-        Assert.Equal(300m, householdAccount.Balance.Amount);
-        Assert.Equal(500m, providerBusiness.Balance.Amount);
-    }
+            Assert.False(result.Succeeded);
+            Assert.Equal(
+                expected: "NotDue",
+                actual: result.FailureCode);
+            Assert.Empty(householdLedgerRepository.AddedEntries);
+            Assert.Empty(businessLedgerRepository.AddedEntries);
+            Assert.Equal(
+                expected: 300m,
+                actual: householdAccount.Balance.Amount);
+            Assert.Equal(
+                expected: 500m,
+                actual: providerBusiness.Balance.Amount);
+        }
 
-    [Fact]
-    public async Task TryChargeAsync_ChargesDueObligationWithFrozenTimestamp()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        CityHouseholdAccount householdAccount = CreateHouseholdAccount(cityId, "Tenant Household", 300m);
-        CityBusiness providerBusiness = CreateBusiness(cityId, "Landlord", CityBusinessKind.Landlord, 500m);
-        CityHouseholdObligation obligation = CreateHouseholdObligation(
-            cityId,
-            householdAccount.Id,
-            providerBusiness.Id,
-            "Monthly Rent",
-            CityHouseholdObligationKind.Rent,
-            CityHouseholdObligationBillingCadence.Monthly,
-            80m,
-            8m);
-        var householdAccountRepository = new FakeCityHouseholdAccountRepository { Accounts = [householdAccount] };
-        var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
-        var businessRepository = new FakeCityBusinessRepository { Businesses = [providerBusiness] };
-        var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
-        var timeProvider = new FrozenTimeProvider(new DateTimeOffset(2048, 5, 7, 10, 0, 0, TimeSpan.Zero));
-        var support = new HouseholdObligationChargeSupport(
-            householdAccountRepository,
-            householdLedgerRepository,
-            businessRepository,
-            businessLedgerRepository,
-            timeProvider);
+        [Fact]
+        public async Task TryChargeAsync_ChargesDueObligationWithFrozenTimestamp()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityHouseholdAccount householdAccount = CreateHouseholdAccount(
+                cityId: cityId,
+                name: "Tenant Household",
+                openingBalance: 300m);
+            CityBusiness providerBusiness = CreateBusiness(
+                cityId: cityId,
+                name: "Landlord",
+                kind: CityBusinessKind.Landlord,
+                initialCapital: 500m);
+            CityHouseholdObligation obligation = CreateHouseholdObligation(
+                cityId: cityId,
+                householdAccountId: householdAccount.Id,
+                providerBusinessId: providerBusiness.Id,
+                name: "Monthly Rent",
+                kind: CityHouseholdObligationKind.Rent,
+                cadence: CityHouseholdObligationBillingCadence.Monthly,
+                chargeAmount: 80m,
+                taxAmount: 8m);
+            var householdAccountRepository = new FakeCityHouseholdAccountRepository
+            {
+                Accounts = [householdAccount]
+            };
+            var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
+            var businessRepository = new FakeCityBusinessRepository
+            {
+                Businesses = [providerBusiness]
+            };
+            var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
+            var timeProvider = new FrozenTimeProvider(
+                new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 7,
+                    hour: 10,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero));
+            var support = new HouseholdObligationChargeSupport(
+                householdAccountRepository: householdAccountRepository,
+                householdLedgerRepository: householdLedgerRepository,
+                businessRepository: businessRepository,
+                businessLedgerRepository: businessLedgerRepository,
+                timeProvider: timeProvider);
 
-        HouseholdObligationChargeAttemptResult result = await support.TryChargeAsync(
-            obligation,
-            description: "Rent collection",
-            occurredAtUtc: null,
-            cancellationToken: CancellationToken.None);
+            HouseholdObligationChargeAttemptResult result = await support.TryChargeAsync(
+                obligation: obligation,
+                description: "Rent collection",
+                occurredAtUtc: null,
+                cancellationToken: CancellationToken.None);
 
-        var householdEntry = Assert.Single(householdLedgerRepository.AddedEntries);
-        var businessEntry = Assert.Single(businessLedgerRepository.AddedEntries);
-        Assert.True(result.Succeeded);
-        Assert.Equal(80m, result.ChargedAmount.Amount);
-        Assert.Equal(8m, result.ChargedTaxAmount.Amount);
-        Assert.Equal(1, result.SettledInstallmentCount);
-        Assert.Equal(timeProvider.UtcNow, householdEntry.OccurredAtUtc);
-        Assert.Equal(timeProvider.UtcNow, businessEntry.OccurredAtUtc);
-        Assert.Equal(220m, householdAccount.Balance.Amount);
-        Assert.Equal(580m, providerBusiness.Balance.Amount);
-        Assert.Equal(8m, providerBusiness.TaxReserve.Amount);
-        Assert.Equal(72m, providerBusiness.TotalNetSalesRevenue.Amount);
-        Assert.Equal(1, obligation.ChargeCount);
-        Assert.Equal(new DateTimeOffset(2048, 6, 7, 9, 0, 0, TimeSpan.Zero), obligation.NextChargeDueAtUtc);
-        Assert.Equal(obligation.Id.ToString("N"), result.LedgerEntry!.ReferenceCode);
-    }
+            CityHouseholdAccountLedgerEntry householdEntry = Assert.Single(householdLedgerRepository.AddedEntries);
+            CityBusinessLedgerEntry businessEntry = Assert.Single(businessLedgerRepository.AddedEntries);
+            Assert.True(result.Succeeded);
+            Assert.Equal(
+                expected: 80m,
+                actual: result.ChargedAmount.Amount);
+            Assert.Equal(
+                expected: 8m,
+                actual: result.ChargedTaxAmount.Amount);
+            Assert.Equal(
+                expected: 1,
+                actual: result.SettledInstallmentCount);
+            Assert.Equal(
+                expected: timeProvider.UtcNow,
+                actual: householdEntry.OccurredAtUtc);
+            Assert.Equal(
+                expected: timeProvider.UtcNow,
+                actual: businessEntry.OccurredAtUtc);
+            Assert.Equal(
+                expected: 220m,
+                actual: householdAccount.Balance.Amount);
+            Assert.Equal(
+                expected: 580m,
+                actual: providerBusiness.Balance.Amount);
+            Assert.Equal(
+                expected: 8m,
+                actual: providerBusiness.TaxReserve.Amount);
+            Assert.Equal(
+                expected: 72m,
+                actual: providerBusiness.TotalNetSalesRevenue.Amount);
+            Assert.Equal(
+                expected: 1,
+                actual: obligation.ChargeCount);
+            Assert.Equal(
+                expected: new DateTimeOffset(
+                    year: 2048,
+                    month: 6,
+                    day: 7,
+                    hour: 9,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                actual: obligation.NextChargeDueAtUtc);
+            Assert.Equal(
+                expected: obligation.Id.ToString("N"),
+                actual: result.LedgerEntry!.ReferenceCode);
+        }
 
-    [Fact]
-    public async Task TryChargeAsync_MarksMissedChargeWhenBalanceIsInsufficient()
-    {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        CityHouseholdAccount householdAccount = CreateHouseholdAccount(cityId, "Tenant Household", 20m);
-        CityBusiness providerBusiness = CreateBusiness(cityId, "Utility Provider", CityBusinessKind.Utility, 500m);
-        CityHouseholdObligation obligation = CreateHouseholdObligation(
-            cityId,
-            householdAccount.Id,
-            providerBusiness.Id,
-            "Power",
-            CityHouseholdObligationKind.Utilities,
-            CityHouseholdObligationBillingCadence.Monthly,
-            80m,
-            8m);
-        var householdAccountRepository = new FakeCityHouseholdAccountRepository { Accounts = [householdAccount] };
-        var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
-        var businessRepository = new FakeCityBusinessRepository { Businesses = [providerBusiness] };
-        var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
-        var timeProvider = new FrozenTimeProvider(new DateTimeOffset(2048, 5, 7, 10, 0, 0, TimeSpan.Zero));
-        var support = new HouseholdObligationChargeSupport(
-            householdAccountRepository,
-            householdLedgerRepository,
-            businessRepository,
-            businessLedgerRepository,
-            timeProvider);
+        [Fact]
+        public async Task TryChargeAsync_MarksMissedChargeWhenBalanceIsInsufficient()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityHouseholdAccount householdAccount = CreateHouseholdAccount(
+                cityId: cityId,
+                name: "Tenant Household",
+                openingBalance: 20m);
+            CityBusiness providerBusiness = CreateBusiness(
+                cityId: cityId,
+                name: "Utility Provider",
+                kind: CityBusinessKind.Utility,
+                initialCapital: 500m);
+            CityHouseholdObligation obligation = CreateHouseholdObligation(
+                cityId: cityId,
+                householdAccountId: householdAccount.Id,
+                providerBusinessId: providerBusiness.Id,
+                name: "Power",
+                kind: CityHouseholdObligationKind.Utilities,
+                cadence: CityHouseholdObligationBillingCadence.Monthly,
+                chargeAmount: 80m,
+                taxAmount: 8m);
+            var householdAccountRepository = new FakeCityHouseholdAccountRepository
+            {
+                Accounts = [householdAccount]
+            };
+            var householdLedgerRepository = new FakeCityHouseholdAccountLedgerRepository();
+            var businessRepository = new FakeCityBusinessRepository
+            {
+                Businesses = [providerBusiness]
+            };
+            var businessLedgerRepository = new FakeCityBusinessLedgerRepository();
+            var timeProvider = new FrozenTimeProvider(
+                new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 7,
+                    hour: 10,
+                    minute: 0,
+                    second: 0,
+                    offset: TimeSpan.Zero));
+            var support = new HouseholdObligationChargeSupport(
+                householdAccountRepository: householdAccountRepository,
+                householdLedgerRepository: householdLedgerRepository,
+                businessRepository: businessRepository,
+                businessLedgerRepository: businessLedgerRepository,
+                timeProvider: timeProvider);
 
-        HouseholdObligationChargeAttemptResult result = await support.TryChargeAsync(
-            obligation,
-            description: null,
-            occurredAtUtc: null,
-            cancellationToken: CancellationToken.None);
+            HouseholdObligationChargeAttemptResult result = await support.TryChargeAsync(
+                obligation: obligation,
+                description: null,
+                occurredAtUtc: null,
+                cancellationToken: CancellationToken.None);
 
-        Assert.False(result.Succeeded);
-        Assert.Equal("InsufficientBalance", result.FailureCode);
-        Assert.Equal(1, obligation.MissedChargeCount);
-        Assert.Equal(timeProvider.UtcNow, obligation.LastChargeAttemptedAtUtc);
-        Assert.Empty(householdLedgerRepository.AddedEntries);
-        Assert.Empty(businessLedgerRepository.AddedEntries);
-        Assert.Equal(20m, householdAccount.Balance.Amount);
-        Assert.Equal(500m, providerBusiness.Balance.Amount);
+            Assert.False(result.Succeeded);
+            Assert.Equal(
+                expected: "InsufficientBalance",
+                actual: result.FailureCode);
+            Assert.Equal(
+                expected: 1,
+                actual: obligation.MissedChargeCount);
+            Assert.Equal(
+                expected: timeProvider.UtcNow,
+                actual: obligation.LastChargeAttemptedAtUtc);
+            Assert.Empty(householdLedgerRepository.AddedEntries);
+            Assert.Empty(businessLedgerRepository.AddedEntries);
+            Assert.Equal(
+                expected: 20m,
+                actual: householdAccount.Balance.Amount);
+            Assert.Equal(
+                expected: 500m,
+                actual: providerBusiness.Balance.Amount);
+        }
     }
 }

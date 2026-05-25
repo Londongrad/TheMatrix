@@ -3,48 +3,63 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Xunit;
 
-namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities;
-
-public sealed class CityEnvironmentTests
+namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
 {
-    private const string InvalidEnumErrorCode = "Domain.Guard.InvalidEnum";
-
-    [Fact]
-    public void Create_WithValidValues_CreatesEnvironment()
+    public sealed class CityEnvironmentTests
     {
-        var utcOffset = CityUtcOffset.FromMinutes(180);
+        private const string InvalidEnumErrorCode = "Domain.Guard.InvalidEnum";
 
-        var environment = CityEnvironment.Create(
-            climateZone: ClimateZone.Temperate,
-            hemisphere: Hemisphere.Northern,
-            utcOffset: utcOffset);
+        [Fact]
+        public void Create_WithValidValues_CreatesEnvironment()
+        {
+            var utcOffset = CityUtcOffset.FromMinutes(180);
 
-        Assert.Equal(ClimateZone.Temperate, environment.ClimateZone);
-        Assert.Equal(Hemisphere.Northern, environment.Hemisphere);
-        Assert.Equal(utcOffset, environment.UtcOffset);
-    }
+            var environment = CityEnvironment.Create(
+                climateZone: ClimateZone.Temperate,
+                hemisphere: Hemisphere.Northern,
+                utcOffset: utcOffset);
 
-    [Fact]
-    public void Create_WithInvalidClimateZone_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => CityEnvironment.Create(
-            climateZone: (ClimateZone)999,
-            hemisphere: Hemisphere.Northern,
-            utcOffset: CityUtcOffset.FromMinutes(180)));
+            Assert.Equal(
+                expected: ClimateZone.Temperate,
+                actual: environment.ClimateZone);
+            Assert.Equal(
+                expected: Hemisphere.Northern,
+                actual: environment.Hemisphere);
+            Assert.Equal(
+                expected: utcOffset,
+                actual: environment.UtcOffset);
+        }
 
-        Assert.Equal(InvalidEnumErrorCode, exception.Code);
-        Assert.Equal("ClimateZone", exception.PropertyName);
-    }
+        [Fact]
+        public void Create_WithInvalidClimateZone_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => CityEnvironment.Create(
+                climateZone: (ClimateZone)999,
+                hemisphere: Hemisphere.Northern,
+                utcOffset: CityUtcOffset.FromMinutes(180)));
 
-    [Fact]
-    public void Create_WithInvalidHemisphere_ThrowsDomainException()
-    {
-        var exception = Assert.Throws<DomainException>(() => CityEnvironment.Create(
-            climateZone: ClimateZone.Temperate,
-            hemisphere: (Hemisphere)999,
-            utcOffset: CityUtcOffset.FromMinutes(180)));
+            Assert.Equal(
+                expected: InvalidEnumErrorCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "ClimateZone",
+                actual: exception.PropertyName);
+        }
 
-        Assert.Equal(InvalidEnumErrorCode, exception.Code);
-        Assert.Equal("Hemisphere", exception.PropertyName);
+        [Fact]
+        public void Create_WithInvalidHemisphere_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => CityEnvironment.Create(
+                climateZone: ClimateZone.Temperate,
+                hemisphere: (Hemisphere)999,
+                utcOffset: CityUtcOffset.FromMinutes(180)));
+
+            Assert.Equal(
+                expected: InvalidEnumErrorCode,
+                actual: exception.Code);
+            Assert.Equal(
+                expected: "Hemisphere",
+                actual: exception.PropertyName);
+        }
     }
 }

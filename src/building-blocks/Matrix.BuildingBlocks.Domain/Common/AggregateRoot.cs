@@ -13,14 +13,14 @@ namespace Matrix.BuildingBlocks.Domain.Common
 
         public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents;
 
-        protected void AddDomainEvent(IDomainEvent domainEvent)
-        {
-            _domainEvents.Add(domainEvent);
-        }
-
         public void ClearDomainEvents()
         {
             _domainEvents.Clear();
+        }
+
+        protected void AddDomainEvent(IDomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
         }
     }
 }

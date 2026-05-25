@@ -1,56 +1,72 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.SetCityUtilityIncidentEmergencyMode;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.Common;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    SetCityUtilityIncidentEmergencyMode;
 using Matrix.SimulationSystems.Application.Tests.TestSupport;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Xunit;
 
-namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.UtilityIncidents.SetCityUtilityIncidentEmergencyMode;
-
-public sealed class SetCityUtilityIncidentEmergencyModeCommandHandlerTests
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    SetCityUtilityIncidentEmergencyMode
 {
-    [Fact]
-    public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+    public sealed class SetCityUtilityIncidentEmergencyModeCommandHandlerTests
     {
-        var repository = new FakeCityEnvironmentalConditionRepository();
-        var handler = new SetCityUtilityIncidentEmergencyModeCommandHandler(
-            repository,
-            new FakeUnitOfWork(),
-            new CityEnvironmentalConditionPolicy(),
-            new ClassicCityWeatherPressureProfileFactory());
+        [Fact]
+        public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+        {
+            var repository = new FakeCityEnvironmentalConditionRepository();
+            var handler = new SetCityUtilityIncidentEmergencyModeCommandHandler(
+                repository: repository,
+                unitOfWork: new FakeUnitOfWork(),
+                policy: new CityEnvironmentalConditionPolicy(),
+                pressureProfileFactory: new ClassicCityWeatherPressureProfileFactory());
 
-        var result = await handler.Handle(
-            new SetCityUtilityIncidentEmergencyModeCommand(
-                CityId: SimulationSystemsApplicationTestSupport.CityId,
-                Enabled: true),
-            CancellationToken.None);
+            CityUtilityIncidentStatusDto? result = await handler.Handle(
+                request: new SetCityUtilityIncidentEmergencyModeCommand(
+                    CityId: SimulationSystemsApplicationTestSupport.CityId,
+                    Enabled: true),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Null(result);
-        Assert.Equal(SimulationSystemsApplicationTestSupport.CreateHostId(), repository.RequestedSimulationHostId);
-    }
+            Assert.Null(result);
+            Assert.Equal(
+                expected: SimulationSystemsApplicationTestSupport.CreateHostId(),
+                actual: repository.RequestedSimulationHostId);
+        }
 
-    [Fact]
-    public async Task Handle_WhenStateExists_TogglesEmergencyModeAndReturnsUpdatedDto()
-    {
-        var state = SimulationSystemsApplicationTestSupport.CreateState();
-        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
-        var unitOfWork = new FakeUnitOfWork();
-        var handler = new SetCityUtilityIncidentEmergencyModeCommandHandler(
-            repository,
-            unitOfWork,
-            new CityEnvironmentalConditionPolicy(),
-            new ClassicCityWeatherPressureProfileFactory());
+        [Fact]
+        public async Task Handle_WhenStateExists_TogglesEmergencyModeAndReturnsUpdatedDto()
+        {
+            CityEnvironmentalConditionState state = SimulationSystemsApplicationTestSupport.CreateState();
+            var repository = new FakeCityEnvironmentalConditionRepository
+            {
+                State = state
+            };
+            var unitOfWork = new FakeUnitOfWork();
+            var handler = new SetCityUtilityIncidentEmergencyModeCommandHandler(
+                repository: repository,
+                unitOfWork: unitOfWork,
+                policy: new CityEnvironmentalConditionPolicy(),
+                pressureProfileFactory: new ClassicCityWeatherPressureProfileFactory());
 
-        var result = await handler.Handle(
-            new SetCityUtilityIncidentEmergencyModeCommand(
-                CityId: SimulationSystemsApplicationTestSupport.CityId,
-                Enabled: true),
-            CancellationToken.None);
+            CityUtilityIncidentStatusDto? result = await handler.Handle(
+                request: new SetCityUtilityIncidentEmergencyModeCommand(
+                    CityId: SimulationSystemsApplicationTestSupport.CityId,
+                    Enabled: true),
+                cancellationToken: CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.True(state.UtilityIncidentInfrastructure.EmergencyModeEnabled);
-        Assert.True(result!.EmergencyModeEnabled);
-        Assert.Equal(state.LastEvaluatedAtUtc, result.LastEvaluatedAtUtc);
-        Assert.Equal(state.UtilityIncidentInfrastructure.DispatchReadinessIndex, result.DispatchReadinessIndex);
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
+            Assert.NotNull(result);
+            Assert.True(state.UtilityIncidentInfrastructure.EmergencyModeEnabled);
+            Assert.True(result!.EmergencyModeEnabled);
+            Assert.Equal(
+                expected: state.LastEvaluatedAtUtc,
+                actual: result.LastEvaluatedAtUtc);
+            Assert.Equal(
+                expected: state.UtilityIncidentInfrastructure.DispatchReadinessIndex,
+                actual: result.DispatchReadinessIndex);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+        }
     }
 }

@@ -10,7 +10,7 @@ using MediatR;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.DispatchCityDrainageMaintenance
 {
-public sealed class DispatchCityDrainageMaintenanceCommandHandler(
+    public sealed class DispatchCityDrainageMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
@@ -57,7 +57,8 @@ public sealed class DispatchCityDrainageMaintenanceCommandHandler(
 
             if (authorizationDecision.Denied)
             {
-                decimal deniedSupport = pressureProfileFactory.Create(state).DrainageSupport;
+                decimal deniedSupport = pressureProfileFactory.Create(state)
+                   .DrainageSupport;
 
                 return CityDrainageStatusDto.FromState(
                     cityId: request.CityId,
@@ -102,7 +103,8 @@ public sealed class DispatchCityDrainageMaintenanceCommandHandler(
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal drainageSupport = pressureProfileFactory.Create(state).DrainageSupport;
+            decimal drainageSupport = pressureProfileFactory.Create(state)
+               .DrainageSupport;
 
             return CityDrainageStatusDto.FromState(
                 cityId: request.CityId,
@@ -129,7 +131,9 @@ public sealed class DispatchCityDrainageMaintenanceCommandHandler(
                 ? 2
                 : 1;
 
-            return Math.Max(0, currentTickId + delay);
+            return Math.Max(
+                val1: 0,
+                val2: currentTickId + delay);
         }
     }
 }

@@ -1,5 +1,5 @@
-using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Resources.Application.Scenarios.ClassicCity

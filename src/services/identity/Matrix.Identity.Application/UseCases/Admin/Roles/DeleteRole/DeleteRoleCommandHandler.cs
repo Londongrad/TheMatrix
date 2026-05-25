@@ -32,11 +32,9 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole
                 action: async token =>
                 {
                     await foreach (Guid userId in userRepository.StreamUserIdsByRoleAsync(
-                        roleId: role.Id,
-                        cancellationToken: token))
-                    {
+                                       roleId: role.Id,
+                                       cancellationToken: token))
                         securityStateChangeCollector.MarkUserChanged(userId);
-                    }
 
                     await roleWriteRepository.DeleteAsync(
                         role: role,

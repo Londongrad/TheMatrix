@@ -21,10 +21,14 @@ namespace Matrix.BuildingBlocks.Infrastructure.Messaging
         public static IBusRegistrationConfigurator AddRabbitMqEndpointHygiene(
             this IBusRegistrationConfigurator configurator)
         {
-            configurator.AddConfigureEndpointsCallback((context, _, cfg) =>
+            configurator.AddConfigureEndpointsCallback((
+                context,
+                _,
+                cfg) =>
             {
                 MassTransitEndpointHygieneOptions options =
-                    context.GetRequiredService<IOptions<MassTransitEndpointHygieneOptions>>().Value;
+                    context.GetRequiredService<IOptions<MassTransitEndpointHygieneOptions>>()
+                       .Value;
 
                 if (options.DiscardSkippedMessages)
                     cfg.DiscardSkippedMessages();

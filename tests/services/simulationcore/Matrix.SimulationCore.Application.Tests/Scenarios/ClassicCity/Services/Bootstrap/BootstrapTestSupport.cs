@@ -5,33 +5,38 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Domain.Simulation;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services.Bootstrap;
-
-internal static class BootstrapTestSupport
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services.Bootstrap
 {
-    internal sealed class FakeCityTopologyBootstrapFactory : ICityTopologyBootstrapFactory
+    internal static class BootstrapTestSupport
     {
-        public City? RequestedCity { get; private set; }
-        public required CityTopologySeed Result { get; init; }
-
-        public CityTopologySeed CreateInitial(City city)
+        internal sealed class FakeCityTopologyBootstrapFactory : ICityTopologyBootstrapFactory
         {
-            RequestedCity = city;
-            return Result;
+            public City? RequestedCity { get; private set; }
+            public required CityTopologySeed Result { get; init; }
+
+            public CityTopologySeed CreateInitial(City city)
+            {
+                RequestedCity = city;
+                return Result;
+            }
         }
-    }
 
-    internal sealed class FakeCityWeatherBootstrapFactory : ICityWeatherBootstrapFactory
-    {
-        public City? RequestedCity { get; private set; }
-        public SimTime? RequestedInitialTime { get; private set; }
-        public required Func<City, SimTime, CityWeather> Factory { get; init; }
-
-        public CityWeather CreateInitial(City city, SimTime initialTime)
+        internal sealed class FakeCityWeatherBootstrapFactory : ICityWeatherBootstrapFactory
         {
-            RequestedCity = city;
-            RequestedInitialTime = initialTime;
-            return Factory(city, initialTime);
+            public City? RequestedCity { get; private set; }
+            public SimTime? RequestedInitialTime { get; private set; }
+            public required Func<City, SimTime, CityWeather> Factory { get; init; }
+
+            public CityWeather CreateInitial(
+                City city,
+                SimTime initialTime)
+            {
+                RequestedCity = city;
+                RequestedInitialTime = initialTime;
+                return Factory(
+                    arg1: city,
+                    arg2: initialTime);
+            }
         }
     }
 }

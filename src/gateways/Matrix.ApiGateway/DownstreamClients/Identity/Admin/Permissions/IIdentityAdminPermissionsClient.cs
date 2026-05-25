@@ -1,5 +1,5 @@
-using Matrix.Identity.Contracts.Admin.Permissions.Responses;
 using Matrix.Identity.Contracts.Admin.Permissions.Requests;
+using Matrix.Identity.Contracts.Admin.Permissions.Responses;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions
 {

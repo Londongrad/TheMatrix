@@ -45,7 +45,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailCh
             }
 
             string cancelledEmail = user.PendingEmail;
-            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             IReadOnlyList<OneTimeToken> activeTokens = await oneTimeTokenRepository.GetActive(
                 userId: user.Id,

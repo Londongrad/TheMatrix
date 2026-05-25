@@ -10,7 +10,7 @@ using MediatR;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.DispatchCityHeatingMaintenance
 {
-public sealed class DispatchCityHeatingMaintenanceCommandHandler(
+    public sealed class DispatchCityHeatingMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
@@ -57,7 +57,8 @@ public sealed class DispatchCityHeatingMaintenanceCommandHandler(
 
             if (authorizationDecision.Denied)
             {
-                decimal deniedSupport = pressureProfileFactory.Create(state).HeatingSupport;
+                decimal deniedSupport = pressureProfileFactory.Create(state)
+                   .HeatingSupport;
 
                 return CityHeatingStatusDto.FromState(
                     cityId: request.CityId,
@@ -102,7 +103,8 @@ public sealed class DispatchCityHeatingMaintenanceCommandHandler(
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal heatingSupport = pressureProfileFactory.Create(state).HeatingSupport;
+            decimal heatingSupport = pressureProfileFactory.Create(state)
+               .HeatingSupport;
 
             return CityHeatingStatusDto.FromState(
                 cityId: request.CityId,
@@ -129,7 +131,9 @@ public sealed class DispatchCityHeatingMaintenanceCommandHandler(
                 ? 2
                 : 1;
 
-            return Math.Max(0, currentTickId + delay);
+            return Math.Max(
+                val1: 0,
+                val2: currentTickId + delay);
         }
     }
 }

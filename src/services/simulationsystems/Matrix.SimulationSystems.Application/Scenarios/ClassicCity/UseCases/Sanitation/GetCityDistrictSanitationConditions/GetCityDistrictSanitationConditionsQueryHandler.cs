@@ -6,7 +6,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.
+    GetCityDistrictSanitationConditions
 {
     public sealed class GetCityDistrictSanitationConditionsQueryHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -35,7 +36,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
             if (topology is null)
                 return null;
 
-            decimal sanitationSupportIndex = pressureProfileFactory.Create(state).SanitationSupport;
+            decimal sanitationSupportIndex = pressureProfileFactory.Create(state)
+               .SanitationSupport;
             IReadOnlyList<CityDistrictSanitationConditionDto> districts = projectionPolicy.Project(
                 topology: topology,
                 state: state,

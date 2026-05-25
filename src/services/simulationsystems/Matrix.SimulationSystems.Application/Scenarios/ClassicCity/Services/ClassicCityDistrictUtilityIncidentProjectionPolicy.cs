@@ -1,9 +1,13 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.GetCityDistrictHeatingConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityDistrictPowerDistributionConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
+    GetCityDistrictPowerDistributionConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityDistrictUtilityIncidentConditions;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityDistrictWaterDistributionConditions;
+using
+    Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
+    GetCityDistrictUtilityIncidentConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.
+    GetCityDistrictWaterDistributionConditions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
@@ -35,10 +39,18 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 
             foreach (CityDistrictTopologyDto district in topology.Districts)
             {
-                powerByDistrictId.TryGetValue(district.DistrictId, out CityDistrictPowerDistributionConditionDto? power);
-                heatingByDistrictId.TryGetValue(district.DistrictId, out CityDistrictHeatingConditionDto? heating);
-                waterByDistrictId.TryGetValue(district.DistrictId, out CityDistrictWaterDistributionConditionDto? water);
-                sanitationByDistrictId.TryGetValue(district.DistrictId, out CityDistrictSanitationConditionDto? sanitation);
+                powerByDistrictId.TryGetValue(
+                    key: district.DistrictId,
+                    value: out CityDistrictPowerDistributionConditionDto? power);
+                heatingByDistrictId.TryGetValue(
+                    key: district.DistrictId,
+                    value: out CityDistrictHeatingConditionDto? heating);
+                waterByDistrictId.TryGetValue(
+                    key: district.DistrictId,
+                    value: out CityDistrictWaterDistributionConditionDto? water);
+                sanitationByDistrictId.TryGetValue(
+                    key: district.DistrictId,
+                    value: out CityDistrictSanitationConditionDto? sanitation);
 
                 decimal districtDistanceFactor = Normalize(
                     value: Distance(
@@ -74,10 +86,10 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                            (state.UtilityIncidentInfrastructure.SpareCapacityIndex * 0.06m));
 
                 decimal incidentPressureIndex = Clamp(
-                    value: ((power?.OutageRiskIndex ?? (1m - state.PowerCoverageIndex.Value)) * 0.26m) +
-                           ((heating?.OutageRiskIndex ?? (1m - state.HeatingCoverageIndex.Value)) * 0.14m) +
-                           ((water?.DisruptionRiskIndex ?? (1m - state.WaterCoverageIndex.Value)) * 0.18m) +
-                           ((sanitation?.ContaminationRiskIndex ?? (1m - state.SanitationCoverageIndex.Value)) * 0.14m) +
+                    value: ((power?.OutageRiskIndex ?? 1m - state.PowerCoverageIndex.Value) * 0.26m) +
+                           ((heating?.OutageRiskIndex ?? 1m - state.HeatingCoverageIndex.Value) * 0.14m) +
+                           ((water?.DisruptionRiskIndex ?? 1m - state.WaterCoverageIndex.Value) * 0.18m) +
+                           ((sanitation?.ContaminationRiskIndex ?? 1m - state.SanitationCoverageIndex.Value) * 0.14m) +
                            (state.UtilityIncidents.BacklogIndex * 0.10m) +
                            (state.UtilityIncidents.FailureRiskIndex * 0.08m) +
                            (state.UtilityIncidentInfrastructure.IncidentQueuePressureIndex * 0.12m) +

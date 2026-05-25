@@ -89,7 +89,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (districtUtilityConditions is not null)
             {
-                double districtMedicalAccessStability = ResolveDistrictMedicalAccessStability(districtUtilityConditions);
+                double districtMedicalAccessStability =
+                    ResolveDistrictMedicalAccessStability(districtUtilityConditions);
                 access *= 0.70d + (districtMedicalAccessStability * 0.35d);
 
                 if (resident.CurrentIllnessSeverity == IllnessSeverity.Severe &&

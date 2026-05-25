@@ -15,16 +15,22 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.Classi
     {
         private const string EnvironmentalConditionsEndpointTemplate =
             "/api/classic-city/cities/{0}/environmental-conditions";
+
         private const string DistrictHeatingConditionsEndpointTemplate =
             "/api/classic-city/cities/{0}/heating/districts";
+
         private const string DistrictWaterConditionsEndpointTemplate =
             "/api/classic-city/cities/{0}/water-distribution/districts";
+
         private const string DistrictPowerConditionsEndpointTemplate =
             "/api/classic-city/cities/{0}/power-distribution/districts";
+
         private const string DistrictSanitationConditionsEndpointTemplate =
             "/api/classic-city/cities/{0}/sanitation/districts";
+
         private const string DistrictUtilityIncidentConditionsEndpointTemplate =
             "/api/classic-city/cities/{0}/utility-incidents/districts";
+
         private const string UtilityIncidentResponseDispatchEndpointTemplate =
             "/api/classic-city/cities/{0}/utility-incidents/response-dispatch";
 

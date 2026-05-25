@@ -3,86 +3,111 @@ using Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserPermissions;
 using Matrix.Identity.Domain.Enums;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.UpdateUserPermissions;
-
-public sealed class UpdateUserPermissionsCommandHandlerTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.UpdateUserPermissions
 {
-    [Fact]
-    public async Task Handle_WhenOverridesDoNotChange_DoesNotMarkSecurityState()
+    public sealed class UpdateUserPermissionsCommandHandlerTests
     {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+        [Fact]
+        public async Task Handle_WhenOverridesDoNotChange_DoesNotMarkSecurityState()
         {
-            ExistsAsyncResult = true
-        };
-        var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
-        {
-            ReplaceResult = false
-        };
-        var permissionKeysValidator = new AdminRolesTestSupport.FakePermissionKeysValidator();
-        var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
-        var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
-        var handler = new UpdateUserPermissionsCommandHandler(
-            userRepository,
-            permissionsRepository,
-            permissionKeysValidator,
-            new AdminUsersTestSupport.FakeAdminUserGuard(),
-            securityStateChangeCollector,
-            unitOfWork);
-
-        await handler.Handle(
-            new UpdateUserPermissionsCommand(
-                userId,
-                [
-                    new UpdateUserPermissionOverrideInput(" users.read ", "Allow"),
-                    new UpdateUserPermissionOverrideInput(" roles.manage ", "deny")
-                ]),
-            CancellationToken.None);
-
-        Assert.Equal(
-            new HashSet<string>(["users.read", "roles.manage"], StringComparer.Ordinal),
-            permissionKeysValidator.ValidatedKeys!.ToHashSet(StringComparer.Ordinal));
-        Assert.Equal(
-            new Dictionary<string, PermissionEffect>(StringComparer.Ordinal)
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
             {
-                ["users.read"] = PermissionEffect.Allow,
-                ["roles.manage"] = PermissionEffect.Deny
-            },
-            permissionsRepository.ReplacedPermissionEffects);
-        Assert.Empty(securityStateChangeCollector.ChangedUsers);
-        Assert.Equal(1, unitOfWork.TransactionCalls);
-    }
+                ExistsAsyncResult = true
+            };
+            var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
+            {
+                ReplaceResult = false
+            };
+            var permissionKeysValidator = new AdminRolesTestSupport.FakePermissionKeysValidator();
+            var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
+            var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
+            var handler = new UpdateUserPermissionsCommandHandler(
+                userRepository: userRepository,
+                permissionsRepository: permissionsRepository,
+                permissionKeysValidator: permissionKeysValidator,
+                adminUserGuard: new AdminUsersTestSupport.FakeAdminUserGuard(),
+                securityStateChangeCollector: securityStateChangeCollector,
+                unitOfWork: unitOfWork);
 
-    [Fact]
-    public async Task Handle_WhenOverridesChange_MarksUserChanged()
-    {
-        Guid userId = Guid.NewGuid();
-        var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            await handler.Handle(
+                request: new UpdateUserPermissionsCommand(
+                    UserId: userId,
+                    Overrides:
+                    [
+                        new UpdateUserPermissionOverrideInput(
+                            PermissionKey: " users.read ",
+                            Effect: "Allow"),
+                        new UpdateUserPermissionOverrideInput(
+                            PermissionKey: " roles.manage ",
+                            Effect: "deny")
+                    ]),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: new HashSet<string>(
+                    collection:
+                    [
+                        "users.read",
+                        "roles.manage"
+                    ],
+                    comparer: StringComparer.Ordinal),
+                actual: permissionKeysValidator.ValidatedKeys!.ToHashSet(StringComparer.Ordinal));
+            Assert.Equal(
+                expected: new Dictionary<string, PermissionEffect>(StringComparer.Ordinal)
+                {
+                    ["users.read"] = PermissionEffect.Allow,
+                    ["roles.manage"] = PermissionEffect.Deny
+                },
+                actual: permissionsRepository.ReplacedPermissionEffects);
+            Assert.Empty(securityStateChangeCollector.ChangedUsers);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.TransactionCalls);
+        }
+
+        [Fact]
+        public async Task Handle_WhenOverridesChange_MarksUserChanged()
         {
-            ExistsAsyncResult = true
-        };
-        var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
-        {
-            ReplaceResult = true
-        };
-        var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
-        var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
-        var handler = new UpdateUserPermissionsCommandHandler(
-            userRepository,
-            permissionsRepository,
-            new AdminRolesTestSupport.FakePermissionKeysValidator(),
-            new AdminUsersTestSupport.FakeAdminUserGuard(),
-            securityStateChangeCollector,
-            unitOfWork);
+            var userId = Guid.NewGuid();
+            var userRepository = new AdminUsersTestSupport.FakeUserRepository
+            {
+                ExistsAsyncResult = true
+            };
+            var permissionsRepository = new AdminUsersTestSupport.FakeUserPermissionsRepository
+            {
+                ReplaceResult = true
+            };
+            var securityStateChangeCollector = new AdminRolesTestSupport.FakeSecurityStateChangeCollector();
+            var unitOfWork = new AdminRolesTestSupport.FakeUnitOfWork();
+            var handler = new UpdateUserPermissionsCommandHandler(
+                userRepository: userRepository,
+                permissionsRepository: permissionsRepository,
+                permissionKeysValidator: new AdminRolesTestSupport.FakePermissionKeysValidator(),
+                adminUserGuard: new AdminUsersTestSupport.FakeAdminUserGuard(),
+                securityStateChangeCollector: securityStateChangeCollector,
+                unitOfWork: unitOfWork);
 
-        await handler.Handle(
-            new UpdateUserPermissionsCommand(
-                userId,
-                [new UpdateUserPermissionOverrideInput("users.read", "Allow")]),
-            CancellationToken.None);
+            await handler.Handle(
+                request: new UpdateUserPermissionsCommand(
+                    UserId: userId,
+                    Overrides:
+                    [
+                        new UpdateUserPermissionOverrideInput(
+                            PermissionKey: "users.read",
+                            Effect: "Allow")
+                    ]),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal([userId], securityStateChangeCollector.ChangedUsers);
-        Assert.Equal(userId, permissionsRepository.RequestedUserId);
-        Assert.Equal(1, unitOfWork.TransactionCalls);
+            Assert.Equal(
+                expected: [userId],
+                actual: securityStateChangeCollector.ChangedUsers);
+            Assert.Equal(
+                expected: userId,
+                actual: permissionsRepository.RequestedUserId);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.TransactionCalls);
+        }
     }
 }

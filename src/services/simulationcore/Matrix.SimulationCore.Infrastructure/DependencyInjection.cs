@@ -5,20 +5,18 @@ using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
-using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
-using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
-using Matrix.SimulationCore.Infrastructure.Economy;
-using Matrix.SimulationCore.Infrastructure.Options;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
-using Matrix.SimulationCore.Infrastructure.Population;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
+using Matrix.SimulationCore.Infrastructure.Economy;
 using Matrix.SimulationCore.Infrastructure.HostedServices;
+using Matrix.SimulationCore.Infrastructure.Options;
 using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
+using Matrix.SimulationCore.Infrastructure.Population;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Infrastructure.Services.Simulation;
 using Matrix.SimulationCore.Infrastructure.SimulationSystems;
@@ -27,6 +25,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
+using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationCore.Infrastructure
 {
@@ -60,7 +60,8 @@ namespace Matrix.SimulationCore.Infrastructure
 
             services.AddOptions<SimulationTickOptions>()
                .Bind(configuration.GetSection(SimulationTickOptions.SectionName));
-            services.Replace(ServiceDescriptor.Singleton<ISimulationFixedStepSettings, SimulationTickFixedStepSettings>());
+            services.Replace(
+                ServiceDescriptor.Singleton<ISimulationFixedStepSettings, SimulationTickFixedStepSettings>());
             services.AddOptions<ProvisioningRecoveryOptions>()
                .Bind(configuration.GetSection(ProvisioningRecoveryOptions.SectionName));
             services.TryAddSingleton(TimeProvider.System);
@@ -82,7 +83,9 @@ namespace Matrix.SimulationCore.Infrastructure
             services.AddOutbox<SimulationCoreDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
-            services.AddHttpClient<ICityEconomyBootstrapClient, CityEconomyBootstrapClient>((sp, client) =>
+            services.AddHttpClient<ICityEconomyBootstrapClient, CityEconomyBootstrapClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;
@@ -98,7 +101,9 @@ namespace Matrix.SimulationCore.Infrastructure
                     identity: InternalServicePrincipals.SimulationCore,
                     EconomyPermissionKeys.EconomyBudgetBootstrap);
 
-            services.AddHttpClient<ICityPopulationBootstrapClient, CityPopulationBootstrapClient>((sp, client) =>
+            services.AddHttpClient<ICityPopulationBootstrapClient, CityPopulationBootstrapClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;
@@ -114,7 +119,9 @@ namespace Matrix.SimulationCore.Infrastructure
                     identity: InternalServicePrincipals.SimulationCore,
                     PopulationPermissionKeys.PopulationPeopleInitialize);
 
-            services.AddHttpClient<ICityRoadSegmentConditionsClient, CityRoadSegmentConditionsClient>((sp, client) =>
+            services.AddHttpClient<ICityRoadSegmentConditionsClient, CityRoadSegmentConditionsClient>((
+                    sp,
+                    client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
                        .Value;

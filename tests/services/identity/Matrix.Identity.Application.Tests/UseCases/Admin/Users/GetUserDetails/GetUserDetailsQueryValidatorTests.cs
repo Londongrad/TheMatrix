@@ -1,27 +1,31 @@
+using FluentValidation.Results;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUserDetails;
 using Xunit;
 
-namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.GetUserDetails;
-
-public sealed class GetUserDetailsQueryValidatorTests
+namespace Matrix.Identity.Application.Tests.UseCases.Admin.Users.GetUserDetails
 {
-    private readonly GetUserDetailsQueryValidator _validator = new();
-
-    [Fact]
-    public void Validate_WithValidUserId_ReturnsNoErrors()
+    public sealed class GetUserDetailsQueryValidatorTests
     {
-        var result = _validator.Validate(new GetUserDetailsQuery(Guid.NewGuid()));
+        private readonly GetUserDetailsQueryValidator _validator = new();
 
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
+        [Fact]
+        public void Validate_WithValidUserId_ReturnsNoErrors()
+        {
+            ValidationResult? result = _validator.Validate(new GetUserDetailsQuery(Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_WithEmptyUserId_ReturnsError()
-    {
-        var result = _validator.Validate(new GetUserDetailsQuery(Guid.Empty));
+            Assert.True(result.IsValid);
+            Assert.Empty(result.Errors);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, x => x.PropertyName == "UserId");
+        [Fact]
+        public void Validate_WithEmptyUserId_ReturnsError()
+        {
+            ValidationResult? result = _validator.Validate(new GetUserDetailsQuery(Guid.Empty));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(
+                collection: result.Errors,
+                filter: x => x.PropertyName == "UserId");
+        }
     }
 }

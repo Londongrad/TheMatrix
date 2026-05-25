@@ -1,4 +1,5 @@
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.GetCityEnvironmentalConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
+    GetCityEnvironmentalConditions;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -62,7 +63,8 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 EmergencyWater: MapToResourceSupplyLineView(dto.EmergencyWater));
         }
 
-        private static CityResourceSupplyLineConditionView MapToResourceSupplyLineView(CityResourceSupplyLineConditionDto dto)
+        private static CityResourceSupplyLineConditionView MapToResourceSupplyLineView(
+            CityResourceSupplyLineConditionDto dto)
         {
             return new CityResourceSupplyLineConditionView(
                 StockLevelIndex: dto.StockLevelIndex,

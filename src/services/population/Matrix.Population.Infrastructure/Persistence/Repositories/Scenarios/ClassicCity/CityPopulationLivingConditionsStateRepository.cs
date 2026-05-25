@@ -15,15 +15,17 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             return _dbContext.CityPopulationLivingConditionsStates.FirstOrDefaultAsync(
-                x => x.CityId == cityId,
-                cancellationToken);
+                predicate: x => x.CityId == cityId,
+                cancellationToken: cancellationToken);
         }
 
         public async Task AddAsync(
             CityPopulationLivingConditionsState state,
             CancellationToken cancellationToken = default)
         {
-            await _dbContext.CityPopulationLivingConditionsStates.AddAsync(state, cancellationToken);
+            await _dbContext.CityPopulationLivingConditionsStates.AddAsync(
+                entity: state,
+                cancellationToken: cancellationToken);
         }
 
         public async Task DeleteByCityAsync(
@@ -31,8 +33,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             await _dbContext.CityPopulationLivingConditionsStates
-                .Where(x => x.CityId == cityId)
-                .ExecuteDeleteAsync(cancellationToken);
+               .Where(x => x.CityId == cityId)
+               .ExecuteDeleteAsync(cancellationToken);
         }
     }
 }

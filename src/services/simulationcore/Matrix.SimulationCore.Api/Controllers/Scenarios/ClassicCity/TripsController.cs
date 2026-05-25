@@ -63,7 +63,9 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 request: new GetCityActiveTripsQuery(CityId: cityId),
                 cancellationToken: cancellationToken);
 
-            return Results.Ok(trips.Select(MapToView).ToArray());
+            return Results.Ok(
+                trips.Select(MapToView)
+                   .ToArray());
         }
 
         private static CityActiveTripView MapToView(CityActiveTripDto dto)

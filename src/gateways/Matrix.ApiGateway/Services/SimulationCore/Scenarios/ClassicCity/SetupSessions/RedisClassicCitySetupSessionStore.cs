@@ -47,7 +47,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             if (values.Length == 0)
                 return [];
 
-            var sessionIds = values
+            Guid[] sessionIds = values
                .Select(value => Guid.TryParse(
                     input: value,
                     result: out Guid sessionId)
@@ -114,11 +114,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             string value = sessionId.ToString("D");
 
             if (ownerUserId.HasValue)
-            {
                 await database.SetRemoveAsync(
                     key: BuildOwnerIndexKey(ownerUserId.Value),
                     value: value);
-            }
 
             await database.SetRemoveAsync(
                 key: RecoveryIndexKey,
@@ -223,11 +221,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             string value = session.SessionId.ToString("D");
 
             if (session.OwnerUserId.HasValue)
-            {
                 await database.SetAddAsync(
                     key: BuildOwnerIndexKey(session.OwnerUserId.Value),
                     value: value);
-            }
 
             if (ShouldTrackForRecovery(session.Status))
                 await database.SetAddAsync(
@@ -254,15 +250,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
         private static bool IsDraftStatus(string status)
         {
             return status is ClassicCitySetupSessionStatuses.Draft
-                or ClassicCitySetupSessionStatuses.LaunchFailed;
+             or ClassicCitySetupSessionStatuses.LaunchFailed;
         }
 
         private static bool ShouldTrackForRecovery(string status)
         {
             return status is ClassicCitySetupSessionStatuses.LaunchQueued
              or ClassicCitySetupSessionStatuses.CreatingCity
-               or ClassicCitySetupSessionStatuses.BootstrappingPopulation
-               or ClassicCitySetupSessionStatuses.ProvisioningFailed;
+             or ClassicCitySetupSessionStatuses.BootstrappingPopulation
+             or ClassicCitySetupSessionStatuses.ProvisioningFailed;
         }
 
         private async Task<ClassicCitySetupSessionLockHandle?> TryAcquireLockCoreAsync(
@@ -274,7 +270,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                .ToString("N");
             var lease = TimeSpan.FromSeconds(_options.MutationLockLeaseSeconds);
             DateTimeOffset deadline =
-                _timeProvider.GetUtcNow().AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
+                _timeProvider.GetUtcNow()
+                   .AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
 
             while (true)
             {

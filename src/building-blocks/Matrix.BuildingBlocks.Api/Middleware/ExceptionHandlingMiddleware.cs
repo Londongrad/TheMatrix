@@ -51,9 +51,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (MatrixApplicationException ex)
             {
-                if (ex.ErrorType is ApplicationErrorType.Forbidden or
-                    ApplicationErrorType.Unauthorized or
-                    ApplicationErrorType.NotFound)
+                if (ex.ErrorType is ApplicationErrorType.Forbidden
+                 or ApplicationErrorType.Unauthorized
+                 or ApplicationErrorType.NotFound)
                     logger.LogInformation(
                         message: "Handled expected application exception with code {Code}",
                         ex.Code);
@@ -226,11 +226,13 @@ namespace Matrix.BuildingBlocks.Api.Middleware
 
             logger.LogWarning(
                 exception: exception,
-                message: "Cannot write error response because the HTTP response has already started. TraceId={TraceId} Path={Path}",
+                message:
+                "Cannot write error response because the HTTP response has already started. TraceId={TraceId} Path={Path}",
                 context.TraceIdentifier,
                 context.Request.Path.Value);
 
-            ExceptionDispatchInfo.Capture(exception).Throw();
+            ExceptionDispatchInfo.Capture(exception)
+               .Throw();
         }
 
         private static bool TrySanitizeDownstreamError(
@@ -246,20 +248,31 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             if (string.IsNullOrWhiteSpace(httpEx.Body))
                 return false;
 
-            if (!LooksLikeJson(httpEx.ContentType, httpEx.Body))
+            if (!LooksLikeJson(
+                    contentType: httpEx.ContentType,
+                    body: httpEx.Body))
                 return false;
 
             try
             {
-                using JsonDocument document = JsonDocument.Parse(httpEx.Body);
+                using var document = JsonDocument.Parse(httpEx.Body);
                 JsonElement root = document.RootElement;
                 if (root.ValueKind != JsonValueKind.Object)
                     return false;
 
-                code = GetString(root, "code") ?? code;
-                message = GetString(root, "detail") ??
-                          GetString(root, "message") ??
-                          GetString(root, "title") ??
+                code = GetString(
+                           root: root,
+                           propertyName: "code") ??
+                       code;
+                message = GetString(
+                              root: root,
+                              propertyName: "detail") ??
+                          GetString(
+                              root: root,
+                              propertyName: "message") ??
+                          GetString(
+                              root: root,
+                              propertyName: "title") ??
                           message;
 
                 errors = TryReadErrors(root);
@@ -283,21 +296,35 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
         }
 
-        private static bool LooksLikeJson(string? contentType, string body)
+        private static bool LooksLikeJson(
+            string? contentType,
+            string body)
         {
             if (!string.IsNullOrWhiteSpace(contentType) &&
-                (contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase) ||
-                 contentType.Contains("application/problem+json", StringComparison.OrdinalIgnoreCase)))
+                (contentType.Contains(
+                     value: "application/json",
+                     comparisonType: StringComparison.OrdinalIgnoreCase) ||
+                 contentType.Contains(
+                     value: "application/problem+json",
+                     comparisonType: StringComparison.OrdinalIgnoreCase)))
                 return true;
 
             body = body.TrimStart();
-            return body.StartsWith("{", StringComparison.Ordinal) ||
-                   body.StartsWith("[", StringComparison.Ordinal);
+            return body.StartsWith(
+                       value: "{",
+                       comparisonType: StringComparison.Ordinal) ||
+                   body.StartsWith(
+                       value: "[",
+                       comparisonType: StringComparison.Ordinal);
         }
 
-        private static string? GetString(JsonElement root, string propertyName)
+        private static string? GetString(
+            JsonElement root,
+            string propertyName)
         {
-            return root.TryGetProperty(propertyName, out JsonElement property) &&
+            return root.TryGetProperty(
+                       propertyName: propertyName,
+                       value: out JsonElement property) &&
                    property.ValueKind == JsonValueKind.String
                 ? property.GetString()
                 : null;
@@ -305,7 +332,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
 
         private static IReadOnlyDictionary<string, string[]>? TryReadErrors(JsonElement root)
         {
-            if (!root.TryGetProperty("errors", out JsonElement errorsElement) ||
+            if (!root.TryGetProperty(
+                    propertyName: "errors",
+                    value: out JsonElement errorsElement) ||
                 errorsElement.ValueKind != JsonValueKind.Object)
                 return null;
 
@@ -329,7 +358,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     errors[property.Name] = values;
             }
 
-            return errors.Count > 0 ? errors : null;
+            return errors.Count > 0
+                ? errors
+                : null;
         }
 
         private static HttpStatusCode MapToHttpStatusCode(ApplicationErrorType errorType)

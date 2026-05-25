@@ -1,10 +1,14 @@
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityAnchors;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
+
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology
 {
     public sealed record CityMapTopologyDto(
         Guid CityId,
-        IReadOnlyList<GetCityDistricts.DistrictDto> Districts,
-        IReadOnlyList<GetCityResidentialBuildings.ResidentialBuildingDto> ResidentialBuildings,
-        IReadOnlyList<GetCityAnchors.CityAnchorDto> Anchors,
+        IReadOnlyList<DistrictDto> Districts,
+        IReadOnlyList<ResidentialBuildingDto> ResidentialBuildings,
+        IReadOnlyList<CityAnchorDto> Anchors,
         IReadOnlyList<RoadNodeDto> RoadNodes,
         IReadOnlyList<RoadSegmentDto> RoadSegments);
 }

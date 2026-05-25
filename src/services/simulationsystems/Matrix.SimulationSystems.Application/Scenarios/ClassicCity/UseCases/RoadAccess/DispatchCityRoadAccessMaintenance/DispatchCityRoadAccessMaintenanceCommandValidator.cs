@@ -1,7 +1,8 @@
 using FluentValidation;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.DispatchCityRoadAccessMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.
+    DispatchCityRoadAccessMaintenance
 {
     public sealed class DispatchCityRoadAccessMaintenanceCommandValidator
         : AbstractValidator<DispatchCityRoadAccessMaintenanceCommand>

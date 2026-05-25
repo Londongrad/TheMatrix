@@ -24,7 +24,9 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
         public static decimal NormalizeAvailableAmount(decimal availableAmount)
         {
             return decimal.Round(
-                d: Math.Max(0m, availableAmount),
+                d: Math.Max(
+                    val1: 0m,
+                    val2: availableAmount),
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
         }

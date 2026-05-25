@@ -1,33 +1,43 @@
 using Matrix.Identity.Infrastructure.Security.Audit.Cleanup;
-using Xunit;
 using Matrix.Identity.Infrastructure.Tests.TestSupport;
+using Xunit;
 using static Matrix.Identity.Infrastructure.Tests.TestSupport.IdentityInfrastructureTestSupport;
 
-namespace Matrix.Identity.Infrastructure.Tests.Security.Audit.Cleanup;
-
-public sealed class SecurityAuditCleanerTests
+namespace Matrix.Identity.Infrastructure.Tests.Security.Audit.Cleanup
 {
-    [Fact]
-    public async Task DeleteBatchAsync_ComputesRetentionCutoffFromTimeProvider()
+    public sealed class SecurityAuditCleanerTests
     {
-        var bulkRepository = new FakeSecurityAuditBulkRepository
+        [Fact]
+        public async Task DeleteBatchAsync_ComputesRetentionCutoffFromTimeProvider()
         {
-            DeleteBatchResult = 7
-        };
-        var cleaner = new SecurityAuditCleaner(
-            securityAuditBulkRepository: bulkRepository,
-            timeProvider: CreateTimeProvider(new DateTimeOffset(CreatedAtUtc, TimeSpan.Zero)));
-
-        int deletedCount = await cleaner.DeleteBatchAsync(
-            new SecurityAuditCleanupOptions
+            var bulkRepository = new FakeSecurityAuditBulkRepository
             {
-                BatchSize = 25,
-                RetentionDays = 10
-            },
-            CancellationToken.None);
+                DeleteBatchResult = 7
+            };
+            var cleaner = new SecurityAuditCleaner(
+                securityAuditBulkRepository: bulkRepository,
+                timeProvider: CreateTimeProvider(
+                    new DateTimeOffset(
+                        dateTime: CreatedAtUtc,
+                        offset: TimeSpan.Zero)));
 
-        Assert.Equal(7, deletedCount);
-        Assert.Equal(CreatedAtUtc.AddDays(-10), bulkRepository.LastOccurredBeforeUtc);
-        Assert.Equal(25, bulkRepository.LastBatchSize);
+            int deletedCount = await cleaner.DeleteBatchAsync(
+                options: new SecurityAuditCleanupOptions
+                {
+                    BatchSize = 25,
+                    RetentionDays = 10
+                },
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: 7,
+                actual: deletedCount);
+            Assert.Equal(
+                expected: CreatedAtUtc.AddDays(-10),
+                actual: bulkRepository.LastOccurredBeforeUtc);
+            Assert.Equal(
+                expected: 25,
+                actual: bulkRepository.LastBatchSize);
+        }
     }
 }

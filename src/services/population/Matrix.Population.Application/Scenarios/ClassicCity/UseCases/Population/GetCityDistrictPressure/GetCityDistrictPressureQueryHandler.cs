@@ -38,8 +38,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (persons.Count == 0 || placements.Count == 0)
                 return null;
 
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId =
-                new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>();
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId =
+                    new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>();
 
             try
             {
@@ -51,7 +52,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             catch (Exception ex)
             {
                 logger.LogWarning(
-                    ex,
+                    exception: ex,
+                    message:
                     "Failed to load district utility conditions for district pressure query, cityId={CityId}. Falling back to resident-only pressure.",
                     request.CityId);
             }
@@ -160,7 +162,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                  ((1m - districtUtilityConditions.SanitationContaminationRiskIndex) * 0.03m);
             decimal incidentAdjustment = (districtUtilityConditions.UtilityIncidentDispatchReadinessIndex * 0.12m) -
                                          (districtUtilityConditions.UtilityIncidentPressureIndex * 0.16m) -
-                                         (districtUtilityConditions.UtilityIncidentCoordinationDifficultyIndex * 0.08m) -
+                                         (districtUtilityConditions.UtilityIncidentCoordinationDifficultyIndex *
+                                          0.08m) -
                                          (districtUtilityConditions.UtilityIncidentRestorationPriorityIndex * 0.06m);
 
             return decimal.Clamp(
@@ -200,12 +203,35 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (residentCount <= 0)
                 return 0m;
 
-            decimal lowHealthIndex = 1m - decimal.Clamp(averageHealth / 100m, 0m, 1m);
-            decimal stressIndex = decimal.Clamp(averageStress / 100m, 0m, 1m);
-            decimal illnessBurdenIndex = decimal.Clamp((decimal)activeIllnessCount / residentCount, 0m, 1m);
-            decimal severeIllnessBurdenIndex = decimal.Clamp((decimal)severeIllnessCount / residentCount, 0m, 1m);
-            decimal homelessnessIndex = decimal.Clamp((decimal)homelessResidentCount / residentCount, 0m, 1m);
-            decimal utilityFragilityIndex = decimal.Clamp(1m - decimal.Clamp(utilityContinuityIndex, 0m, 1m), 0m, 1m);
+            decimal lowHealthIndex = 1m -
+                decimal.Clamp(
+                    value: averageHealth / 100m,
+                    min: 0m,
+                    max: 1m);
+            decimal stressIndex = decimal.Clamp(
+                value: averageStress / 100m,
+                min: 0m,
+                max: 1m);
+            decimal illnessBurdenIndex = decimal.Clamp(
+                value: (decimal)activeIllnessCount / residentCount,
+                min: 0m,
+                max: 1m);
+            decimal severeIllnessBurdenIndex = decimal.Clamp(
+                value: (decimal)severeIllnessCount / residentCount,
+                min: 0m,
+                max: 1m);
+            decimal homelessnessIndex = decimal.Clamp(
+                value: (decimal)homelessResidentCount / residentCount,
+                min: 0m,
+                max: 1m);
+            decimal utilityFragilityIndex = decimal.Clamp(
+                value: 1m -
+                decimal.Clamp(
+                    value: utilityContinuityIndex,
+                    min: 0m,
+                    max: 1m),
+                min: 0m,
+                max: 1m);
 
             return decimal.Clamp(
                 value: (stressIndex * 0.24m) +
@@ -222,7 +248,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static CityDistrictUtilityConditionsSnapshot? ResolveDistrictUtilityConditions(
             DistrictId districtId,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId)
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                districtUtilityConditionsByDistrictId)
         {
             return districtUtilityConditionsByDistrictId.TryGetValue(
                 key: districtId,

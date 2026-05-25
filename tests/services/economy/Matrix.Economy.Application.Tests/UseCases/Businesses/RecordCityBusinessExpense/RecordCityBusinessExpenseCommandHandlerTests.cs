@@ -1,46 +1,82 @@
-using Matrix.Economy.Application.Tests.TestSupport;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpense;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RecordCityBusinessExpense;
-
-public sealed class RecordCityBusinessExpenseCommandHandlerTests
+namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RecordCityBusinessExpense
 {
-    [Fact]
-    public async Task Handle_RecordsExpenseWithFrozenTimestamp()
+    public sealed class RecordCityBusinessExpenseCommandHandlerTests
     {
-        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        CityBusiness business = CreateBusiness(cityId, "Transit Depot", CityBusinessKind.Service, 300m);
-        var businessRepository = new FakeCityBusinessRepository { Businesses = [business] };
-        var ledgerRepository = new FakeCityBusinessLedgerRepository();
-        var unitOfWork = new FakeEconomyUnitOfWork();
-        var timeProvider = new FrozenTimeProvider(new DateTimeOffset(2048, 5, 8, 10, 45, 0, TimeSpan.Zero));
-        var handler = new RecordCityBusinessExpenseCommandHandler(
-            businessRepository,
-            ledgerRepository,
-            unitOfWork,
-            timeProvider);
-        var command = new RecordCityBusinessExpenseCommand(
-            BusinessId: business.Id,
-            Amount: 75m,
-            Title: "Fuel Purchase",
-            Description: "Diesel refill");
+        [Fact]
+        public async Task Handle_RecordsExpenseWithFrozenTimestamp()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            CityBusiness business = CreateBusiness(
+                cityId: cityId,
+                name: "Transit Depot",
+                kind: CityBusinessKind.Service,
+                initialCapital: 300m);
+            var businessRepository = new FakeCityBusinessRepository
+            {
+                Businesses = [business]
+            };
+            var ledgerRepository = new FakeCityBusinessLedgerRepository();
+            var unitOfWork = new FakeEconomyUnitOfWork();
+            var timeProvider = new FrozenTimeProvider(
+                new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 8,
+                    hour: 10,
+                    minute: 45,
+                    second: 0,
+                    offset: TimeSpan.Zero));
+            var handler = new RecordCityBusinessExpenseCommandHandler(
+                businessRepository: businessRepository,
+                ledgerRepository: ledgerRepository,
+                unitOfWork: unitOfWork,
+                timeProvider: timeProvider);
+            var command = new RecordCityBusinessExpenseCommand(
+                BusinessId: business.Id,
+                Amount: 75m,
+                Title: "Fuel Purchase",
+                Description: "Diesel refill");
 
-        CityBusinessLedgerEntryDto result = await handler.Handle(command, CancellationToken.None);
+            CityBusinessLedgerEntryDto result = await handler.Handle(
+                request: command,
+                cancellationToken: CancellationToken.None);
 
-        var entry = Assert.Single(ledgerRepository.AddedEntries);
-        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
-        Assert.Equal(timeProvider.UtcNow, entry.OccurredAtUtc);
-        Assert.Equal("OperatingExpense", result.Kind);
-        Assert.Equal("Operations", result.Source);
-        Assert.Equal(75m, result.Amount);
-        Assert.Equal(0m, result.TaxAmount);
-        Assert.Equal(225m, business.Balance.Amount);
-        Assert.Equal(75m, business.TotalOperatingExpenses.Amount);
-        Assert.Equal(timeProvider.UtcNow.ToString("O"), result.OccurredAtUtc);
+            CityBusinessLedgerEntry entry = Assert.Single(ledgerRepository.AddedEntries);
+            Assert.Equal(
+                expected: 1,
+                actual: unitOfWork.SaveChangesCallCount);
+            Assert.Equal(
+                expected: timeProvider.UtcNow,
+                actual: entry.OccurredAtUtc);
+            Assert.Equal(
+                expected: "OperatingExpense",
+                actual: result.Kind);
+            Assert.Equal(
+                expected: "Operations",
+                actual: result.Source);
+            Assert.Equal(
+                expected: 75m,
+                actual: result.Amount);
+            Assert.Equal(
+                expected: 0m,
+                actual: result.TaxAmount);
+            Assert.Equal(
+                expected: 225m,
+                actual: business.Balance.Amount);
+            Assert.Equal(
+                expected: 75m,
+                actual: business.TotalOperatingExpenses.Amount);
+            Assert.Equal(
+                expected: timeProvider.UtcNow.ToString("O"),
+                actual: result.OccurredAtUtc);
+        }
     }
 }

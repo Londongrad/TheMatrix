@@ -25,11 +25,10 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
             CancellationToken cancellationToken)
         {
             if (messageId is null)
-                throw new InvalidOperationException(
-                    "ClassicCityStockpileSnapshot message must have a MessageId.");
+                throw new InvalidOperationException("ClassicCityStockpileSnapshot message must have a MessageId.");
 
             ApplyCityEssentialsSnapshotResult result = await mediator.Send(
-                new ApplyCityEssentialsSnapshotCommand(
+                request: new ApplyCityEssentialsSnapshotCommand(
                     CityId: message.CityId,
                     IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityStockpileSnapshotConsumerDefinition.EndpointNameValue,
@@ -43,36 +42,40 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     EmergencyWaterShortageRiskIndex: message.EmergencyWater.ShortageRiskIndex,
                     EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
                 case ApplyCityEssentialsSnapshotStatus.Applied:
                     logger.LogInformation(
-                        "Applied classic city essentials snapshot for cityId={CityId}, messageId={MessageId}.",
+                        message: "Applied classic city essentials snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);
                     break;
                 case ApplyCityEssentialsSnapshotStatus.Duplicate:
                     logger.LogDebug(
+                        message:
                         "Skipped duplicate classic city essentials snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);
                     break;
                 case ApplyCityEssentialsSnapshotStatus.CityDeleted:
                     logger.LogDebug(
+                        message:
                         "Skipped classic city essentials snapshot for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);
                     break;
                 case ApplyCityEssentialsSnapshotStatus.CityArchived:
                     logger.LogDebug(
+                        message:
                         "Skipped classic city essentials snapshot for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);
                     break;
                 case ApplyCityEssentialsSnapshotStatus.Stale:
                     logger.LogDebug(
+                        message:
                         "Skipped stale classic city essentials snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         messageId);

@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.ResolveCityRoute;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
@@ -13,7 +14,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
         IResidentialBuildingRepository residentialBuildingRepository,
         ICityAnchorRepository cityAnchorRepository,
         ICityRoadSegmentConditionsClient roadSegmentConditionsClient,
-        IClassicCityRoutePlanner routePlanner) : IRequestHandler<ResolveCityRoutesBatchQuery, ResolveCityRoutesBatchResult>
+        IClassicCityRoutePlanner routePlanner)
+        : IRequestHandler<ResolveCityRoutesBatchQuery, ResolveCityRoutesBatchResult>
     {
         public async Task<ResolveCityRoutesBatchResult> Handle(
             ResolveCityRoutesBatchQuery request,
@@ -21,7 +23,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
         {
             var cityId = new CityId(request.CityId);
 
-            Task<Services.Routing.CityRoadSegmentConditionsSnapshot?> conditionsTask =
+            Task<CityRoadSegmentConditionsSnapshot?> conditionsTask =
                 roadSegmentConditionsClient.GetByCityIdAsync(
                     cityId: request.CityId,
                     cancellationToken: cancellationToken);
@@ -42,15 +44,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
             IReadOnlyList<CityAnchor> cityAnchors = await cityAnchorRepository.ListByCityIdAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
-            Services.Routing.CityRoadSegmentConditionsSnapshot? conditions = await conditionsTask;
+            CityRoadSegmentConditionsSnapshot? conditions = await conditionsTask;
 
-            Dictionary<Guid, RoadNode> roadNodeById = roadNodes.ToDictionary(
+            var roadNodeById = roadNodes.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
-            Dictionary<Guid, ResidentialBuilding> residentialBuildingById = residentialBuildings.ToDictionary(
+            var residentialBuildingById = residentialBuildings.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
-            Dictionary<Guid, CityAnchor> cityAnchorById = cityAnchors.ToDictionary(
+            var cityAnchorById = cityAnchors.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
             var plannedRoutesByKey = new Dictionary<RouteDeduplicationKey, CityRouteDto?>();
@@ -109,7 +111,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
             IReadOnlyDictionary<Guid, RoadNode> roadNodeById,
             IReadOnlyDictionary<Guid, ResidentialBuilding> residentialBuildingById,
             IReadOnlyDictionary<Guid, CityAnchor> cityAnchorById,
-            Services.Routing.CityRoadSegmentConditionsSnapshot? conditions)
+            CityRoadSegmentConditionsSnapshot? conditions)
         {
             CityRoutePointDto? from = ResolvePoint(
                 kind: fromKind,

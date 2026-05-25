@@ -38,7 +38,6 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
                     cancellationToken: cancellationToken);
 
                 while (await timer.WaitForNextTickAsync(cancellationToken))
-                {
                     try
                     {
                         await ProcessBatchAsync(
@@ -55,7 +54,6 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
                             exception: ex,
                             message: "SimulationCore provisioning recovery loop iteration failed.");
                     }
-                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -72,12 +70,10 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
                 cancellationToken: cancellationToken);
 
             foreach (Guid cityId in candidates)
-            {
                 await ProcessCandidateAsync(
                     cityId: cityId,
                     recoveryOptions: recoveryOptions,
                     cancellationToken: cancellationToken);
-            }
         }
 
         private async Task<IReadOnlyList<Guid>> ListCandidatesAsync(
@@ -115,7 +111,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
             if (city is null || !city.IsProvisioning)
                 return;
 
-            TimeSpan leaseDuration = TimeSpan.FromSeconds(recoveryOptions.LeaseDurationSeconds);
+            var leaseDuration = TimeSpan.FromSeconds(recoveryOptions.LeaseDurationSeconds);
             DateTimeOffset nowUtc = timeProvider.GetUtcNow();
 
             if (!city.TryAcquireProvisioningLease(

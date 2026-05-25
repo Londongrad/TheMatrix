@@ -10,7 +10,8 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
         ICityBudgetRepository budgetRepository,
         ICityBudgetLedgerRepository budgetLedgerRepository,
         ICityBudgetAllocationRepository allocationRepository,
-        ICityEconomyProgressionStateRepository progressionStateRepository) : ICityOperationalBudgetPressureProjectionService
+        ICityEconomyProgressionStateRepository progressionStateRepository)
+        : ICityOperationalBudgetPressureProjectionService
     {
         public async Task<CityOperationalBudgetPressureDto> GetAsync(
             Guid cityId,
@@ -32,10 +33,11 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
             CityEconomyProgressionState? progressionState = await progressionStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
-            Dictionary<CityBudgetCategory, decimal> availableAmounts = allocations.ToDictionary(
+            var availableAmounts = allocations.ToDictionary(
                 keySelector: x => x.Category,
                 elementSelector: x => CityOperationalBudgetControlPolicy.NormalizeAvailableAmount(
-                    x.GetAvailableAmount().Amount));
+                    x.GetAvailableAmount()
+                       .Amount));
             decimal pressureIndex = CalculatePressureIndex(
                 balance: budget.Balance.Amount,
                 totalCityExpenses: budget.TotalCityExpenses.Amount,
@@ -99,7 +101,9 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
                 ? 0m
                 : ClampUnit(municipalOperationsExpenses / totalCityExpenses);
             decimal liquidityPressure = municipalOperationsExpenses <= 0m
-                ? (balance < 0m ? 0.60m : 0m)
+                ? balance < 0m
+                    ? 0.60m
+                    : 0m
                 : balance <= 0m
                     ? 1m
                     : ClampUnit(1m - (balance / (municipalOperationsExpenses * 2m)));
@@ -125,7 +129,9 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
             IReadOnlyDictionary<CityBudgetCategory, decimal> availableAmounts,
             decimal balance)
         {
-            if (availableAmounts.TryGetValue(category, out decimal availableAmount))
+            if (availableAmounts.TryGetValue(
+                    key: category,
+                    value: out decimal availableAmount))
                 return availableAmount;
 
             return CityOperationalBudgetControlPolicy.NormalizeAvailableAmount(balance);

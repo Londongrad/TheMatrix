@@ -49,9 +49,10 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
 
             if (cursor.HasValue)
             {
-                DateTimeOffset cursorOccurredAtUtc = new(new DateTime(
-                    ticks: cursor.Value.UtcTicks,
-                    kind: DateTimeKind.Utc));
+                DateTimeOffset cursorOccurredAtUtc = new(
+                    new DateTime(
+                        ticks: cursor.Value.UtcTicks,
+                        kind: DateTimeKind.Utc));
                 Guid cursorEntryId = cursor.Value.EntryId;
 
                 query = query.Where(x => x.OccurredAtUtc < cursorOccurredAtUtc ||
@@ -66,7 +67,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
 
             bool hasNext = fetchedItems.Length > normalizedPageSize;
             CityBudgetLedgerEntry[] pageItems = hasNext
-                ? fetchedItems.Take(normalizedPageSize).ToArray()
+                ? fetchedItems.Take(normalizedPageSize)
+                   .ToArray()
                 : fetchedItems;
 
             string? nextCursor = hasNext
@@ -96,18 +98,28 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             // Query the provider column directly instead of traversing Money.Amount,
             // which Npgsql cannot translate in aggregate expressions.
             decimal totalMunicipalOperationsExpenses = await query
-                .Select(entry => (decimal?)EF.Property<decimal>(entry, nameof(CityBudgetLedgerEntry.Amount)))
-                .SumAsync(cancellationToken) ?? 0m;
+                                                          .Select(entry => (decimal?)EF.Property<decimal>(
+                                                               entry,
+                                                               nameof(CityBudgetLedgerEntry.Amount)))
+                                                          .SumAsync(cancellationToken) ??
+                                                       0m;
             decimal infrastructureOperationsExpenses = await query
-                .Where(entry => entry.Category == CityBudgetCategory.Infrastructure)
-                .Select(entry => (decimal?)EF.Property<decimal>(entry, nameof(CityBudgetLedgerEntry.Amount)))
-                .SumAsync(cancellationToken) ?? 0m;
+                                                          .Where(entry
+                                                               => entry.Category == CityBudgetCategory.Infrastructure)
+                                                          .Select(entry => (decimal?)EF.Property<decimal>(
+                                                               entry,
+                                                               nameof(CityBudgetLedgerEntry.Amount)))
+                                                          .SumAsync(cancellationToken) ??
+                                                       0m;
             decimal emergencyOperationsExpenses = await query
-                .Where(entry => entry.Category == CityBudgetCategory.Operations)
-                .Select(entry => (decimal?)EF.Property<decimal>(entry, nameof(CityBudgetLedgerEntry.Amount)))
-                .SumAsync(cancellationToken) ?? 0m;
+                                                     .Where(entry => entry.Category == CityBudgetCategory.Operations)
+                                                     .Select(entry => (decimal?)EF.Property<decimal>(
+                                                          entry,
+                                                          nameof(CityBudgetLedgerEntry.Amount)))
+                                                     .SumAsync(cancellationToken) ??
+                                                  0m;
             DateTimeOffset? lastMunicipalExpenseAtUtc = await query
-                .MaxAsync(
+               .MaxAsync(
                     selector: entry => (DateTimeOffset?)entry.OccurredAtUtc,
                     cancellationToken: cancellationToken);
 

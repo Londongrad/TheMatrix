@@ -2,26 +2,33 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Resources.Domain.Simulation;
 using Xunit;
 
-namespace Matrix.Resources.Domain.Tests.Simulation;
-
-public sealed class SimulationHostIdTests
+namespace Matrix.Resources.Domain.Tests.Simulation
 {
-    [Fact]
-    public void Constructor_WithValidGuid_CreatesIdentifier()
+    public sealed class SimulationHostIdTests
     {
-        Guid value = Guid.Parse("30000000-0000-0000-0000-000000000001");
+        [Fact]
+        public void Constructor_WithValidGuid_CreatesIdentifier()
+        {
+            var value = Guid.Parse("30000000-0000-0000-0000-000000000001");
 
-        var id = new SimulationHostId(value);
+            var id = new SimulationHostId(value);
 
-        Assert.Equal(value, id.Value);
-        Assert.Equal(value.ToString(), id.ToString());
-    }
+            Assert.Equal(
+                expected: value,
+                actual: id.Value);
+            Assert.Equal(
+                expected: value.ToString(),
+                actual: id.ToString());
+        }
 
-    [Fact]
-    public void Constructor_WithEmptyGuid_ThrowsDomainException()
-    {
-        DomainException exception = Assert.Throws<DomainException>(() => new SimulationHostId(Guid.Empty));
+        [Fact]
+        public void Constructor_WithEmptyGuid_ThrowsDomainException()
+        {
+            DomainException exception = Assert.Throws<DomainException>(() => new SimulationHostId(Guid.Empty));
 
-        Assert.Equal("Resources.SimulationHost.Id.Empty", exception.Code);
+            Assert.Equal(
+                expected: "Resources.SimulationHost.Id.Empty",
+                actual: exception.Code);
+        }
     }
 }

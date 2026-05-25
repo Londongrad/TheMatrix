@@ -5,148 +5,183 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Fa
 using MediatR;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities;
-
-public sealed class BootstrapEndpointCommandHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
 {
-    private static readonly Guid CityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-    private static readonly Guid OperationId = Guid.Parse("11111111-2222-3333-4444-555555555555");
-
-    [Fact]
-    public async Task CompletePopulationHandler_DelegatesToInternalCommand()
+    public sealed class BootstrapEndpointCommandHandlerTests
     {
-        var mediator = new RecordingMediator
+        private static readonly Guid CityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        private static readonly Guid OperationId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+
+        [Fact]
+        public async Task CompletePopulationHandler_DelegatesToInternalCommand()
         {
-            BoolResponse = true
-        };
-        var handler = new CompleteCityPopulationBootstrapEndpointCommandHandler(mediator);
+            var mediator = new RecordingMediator
+            {
+                BoolResponse = true
+            };
+            var handler = new CompleteCityPopulationBootstrapEndpointCommandHandler(mediator);
 
-        bool result = await handler.Handle(
-            request: new CompleteCityPopulationBootstrapEndpointCommand(CityId, OperationId),
-            cancellationToken: CancellationToken.None);
+            bool result = await handler.Handle(
+                request: new CompleteCityPopulationBootstrapEndpointCommand(
+                    CityId: CityId,
+                    OperationId: OperationId),
+                cancellationToken: CancellationToken.None);
 
-        Assert.True(result);
-        var command = Assert.IsType<CompleteCityPopulationBootstrapCommand>(mediator.LastRequest);
-        Assert.Equal(CityId, command.CityId);
-        Assert.Equal(OperationId, command.OperationId);
-    }
-
-    [Fact]
-    public async Task FailPopulationHandler_DelegatesToInternalCommand()
-    {
-        var mediator = new RecordingMediator
-        {
-            BoolResponse = false
-        };
-        var handler = new FailCityPopulationBootstrapEndpointCommandHandler(mediator);
-
-        bool result = await handler.Handle(
-            request: new FailCityPopulationBootstrapEndpointCommand(CityId, OperationId, "Population.Failed"),
-            cancellationToken: CancellationToken.None);
-
-        Assert.False(result);
-        var command = Assert.IsType<FailCityPopulationBootstrapCommand>(mediator.LastRequest);
-        Assert.Equal(CityId, command.CityId);
-        Assert.Equal(OperationId, command.OperationId);
-        Assert.Equal("Population.Failed", command.FailureCode);
-    }
-
-    [Fact]
-    public async Task CompleteEconomyHandler_DelegatesToInternalCommand()
-    {
-        var mediator = new RecordingMediator
-        {
-            BoolResponse = true
-        };
-        var handler = new CompleteCityEconomyBootstrapEndpointCommandHandler(mediator);
-
-        bool result = await handler.Handle(
-            request: new CompleteCityEconomyBootstrapEndpointCommand(CityId, OperationId),
-            cancellationToken: CancellationToken.None);
-
-        Assert.True(result);
-        var command = Assert.IsType<CompleteCityEconomyBootstrapCommand>(mediator.LastRequest);
-        Assert.Equal(CityId, command.CityId);
-        Assert.Equal(OperationId, command.OperationId);
-    }
-
-    [Fact]
-    public async Task FailEconomyHandler_DelegatesToInternalCommand()
-    {
-        var mediator = new RecordingMediator
-        {
-            BoolResponse = true
-        };
-        var handler = new FailCityEconomyBootstrapEndpointCommandHandler(mediator);
-
-        bool result = await handler.Handle(
-            request: new FailCityEconomyBootstrapEndpointCommand(CityId, OperationId, "Economy.Failed"),
-            cancellationToken: CancellationToken.None);
-
-        Assert.True(result);
-        var command = Assert.IsType<FailCityEconomyBootstrapCommand>(mediator.LastRequest);
-        Assert.Equal(CityId, command.CityId);
-        Assert.Equal(OperationId, command.OperationId);
-        Assert.Equal("Economy.Failed", command.FailureCode);
-    }
-
-    private sealed class RecordingMediator : IMediator
-    {
-        public bool BoolResponse { get; init; }
-        public object? LastRequest { get; private set; }
-
-        public Task<TResponse> Send<TResponse>(
-            IRequest<TResponse> request,
-            CancellationToken cancellationToken = default)
-        {
-            LastRequest = request;
-            return Task.FromResult((TResponse)(object)BoolResponse);
+            Assert.True(result);
+            CompleteCityPopulationBootstrapCommand command =
+                Assert.IsType<CompleteCityPopulationBootstrapCommand>(mediator.LastRequest);
+            Assert.Equal(
+                expected: CityId,
+                actual: command.CityId);
+            Assert.Equal(
+                expected: OperationId,
+                actual: command.OperationId);
         }
 
-        public Task Send<TRequest>(
-            TRequest request,
-            CancellationToken cancellationToken = default)
-            where TRequest : IRequest
+        [Fact]
+        public async Task FailPopulationHandler_DelegatesToInternalCommand()
         {
-            LastRequest = request;
-            return Task.CompletedTask;
+            var mediator = new RecordingMediator
+            {
+                BoolResponse = false
+            };
+            var handler = new FailCityPopulationBootstrapEndpointCommandHandler(mediator);
+
+            bool result = await handler.Handle(
+                request: new FailCityPopulationBootstrapEndpointCommand(
+                    CityId: CityId,
+                    OperationId: OperationId,
+                    FailureCode: "Population.Failed"),
+                cancellationToken: CancellationToken.None);
+
+            Assert.False(result);
+            FailCityPopulationBootstrapCommand command =
+                Assert.IsType<FailCityPopulationBootstrapCommand>(mediator.LastRequest);
+            Assert.Equal(
+                expected: CityId,
+                actual: command.CityId);
+            Assert.Equal(
+                expected: OperationId,
+                actual: command.OperationId);
+            Assert.Equal(
+                expected: "Population.Failed",
+                actual: command.FailureCode);
         }
 
-        public Task<object?> Send(
-            object request,
-            CancellationToken cancellationToken = default)
+        [Fact]
+        public async Task CompleteEconomyHandler_DelegatesToInternalCommand()
         {
-            LastRequest = request;
-            return Task.FromResult<object?>(BoolResponse);
+            var mediator = new RecordingMediator
+            {
+                BoolResponse = true
+            };
+            var handler = new CompleteCityEconomyBootstrapEndpointCommandHandler(mediator);
+
+            bool result = await handler.Handle(
+                request: new CompleteCityEconomyBootstrapEndpointCommand(
+                    CityId: CityId,
+                    OperationId: OperationId),
+                cancellationToken: CancellationToken.None);
+
+            Assert.True(result);
+            CompleteCityEconomyBootstrapCommand command =
+                Assert.IsType<CompleteCityEconomyBootstrapCommand>(mediator.LastRequest);
+            Assert.Equal(
+                expected: CityId,
+                actual: command.CityId);
+            Assert.Equal(
+                expected: OperationId,
+                actual: command.OperationId);
         }
 
-        public IAsyncEnumerable<TResponse> CreateStream<TResponse>(
-            IStreamRequest<TResponse> request,
-            CancellationToken cancellationToken = default)
+        [Fact]
+        public async Task FailEconomyHandler_DelegatesToInternalCommand()
         {
-            throw new NotSupportedException();
+            var mediator = new RecordingMediator
+            {
+                BoolResponse = true
+            };
+            var handler = new FailCityEconomyBootstrapEndpointCommandHandler(mediator);
+
+            bool result = await handler.Handle(
+                request: new FailCityEconomyBootstrapEndpointCommand(
+                    CityId: CityId,
+                    OperationId: OperationId,
+                    FailureCode: "Economy.Failed"),
+                cancellationToken: CancellationToken.None);
+
+            Assert.True(result);
+            FailCityEconomyBootstrapCommand command =
+                Assert.IsType<FailCityEconomyBootstrapCommand>(mediator.LastRequest);
+            Assert.Equal(
+                expected: CityId,
+                actual: command.CityId);
+            Assert.Equal(
+                expected: OperationId,
+                actual: command.OperationId);
+            Assert.Equal(
+                expected: "Economy.Failed",
+                actual: command.FailureCode);
         }
 
-        public IAsyncEnumerable<object?> CreateStream(
-            object request,
-            CancellationToken cancellationToken = default)
+        private sealed class RecordingMediator : IMediator
         {
-            throw new NotSupportedException();
-        }
+            public bool BoolResponse { get; init; }
+            public object? LastRequest { get; private set; }
 
-        public Task Publish(
-            object notification,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.CompletedTask;
-        }
+            public Task<TResponse> Send<TResponse>(
+                IRequest<TResponse> request,
+                CancellationToken cancellationToken = default)
+            {
+                LastRequest = request;
+                return Task.FromResult((TResponse)(object)BoolResponse);
+            }
 
-        public Task Publish<TNotification>(
-            TNotification notification,
-            CancellationToken cancellationToken = default)
-            where TNotification : INotification
-        {
-            return Task.CompletedTask;
+            public Task Send<TRequest>(
+                TRequest request,
+                CancellationToken cancellationToken = default)
+                where TRequest : IRequest
+            {
+                LastRequest = request;
+                return Task.CompletedTask;
+            }
+
+            public Task<object?> Send(
+                object request,
+                CancellationToken cancellationToken = default)
+            {
+                LastRequest = request;
+                return Task.FromResult<object?>(BoolResponse);
+            }
+
+            public IAsyncEnumerable<TResponse> CreateStream<TResponse>(
+                IStreamRequest<TResponse> request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAsyncEnumerable<object?> CreateStream(
+                object request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task Publish(
+                object notification,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.CompletedTask;
+            }
+
+            public Task Publish<TNotification>(
+                TNotification notification,
+                CancellationToken cancellationToken = default)
+                where TNotification : INotification
+            {
+                return Task.CompletedTask;
+            }
         }
     }
 }

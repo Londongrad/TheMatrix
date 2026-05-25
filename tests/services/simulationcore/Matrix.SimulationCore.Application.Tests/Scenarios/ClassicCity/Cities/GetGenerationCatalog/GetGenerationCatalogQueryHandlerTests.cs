@@ -1,25 +1,58 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetGenerationCatalog;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.GetGenerationCatalog;
-
-public sealed class GetGenerationCatalogQueryHandlerTests
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.GetGenerationCatalog
 {
-    [Fact]
-    public async Task Handle_ReturnsPresetCollectionsFromCatalog()
+    public sealed class GetGenerationCatalogQueryHandlerTests
     {
-        var catalog = new ClassicCityTestSupport.FakeCityGenerationContentCatalog
+        [Fact]
+        public async Task Handle_ReturnsPresetCollectionsFromCatalog()
         {
-            CityNamePresets = ["Alpha", "Beta"],
-            DistrictNamePresets = ["Central", "Harbor"],
-            StreetNamePresets = ["Main", "Market"]
-        };
-        var handler = new GetGenerationCatalogQueryHandler(catalog);
+            var catalog = new ClassicCityTestSupport.FakeCityGenerationContentCatalog
+            {
+                CityNamePresets =
+                [
+                    "Alpha",
+                    "Beta"
+                ],
+                DistrictNamePresets =
+                [
+                    "Central",
+                    "Harbor"
+                ],
+                StreetNamePresets =
+                [
+                    "Main",
+                    "Market"
+                ]
+            };
+            var handler = new GetGenerationCatalogQueryHandler(catalog);
 
-        var result = await handler.Handle(new GetGenerationCatalogQuery(), CancellationToken.None);
+            CityGenerationCatalogDto result = await handler.Handle(
+                request: new GetGenerationCatalogQuery(),
+                cancellationToken: CancellationToken.None);
 
-        Assert.Equal(["Alpha", "Beta"], result.CityNamePresets);
-        Assert.Equal(["Central", "Harbor"], result.DistrictNamePresets);
-        Assert.Equal(["Main", "Market"], result.StreetNamePresets);
+            Assert.Equal(
+                expected:
+                [
+                    "Alpha",
+                    "Beta"
+                ],
+                actual: result.CityNamePresets);
+            Assert.Equal(
+                expected:
+                [
+                    "Central",
+                    "Harbor"
+                ],
+                actual: result.DistrictNamePresets);
+            Assert.Equal(
+                expected:
+                [
+                    "Main",
+                    "Market"
+                ],
+                actual: result.StreetNamePresets);
+        }
     }
 }

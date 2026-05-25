@@ -25,7 +25,8 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
             if (!ClassicCityScenario.IsMatch(message.SimulationKind))
             {
                 logger.LogDebug(
-                    message: "Ignored city-created event for cityId={CityId} because simulationKind={SimulationKind} does not match ClassicCity.",
+                    message:
+                    "Ignored city-created event for cityId={CityId} because simulationKind={SimulationKind} does not match ClassicCity.",
                     message.CityId,
                     message.SimulationKind);
                 return;
@@ -43,7 +44,8 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
             {
                 case SeedCityStockpilesStatus.Applied:
                     logger.LogInformation(
-                        message: "Initialized classic city stockpiles for cityId={CityId}, supplyStress={SupplyStress}.",
+                        message:
+                        "Initialized classic city stockpiles for cityId={CityId}, supplyStress={SupplyStress}.",
                         message.CityId,
                         result.SupplyStressIndex);
                     break;
@@ -56,7 +58,8 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
 
                 case SeedCityStockpilesStatus.IgnoredSimulationKind:
                     logger.LogDebug(
-                        message: "Skipped classic city stockpile seed for cityId={CityId} because simulationKind={SimulationKind} is not handled by this scenario.",
+                        message:
+                        "Skipped classic city stockpile seed for cityId={CityId} because simulationKind={SimulationKind} is not handled by this scenario.",
                         message.CityId,
                         message.SimulationKind);
                     break;

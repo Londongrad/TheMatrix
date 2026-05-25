@@ -1,11 +1,11 @@
+using System.Security.Cryptography;
+using System.Text;
 using Matrix.BuildingBlocks.Domain;
-using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
 {
@@ -419,46 +419,54 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                         baseline: 0.0400m + (developmentSeverity * 0.1300m),
                         maxAbsJitter: 0.0250m),
                     emergencyModeEnabled: false),
-                floodingIndex: FloodingIndex.From(CreateSeedMetric(
-                    cityId: cityId,
-                    salt: "flooding",
-                    baseline: 0.0400m + (developmentSeverity * 0.0600m),
-                    maxAbsJitter: 0.0150m)),
-                snowAccumulationIndex: SnowAccumulationIndex.From(CreateSeedMetric(
-                    cityId: cityId,
-                    salt: "snow-accumulation",
-                    baseline: 0.0200m + (developmentSeverity * 0.0200m),
-                    maxAbsJitter: 0.0100m)),
-                roadAccessibilityIndex: RoadAccessibilityIndex.From(CreateSeedMetric(
-                    cityId: cityId,
-                    salt: "road-accessibility",
-                    baseline: 0.9600m - (developmentSeverity * 0.0500m),
-                    maxAbsJitter: 0.0150m)),
-                heatingCoverageIndex: HeatingCoverageIndex.From(CreateSeedMetric(
-                    cityId: cityId,
-                    salt: "heating-coverage",
-                    baseline: 0.9300m - (developmentSeverity * 0.1200m),
-                    maxAbsJitter: 0.0200m)),
-                waterCoverageIndex: WaterCoverageIndex.From(CreateSeedMetric(
-                    cityId: cityId,
-                    salt: "water-distribution-coverage",
-                    baseline: 0.9500m - (developmentSeverity * 0.1000m),
-                    maxAbsJitter: 0.0200m)),
-                sanitationCoverageIndex: SanitationCoverageIndex.From(CreateSeedMetric(
-                    cityId: cityId,
-                    salt: "sanitation-coverage",
-                    baseline: 0.9400m - (developmentSeverity * 0.1100m),
-                    maxAbsJitter: 0.0200m)),
-                powerCoverageIndex: PowerCoverageIndex.From(CreateSeedMetric(
-                    cityId: cityId,
-                    salt: "power-distribution-coverage",
-                    baseline: 0.9600m - (developmentSeverity * 0.1000m),
-                    maxAbsJitter: 0.0200m)),
-                utilityContinuityIndex: UtilityContinuityIndex.From(CreateSeedMetric(
-                    cityId: cityId,
-                    salt: "utility-incidents-continuity",
-                    baseline: 0.9500m - (developmentSeverity * 0.0900m),
-                    maxAbsJitter: 0.0200m)),
+                floodingIndex: FloodingIndex.From(
+                    CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "flooding",
+                        baseline: 0.0400m + (developmentSeverity * 0.0600m),
+                        maxAbsJitter: 0.0150m)),
+                snowAccumulationIndex: SnowAccumulationIndex.From(
+                    CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "snow-accumulation",
+                        baseline: 0.0200m + (developmentSeverity * 0.0200m),
+                        maxAbsJitter: 0.0100m)),
+                roadAccessibilityIndex: RoadAccessibilityIndex.From(
+                    CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "road-accessibility",
+                        baseline: 0.9600m - (developmentSeverity * 0.0500m),
+                        maxAbsJitter: 0.0150m)),
+                heatingCoverageIndex: HeatingCoverageIndex.From(
+                    CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-coverage",
+                        baseline: 0.9300m - (developmentSeverity * 0.1200m),
+                        maxAbsJitter: 0.0200m)),
+                waterCoverageIndex: WaterCoverageIndex.From(
+                    CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-coverage",
+                        baseline: 0.9500m - (developmentSeverity * 0.1000m),
+                        maxAbsJitter: 0.0200m)),
+                sanitationCoverageIndex: SanitationCoverageIndex.From(
+                    CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-coverage",
+                        baseline: 0.9400m - (developmentSeverity * 0.1100m),
+                        maxAbsJitter: 0.0200m)),
+                powerCoverageIndex: PowerCoverageIndex.From(
+                    CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-coverage",
+                        baseline: 0.9600m - (developmentSeverity * 0.1000m),
+                        maxAbsJitter: 0.0200m)),
+                utilityContinuityIndex: UtilityContinuityIndex.From(
+                    CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-continuity",
+                        baseline: 0.9500m - (developmentSeverity * 0.0900m),
+                        maxAbsJitter: 0.0200m)),
                 evaluatedAtUtc: asOfUtc);
         }
 
@@ -666,7 +674,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentDrainageInfrastructure.CrewReadinessIndex,
                 target: Clamp(
                     value: currentDrainageInfrastructure.CrewReadinessIndex +
-                           (currentDrainageInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0250m) -
+                           (currentDrainageInfrastructure.EmergencyModeEnabled
+                               ? -0.0500m
+                               : 0.0250m) -
                            (currentDrainageInfrastructure.IncidentPressureIndex * 0.0300m) -
                            (drainageBacklog * 0.0200m) +
                            (pressure.ThawRelief * 0.0300m)),
@@ -786,7 +796,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentSnowRemovalInfrastructure.CrewReadinessIndex,
                 target: Clamp(
                     value: currentSnowRemovalInfrastructure.CrewReadinessIndex +
-                           (currentSnowRemovalInfrastructure.EmergencyModeEnabled ? -0.0550m : 0.0280m) -
+                           (currentSnowRemovalInfrastructure.EmergencyModeEnabled
+                               ? -0.0550m
+                               : 0.0280m) -
                            (currentSnowRemovalInfrastructure.IncidentPressureIndex * 0.0320m) -
                            (snowBacklog * 0.0200m) +
                            (pressure.ThawRelief * 0.0300m)),
@@ -922,7 +934,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentRoadAccessInfrastructure.CrewReadinessIndex,
                 target: Clamp(
                     value: currentRoadAccessInfrastructure.CrewReadinessIndex +
-                           (currentRoadAccessInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0280m) -
+                           (currentRoadAccessInfrastructure.EmergencyModeEnabled
+                               ? -0.0500m
+                               : 0.0280m) -
                            (currentRoadAccessInfrastructure.IncidentPressureIndex * 0.0320m) -
                            (roadBacklog * 0.0200m) +
                            (pressure.ThawRelief * 0.0200m)),
@@ -1038,7 +1052,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentHeatingInfrastructure.CrewReadinessIndex,
                 target: Clamp(
                     value: currentHeatingInfrastructure.CrewReadinessIndex +
-                           (currentHeatingInfrastructure.EmergencyModeEnabled ? -0.0550m : 0.0260m) -
+                           (currentHeatingInfrastructure.EmergencyModeEnabled
+                               ? -0.0550m
+                               : 0.0260m) -
                            (currentHeatingInfrastructure.IncidentPressureIndex * 0.0320m) -
                            (heatingBacklog * 0.0200m) +
                            (pressure.ThawRelief * 0.0200m)),
@@ -1162,7 +1178,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentWaterDistributionInfrastructure.CrewReadinessIndex,
                 target: Clamp(
                     value: currentWaterDistributionInfrastructure.CrewReadinessIndex +
-                           (currentWaterDistributionInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0260m) -
+                           (currentWaterDistributionInfrastructure.EmergencyModeEnabled
+                               ? -0.0500m
+                               : 0.0260m) -
                            (currentWaterDistributionInfrastructure.IncidentPressureIndex * 0.0300m) -
                            (waterBacklog * 0.0200m) +
                            (pressure.ThawRelief * 0.0200m)),
@@ -1289,7 +1307,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentSanitationInfrastructure.CrewReadinessIndex,
                 target: Clamp(
                     value: currentSanitationInfrastructure.CrewReadinessIndex +
-                           (currentSanitationInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0260m) -
+                           (currentSanitationInfrastructure.EmergencyModeEnabled
+                               ? -0.0500m
+                               : 0.0260m) -
                            (currentSanitationInfrastructure.IncidentPressureIndex * 0.0300m) -
                            (sanitationBacklog * 0.0200m) +
                            (pressure.ThawRelief * 0.0200m)),
@@ -1418,7 +1438,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentPowerDistributionInfrastructure.CrewReadinessIndex,
                 target: Clamp(
                     value: currentPowerDistributionInfrastructure.CrewReadinessIndex +
-                           (currentPowerDistributionInfrastructure.EmergencyModeEnabled ? -0.0550m : 0.0260m) -
+                           (currentPowerDistributionInfrastructure.EmergencyModeEnabled
+                               ? -0.0550m
+                               : 0.0260m) -
                            (currentPowerDistributionInfrastructure.IncidentPressureIndex * 0.0300m) -
                            (powerBacklog * 0.0200m) +
                            (pressure.ThawRelief * 0.0200m)),
@@ -1552,7 +1574,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentUtilityIncidentInfrastructure.FieldCoordinationIndex,
                 target: Clamp(
                     value: currentUtilityIncidentInfrastructure.FieldCoordinationIndex +
-                           (currentUtilityIncidentInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0260m) -
+                           (currentUtilityIncidentInfrastructure.EmergencyModeEnabled
+                               ? -0.0500m
+                               : 0.0260m) -
                            (currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex * 0.0300m) -
                            (utilityIncidentBacklog * 0.0200m) +
                            (pressure.ThawRelief * 0.0200m)),
@@ -1692,12 +1716,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
 
         private static decimal GetDevelopmentSeverity(string developmentLevel)
         {
-            return developmentLevel.Trim().ToLowerInvariant() switch
-            {
-                "struggling" => 1.0000m,
-                "advanced" => -0.7500m,
-                _ => 0m
-            };
+            return developmentLevel.Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "struggling" => 1.0000m,
+                    "advanced" => -0.7500m,
+                    _ => 0m
+                };
         }
 
         private static decimal CreateSeedMetric(
@@ -1706,8 +1731,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             decimal baseline,
             decimal maxAbsJitter)
         {
-            byte[] hash = SHA256.HashData(
-                source: Encoding.UTF8.GetBytes($"{cityId:N}|{salt}"));
+            byte[] hash = SHA256.HashData(source: Encoding.UTF8.GetBytes($"{cityId:N}|{salt}"));
             int sample = BitConverter.ToInt32(
                              value: hash,
                              startIndex: 0) &
@@ -1716,8 +1740,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             decimal normalized = sample / (decimal)int.MaxValue;
             decimal centered = (normalized - 0.5m) * 2m;
 
-            return Clamp(
-                value: baseline + (centered * maxAbsJitter));
+            return Clamp(value: baseline + (centered * maxAbsJitter));
         }
 
         private static decimal Smooth(
@@ -1766,9 +1789,10 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 min: 0m,
                 max: 1m);
 
-            double scaledFactor = 1d - Math.Pow(
-                x: 1d - (double)normalizedBaseFactor,
-                y: (double)responseScale);
+            double scaledFactor = 1d -
+                                  Math.Pow(
+                                      x: 1d - (double)normalizedBaseFactor,
+                                      y: (double)responseScale);
 
             return decimal.Round(
                 d: Clamp(

@@ -25,18 +25,22 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             DistrictImpactProfile profile = BuildProfile(districtId.Value);
 
-            decimal powerCoverageIndex = districtUtilityConditions?.PowerCoverageIndex ?? AdjustCoverage(
-                value: baseline.PowerCoverageIndex,
-                factor: profile.UtilityFragilityFactor);
-            decimal heatingCoverageIndex = districtUtilityConditions?.HeatingCoverageIndex ?? AdjustCoverage(
-                value: baseline.HeatingCoverageIndex,
-                factor: profile.UtilityFragilityFactor * 0.94d);
-            decimal waterCoverageIndex = districtUtilityConditions?.WaterCoverageIndex ?? AdjustCoverage(
-                value: baseline.WaterCoverageIndex,
-                factor: profile.UtilityFragilityFactor * 0.90d);
-            decimal sanitationCoverageIndex = districtUtilityConditions?.SanitationCoverageIndex ?? AdjustCoverage(
-                value: baseline.SanitationCoverageIndex,
-                factor: profile.SanitationFragilityFactor);
+            decimal powerCoverageIndex = districtUtilityConditions?.PowerCoverageIndex ??
+                                         AdjustCoverage(
+                                             value: baseline.PowerCoverageIndex,
+                                             factor: profile.UtilityFragilityFactor);
+            decimal heatingCoverageIndex = districtUtilityConditions?.HeatingCoverageIndex ??
+                                           AdjustCoverage(
+                                               value: baseline.HeatingCoverageIndex,
+                                               factor: profile.UtilityFragilityFactor * 0.94d);
+            decimal waterCoverageIndex = districtUtilityConditions?.WaterCoverageIndex ??
+                                         AdjustCoverage(
+                                             value: baseline.WaterCoverageIndex,
+                                             factor: profile.UtilityFragilityFactor * 0.90d);
+            decimal sanitationCoverageIndex = districtUtilityConditions?.SanitationCoverageIndex ??
+                                              AdjustCoverage(
+                                                  value: baseline.SanitationCoverageIndex,
+                                                  factor: profile.SanitationFragilityFactor);
             decimal utilityContinuityIndex = districtUtilityConditions is null
                 ? AdjustCoverage(
                     value: baseline.UtilityContinuityIndex,
@@ -106,25 +110,66 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static DistrictImpactProfile BuildProfile(DistrictId districtId)
         {
             return new DistrictImpactProfile(
-                FloodExposureFactor: 0.82d + (ResolveStableFraction(districtId, 11) * 0.52d),
-                MobilityFragilityFactor: 0.84d + (ResolveStableFraction(districtId, 23) * 0.44d),
-                UtilityFragilityFactor: 0.86d + (ResolveStableFraction(districtId, 37) * 0.38d),
-                SanitationFragilityFactor: 0.88d + (ResolveStableFraction(districtId, 53) * 0.34d),
-                SupplyRouteFragilityFactor: 0.85d + (ResolveStableFraction(districtId, 71) * 0.42d));
+                FloodExposureFactor: 0.82d +
+                (ResolveStableFraction(
+                     districtId: districtId,
+                     salt: 11) *
+                 0.52d),
+                MobilityFragilityFactor: 0.84d +
+                (ResolveStableFraction(
+                     districtId: districtId,
+                     salt: 23) *
+                 0.44d),
+                UtilityFragilityFactor: 0.86d +
+                (ResolveStableFraction(
+                     districtId: districtId,
+                     salt: 37) *
+                 0.38d),
+                SanitationFragilityFactor: 0.88d +
+                (ResolveStableFraction(
+                     districtId: districtId,
+                     salt: 53) *
+                 0.34d),
+                SupplyRouteFragilityFactor: 0.85d +
+                (ResolveStableFraction(
+                     districtId: districtId,
+                     salt: 71) *
+                 0.42d));
         }
 
-        private static decimal AdjustCoverage(decimal value, double factor)
+        private static decimal AdjustCoverage(
+            decimal value,
+            double factor)
         {
-            decimal normalized = Math.Clamp(value, 0m, 1.50m);
-            double deficit = Math.Clamp((double)(1m - normalized), 0d, 1.50d);
-            double adjustedDeficit = Math.Clamp(deficit * factor, 0d, 1.50d);
+            decimal normalized = Math.Clamp(
+                value: value,
+                min: 0m,
+                max: 1.50m);
+            double deficit = Math.Clamp(
+                value: (double)(1m - normalized),
+                min: 0d,
+                max: 1.50d);
+            double adjustedDeficit = Math.Clamp(
+                value: deficit * factor,
+                min: 0d,
+                max: 1.50d);
 
-            return Round(Math.Clamp(1d - adjustedDeficit, 0d, 1.50d));
+            return Round(
+                Math.Clamp(
+                    value: 1d - adjustedDeficit,
+                    min: 0d,
+                    max: 1.50d));
         }
 
-        private static decimal AdjustPressure(decimal value, double factor)
+        private static decimal AdjustPressure(
+            decimal value,
+            double factor)
         {
-            return Round(Math.Clamp((double)value * factor, 0d, 1.50d));
+            return Round(
+                Math.Clamp(
+                    value: (double)value * factor,
+                    min: 0d,
+                    max: 1.50d));
         }
 
         private static decimal Round(double value)
@@ -166,7 +211,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 mode: MidpointRounding.AwayFromZero);
         }
 
-        private static double ResolveStableFraction(DistrictId districtId, int salt)
+        private static double ResolveStableFraction(
+            DistrictId districtId,
+            int salt)
         {
             byte[] bytes = districtId.Value.ToByteArray();
             unchecked

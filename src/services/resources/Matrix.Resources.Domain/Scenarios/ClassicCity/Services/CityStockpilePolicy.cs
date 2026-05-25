@@ -374,8 +374,11 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
             decimal effectiveDemand = ClampIndex(line.DemandPressureIndex - rationingRelief);
             decimal operationalDemandBoost = systemsDemandPressure * systemsDemandElapsedDays;
 
-            decimal naturalResupply = passiveResupplyRate * elapsedDays * (0.55m + (line.ResupplyReadinessIndex * 0.75m));
-            decimal consumption = demandDrainRate * elapsedDays * (0.65m + (effectiveDemand * 0.85m) + (operationalDemandBoost * 0.90m));
+            decimal naturalResupply =
+                passiveResupplyRate * elapsedDays * (0.55m + (line.ResupplyReadinessIndex * 0.75m));
+            decimal consumption = demandDrainRate *
+                                  elapsedDays *
+                                  (0.65m + (effectiveDemand * 0.85m) + (operationalDemandBoost * 0.90m));
             decimal stock = ClampIndex(line.StockLevelIndex + naturalResupply - consumption);
 
             decimal readinessDecay = 0.018m * elapsedDays * (0.40m + fragility + (effectiveDemand * 0.35m));
@@ -384,7 +387,9 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
             decimal readiness = ClampIndex(line.ResupplyReadinessIndex - readinessDecay + readinessRecovery);
 
             decimal demandDrift = (0.010m * elapsedDays * fragility) -
-                                  (emergencyRationingEnabled ? 0.028m * elapsedDays : 0m) +
+                                  (emergencyRationingEnabled
+                                      ? 0.028m * elapsedDays
+                                      : 0m) +
                                   (0.030m * operationalDemandBoost);
             decimal demand = ClampIndex(line.DemandPressureIndex + demandDrift);
 

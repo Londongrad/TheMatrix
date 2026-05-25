@@ -36,19 +36,31 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
 
                 switch (outcome)
                 {
-                    case { Failed: true }:
+                    case
+                    {
+                        Failed: true
+                    }:
                         failedCount++;
                         break;
 
-                    case { Status: SimulationAdvanceExecutionStatus.Advanced }:
+                    case
+                    {
+                        Status: SimulationAdvanceExecutionStatus.Advanced
+                    }:
                         advancedCount++;
                         break;
 
-                    case { Status: SimulationAdvanceExecutionStatus.NoStepDue }:
+                    case
+                    {
+                        Status: SimulationAdvanceExecutionStatus.NoStepDue
+                    }:
                         noStepDueCount++;
                         break;
 
-                    case { Status: SimulationAdvanceExecutionStatus.NotFound }:
+                    case
+                    {
+                        Status: SimulationAdvanceExecutionStatus.NotFound
+                    }:
                         failedCount++;
                         break;
                 }

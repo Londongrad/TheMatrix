@@ -19,10 +19,10 @@ export function useConfirm(): ConfirmFn {
 
     if (!context) {
         return async ({
-            title = "Are you sure?",
-            description,
-            confirmText,
-        }: ConfirmOptions) => {
+                          title = "Are you sure?",
+                          description,
+                          confirmText,
+                      }: ConfirmOptions) => {
             const message = [title, description, confirmText ? `Action: ${confirmText}` : null]
                 .filter(Boolean)
                 .join("\n\n");

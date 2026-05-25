@@ -8,7 +8,8 @@ using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
 
-namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.DispatchCitySnowRemovalMaintenance
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.
+    DispatchCitySnowRemovalMaintenance
 {
     public sealed class DispatchCitySnowRemovalMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
@@ -57,7 +58,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
 
             if (authorizationDecision.Denied)
             {
-                decimal deniedSupport = pressureProfileFactory.Create(state).SnowRemovalSupport;
+                decimal deniedSupport = pressureProfileFactory.Create(state)
+                   .SnowRemovalSupport;
 
                 return CitySnowRemovalStatusDto.FromState(
                     cityId: request.CityId,
@@ -80,7 +82,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
                 requestedIntensity: budgetAuthorizedIntensity.ToString(),
                 authorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
                 pressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                emergencyModeEnabled: state.SnowRemovalInfrastructure.EmergencyModeEnabled || request.EmergencyOverride);
+                emergencyModeEnabled: state.SnowRemovalInfrastructure.EmergencyModeEnabled ||
+                                      request.EmergencyOverride);
             SnowRemovalMaintenanceIntensity appliedIntensity = Enum.Parse<SnowRemovalMaintenanceIntensity>(
                 value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
@@ -102,7 +105,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            decimal snowRemovalSupport = pressureProfileFactory.Create(state).SnowRemovalSupport;
+            decimal snowRemovalSupport = pressureProfileFactory.Create(state)
+               .SnowRemovalSupport;
 
             return CitySnowRemovalStatusDto.FromState(
                 cityId: request.CityId,
@@ -129,7 +133,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
                 ? 2
                 : 1;
 
-            return Math.Max(0, currentTickId + delay);
+            return Math.Max(
+                val1: 0,
+                val2: currentTickId + delay);
         }
     }
 }

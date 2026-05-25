@@ -33,7 +33,8 @@ namespace Matrix.BuildingBlocks.Application.Security.InternalApiKey
             }
 
             if (string.IsNullOrWhiteSpace(options.CurrentKeyId))
-                throw new InvalidOperationException($"{optionsPath}:CurrentKeyId is required when Keys are configured.");
+                throw new InvalidOperationException(
+                    $"{optionsPath}:CurrentKeyId is required when Keys are configured.");
 
             if (!normalizedKeys.TryGetValue(
                     key: options.CurrentKeyId,
@@ -59,9 +60,7 @@ namespace Matrix.BuildingBlocks.Application.Security.InternalApiKey
             {
                 if (string.IsNullOrWhiteSpace(keyId) ||
                     string.IsNullOrWhiteSpace(apiKey))
-                {
                     continue;
-                }
 
                 InternalJwtSigningKeyPolicy.EnsureStrong(
                     signingKey: apiKey,

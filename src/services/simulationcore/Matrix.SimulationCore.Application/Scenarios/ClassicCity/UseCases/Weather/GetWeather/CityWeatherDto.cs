@@ -22,7 +22,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weath
         DateTimeOffset LastTransitionAtUtc,
         CityWeatherOverrideDto? ActiveOverride)
     {
-        public static CityWeatherDto FromDomain(CityWeather weather, City city)
+        public static CityWeatherDto FromDomain(
+            CityWeather weather,
+            City city)
         {
             return new CityWeatherDto(
                 CityId: weather.CityId.Value,

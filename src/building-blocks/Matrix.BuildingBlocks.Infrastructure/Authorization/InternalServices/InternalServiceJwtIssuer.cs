@@ -11,8 +11,8 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
         IOptions<InternalServiceJwtOptions> options,
         TimeProvider timeProvider) : IInternalServiceJwtIssuer
     {
-        private readonly InternalServiceJwtOptions _options = options.Value;
         private readonly InternalJwtResolvedKeyRing _keyRing = ValidateOptions(options.Value);
+        private readonly InternalServiceJwtOptions _options = options.Value;
         private readonly TimeProvider _timeProvider = timeProvider;
 
         public string Issue(
@@ -21,7 +21,9 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
             IReadOnlyCollection<string> permissions)
         {
             if (string.IsNullOrWhiteSpace(serviceName))
-                throw new ArgumentException("Internal service name must be provided.", nameof(serviceName));
+                throw new ArgumentException(
+                    message: "Internal service name must be provided.",
+                    paramName: nameof(serviceName));
 
             var claims = new List<Claim>
             {
@@ -30,7 +32,8 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                     value: subjectId.ToString()),
                 new(
                     type: JwtRegisteredClaimNames.Jti,
-                    value: Guid.NewGuid().ToString()),
+                    value: Guid.NewGuid()
+                       .ToString()),
                 new(
                     type: JwtClaimNames.InternalTokenKind,
                     value: InternalJwtTokenKinds.Service),
@@ -42,12 +45,13 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
             foreach (string permission in permissions
                         .Where(x => !string.IsNullOrWhiteSpace(x))
                         .Distinct(StringComparer.Ordinal)
-                        .OrderBy(x => x, StringComparer.Ordinal))
-            {
-                claims.Add(new Claim(
-                    type: JwtClaimNames.Permission,
-                    value: permission));
-            }
+                        .OrderBy(
+                             keySelector: x => x,
+                             comparer: StringComparer.Ordinal))
+                claims.Add(
+                    new Claim(
+                        type: JwtClaimNames.Permission,
+                        value: permission));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_keyRing.CurrentSigningKey));
             var credentials = new SigningCredentials(
@@ -56,7 +60,8 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
 
             DateTimeOffset now = _timeProvider.GetUtcNow();
             DateTime issuedAtUtc = now.UtcDateTime;
-            DateTime expiresAtUtc = now.AddSeconds(_options.LifetimeSeconds).UtcDateTime;
+            DateTime expiresAtUtc = now.AddSeconds(_options.LifetimeSeconds)
+               .UtcDateTime;
 
             var header = new JwtHeader(credentials)
             {
@@ -71,7 +76,9 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                 expires: expiresAtUtc,
                 issuedAt: issuedAtUtc);
 
-            var token = new JwtSecurityToken(header, payload);
+            var token = new JwtSecurityToken(
+                header: header,
+                payload: payload);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

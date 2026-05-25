@@ -8,23 +8,38 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
 
         public static bool IsSupported(string value)
         {
-            return string.Equals(value, Pedestrian, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, ServiceVehicle, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, EmergencyResponse, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(
+                       a: value,
+                       b: Pedestrian,
+                       comparisonType: StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(
+                       a: value,
+                       b: ServiceVehicle,
+                       comparisonType: StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(
+                       a: value,
+                       b: EmergencyResponse,
+                       comparisonType: StringComparison.OrdinalIgnoreCase);
         }
 
         public static string Normalize(string value)
         {
-            return value.Replace("-", string.Empty, StringComparison.Ordinal)
-               .Replace("_", string.Empty, StringComparison.Ordinal)
-               .Trim()
-               .ToLowerInvariant() switch
-            {
-                "pedestrian" => Pedestrian,
-                "servicevehicle" => ServiceVehicle,
-                "emergencyresponse" => EmergencyResponse,
-                _ => value.Trim()
-            };
+            return value.Replace(
+                        oldValue: "-",
+                        newValue: string.Empty,
+                        comparisonType: StringComparison.Ordinal)
+                   .Replace(
+                        oldValue: "_",
+                        newValue: string.Empty,
+                        comparisonType: StringComparison.Ordinal)
+                   .Trim()
+                   .ToLowerInvariant() switch
+                {
+                    "pedestrian" => Pedestrian,
+                    "servicevehicle" => ServiceVehicle,
+                    "emergencyresponse" => EmergencyResponse,
+                    _ => value.Trim()
+                };
         }
     }
 }

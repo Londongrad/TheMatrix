@@ -31,7 +31,8 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
             }
 
             if (string.IsNullOrWhiteSpace(options.CurrentKeyId))
-                throw new InvalidOperationException($"{optionsPath}:CurrentKeyId is required when Keys are configured.");
+                throw new InvalidOperationException(
+                    $"{optionsPath}:CurrentKeyId is required when Keys are configured.");
 
             if (!normalizedKeys.TryGetValue(
                     key: options.CurrentKeyId,
@@ -51,8 +52,10 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
                 throw new ArgumentNullException(nameof(options));
 
             return NormalizeConfiguredKeys(
-                keys: options.Keys,
-                optionsPath: null).Count > 0;
+                           keys: options.Keys,
+                           optionsPath: null)
+                      .Count >
+                   0;
         }
 
         private static Dictionary<string, string> NormalizeConfiguredKeys(
@@ -67,9 +70,7 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
             {
                 if (string.IsNullOrWhiteSpace(keyId) ||
                     string.IsNullOrWhiteSpace(signingKey))
-                {
                     continue;
-                }
 
                 InternalJwtSigningKeyPolicy.EnsureStrong(
                     signingKey: signingKey,
