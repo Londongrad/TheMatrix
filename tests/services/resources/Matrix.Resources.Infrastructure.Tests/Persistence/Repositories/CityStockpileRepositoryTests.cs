@@ -48,5 +48,29 @@ namespace Matrix.Resources.Infrastructure.Tests.Persistence.Repositories
 
             Assert.Null(loaded);
         }
+
+        [Fact]
+        public async Task DeleteBySimulationHostIdAsync_RemovesExistingStateAndIgnoresMissingState()
+        {
+            await using ResourcesDbContext dbContext = CreateDbContext();
+            var repository = new CityStockpileRepository(dbContext);
+            await repository.AddAsync(
+                state: CreateState(),
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
+
+            await repository.DeleteBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
+            await repository.DeleteBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Null(
+                await repository.GetBySimulationHostIdAsync(
+                    simulationHostId: CreateHostId(),
+                    cancellationToken: CancellationToken.None));
+        }
     }
 }

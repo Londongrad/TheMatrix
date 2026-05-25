@@ -26,5 +26,17 @@ namespace Matrix.Resources.Infrastructure.Persistence.Repositories
                     cancellationToken: cancellationToken)
                .AsTask();
         }
+
+        public async Task DeleteBySimulationHostIdAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken)
+        {
+            CityStockpileState? state = await GetBySimulationHostIdAsync(
+                simulationHostId: simulationHostId,
+                cancellationToken: cancellationToken);
+
+            if (state is not null)
+                dbContext.CityStockpiles.Remove(state);
+        }
     }
 }

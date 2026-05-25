@@ -12,5 +12,9 @@ namespace Matrix.Resources.Application.Abstractions
         Task AddAsync(
             CityStockpileState state,
             CancellationToken cancellationToken);
+
+        Task DeleteBySimulationHostIdAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken);
     }
 }
