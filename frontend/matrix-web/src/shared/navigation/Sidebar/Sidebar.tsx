@@ -1,4 +1,4 @@
-import {NavLink, useLocation, useResolvedPath} from "react-router-dom";
+import {NavLink, useLocation, useResolvedPath} from "react-router";
 import type {NavItem} from "./types";
 import {ArrowLeft, ChevronLeft} from "lucide-react";
 import {IconLock} from "@shared/ui/icons/icons";

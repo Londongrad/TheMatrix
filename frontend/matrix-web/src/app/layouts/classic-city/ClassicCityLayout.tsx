@@ -1,4 +1,4 @@
-import {Outlet, useLocation, useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {Outlet, useLocation, useNavigate, useParams, useSearchParams} from "react-router";
 import {useMemo} from "react";
 import ShellLayout from "@shared/ui/layouts/ShellLayout/ShellLayout";
 import {filterNavItems} from "@shared/permissions/filterNavItems";

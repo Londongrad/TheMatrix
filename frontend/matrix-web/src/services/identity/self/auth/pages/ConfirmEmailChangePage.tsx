@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {Link, useSearchParams} from "react-router-dom";
+import {Link, useSearchParams} from "react-router";
 import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import {confirmEmailChange} from "@services/identity/api/self/auth/authApi";
 import {useAuth} from "@services/identity/api/self/auth/useAuth";

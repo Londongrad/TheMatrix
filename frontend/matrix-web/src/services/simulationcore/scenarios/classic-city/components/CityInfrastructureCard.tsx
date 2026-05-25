@@ -1,5 +1,5 @@
 import {useMemo} from "react";
-import {Link} from "react-router-dom";
+import {Link} from "react-router";
 import Button from "@shared/ui/controls/Button/Button";
 import Card from "@shared/ui/controls/Card/Card";
 import {

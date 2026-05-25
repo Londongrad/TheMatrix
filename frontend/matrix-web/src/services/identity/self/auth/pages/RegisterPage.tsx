@@ -1,6 +1,6 @@
 // src/services/identity/auth/pages/RegisterPage.tsx
 import React, {useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router";
 import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";

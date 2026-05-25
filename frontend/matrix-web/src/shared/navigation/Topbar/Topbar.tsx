@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from "react";
-import {useLocation, useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router";
 import {resolveMainLayoutReturnPath} from "@shared/navigation/utils/layoutExit";
 import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import "./topbar.css";

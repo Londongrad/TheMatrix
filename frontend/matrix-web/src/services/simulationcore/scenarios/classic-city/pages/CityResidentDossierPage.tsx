@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo} from "react";
-import {Link, Navigate, useParams, useSearchParams} from "react-router-dom";
+import {Link, Navigate, useParams, useSearchParams} from "react-router";
 import {useCityDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityResidentDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityResidentDetails";
 import type {CityResidentActiveTripDto, CityResidentRouteAccessDto,} from "@services/population/person/api/personTypes";

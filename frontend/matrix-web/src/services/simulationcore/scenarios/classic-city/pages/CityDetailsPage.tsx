@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {Navigate, useNavigate, useParams, useSearchParams} from "react-router";
 import {CityDashboardCard} from "@services/simulationcore/scenarios/classic-city/components/CityDashboardCard";
 import {CityEconomyCard} from "@services/simulationcore/scenarios/classic-city/components/CityEconomyCard";
 import {

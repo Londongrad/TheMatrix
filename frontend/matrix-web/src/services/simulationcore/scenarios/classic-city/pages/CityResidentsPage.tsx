@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef} from "react";
-import {Navigate, useNavigate, useParams} from "react-router-dom";
+import {Navigate, useNavigate, useParams} from "react-router";
 import {getCityResidentsPage} from "@services/simulationcore/scenarios/classic-city/api/residentsApi";
 import {useCityDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDetails";
 import {

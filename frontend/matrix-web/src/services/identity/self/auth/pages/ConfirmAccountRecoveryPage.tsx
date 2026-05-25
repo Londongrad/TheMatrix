@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {Link, useSearchParams} from "react-router-dom";
+import {Link, useSearchParams} from "react-router";
 import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import {confirmAccountRecovery} from "@services/identity/api/self/auth/authApi";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";

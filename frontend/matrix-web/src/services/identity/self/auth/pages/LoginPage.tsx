@@ -1,6 +1,6 @@
 // src/services/identity/auth/pages/LoginPage.tsx
 import React, {useState} from "react";
-import {Link, useLocation, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router";
 import {HttpError} from "@shared/api/http";
 import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import {useAuth} from "@services/identity/api/self/auth/useAuth";

@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Link, useSearchParams} from "react-router-dom";
+import {Link, useSearchParams} from "react-router";
 import {HttpError} from "@shared/api/http";
 import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import {resetPassword} from "@services/identity/api/self/auth/authApi";

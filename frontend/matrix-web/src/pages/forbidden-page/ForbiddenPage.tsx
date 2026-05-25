@@ -1,5 +1,5 @@
 // src/pages/forbidden-page/ForbiddenPage.tsx
-import {useLocation, useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router";
 import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import MatrixBackdrop from "@shared/ui/backgrounds/BackgroundRain/MatrixRainBackground";
 import {useWorkspacePreferences} from "@shared/theme/workspacePreferencesContext";

@@ -1,5 +1,5 @@
 // src/app/layouts/MainLayout.tsx
-import {Outlet} from "react-router-dom";
+import {Outlet} from "react-router";
 import {useMemo} from "react";
 import ShellLayout from "@shared/ui/layouts/ShellLayout/ShellLayout";
 import {mainNavItems} from "@shared/navigation/Items/MainItems";

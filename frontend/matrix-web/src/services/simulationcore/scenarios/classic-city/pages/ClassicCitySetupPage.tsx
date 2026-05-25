@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import {Link, useNavigate, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import Button from "@shared/ui/controls/Button/Button";
 import {

@@ -1,5 +1,5 @@
 import {Fragment, lazy} from "react";
-import {Navigate, Route} from "react-router-dom";
+import {Navigate, Route} from "react-router";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
 import {
     CLASSIC_CITY_CIVIL_REGISTRY_PATH_PATTERN,

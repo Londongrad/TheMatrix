@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {useSearchParams} from "react-router-dom";
+import {useSearchParams} from "react-router";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import {usePermissions} from "@shared/permissions/usePermissions";

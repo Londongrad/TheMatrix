@@ -2,7 +2,7 @@
 
 import {cleanup, render, screen} from "@testing-library/react";
 import {afterEach, describe, expect, it} from "vitest";
-import {MemoryRouter, Route, Routes} from "react-router-dom";
+import {MemoryRouter, Route, Routes} from "react-router";
 
 import type {PermissionMatchMode} from "@shared/permissions/permissionMatchMode";
 import {AuthContext} from "@services/identity/api/self/auth/authContextShared";

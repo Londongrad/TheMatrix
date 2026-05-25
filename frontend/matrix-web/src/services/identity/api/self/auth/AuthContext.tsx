@@ -1,6 +1,6 @@
 // src/services/identity/api/auth/AuthContext.tsx
 import {type PropsWithChildren, useCallback, useEffect, useRef, useState,} from "react";
-import {useLocation, useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import type {LoginRequest} from "./authTypes";
 import {fetchProfile} from "@services/identity/api/self/account/accountApi";

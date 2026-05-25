@@ -1,5 +1,5 @@
 // src/app/layouts/admin/AdminLayout.tsx
-import {Outlet, useLocation, useNavigate} from "react-router-dom";
+import {Outlet, useLocation, useNavigate} from "react-router";
 import {useEffect, useMemo, useRef} from "react";
 import ShellLayout from "@shared/ui/layouts/ShellLayout/ShellLayout";
 import {adminNavItems} from "@shared/navigation/Items/AdminItems";

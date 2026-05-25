@@ -1,5 +1,5 @@
 import {useMemo, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router";
 import CityList from "@services/simulationcore/scenarios/classic-city/components/CityList";
 import SetupSessionList from "@services/simulationcore/scenarios/classic-city/components/SetupSessionList";
 import {deleteClassicCitySetupSession,} from "@services/simulationcore/scenarios/classic-city/api/setupSessionsApi";

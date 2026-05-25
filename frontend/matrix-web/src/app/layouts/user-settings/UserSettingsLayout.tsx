@@ -1,4 +1,4 @@
-import {Outlet, useLocation, useNavigate} from "react-router-dom";
+import {Outlet, useLocation, useNavigate} from "react-router";
 import {useEffect, useMemo, useRef} from "react";
 import ShellLayout from "@shared/ui/layouts/ShellLayout/ShellLayout";
 import {userSettingsNavItems} from "@shared/navigation/Items/UserSettingsItems";

@@ -1,4 +1,4 @@
-import {Navigate, useLocation} from "react-router-dom";
+import {Navigate, useLocation} from "react-router";
 import type {ReactElement} from "react";
 import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import {LoadingScreen} from "@services/identity/self/auth/components/LoadingScreen";

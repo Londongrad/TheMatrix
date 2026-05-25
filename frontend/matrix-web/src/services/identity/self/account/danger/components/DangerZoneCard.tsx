@@ -1,5 +1,5 @@
 import {useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router";
 import {deleteAccount} from "@services/identity/api/self/account/accountApi";
 import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import DeleteAccountDialog from "@services/identity/self/account/danger/components/DeleteAccountDialog";
