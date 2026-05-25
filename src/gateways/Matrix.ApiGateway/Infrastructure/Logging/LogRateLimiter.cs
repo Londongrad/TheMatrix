@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace Matrix.ApiGateway.Infrastructure.Logging
@@ -20,7 +20,8 @@ namespace Matrix.ApiGateway.Infrastructure.Logging
                     key: key,
                     value: 0);
 
-                if (now - last < periodTicks)
+                if (last != 0 &&
+                    now - last < periodTicks)
                     return false;
 
                 if (LastLogAt.TryUpdate(
