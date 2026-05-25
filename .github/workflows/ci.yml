@@ -38,7 +38,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Restore solution
+      - name: Restore and audit backend dependencies
         run: dotnet restore TheMatrix.sln
 
       - name: Build solution
@@ -46,9 +46,6 @@ jobs:
 
       - name: Test solution
         run: dotnet test TheMatrix.sln --configuration Release --no-build
-
-      - name: Scan NuGet packages for known vulnerabilities
-        run: dotnet list TheMatrix.sln package --vulnerable --include-transitive
 
   frontend:
     name: Frontend Lint and Build
