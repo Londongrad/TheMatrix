@@ -56,7 +56,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (!person.HasActiveIllness ||
                 person.CurrentIllnessKind is not
-                    { } illnessKind)
+                { } illnessKind)
                 return changed;
 
             if (!diagnosedThisPass &&
@@ -215,7 +215,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             if (!person.HasActiveIllness ||
                 person.CurrentIllnessSeverity is not
-                    { } severity)
+                { } severity)
                 return false;
 
             double health = Normalize(person.Health.Value);

@@ -117,11 +117,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                 else
                     if (phaseWindow.ShouldDispatchReturnCommutes &&
                         !activeTripKeys.Contains(workTripKey))
-                        TryAddEmploymentReturnCandidate(
-                            tickId: tickId,
-                            resident: resident,
-                            residentialBuildingId: residentialBuildingId.Value,
-                            candidates: candidates);
+                    TryAddEmploymentReturnCandidate(
+                        tickId: tickId,
+                        resident: resident,
+                        residentialBuildingId: residentialBuildingId.Value,
+                        candidates: candidates);
 
                 string educationTripKey = BuildTripConcurrencyKey(
                     travellerEntityId: resident.Id.Value,
@@ -138,11 +138,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                 else
                     if (phaseWindow.ShouldDispatchReturnCommutes &&
                         !activeTripKeys.Contains(educationTripKey))
-                        TryAddEducationReturnCandidate(
-                            tickId: tickId,
-                            resident: resident,
-                            residentialBuildingId: residentialBuildingId.Value,
-                            candidates: candidates);
+                    TryAddEducationReturnCandidate(
+                        tickId: tickId,
+                        resident: resident,
+                        residentialBuildingId: residentialBuildingId.Value,
+                        candidates: candidates);
             }
 
             foreach (CommuteTripCandidate candidate in candidates
@@ -185,7 +185,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
         {
             if (resident.Employment.Status != EmploymentStatus.Employed ||
                 resident.Employment.Job?.WorkplaceAnchorId is not
-                    { } workplaceAnchorId)
+                { } workplaceAnchorId)
                 return;
 
             CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEmploymentCommuteAsync(
@@ -223,7 +223,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
         {
             if (resident.Employment.Status != EmploymentStatus.Employed ||
                 resident.Employment.Job?.WorkplaceAnchorId is not
-                    { } workplaceAnchorId)
+                { } workplaceAnchorId)
                 return;
 
             candidates.Add(
@@ -313,7 +313,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
         {
             if (resident.Employment.Status != EmploymentStatus.Student ||
                 resident.Education.CurrentInstitutionAnchorId is not
-                    { } institutionAnchorId)
+                { } institutionAnchorId)
                 return;
 
             CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEducationCommuteAsync(
@@ -351,7 +351,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
         {
             if (resident.Employment.Status != EmploymentStatus.Student ||
                 resident.Education.CurrentInstitutionAnchorId is not
-                    { } institutionAnchorId)
+                { } institutionAnchorId)
                 return;
 
             candidates.Add(

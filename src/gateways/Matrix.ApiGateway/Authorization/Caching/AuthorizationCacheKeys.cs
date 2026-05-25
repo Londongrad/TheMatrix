@@ -1,4 +1,4 @@
-﻿namespace Matrix.ApiGateway.Authorization.Caching
+namespace Matrix.ApiGateway.Authorization.Caching
 {
     public static class AuthorizationCacheKeys
     {

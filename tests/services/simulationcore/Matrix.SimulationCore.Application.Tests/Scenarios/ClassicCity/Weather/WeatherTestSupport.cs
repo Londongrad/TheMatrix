@@ -114,7 +114,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Weather
 
             public required
                 Func<CityEnvironment, WeatherClimateProfile, CityGenerationSeed, SimTime, WeatherState?, WeatherState>
-                Planner { get; init; }
+                Planner
+            { get; init; }
 
             public WeatherState PlanNaturalState(
                 CityEnvironment environment,

@@ -73,13 +73,13 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
         {
             return authorizationLevel.Trim()
                    .ToLowerInvariant() switch
-                {
-                    "none" => 0,
-                    "low" => 1,
-                    "medium" => 2,
-                    "high" => 3,
-                    _ => 3
-                };
+            {
+                "none" => 0,
+                "low" => 1,
+                "medium" => 2,
+                "high" => 3,
+                _ => 3
+            };
         }
 
         private static (string AuthorizationLevel, decimal AvailableAmount) ResolveBudgetEnvelope(

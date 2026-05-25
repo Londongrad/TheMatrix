@@ -207,7 +207,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Rou
             public CityPopulationCommuteContext? SingleResult { get; set; }
 
             public Dictionary<CityRouteResolutionBatchRequestItem, CityPopulationCommuteContext?>
-                BatchResults { get; } = [];
+                BatchResults
+            { get; } = [];
 
             public List<IReadOnlyCollection<CityRouteResolutionBatchRequestItem>> BatchRequests { get; } = [];
 

@@ -13,11 +13,11 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
         {
             return simulationKind?.Trim()
                    .ToUpperInvariant() switch
-                {
-                    "CLASSICCITY" => BuildClassicCityTemplate(economyProfile),
-                    "METRO" => BuildMetroTemplate(),
-                    _ => BuildFallbackTemplate()
-                };
+            {
+                "CLASSICCITY" => BuildClassicCityTemplate(economyProfile),
+                "METRO" => BuildMetroTemplate(),
+                _ => BuildFallbackTemplate()
+            };
         }
 
         private static CityEconomySimulationTemplate BuildClassicCityTemplate(string? economyProfile)

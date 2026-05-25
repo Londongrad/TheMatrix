@@ -43,21 +43,21 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessionHistory
 
             IReadOnlyCollection<MySessionResult> items = sessions
                .Select(t => new MySessionResult
-                {
-                    Id = t.Id,
-                    DeviceId = t.DeviceInfo.DeviceId,
-                    DeviceName = t.DeviceInfo.DeviceName,
-                    UserAgent = t.DeviceInfo.UserAgent,
-                    IpAddress = t.DeviceInfo.IpAddress,
-                    Country = t.GeoLocation?.Country,
-                    Region = t.GeoLocation?.Region,
-                    City = t.GeoLocation?.City,
-                    CreatedAtUtc = t.CreatedAtUtc,
-                    LastUsedAtUtc = t.LastUsedAtUtc,
-                    RefreshTokenExpiresAtUtc = t.RefreshTokenExpiresAtUtc,
-                    IsActive = false,
-                    IsPersistent = t.IsPersistent
-                })
+               {
+                   Id = t.Id,
+                   DeviceId = t.DeviceInfo.DeviceId,
+                   DeviceName = t.DeviceInfo.DeviceName,
+                   UserAgent = t.DeviceInfo.UserAgent,
+                   IpAddress = t.DeviceInfo.IpAddress,
+                   Country = t.GeoLocation?.Country,
+                   Region = t.GeoLocation?.Region,
+                   City = t.GeoLocation?.City,
+                   CreatedAtUtc = t.CreatedAtUtc,
+                   LastUsedAtUtc = t.LastUsedAtUtc,
+                   RefreshTokenExpiresAtUtc = t.RefreshTokenExpiresAtUtc,
+                   IsActive = false,
+                   IsPersistent = t.IsPersistent
+               })
                .ToArray();
 
             return new PagedResult<MySessionResult>(

@@ -964,7 +964,8 @@ namespace Matrix.Identity.Application.Tests.UseCases.Self
         internal sealed class FakePendingEmailChangeDeliveryService : IPendingEmailChangeDeliveryService
         {
             public List<(Guid UserId, string PendingEmail, string? IpAddress, string? UserAgent, SecurityAuditEventType
-                EventType)> Requests { get; } = new();
+                EventType)> Requests
+            { get; } = new();
 
             public Task SendConfirmationAsync(
                 User user,

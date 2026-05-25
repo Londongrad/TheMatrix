@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;

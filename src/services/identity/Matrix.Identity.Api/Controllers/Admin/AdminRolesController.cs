@@ -138,16 +138,16 @@ namespace Matrix.Identity.Api.Controllers.Admin
 
             var mapped = new PagedResult<UserListItemResponse>(
                 items: result.Items.Select(u => new UserListItemResponse
-                    {
-                        Id = u.Id,
-                        AvatarUrl = u.AvatarUrl,
-                        Email = u.Email,
-                        Username = u.Username,
-                        IsEmailConfirmed = u.IsEmailConfirmed,
-                        IsLocked = u.IsLocked,
-                        CreatedAtUtc = u.CreatedAtUtc,
-                        LastVisitedAtUtc = u.LastVisitedAtUtc
-                    })
+                {
+                    Id = u.Id,
+                    AvatarUrl = u.AvatarUrl,
+                    Email = u.Email,
+                    Username = u.Username,
+                    IsEmailConfirmed = u.IsEmailConfirmed,
+                    IsLocked = u.IsLocked,
+                    CreatedAtUtc = u.CreatedAtUtc,
+                    LastVisitedAtUtc = u.LastVisitedAtUtc
+                })
                    .ToList(),
                 totalCount: result.TotalCount,
                 pageNumber: result.PageNumber,

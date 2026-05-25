@@ -337,7 +337,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 chance += 0.008d;
             else
                 if (continuationLevel == EducationLevel.Postgraduate)
-                    chance += 0.004d;
+                chance += 0.004d;
 
             return Math.Clamp(
                 value: chance,
@@ -472,10 +472,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                .Select((
                     anchorId,
                     index) => new
-                {
-                    anchorId,
-                    index
-                })
+                    {
+                        anchorId,
+                        index
+                    })
                .ToDictionary(
                     keySelector: x => x.anchorId,
                     elementSelector: x => x.index);

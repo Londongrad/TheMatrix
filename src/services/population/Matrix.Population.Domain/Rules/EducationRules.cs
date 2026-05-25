@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Errors;
 

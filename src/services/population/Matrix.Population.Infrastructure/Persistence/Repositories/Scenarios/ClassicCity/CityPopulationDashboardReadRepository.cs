@@ -149,7 +149,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .AsNoTracking()
                .Where(x => householdIds.Contains(x.Id))
                .ToArrayAsync(cancellationToken);
-            var householdsById = households.ToDictionary(
+            Dictionary<HouseholdId, Household> householdsById = households.ToDictionary(
                 keySelector: x => x.Id,
                 elementSelector: x => x);
 
@@ -248,7 +248,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     strainedHouseholdCount++;
                 else
                     if (economyProfile.GrowthReadinessScore >= 0.60d && economyProfile.EconomicBalance >= 0d)
-                        stableHouseholdCount++;
+                    stableHouseholdCount++;
 
                 if (economyProfile.HasCashDeficit || adjustedDailyNetAmount < 0m)
                     deficitHouseholdCount++;

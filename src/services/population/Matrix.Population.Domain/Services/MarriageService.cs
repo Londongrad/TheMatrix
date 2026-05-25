@@ -1,4 +1,4 @@
-﻿using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Rules;
 using Matrix.Population.Domain.ValueObjects;
 

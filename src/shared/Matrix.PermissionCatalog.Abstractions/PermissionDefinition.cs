@@ -1,4 +1,4 @@
-﻿namespace Matrix.PermissionCatalog.Abstractions
+namespace Matrix.PermissionCatalog.Abstractions
 {
     public sealed record PermissionDefinition(
         string Key,

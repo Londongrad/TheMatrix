@@ -38,19 +38,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                               throw ApplicationErrorsFactory.PersonNotFound(request.PersonId);
 
             Person? currentSpouse = resident.SpouseId is not
-                { } spouseId
+            { } spouseId
                 ? null
                 : await personReadRepository.FindByIdAsync(
                     id: spouseId,
                     cancellationToken: cancellationToken);
             Person? mother = resident.MotherId is not
-                { } motherId
+            { } motherId
                 ? null
                 : await personReadRepository.FindByIdAsync(
                     id: motherId,
                     cancellationToken: cancellationToken);
             Person? father = resident.FatherId is not
-                { } fatherId
+            { } fatherId
                 ? null
                 : await personReadRepository.FindByIdAsync(
                     id: fatherId,

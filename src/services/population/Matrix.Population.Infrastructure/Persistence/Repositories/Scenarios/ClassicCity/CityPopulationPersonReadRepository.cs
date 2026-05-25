@@ -154,10 +154,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .AsNoTracking()
                .Where(x => x.CityId == cityId)
                .Select(x => new
-                {
-                    HouseholdId = x.HouseholdId.Value,
-                    x.HousingStatus
-                })
+               {
+                   HouseholdId = x.HouseholdId.Value,
+                   x.HousingStatus
+               })
                .ToListAsync(cancellationToken);
 
             return rows.ToDictionary(
@@ -188,11 +188,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             return rows
                .GroupBy(x => new
-                {
-                    x.WorkplaceId,
-                    x.WorkplaceAnchorId,
-                    x.JobTitle
-                })
+               {
+                   x.WorkplaceId,
+                   x.WorkplaceAnchorId,
+                   x.JobTitle
+               })
                .OrderByDescending(x => x.Count())
                .ThenBy(
                     keySelector: x => x.Key.JobTitle,
@@ -232,22 +232,22 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             var snapshot = rows
                .GroupBy(x => new
-                {
-                    x.WorkplaceId,
-                    x.WorkplaceAnchorId,
-                    x.JobTitle
-                })
+               {
+                   x.WorkplaceId,
+                   x.WorkplaceAnchorId,
+                   x.JobTitle
+               })
                .OrderByDescending(x => x.Count())
                .ThenBy(
                     keySelector: x => x.Key.JobTitle,
                     comparer: StringComparer.OrdinalIgnoreCase)
                .Select(x => new
-                {
-                    x.Key.WorkplaceId,
-                    x.Key.WorkplaceAnchorId,
-                    x.Key.JobTitle,
-                    ResidentCount = x.Count()
-                })
+               {
+                   x.Key.WorkplaceId,
+                   x.Key.WorkplaceAnchorId,
+                   x.Key.JobTitle,
+                   ResidentCount = x.Count()
+               })
                .FirstOrDefault();
 
             return snapshot is null
@@ -284,11 +284,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             return rows
                .GroupBy(x => new
-                {
-                    x.InstitutionId,
-                    x.InstitutionAnchorId,
-                    x.Level
-                })
+               {
+                   x.InstitutionId,
+                   x.InstitutionAnchorId,
+                   x.Level
+               })
                .OrderByDescending(x => x.Count())
                .ThenBy(x => x.Key.Level)
                .Select(x => new CityEducationInstitutionSnapshot(
@@ -326,20 +326,20 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             var snapshot = rows
                .GroupBy(x => new
-                {
-                    x.InstitutionId,
-                    x.InstitutionAnchorId,
-                    x.Level
-                })
+               {
+                   x.InstitutionId,
+                   x.InstitutionAnchorId,
+                   x.Level
+               })
                .OrderByDescending(x => x.Count())
                .ThenBy(x => x.Key.Level)
                .Select(x => new
-                {
-                    x.Key.InstitutionId,
-                    x.Key.InstitutionAnchorId,
-                    x.Key.Level,
-                    ResidentCount = x.Count()
-                })
+               {
+                   x.Key.InstitutionId,
+                   x.Key.InstitutionAnchorId,
+                   x.Key.Level,
+                   ResidentCount = x.Count()
+               })
                .FirstOrDefault();
 
             return snapshot is null

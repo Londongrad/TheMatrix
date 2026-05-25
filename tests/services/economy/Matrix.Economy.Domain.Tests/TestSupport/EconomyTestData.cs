@@ -54,18 +54,18 @@ namespace Matrix.Economy.Domain.Tests.TestSupport
                         referenceCode: "seed"));
             else
                 if (balance < 0m)
-                    budget.ApplyLedgerEntry(
-                        new CityBudgetLedgerEntry(
-                            id: Guid.Parse("10000000-0000-0000-0000-000000000102"),
-                            cityId: cityId,
-                            occurredAtUtc: DefaultCreatedAtUtc,
-                            kind: CityBudgetLedgerEntryKind.Expense,
-                            category: CityBudgetCategory.General,
-                            amount: Money.FromDecimal(Math.Abs(balance)),
-                            title: "Budget seed expense",
-                            description: "Budget seed expense",
-                            source: CityBudgetLedgerEntrySource.MunicipalOperations,
-                            referenceCode: "seed"));
+                budget.ApplyLedgerEntry(
+                    new CityBudgetLedgerEntry(
+                        id: Guid.Parse("10000000-0000-0000-0000-000000000102"),
+                        cityId: cityId,
+                        occurredAtUtc: DefaultCreatedAtUtc,
+                        kind: CityBudgetLedgerEntryKind.Expense,
+                        category: CityBudgetCategory.General,
+                        amount: Money.FromDecimal(Math.Abs(balance)),
+                        title: "Budget seed expense",
+                        description: "Budget seed expense",
+                        source: CityBudgetLedgerEntrySource.MunicipalOperations,
+                        referenceCode: "seed"));
 
             return budget;
         }

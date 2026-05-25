@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
 

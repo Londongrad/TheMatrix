@@ -1,4 +1,4 @@
-﻿namespace Matrix.Population.Domain.Enums
+namespace Matrix.Population.Domain.Enums
 {
     /// <summary>
     ///     Age group of a person.

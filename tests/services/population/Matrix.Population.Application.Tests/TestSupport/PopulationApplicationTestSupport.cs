@@ -431,7 +431,8 @@ namespace Matrix.Population.Application.Tests.TestSupport
             public List<CityId> EnsuredCityIds { get; } = [];
 
             public List<(CityId CityId, DateOnly CurrentDate, int PersonCount, int PlacementCount, bool
-                IncludeCommuteMetrics)> UpdateCalls { get; } = [];
+                IncludeCommuteMetrics)> UpdateCalls
+            { get; } = [];
 
             public List<CityId> DeletedCityIds { get; } = [];
 
@@ -639,7 +640,8 @@ namespace Matrix.Population.Application.Tests.TestSupport
             public int DeleteByCityCalls { get; private set; }
 
             public List<(IReadOnlyCollection<Household> Households, IReadOnlyCollection<ClassicCityHouseholdPlacement>
-                Placements)> AddedRanges { get; } = [];
+                Placements)> AddedRanges
+            { get; } = [];
 
             public IReadOnlyCollection<ClassicCityHouseholdPlacement> PlacementsByCityResult { get; set; } =
                 Array.Empty<ClassicCityHouseholdPlacement>();

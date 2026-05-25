@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 
 namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
 {

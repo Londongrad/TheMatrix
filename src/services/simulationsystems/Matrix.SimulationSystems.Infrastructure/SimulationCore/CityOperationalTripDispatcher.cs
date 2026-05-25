@@ -104,11 +104,11 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
         {
             return intensity.Trim()
                    .ToLowerInvariant() switch
-                {
-                    "heavy" => 1.18m,
-                    "standard" => 1.08m,
-                    _ => 0.96m
-                };
+            {
+                "heavy" => 1.18m,
+                "standard" => 1.08m,
+                _ => 0.96m
+            };
         }
     }
 }

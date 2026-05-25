@@ -97,10 +97,10 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                .AsNoTracking()
                .Where(x => x.CityId == cityId)
                .Select(x => new
-                {
-                    x.ResidentCount,
-                    x.HouseholdCount
-                })
+               {
+                   x.ResidentCount,
+                   x.HouseholdCount
+               })
                .SingleOrDefaultAsync(cancellationToken);
 
             if (projectionPresence is not null)

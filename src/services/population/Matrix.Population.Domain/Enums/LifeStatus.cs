@@ -1,4 +1,4 @@
-﻿namespace Matrix.Population.Domain.Enums
+namespace Matrix.Population.Domain.Enums
 {
     /// <summary>
     ///     Life status of a person:

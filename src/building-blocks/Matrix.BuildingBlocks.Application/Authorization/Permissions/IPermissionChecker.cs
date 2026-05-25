@@ -1,4 +1,4 @@
-﻿namespace Matrix.BuildingBlocks.Application.Authorization.Permissions
+namespace Matrix.BuildingBlocks.Application.Authorization.Permissions
 {
     public interface IPermissionChecker
     {

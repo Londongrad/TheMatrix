@@ -49,17 +49,17 @@ namespace Matrix.Identity.Api.Controllers.Admin
 
             var mapped = new PagedResult<UserListItemResponse>(
                 items: result.Items.Select(u => new UserListItemResponse
-                    {
-                        Id = u.Id,
-                        AvatarUrl = u.AvatarUrl,
-                        Email = u.Email,
-                        Username = u.Username,
-                        IsEmailConfirmed = u.IsEmailConfirmed,
-                        IsLocked = u.IsLocked,
-                        IsDeleted = u.IsDeleted,
-                        CreatedAtUtc = u.CreatedAtUtc,
-                        LastVisitedAtUtc = u.LastVisitedAtUtc
-                    })
+                {
+                    Id = u.Id,
+                    AvatarUrl = u.AvatarUrl,
+                    Email = u.Email,
+                    Username = u.Username,
+                    IsEmailConfirmed = u.IsEmailConfirmed,
+                    IsLocked = u.IsLocked,
+                    IsDeleted = u.IsDeleted,
+                    CreatedAtUtc = u.CreatedAtUtc,
+                    LastVisitedAtUtc = u.LastVisitedAtUtc
+                })
                    .ToList(),
                 totalCount: result.TotalCount,
                 pageNumber: result.PageNumber,
@@ -164,12 +164,12 @@ namespace Matrix.Identity.Api.Controllers.Admin
 
             var response = result
                .Select(role => new UserRoleResponse
-                {
-                    Id = role.Id,
-                    Name = role.Name,
-                    IsSystem = role.IsSystem,
-                    CreatedAtUtc = role.CreatedAtUtc
-                })
+               {
+                   Id = role.Id,
+                   Name = role.Name,
+                   IsSystem = role.IsSystem,
+                   CreatedAtUtc = role.CreatedAtUtc
+               })
                .ToList();
 
             return Ok(response);
@@ -209,10 +209,10 @@ namespace Matrix.Identity.Api.Controllers.Admin
 
             var response = result
                .Select(permission => new UserPermissionResponse
-                {
-                    PermissionKey = permission.PermissionKey,
-                    Effect = permission.Effect.ToString()
-                })
+               {
+                   PermissionKey = permission.PermissionKey,
+                   Effect = permission.Effect.ToString()
+               })
                .ToList();
 
             return Ok(response);

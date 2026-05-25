@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text.Json;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
 using Matrix.ApiGateway.Authorization.AuthContext.Options;
@@ -79,11 +79,11 @@ namespace Matrix.ApiGateway.Authorization.AuthContext
                 }
                 else
                     if (logger.IsEnabled(LogLevel.Debug))
-                        logger.LogDebug(
-                            message:
-                            "AuthContext cache miss for user {UserId}. CacheKey={CacheKey}. Falling back to Identity.",
-                            userId,
-                            cacheKey);
+                    logger.LogDebug(
+                        message:
+                        "AuthContext cache miss for user {UserId}. CacheKey={CacheKey}. Falling back to Identity.",
+                        userId,
+                        cacheKey);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

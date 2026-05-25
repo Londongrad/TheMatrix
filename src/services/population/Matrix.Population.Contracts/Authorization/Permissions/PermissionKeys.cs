@@ -1,4 +1,4 @@
-﻿namespace Matrix.Population.Contracts.Authorization.Permissions
+namespace Matrix.Population.Contracts.Authorization.Permissions
 {
     public static class PermissionKeys
     {

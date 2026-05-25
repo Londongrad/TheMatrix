@@ -1,4 +1,4 @@
-﻿using Matrix.ApiGateway.Authorization.AuthContext.Options;
+using Matrix.ApiGateway.Authorization.AuthContext.Options;
 using Matrix.ApiGateway.Authorization.InternalJwt;
 using Matrix.ApiGateway.Authorization.InternalJwt.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion;

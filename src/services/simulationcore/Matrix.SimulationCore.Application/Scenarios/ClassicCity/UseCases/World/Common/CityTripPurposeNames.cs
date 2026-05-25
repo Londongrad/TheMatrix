@@ -35,15 +35,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World
                         comparisonType: StringComparison.Ordinal)
                    .Trim()
                    .ToLowerInvariant() switch
-                {
-                    "workcommute" => WorkCommute,
-                    "educationcommute" => EducationCommute,
-                    "healthcareaccess" => HealthcareAccess,
-                    "leisurewalk" => LeisureWalk,
-                    "serviceresponse" => ServiceResponse,
-                    "householdrelocation" => HouseholdRelocation,
-                    _ => value.Trim()
-                };
+            {
+                "workcommute" => WorkCommute,
+                "educationcommute" => EducationCommute,
+                "healthcareaccess" => HealthcareAccess,
+                "leisurewalk" => LeisureWalk,
+                "serviceresponse" => ServiceResponse,
+                "householdrelocation" => HouseholdRelocation,
+                _ => value.Trim()
+            };
         }
 
         public static CityTripPurpose ToDomain(string value)

@@ -80,7 +80,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         access *= 0.75d;
                     else
                         if (travelTimeMinutes >= 45d)
-                            access *= 0.88d;
+                        access *= 0.88d;
                 }
             }
 
@@ -121,9 +121,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     access += triagePressure * 0.05d;
                 else
                     if (resident.CurrentIllnessSeverity == IllnessSeverity.Moderate)
-                        access -= triagePressure * 0.01d;
-                    else
-                        access -= triagePressure * 0.04d;
+                    access -= triagePressure * 0.01d;
+                else
+                    access -= triagePressure * 0.04d;
             }
 
             return Math.Clamp(

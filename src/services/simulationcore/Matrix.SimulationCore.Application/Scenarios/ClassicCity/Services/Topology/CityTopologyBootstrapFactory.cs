@@ -1118,12 +1118,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
             }
             else
                 if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
-                {
-                    towerWeight += 10;
-                    houseWeight = Math.Max(
-                        val1: 2,
-                        val2: houseWeight - 5);
-                }
+            {
+                towerWeight += 10;
+                houseWeight = Math.Max(
+                    val1: 2,
+                    val2: houseWeight - 5);
+            }
 
             if (profile.SizeTier == CitySizeTier.Small && !isCentral)
                 towerWeight = Math.Max(
@@ -1242,19 +1242,19 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                 scale += 0.10m;
             else
                 if (profile.UrbanDensity == UrbanDensity.Sparse)
-                    scale -= 0.05m;
+                scale -= 0.05m;
 
             if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
                 scale += 0.08m;
             else
                 if (profile.DevelopmentLevel == CityDevelopmentLevel.Struggling)
-                    scale -= 0.05m;
+                scale -= 0.05m;
 
             if (profile.SizeTier == CitySizeTier.Large)
                 scale += 0.06m;
             else
                 if (profile.SizeTier == CitySizeTier.Small)
-                    scale -= 0.03m;
+                scale -= 0.03m;
 
             return Math.Clamp(
                 value: scale,

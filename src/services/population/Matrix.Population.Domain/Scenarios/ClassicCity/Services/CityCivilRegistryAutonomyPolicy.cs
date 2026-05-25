@@ -122,7 +122,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 if (!resident.IsAlive ||
                     resident.MaritalStatus != MaritalStatus.Married ||
                     resident.SpouseId is not
-                        { } spouseId ||
+                    { } spouseId ||
                     resident.GetAgeGroup(currentDate) != AgeGroup.Adult)
                     continue;
 

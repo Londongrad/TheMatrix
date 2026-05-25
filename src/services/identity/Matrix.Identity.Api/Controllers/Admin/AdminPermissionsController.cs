@@ -28,13 +28,13 @@ namespace Matrix.Identity.Api.Controllers.Admin
 
             var response = result
                .Select(permission => new PermissionCatalogItemResponse
-                {
-                    Key = permission.Key,
-                    Service = permission.Service,
-                    Group = permission.Group,
-                    Description = permission.Description,
-                    IsDeprecated = permission.IsDeprecated
-                })
+               {
+                   Key = permission.Key,
+                   Service = permission.Service,
+                   Group = permission.Group,
+                   Description = permission.Description,
+                   IsDeprecated = permission.IsDeprecated
+               })
                .ToList();
 
             return Ok(response);

@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Entities;
 using Matrix.PermissionCatalog;
 using Matrix.PermissionCatalog.Abstractions;
 using Microsoft.EntityFrameworkCore;

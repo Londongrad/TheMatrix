@@ -683,7 +683,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                 [];
 
             public List<(ResidentialBuildingId? ResidentialBuildingId, CityAnchorId? DestinationAnchorId)>
-                AnchorRequests { get; } = [];
+                AnchorRequests
+            { get; } = [];
 
             public List<IReadOnlyCollection<CityPopulationCommuteRouteRequest>> PreloadRequests { get; } = [];
 

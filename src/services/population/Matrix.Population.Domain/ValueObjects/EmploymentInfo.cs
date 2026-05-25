@@ -1,4 +1,4 @@
-﻿using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
 
 namespace Matrix.Population.Domain.ValueObjects

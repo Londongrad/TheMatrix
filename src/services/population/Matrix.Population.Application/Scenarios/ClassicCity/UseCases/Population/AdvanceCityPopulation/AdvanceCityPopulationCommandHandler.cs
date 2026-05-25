@@ -16,16 +16,16 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PersonEntity = Matrix.Population.Domain.Entities.Person;
-using HouseholdEntity = Matrix.Population.Domain.Entities.Household;
-using WorkplaceId = Matrix.Population.Domain.ValueObjects.WorkplaceId;
-using Job = Matrix.Population.Domain.ValueObjects.Job;
-using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
-using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
-using DistrictId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.DistrictId;
-using ResidentialBuildingId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.ResidentialBuildingId;
 using CityEducationInstitutionBinding =
     Matrix.Population.Domain.Scenarios.ClassicCity.Models.CityEducationInstitutionBinding;
+using DistrictId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.DistrictId;
+using HouseholdEntity = Matrix.Population.Domain.Entities.Household;
+using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
+using Job = Matrix.Population.Domain.ValueObjects.Job;
+using PersonEntity = Matrix.Population.Domain.Entities.Person;
+using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
+using ResidentialBuildingId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.ResidentialBuildingId;
+using WorkplaceId = Matrix.Population.Domain.ValueObjects.WorkplaceId;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {

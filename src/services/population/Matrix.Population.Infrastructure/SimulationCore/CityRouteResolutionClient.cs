@@ -58,7 +58,7 @@ namespace Matrix.Population.Infrastructure.SimulationCore
             CityRouteResolutionBatchRequestItem[] uniqueRequests = requests
                .Distinct()
                .ToArray();
-            var results = uniqueRequests.ToDictionary(
+            Dictionary<CityRouteResolutionBatchRequestItem, CityPopulationCommuteContext?> results = uniqueRequests.ToDictionary(
                 keySelector: x => x,
                 elementSelector: _ => (CityPopulationCommuteContext?)null);
             string url = $"/api/cities/{cityId}/routes/resolve-batch";

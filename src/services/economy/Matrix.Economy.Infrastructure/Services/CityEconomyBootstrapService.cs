@@ -300,9 +300,9 @@ namespace Matrix.Economy.Infrastructure.Services
             string constraintName)
         {
             return exception.InnerException is PostgresException
-                   {
-                       SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: var actualConstraintName
-                   } &&
+            {
+                SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: var actualConstraintName
+            } &&
                    string.Equals(
                        a: actualConstraintName,
                        b: constraintName,

@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Contracts.Internal.Responses;
+using Matrix.Identity.Contracts.Internal.Responses;
 
 namespace Matrix.ApiGateway.Authorization.AuthContext.Abstractions
 {

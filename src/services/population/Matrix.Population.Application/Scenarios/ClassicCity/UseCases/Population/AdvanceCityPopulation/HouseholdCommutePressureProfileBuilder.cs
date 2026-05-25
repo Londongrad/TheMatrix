@@ -3,8 +3,8 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstr
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using PersonEntity = Matrix.Population.Domain.Entities.Person;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
+using PersonEntity = Matrix.Population.Domain.Entities.Person;
 using ResidentialBuildingId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.ResidentialBuildingId;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation

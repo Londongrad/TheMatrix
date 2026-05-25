@@ -1,4 +1,4 @@
-﻿using ContractPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
+using ContractPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Population.Application.Authorization.Permissions
 {

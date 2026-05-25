@@ -1,4 +1,4 @@
-﻿namespace Matrix.ApiGateway.Configurations.DependencyInjection
+namespace Matrix.ApiGateway.Configurations.DependencyInjection
 {
     public static class GatewayCorsDefaults
     {

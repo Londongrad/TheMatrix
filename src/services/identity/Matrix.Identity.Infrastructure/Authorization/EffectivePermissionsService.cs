@@ -47,16 +47,16 @@ namespace Matrix.Identity.Infrastructure.Authorization
                    .ToListAsync(cancellationToken);
             else
                 if (roleIds.Count == 0)
-                    rolePermissionKeys = new List<string>();
-                else
-                    rolePermissionKeys = await (from rolePermission in _db.RolePermissions.AsNoTracking()
-                                                join permission in _db.Permissions.AsNoTracking()
-                                                    on rolePermission.PermissionKey equals permission.Key
-                                                where roleIds.Contains(rolePermission.RoleId) &&
-                                                      !permission.IsDeprecated
-                                                select rolePermission.PermissionKey)
-                       .Distinct()
-                       .ToListAsync(cancellationToken);
+                rolePermissionKeys = new List<string>();
+            else
+                rolePermissionKeys = await (from rolePermission in _db.RolePermissions.AsNoTracking()
+                                            join permission in _db.Permissions.AsNoTracking()
+                                                on rolePermission.PermissionKey equals permission.Key
+                                            where roleIds.Contains(rolePermission.RoleId) &&
+                                                  !permission.IsDeprecated
+                                            select rolePermission.PermissionKey)
+                   .Distinct()
+                   .ToListAsync(cancellationToken);
 
             var effective = new HashSet<string>(
                 collection: rolePermissionKeys,

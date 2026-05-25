@@ -1,4 +1,4 @@
-﻿namespace Matrix.ApiGateway.Authorization.AuthContext.Options
+namespace Matrix.ApiGateway.Authorization.AuthContext.Options
 {
     public sealed class AuthContextOptions
     {

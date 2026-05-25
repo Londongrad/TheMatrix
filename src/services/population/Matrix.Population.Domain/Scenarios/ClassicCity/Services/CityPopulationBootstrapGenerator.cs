@@ -1169,14 +1169,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     maxValue: 11);
             else
                 if (employmentStatus == EmploymentStatus.Unemployed && ageGroup == AgeGroup.Adult)
-                    value -= random.Next(
-                        minValue: 5,
-                        maxValue: 16);
-                else
+                value -= random.Next(
+                    minValue: 5,
+                    maxValue: 16);
+            else
                     if (employmentStatus == EmploymentStatus.Retired)
-                        value += random.Next(
-                            minValue: 0,
-                            maxValue: 6);
+                value += random.Next(
+                    minValue: 0,
+                    maxValue: 6);
 
             value += maritalStatus switch
             {

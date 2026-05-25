@@ -64,12 +64,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     placements
                        .Where(x => x.DistrictId.HasValue)
                        .Select(x => new
-                        {
-                            x.HouseholdId,
-                            Snapshot = ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
+                       {
+                           x.HouseholdId,
+                           Snapshot = ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
                                 districtId: x.DistrictId,
                                 districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId)
-                        })
+                       })
                        .Where(x => x.Snapshot is not null)
                        .ToDictionary(
                             keySelector: x => x.HouseholdId,

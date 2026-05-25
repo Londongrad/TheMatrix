@@ -41,7 +41,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     ClimateZone: summary.ClimateZone.Value.ToString(),
                     Hemisphere: summary.Hemisphere.Value.ToString(),
                     UtcOffsetMinutes: summary.UtcOffsetMinutes.Value,
-                    UpdatedAtUtc: FormatTimestamp(summary.EnvironmentUpdatedAtUtc) !);
+                    UpdatedAtUtc: FormatTimestamp(summary.EnvironmentUpdatedAtUtc)!);
 
             CityPopulationSummarySimulationDto? simulation = null;
             if (summary.LastProcessedTickId.HasValue &&
@@ -50,7 +50,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 simulation = new CityPopulationSummarySimulationDto(
                     LastProcessedTickId: summary.LastProcessedTickId.Value,
                     LastProcessedDate: FormatDate(summary.LastProcessedDate.Value),
-                    UpdatedAtUtc: FormatTimestamp(summary.SimulationUpdatedAtUtc) !);
+                    UpdatedAtUtc: FormatTimestamp(summary.SimulationUpdatedAtUtc)!);
 
             CityPopulationSummaryWeatherDto? weather = null;
             if (summary.CurrentWeatherType.HasValue &&
@@ -62,9 +62,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CurrentType: summary.CurrentWeatherType.Value.ToString(),
                     CurrentSeverity: summary.CurrentWeatherSeverity.Value.ToString(),
                     IsRecoveryActive: summary.IsWeatherRecoveryActive,
-                    CurrentWeatherEffectiveAtSimTimeUtc: FormatTimestamp(summary.CurrentWeatherEffectiveAtSimTimeUtc) !,
-                    LastWeatherOccurredOnUtc: FormatTimestamp(summary.LastWeatherOccurredOnUtc) !,
-                    LastExposureProcessedAtSimTimeUtc: FormatTimestamp(summary.LastExposureProcessedAtSimTimeUtc) !,
+                    CurrentWeatherEffectiveAtSimTimeUtc: FormatTimestamp(summary.CurrentWeatherEffectiveAtSimTimeUtc)!,
+                    LastWeatherOccurredOnUtc: FormatTimestamp(summary.LastWeatherOccurredOnUtc)!,
+                    LastExposureProcessedAtSimTimeUtc: FormatTimestamp(summary.LastExposureProcessedAtSimTimeUtc)!,
                     LastWeatherImpactAppliedAtSimTimeUtc: FormatTimestamp(
                         summary.LastWeatherImpactAppliedAtSimTimeUtc));
 

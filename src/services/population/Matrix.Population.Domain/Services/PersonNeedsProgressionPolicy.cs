@@ -181,22 +181,22 @@ namespace Matrix.Population.Domain.Services
                 socialNeedPerHour = -0.70m * contactsFactor;
             else
                 if (ageGroup is AgeGroup.Child or AgeGroup.Youth)
-                    socialNeedPerHour = -0.35m * contactsFactor;
-                else
+                socialNeedPerHour = -0.35m * contactsFactor;
+            else
+            {
+                decimal basePressure = person.Employment.Status switch
                 {
-                    decimal basePressure = person.Employment.Status switch
-                    {
-                        EmploymentStatus.Unemployed => 0.90m,
-                        EmploymentStatus.Retired => 0.70m,
-                        EmploymentStatus.None => 0.60m,
-                        _ => 0.30m
-                    };
+                    EmploymentStatus.Unemployed => 0.90m,
+                    EmploymentStatus.Retired => 0.70m,
+                    EmploymentStatus.None => 0.60m,
+                    _ => 0.30m
+                };
 
-                    if (person.MaritalStatus is MaritalStatus.Divorced or MaritalStatus.Widowed)
-                        basePressure += 0.20m;
+                if (person.MaritalStatus is MaritalStatus.Divorced or MaritalStatus.Widowed)
+                    basePressure += 0.20m;
 
-                    socialNeedPerHour = basePressure * socialPressureFactor;
-                }
+                socialNeedPerHour = basePressure * socialPressureFactor;
+            }
 
             return new RoutineDrift(
                 EnergyPerHour: energyDrain,
@@ -220,7 +220,7 @@ namespace Matrix.Population.Domain.Services
             }
             else
                 if (averageEnergy < 30)
-                    totalHappinessDelta -= 0.35m * hours;
+                totalHappinessDelta -= 0.35m * hours;
 
             if (averageStress > 85)
             {
@@ -229,13 +229,13 @@ namespace Matrix.Population.Domain.Services
             }
             else
                 if (averageStress > 70)
-                    totalHappinessDelta -= 0.30m * hours;
+                totalHappinessDelta -= 0.30m * hours;
 
             if (averageSocialNeed > 80)
                 totalHappinessDelta -= 0.55m * hours;
             else
                 if (averageSocialNeed > 65)
-                    totalHappinessDelta -= 0.20m * hours;
+                totalHappinessDelta -= 0.20m * hours;
 
             if (phase is PersonRoutinePhase.Sleep or PersonRoutinePhase.Leisure &&
                 averageEnergy > 65 &&

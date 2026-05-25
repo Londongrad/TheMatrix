@@ -1,4 +1,4 @@
-﻿using Matrix.ApiGateway.Infrastructure.Logging;
+using Matrix.ApiGateway.Infrastructure.Logging;
 
 namespace Matrix.ApiGateway.Infrastructure.Caching
 {

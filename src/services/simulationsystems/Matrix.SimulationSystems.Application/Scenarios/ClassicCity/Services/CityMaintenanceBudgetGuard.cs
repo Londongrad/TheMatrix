@@ -53,10 +53,10 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 
             return (level, useOperationalVocabulary) switch
             {
-                (<= 1, true) => "Low",
+                ( <= 1, true) => "Low",
                 (2, true) => "Medium",
                 (_, true) => "High",
-                (<= 1, false) => "Light",
+                ( <= 1, false) => "Light",
                 (2, false) => "Standard",
                 _ => "Heavy"
             };
@@ -72,13 +72,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
         {
             return authorizationLevel.Trim()
                    .ToLowerInvariant() switch
-                {
-                    "none" => 0,
-                    "low" => 1,
-                    "medium" => 2,
-                    "high" => 3,
-                    _ => 3
-                };
+            {
+                "none" => 0,
+                "low" => 1,
+                "medium" => 2,
+                "high" => 3,
+                _ => 3
+            };
         }
     }
 }

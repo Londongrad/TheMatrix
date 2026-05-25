@@ -133,45 +133,45 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             List<CityPopulationCommuteRouteRequest> requests = [];
 
             foreach ((_, DistrictId districtId, ResidentialBuildingId residentialBuildingId) in candidates)
-            foreach (Person resident in householdResidents)
-            {
-                if (!resident.IsAlive)
-                    continue;
+                foreach (Person resident in householdResidents)
+                {
+                    if (!resident.IsAlive)
+                        continue;
 
-                if (resident.Employment.Job?.WorkplaceAnchorId is
-                    { } workplaceAnchorId)
+                    if (resident.Employment.Job?.WorkplaceAnchorId is
+                        { } workplaceAnchorId)
+                        requests.Add(
+                            new CityPopulationCommuteRouteRequest(
+                                ResidentialBuildingId: residentialBuildingId,
+                                DestinationAnchorId: workplaceAnchorId,
+                                Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
+
+                    if (resident.Education.CurrentInstitutionAnchorId is
+                        { } institutionAnchorId)
+                        requests.Add(
+                            new CityPopulationCommuteRouteRequest(
+                                ResidentialBuildingId: residentialBuildingId,
+                                DestinationAnchorId: institutionAnchorId,
+                                Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
+
+                    bool needsHealthcarePriority = resident.HasActiveIllness ||
+                                                   resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
+                    if (!needsHealthcarePriority)
+                        continue;
+
+                    CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
+                        anchors: hospitalAnchors,
+                        preferredDistrictId: districtId,
+                        stableKey: resident.Id.Value);
+                    if (primaryCareAnchor is null)
+                        continue;
+
                     requests.Add(
                         new CityPopulationCommuteRouteRequest(
                             ResidentialBuildingId: residentialBuildingId,
-                            DestinationAnchorId: workplaceAnchorId,
+                            DestinationAnchorId: primaryCareAnchor.CityAnchorId,
                             Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
-
-                if (resident.Education.CurrentInstitutionAnchorId is
-                    { } institutionAnchorId)
-                    requests.Add(
-                        new CityPopulationCommuteRouteRequest(
-                            ResidentialBuildingId: residentialBuildingId,
-                            DestinationAnchorId: institutionAnchorId,
-                            Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
-
-                bool needsHealthcarePriority = resident.HasActiveIllness ||
-                                               resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
-                if (!needsHealthcarePriority)
-                    continue;
-
-                CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
-                    anchors: hospitalAnchors,
-                    preferredDistrictId: districtId,
-                    stableKey: resident.Id.Value);
-                if (primaryCareAnchor is null)
-                    continue;
-
-                requests.Add(
-                    new CityPopulationCommuteRouteRequest(
-                        ResidentialBuildingId: residentialBuildingId,
-                        DestinationAnchorId: primaryCareAnchor.CityAnchorId,
-                        Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
-            }
+                }
 
             return requests;
         }

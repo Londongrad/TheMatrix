@@ -57,7 +57,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 happinessDelta -= 1;
             else
                 if (severityShift <= -2)
-                    happinessDelta += 1;
+                happinessDelta += 1;
 
             AgeGroup ageGroup = person.GetAgeGroup(currentDate);
 

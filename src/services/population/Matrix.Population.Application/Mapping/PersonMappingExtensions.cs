@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -115,11 +115,11 @@ namespace Matrix.Population.Application.Mapping
                     format: "dd MMMM yyyy",
                     provider: CultureInfo.InvariantCulture);
             CityResidentIllnessDto? currentIllness = person.CurrentIllnessKind is not
-                                                         { } illnessKind ||
+            { } illnessKind ||
                                                      person.CurrentIllnessSeverity is not
-                                                         { } illnessSeverity ||
+                                                     { } illnessSeverity ||
                                                      person.IllnessDiagnosedOn is not
-                                                         { } illnessDiagnosedOn
+                                                     { } illnessDiagnosedOn
                 ? null
                 : new CityResidentIllnessDto(
                     Kind: illnessKind.ToString(),

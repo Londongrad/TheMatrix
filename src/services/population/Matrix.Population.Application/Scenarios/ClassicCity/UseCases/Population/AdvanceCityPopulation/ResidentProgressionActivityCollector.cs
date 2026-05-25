@@ -79,14 +79,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         occurredAtUtc: occurredAtUtc));
             else
                 if (before.IllnessKind is not null && resident.CurrentIllnessKind is null)
-                    activityEntries.Add(
-                        ClassicCityActivityFactory.ResidentRecoveredFromIllness(
-                            cityId: cityId.Value,
-                            currentDate: currentDate,
-                            resident: resident,
-                            previousIllnessKind: before.IllnessKind,
-                            source: CityPopulationActivitySource.Autonomy,
-                            occurredAtUtc: occurredAtUtc));
+                activityEntries.Add(
+                    ClassicCityActivityFactory.ResidentRecoveredFromIllness(
+                        cityId: cityId.Value,
+                        currentDate: currentDate,
+                        resident: resident,
+                        previousIllnessKind: before.IllnessKind,
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
 
             if (before.EmploymentStatus != EmploymentStatus.Student &&
                 resident.Employment.Status == EmploymentStatus.Student)
@@ -100,13 +100,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             else
                 if (before.EmploymentStatus == EmploymentStatus.Student &&
                     resident.Employment.Status != EmploymentStatus.Student)
-                    activityEntries.Add(
-                        ClassicCityActivityFactory.ResidentWithdrewFromStudy(
-                            cityId: cityId.Value,
-                            currentDate: currentDate,
-                            resident: resident,
-                            source: CityPopulationActivitySource.Autonomy,
-                            occurredAtUtc: occurredAtUtc));
+                activityEntries.Add(
+                    ClassicCityActivityFactory.ResidentWithdrewFromStudy(
+                        cityId: cityId.Value,
+                        currentDate: currentDate,
+                        resident: resident,
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
 
             if (before.EmploymentStatus != EmploymentStatus.Employed &&
                 resident.Employment.Status == EmploymentStatus.Employed)
@@ -120,24 +120,24 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             else
                 if (before.EmploymentStatus == EmploymentStatus.Employed &&
                     resident.Employment.Status == EmploymentStatus.Unemployed)
-                    activityEntries.Add(
-                        ClassicCityActivityFactory.ResidentFired(
-                            cityId: cityId.Value,
-                            currentDate: currentDate,
-                            resident: resident,
-                            previousJobTitle: before.JobTitle,
-                            source: CityPopulationActivitySource.Autonomy,
-                            occurredAtUtc: occurredAtUtc));
-                else
+                activityEntries.Add(
+                    ClassicCityActivityFactory.ResidentFired(
+                        cityId: cityId.Value,
+                        currentDate: currentDate,
+                        resident: resident,
+                        previousJobTitle: before.JobTitle,
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
+            else
                     if (before.EmploymentStatus != EmploymentStatus.Retired &&
                         resident.Employment.Status == EmploymentStatus.Retired)
-                        activityEntries.Add(
-                            ClassicCityActivityFactory.ResidentRetired(
-                                cityId: cityId.Value,
-                                currentDate: currentDate,
-                                resident: resident,
-                                source: CityPopulationActivitySource.Autonomy,
-                                occurredAtUtc: occurredAtUtc));
+                activityEntries.Add(
+                    ClassicCityActivityFactory.ResidentRetired(
+                        cityId: cityId.Value,
+                        currentDate: currentDate,
+                        resident: resident,
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
         }
 
         internal sealed record Snapshot(

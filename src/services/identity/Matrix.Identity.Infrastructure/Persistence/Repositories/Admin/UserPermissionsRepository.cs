@@ -20,10 +20,10 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                .Where(o => o.UserId == userId)
                .OrderBy(o => o.PermissionKey)
                .Select(o => new UserPermissionOverrideResult
-                {
-                    PermissionKey = o.PermissionKey,
-                    Effect = o.Effect
-                })
+               {
+                   PermissionKey = o.PermissionKey,
+                   Effect = o.Effect
+               })
                .ToListAsync(cancellationToken);
         }
 

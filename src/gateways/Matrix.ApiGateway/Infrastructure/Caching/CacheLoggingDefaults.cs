@@ -1,4 +1,4 @@
-﻿namespace Matrix.ApiGateway.Infrastructure.Caching
+namespace Matrix.ApiGateway.Infrastructure.Caching
 {
     internal static class CacheLoggingDefaults
     {

@@ -1,4 +1,4 @@
-﻿namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
+namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
 {
     public sealed class ExternalJwtOptions : IJwtValidationOptions
     {

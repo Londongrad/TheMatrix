@@ -103,11 +103,11 @@ namespace Matrix.Resources.Infrastructure.SimulationCore
         {
             return intensity.Trim()
                    .ToLowerInvariant() switch
-                {
-                    "high" => 1.12m,
-                    "medium" => 1.02m,
-                    _ => 0.94m
-                };
+            {
+                "high" => 1.12m,
+                "medium" => 1.02m,
+                _ => 0.94m
+            };
         }
     }
 }

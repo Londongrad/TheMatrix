@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Application.Authorization.Jwt;
+using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Microsoft.AspNetCore.Http;
 

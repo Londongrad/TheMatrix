@@ -81,23 +81,23 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                .HasColumnName("total_tax_remitted_amount");
 
             builder.HasIndex(x => new
-                {
-                    x.CityId,
-                    x.Name
-                })
+            {
+                x.CityId,
+                x.Name
+            })
                .IsUnique();
             builder.HasIndex(x => new
-                {
-                    x.CityId,
-                    x.TemplateKey
-                })
+            {
+                x.CityId,
+                x.TemplateKey
+            })
                .IsUnique()
                .HasFilter("\"template_key\" IS NOT NULL");
             builder.HasIndex(x => new
-                {
-                    x.CityId,
-                    x.ExternalReferenceCode
-                })
+            {
+                x.CityId,
+                x.ExternalReferenceCode
+            })
                .IsUnique()
                .HasFilter("\"external_reference_code\" IS NOT NULL");
             builder.HasIndex(x => x.CityId);

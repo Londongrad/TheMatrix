@@ -98,7 +98,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     description: "Historical city records retained for audit, cleanup, and post-mortem review.",
                     current: allCities.Count(IsArchived),
                     countAtCutoff: cutoff => allCities.Count(city => city.ArchivedAtUtc is
-                                                                         { } archivedAtUtc &&
+                    { } archivedAtUtc &&
                                                                      archivedAtUtc <= cutoff)),
                 AttentionQueue: new DashboardMetricView(
                     Label: "Attention queue",
@@ -350,7 +350,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             DateTimeOffset endExclusive)
         {
             return moment is
-                       { } value &&
+            { } value &&
                    value >= startInclusive &&
                    value < endExclusive;
         }
@@ -361,7 +361,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         {
             return city.CreatedAtUtc <= cutoff &&
                    city.PopulationBootstrapCompletedAtUtc is
-                       { } completedAtUtc &&
+                   { } completedAtUtc &&
                    completedAtUtc <= cutoff &&
                    (city.ArchivedAtUtc is null || city.ArchivedAtUtc > cutoff);
         }

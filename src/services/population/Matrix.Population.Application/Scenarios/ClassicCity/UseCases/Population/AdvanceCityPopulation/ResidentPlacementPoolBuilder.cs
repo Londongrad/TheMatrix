@@ -42,7 +42,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             {
                 if (person.Employment.Status != EmploymentStatus.Employed ||
                     person.Employment.Job is not
-                        { } job)
+                    { } job)
                     continue;
                 if (!pools.TryGetValue(
                         key: job.Title,

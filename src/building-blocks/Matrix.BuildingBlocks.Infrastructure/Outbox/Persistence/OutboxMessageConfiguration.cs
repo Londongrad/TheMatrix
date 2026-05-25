@@ -54,12 +54,12 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence
 
             // Индекс под "pending"
             builder.HasIndex(x => new
-                {
-                    x.ProcessedOnUtc,
-                    x.LockedUntilUtc,
-                    x.NextAttemptOnUtc,
-                    x.OccurredOnUtc
-                })
+            {
+                x.ProcessedOnUtc,
+                x.LockedUntilUtc,
+                x.NextAttemptOnUtc,
+                x.OccurredOnUtc
+            })
                .HasFilter("\"ProcessedOnUtc\" IS NULL"); // 👈 partial index для Postgres
         }
     }

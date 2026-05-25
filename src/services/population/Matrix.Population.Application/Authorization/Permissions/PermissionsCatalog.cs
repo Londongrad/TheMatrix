@@ -1,4 +1,4 @@
-﻿using Matrix.PermissionCatalog.Abstractions;
+using Matrix.PermissionCatalog.Abstractions;
 using ContractPermissionsCatalog = Matrix.Population.Contracts.Authorization.Permissions.PermissionsCatalog;
 
 namespace Matrix.Population.Application.Authorization.Permissions

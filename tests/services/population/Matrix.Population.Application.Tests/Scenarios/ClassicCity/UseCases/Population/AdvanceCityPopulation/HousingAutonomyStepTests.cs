@@ -519,7 +519,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             public List<IReadOnlyCollection<CityPopulationCommuteRouteRequest>> PreloadRequests { get; } = [];
 
             public List<(ResidentialBuildingId? ResidentialBuildingId, CityAnchorId? DestinationAnchorId)>
-                AnchorRequests { get; } = [];
+                AnchorRequests
+            { get; } = [];
 
             public CityPopulationCommuteContext DefaultAnchorContext { get; set; } =
                 CityPopulationCommuteContext.Neutral;

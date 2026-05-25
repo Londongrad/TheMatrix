@@ -85,17 +85,17 @@ namespace Matrix.Identity.Api.Controllers.Self
 
             var response = new CursorPagedResult<SecurityActivityItemResponse>(
                 items: result.Items.Select(item => new SecurityActivityItemResponse
-                    {
-                        EventId = item.EventId,
-                        EventType = item.EventType.ToString(),
-                        IsSuccessful = item.IsSuccessful,
-                        OccurredAtUtc = item.OccurredAtUtc,
-                        IpAddress = item.IpAddress,
-                        UserAgent = item.UserAgent,
-                        DeviceId = item.DeviceId,
-                        DeviceName = item.DeviceName,
-                        Details = item.Details
-                    })
+                {
+                    EventId = item.EventId,
+                    EventType = item.EventType.ToString(),
+                    IsSuccessful = item.IsSuccessful,
+                    OccurredAtUtc = item.OccurredAtUtc,
+                    IpAddress = item.IpAddress,
+                    UserAgent = item.UserAgent,
+                    DeviceId = item.DeviceId,
+                    DeviceName = item.DeviceName,
+                    Details = item.Details
+                })
                    .ToList(),
                 pageSize: result.PageSize,
                 nextCursor: result.NextCursor);

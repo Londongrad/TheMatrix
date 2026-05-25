@@ -95,13 +95,13 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
                             y: retailStoreAmount + remainder);
                     else
                         if (serviceAmount > 0m)
-                            serviceAmount = decimal.Max(
-                                x: 0m,
-                                y: serviceAmount + remainder);
-                        else
-                            municipalAmount = decimal.Max(
-                                x: 0m,
-                                y: municipalAmount + remainder);
+                        serviceAmount = decimal.Max(
+                            x: 0m,
+                            y: serviceAmount + remainder);
+                    else
+                        municipalAmount = decimal.Max(
+                            x: 0m,
+                            y: municipalAmount + remainder);
                 }
             }
 

@@ -34,12 +34,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                         comparisonType: StringComparison.Ordinal)
                    .Trim()
                    .ToLowerInvariant() switch
-                {
-                    "roadnode" => RoadNode,
-                    "residentialbuilding" => ResidentialBuilding,
-                    "cityanchor" => CityAnchor,
-                    _ => value.Trim()
-                };
+            {
+                "roadnode" => RoadNode,
+                "residentialbuilding" => ResidentialBuilding,
+                "cityanchor" => CityAnchor,
+                _ => value.Trim()
+            };
         }
     }
 }

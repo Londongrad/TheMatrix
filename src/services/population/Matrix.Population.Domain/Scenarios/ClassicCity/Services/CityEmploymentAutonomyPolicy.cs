@@ -138,7 +138,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId)
         {
             CityPopulationEmployerFinancialStressState? employerStressState = person.Employment.Job is
-                                                                                  { } job &&
+            { } job &&
                                                                               employerStressByWorkplaceId.TryGetValue(
                                                                                   key: job.WorkplaceId,
                                                                                   value: out
@@ -502,10 +502,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                .Select((
                     anchorId,
                     index) => new
-                {
-                    anchorId,
-                    index
-                })
+                    {
+                        anchorId,
+                        index
+                    })
                .ToDictionary(
                     keySelector: x => x.anchorId,
                     elementSelector: x => x.index);

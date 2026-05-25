@@ -27,20 +27,20 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                .Skip(pagination.Skip)
                .Take(pagination.PageSize)
                .Select(user => new UserListItemResult
-                {
-                    Id = user.Id,
-                    AvatarUrl = user.AvatarUrl,
-                    Email = user.Email.Value,
-                    Username = user.Username.Value,
-                    IsEmailConfirmed = user.IsEmailConfirmed,
-                    IsLocked = user.IsLocked,
-                    IsDeleted = user.IsDeleted,
-                    CreatedAtUtc = user.CreatedAtUtc,
-                    LastVisitedAtUtc = dbContext.UserSessions
+               {
+                   Id = user.Id,
+                   AvatarUrl = user.AvatarUrl,
+                   Email = user.Email.Value,
+                   Username = user.Username.Value,
+                   IsEmailConfirmed = user.IsEmailConfirmed,
+                   IsLocked = user.IsLocked,
+                   IsDeleted = user.IsDeleted,
+                   CreatedAtUtc = user.CreatedAtUtc,
+                   LastVisitedAtUtc = dbContext.UserSessions
                        .Where(session => session.UserId == user.Id)
                        .Select(session => (DateTime?)(session.LastUsedAtUtc ?? session.CreatedAtUtc))
                        .Max()
-                })
+               })
                .ToListAsync(cancellationToken);
 
             return new PagedResult<UserListItemResult>(
@@ -65,20 +65,20 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                .Skip(pagination.Skip)
                .Take(pagination.PageSize)
                .Select(user => new UserListItemResult
-                {
-                    Id = user.Id,
-                    AvatarUrl = user.AvatarUrl,
-                    Email = user.Email.Value,
-                    Username = user.Username.Value,
-                    IsEmailConfirmed = user.IsEmailConfirmed,
-                    IsLocked = user.IsLocked,
-                    IsDeleted = user.IsDeleted,
-                    CreatedAtUtc = user.CreatedAtUtc,
-                    LastVisitedAtUtc = dbContext.UserSessions
+               {
+                   Id = user.Id,
+                   AvatarUrl = user.AvatarUrl,
+                   Email = user.Email.Value,
+                   Username = user.Username.Value,
+                   IsEmailConfirmed = user.IsEmailConfirmed,
+                   IsLocked = user.IsLocked,
+                   IsDeleted = user.IsDeleted,
+                   CreatedAtUtc = user.CreatedAtUtc,
+                   LastVisitedAtUtc = dbContext.UserSessions
                        .Where(session => session.UserId == user.Id)
                        .Select(session => (DateTime?)(session.LastUsedAtUtc ?? session.CreatedAtUtc))
                        .Max()
-                })
+               })
                .ToListAsync(cancellationToken);
 
             return new PagedResult<UserListItemResult>(

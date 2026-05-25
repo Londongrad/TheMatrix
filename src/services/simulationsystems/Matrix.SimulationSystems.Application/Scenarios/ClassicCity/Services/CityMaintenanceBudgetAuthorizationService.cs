@@ -102,11 +102,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 
             return requestedIntensity.Trim()
                    .ToLowerInvariant() switch
-                {
-                    "high" => true,
-                    "heavy" => true,
-                    _ => false
-                };
+            {
+                "high" => true,
+                "heavy" => true,
+                _ => false
+            };
         }
     }
 }

@@ -93,11 +93,11 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                 x.NextChargeDueAtUtc
             });
             builder.HasIndex(x => new
-                {
-                    x.HouseholdAccountId,
-                    x.ProviderBusinessId,
-                    x.Name
-                })
+            {
+                x.HouseholdAccountId,
+                x.ProviderBusinessId,
+                x.Name
+            })
                .IsUnique();
         }
     }

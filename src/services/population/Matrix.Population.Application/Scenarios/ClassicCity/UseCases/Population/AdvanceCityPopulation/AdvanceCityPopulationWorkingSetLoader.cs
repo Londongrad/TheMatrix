@@ -6,8 +6,8 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
-using PersonEntity = Matrix.Population.Domain.Entities.Person;
 using HouseholdEntity = Matrix.Population.Domain.Entities.Household;
+using PersonEntity = Matrix.Population.Domain.Entities.Person;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {

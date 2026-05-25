@@ -1,4 +1,4 @@
-﻿namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions
+namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions
 {
     public interface IOutboxDispatcher
     {

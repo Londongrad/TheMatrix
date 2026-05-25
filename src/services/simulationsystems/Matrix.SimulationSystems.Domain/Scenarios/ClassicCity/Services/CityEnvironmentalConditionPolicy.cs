@@ -1718,11 +1718,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
         {
             return developmentLevel.Trim()
                    .ToLowerInvariant() switch
-                {
-                    "struggling" => 1.0000m,
-                    "advanced" => -0.7500m,
-                    _ => 0m
-                };
+            {
+                "struggling" => 1.0000m,
+                "advanced" => -0.7500m,
+                _ => 0m
+            };
         }
 
         private static decimal CreateSeedMetric(

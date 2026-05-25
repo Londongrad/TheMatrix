@@ -33,22 +33,22 @@ namespace Matrix.Identity.Api.Controllers.Self
 
             var response = sessions
                .Select(s => new SessionResponse
-                {
-                    Id = s.Id,
-                    DeviceId = s.DeviceId,
-                    DeviceName = s.DeviceName,
-                    UserAgent = s.UserAgent,
-                    IpAddress = s.IpAddress,
-                    Country = s.Country,
-                    Region = s.Region,
-                    City = s.City,
-                    CreatedAtUtc = s.CreatedAtUtc,
-                    LastUsedAtUtc = s.LastUsedAtUtc,
-                    RefreshTokenExpiresAtUtc = s.RefreshTokenExpiresAtUtc,
-                    IsActive = s.IsActive,
-                    IsCurrent = currentSessionId.HasValue && s.Id == currentSessionId.Value,
-                    IsPersistent = s.IsPersistent
-                })
+               {
+                   Id = s.Id,
+                   DeviceId = s.DeviceId,
+                   DeviceName = s.DeviceName,
+                   UserAgent = s.UserAgent,
+                   IpAddress = s.IpAddress,
+                   Country = s.Country,
+                   Region = s.Region,
+                   City = s.City,
+                   CreatedAtUtc = s.CreatedAtUtc,
+                   LastUsedAtUtc = s.LastUsedAtUtc,
+                   RefreshTokenExpiresAtUtc = s.RefreshTokenExpiresAtUtc,
+                   IsActive = s.IsActive,
+                   IsCurrent = currentSessionId.HasValue && s.Id == currentSessionId.Value,
+                   IsPersistent = s.IsPersistent
+               })
                .ToList();
 
             return Ok(response);
@@ -72,22 +72,22 @@ namespace Matrix.Identity.Api.Controllers.Self
 
             var mapped = new PagedResult<SessionResponse>(
                 items: result.Items.Select(s => new SessionResponse
-                    {
-                        Id = s.Id,
-                        DeviceId = s.DeviceId,
-                        DeviceName = s.DeviceName,
-                        UserAgent = s.UserAgent,
-                        IpAddress = s.IpAddress,
-                        Country = s.Country,
-                        Region = s.Region,
-                        City = s.City,
-                        CreatedAtUtc = s.CreatedAtUtc,
-                        LastUsedAtUtc = s.LastUsedAtUtc,
-                        RefreshTokenExpiresAtUtc = s.RefreshTokenExpiresAtUtc,
-                        IsActive = false,
-                        IsCurrent = false,
-                        IsPersistent = s.IsPersistent
-                    })
+                {
+                    Id = s.Id,
+                    DeviceId = s.DeviceId,
+                    DeviceName = s.DeviceName,
+                    UserAgent = s.UserAgent,
+                    IpAddress = s.IpAddress,
+                    Country = s.Country,
+                    Region = s.Region,
+                    City = s.City,
+                    CreatedAtUtc = s.CreatedAtUtc,
+                    LastUsedAtUtc = s.LastUsedAtUtc,
+                    RefreshTokenExpiresAtUtc = s.RefreshTokenExpiresAtUtc,
+                    IsActive = false,
+                    IsCurrent = false,
+                    IsPersistent = s.IsPersistent
+                })
                    .ToList(),
                 totalCount: result.TotalCount,
                 pageNumber: result.PageNumber,

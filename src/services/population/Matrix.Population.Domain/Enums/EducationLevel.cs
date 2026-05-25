@@ -1,4 +1,4 @@
-﻿namespace Matrix.Population.Domain.Enums
+namespace Matrix.Population.Domain.Enums
 {
     /// <summary>
     ///     Education level of a person:

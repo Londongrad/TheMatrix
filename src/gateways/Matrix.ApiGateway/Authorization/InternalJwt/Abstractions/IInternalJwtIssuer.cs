@@ -1,4 +1,4 @@
-﻿namespace Matrix.ApiGateway.Authorization.InternalJwt.Abstractions
+namespace Matrix.ApiGateway.Authorization.InternalJwt.Abstractions
 {
     public interface IInternalJwtIssuer
     {

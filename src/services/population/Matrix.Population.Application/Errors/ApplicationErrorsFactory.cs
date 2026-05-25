@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Application.Enums;
+using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 
 namespace Matrix.Population.Application.Errors

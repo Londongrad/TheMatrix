@@ -18,12 +18,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                .Where(r => r.Name != SystemRoleNames.SuperAdmin)
                .OrderBy(r => r.Name)
                .Select(r => new RoleListItemResult
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    IsSystem = r.IsSystem,
-                    CreatedAtUtc = r.CreatedAtUtc
-                })
+               {
+                   Id = r.Id,
+                   Name = r.Name,
+                   IsSystem = r.IsSystem,
+                   CreatedAtUtc = r.CreatedAtUtc
+               })
                .ToListAsync(cancellationToken);
         }
 

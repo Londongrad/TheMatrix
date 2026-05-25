@@ -285,10 +285,10 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 else
                     if (logOnMiss &&
                         logger.IsEnabled(LogLevel.Debug))
-                        logger.LogDebug(
-                            message: "PermissionsVersion {CacheTier} cache miss for user {UserId}.",
-                            cacheTier,
-                            userId);
+                    logger.LogDebug(
+                        message: "PermissionsVersion {CacheTier} cache miss for user {UserId}.",
+                        cacheTier,
+                        userId);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -370,9 +370,9 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 }
                 else
                     if (logOnMiss && logger.IsEnabled(LogLevel.Debug))
-                        logger.LogDebug(
-                            message: "Default user access version {CacheTier} cache miss.",
-                            cacheTier);
+                    logger.LogDebug(
+                        message: "Default user access version {CacheTier} cache miss.",
+                        cacheTier);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

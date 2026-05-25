@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence

@@ -22,7 +22,8 @@ namespace Matrix.BuildingBlocks.Domain.Exceptions
             : this(
                 code: "Domain.ValidationError",
                 message: message,
-                propertyName: propertyName) { }
+                propertyName: propertyName)
+        { }
 
         /// <summary>
         ///     Machine-readable error code. Например: "Population.Person.ChildCannotBeEmployed".

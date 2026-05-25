@@ -1,4 +1,4 @@
-﻿namespace Matrix.Population.Domain.Rules
+namespace Matrix.Population.Domain.Rules
 {
     /// <summary>
     ///     Базовые изменения уровня счастья при разных жизненных событиях.

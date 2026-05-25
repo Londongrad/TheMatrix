@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain;
+using Matrix.BuildingBlocks.Domain;
 
 namespace Matrix.Population.Domain.ValueObjects
 {

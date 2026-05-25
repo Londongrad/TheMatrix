@@ -1,4 +1,4 @@
-﻿namespace Matrix.Population.Domain.Enums
+namespace Matrix.Population.Domain.Enums
 {
     /// <summary>
     ///     Sex of a person:

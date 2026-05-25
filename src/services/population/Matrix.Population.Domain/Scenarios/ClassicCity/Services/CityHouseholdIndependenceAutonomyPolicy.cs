@@ -172,13 +172,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             double ageFactor = resident.GetAge(currentDate)
                    .Years switch
-                {
-                    <= 21 => 0.010d,
-                    <= 27 => 0.024d,
-                    <= 34 => 0.018d,
-                    <= 42 => 0.010d,
-                    _ => 0.004d
-                };
+            {
+                <= 21 => 0.010d,
+                <= 27 => 0.024d,
+                <= 34 => 0.018d,
+                <= 42 => 0.010d,
+                _ => 0.004d
+            };
 
             double stress = Normalize(resident.Stress.Value);
             double lowHappiness = 1d - Normalize(resident.Happiness.Value);
@@ -263,7 +263,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyDictionary<PersonId, Person> residentsById)
         {
             if (resident.MotherId is
-                    { } motherId &&
+                { } motherId &&
                 residentsById.TryGetValue(
                     key: motherId,
                     value: out Person? mother) &&
@@ -273,7 +273,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return true;
 
             if (resident.FatherId is
-                    { } fatherId &&
+                { } fatherId &&
                 residentsById.TryGetValue(
                     key: fatherId,
                     value: out Person? father) &&

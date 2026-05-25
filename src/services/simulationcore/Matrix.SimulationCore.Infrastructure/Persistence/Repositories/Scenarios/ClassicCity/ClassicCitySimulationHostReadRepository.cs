@@ -18,13 +18,13 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories.Scenario
                .AsNoTracking()
                .Where(city => city.Id == cityId)
                .Select(city => new
-                {
-                    CityId = city.Id,
-                    city.SimulationKind,
-                    city.Status,
-                    city.CreatedAtUtc,
-                    city.ArchivedAtUtc
-                })
+               {
+                   CityId = city.Id,
+                   city.SimulationKind,
+                   city.Status,
+                   city.CreatedAtUtc,
+                   city.ArchivedAtUtc
+               })
                .SingleOrDefaultAsync(cancellationToken);
 
             return projection is null

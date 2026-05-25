@@ -48,11 +48,11 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                 x.Id
             });
             builder.HasIndex(x => new
-                {
-                    x.HouseholdAccountId,
-                    x.Kind,
-                    x.ReferenceCode
-                })
+            {
+                x.HouseholdAccountId,
+                x.Kind,
+                x.ReferenceCode
+            })
                .IsUnique()
                .HasFilter("\"reference_code\" IS NOT NULL");
         }

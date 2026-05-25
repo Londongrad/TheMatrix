@@ -1,4 +1,4 @@
-﻿using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Aggregates;
 
 namespace Matrix.Economy.Application.Abstractions
 {

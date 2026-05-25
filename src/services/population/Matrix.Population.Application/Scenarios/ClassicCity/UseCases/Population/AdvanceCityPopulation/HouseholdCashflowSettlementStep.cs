@@ -143,7 +143,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     if (resident.Employment.Status == EmploymentStatus.Employed &&
                         resident.Employment.Job is
-                            { } job &&
+                        { } job &&
                         residentNetIncomeForPeriod.IsPositive)
                     {
                         workplacePayrollItems.Add(

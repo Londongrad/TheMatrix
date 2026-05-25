@@ -64,10 +64,10 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                .HasColumnName("housing_spend_amount");
 
             builder.HasIndex(x => new
-                {
-                    x.CityId,
-                    x.TickId
-                })
+            {
+                x.CityId,
+                x.TickId
+            })
                .IsUnique();
             builder.HasIndex(x => x.CorrelationId)
                .IsUnique();

@@ -45,17 +45,17 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                 List<SecurityActivityItemResult> items = await query
                    .Take(normalizedPageSize + 1)
                    .Select(x => new SecurityActivityItemResult
-                    {
-                        EventId = x.Id,
-                        EventType = x.EventType,
-                        IsSuccessful = x.IsSuccessful,
-                        OccurredAtUtc = x.OccurredAtUtc,
-                        IpAddress = x.IpAddress,
-                        UserAgent = x.UserAgent,
-                        DeviceId = x.DeviceId,
-                        DeviceName = x.DeviceName,
-                        Details = x.Details
-                    })
+                   {
+                       EventId = x.Id,
+                       EventType = x.EventType,
+                       IsSuccessful = x.IsSuccessful,
+                       OccurredAtUtc = x.OccurredAtUtc,
+                       IpAddress = x.IpAddress,
+                       UserAgent = x.UserAgent,
+                       DeviceId = x.DeviceId,
+                       DeviceName = x.DeviceName,
+                       Details = x.Details
+                   })
                    .ToListAsync(cancellationToken);
 
                 bool hasNext = items.Count > normalizedPageSize;

@@ -16,7 +16,8 @@ namespace Matrix.Economy.Domain.Aggregates
             : this(
                 id: id,
                 cityId: cityId,
-                unitProfile: CityBudgetUnitProfile.DefaultMoney()) { }
+                unitProfile: CityBudgetUnitProfile.DefaultMoney())
+        { }
 
         public CityBudget(
             CityBudgetId id,

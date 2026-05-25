@@ -48,10 +48,10 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => new
-                {
-                    x.CityId,
-                    x.Category
-                })
+            {
+                x.CityId,
+                x.Category
+            })
                .IsUnique();
         }
     }

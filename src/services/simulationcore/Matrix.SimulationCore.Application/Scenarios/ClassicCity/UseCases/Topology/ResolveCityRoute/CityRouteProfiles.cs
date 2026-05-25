@@ -34,12 +34,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                         comparisonType: StringComparison.Ordinal)
                    .Trim()
                    .ToLowerInvariant() switch
-                {
-                    "pedestrian" => Pedestrian,
-                    "servicevehicle" => ServiceVehicle,
-                    "emergencyresponse" => EmergencyResponse,
-                    _ => value.Trim()
-                };
+            {
+                "pedestrian" => Pedestrian,
+                "servicevehicle" => ServiceVehicle,
+                "emergencyresponse" => EmergencyResponse,
+                _ => value.Trim()
+            };
         }
     }
 }

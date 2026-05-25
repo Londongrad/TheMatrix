@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Options;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres;

@@ -154,7 +154,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             }
             else
                 if (householdSize >= 2)
-                    socialNeedDelta -= 1;
+                socialNeedDelta -= 1;
 
             if (hasDependents && employedAdults > dependentCount)
                 happinessDelta += 1;
@@ -226,7 +226,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     stressDelta += 2;
                 else
                     if (financialStressScore > 0m)
-                        stressDelta += 1;
+                    stressDelta += 1;
 
                 if (financialStressState.OverdueRentCount > 0)
                 {

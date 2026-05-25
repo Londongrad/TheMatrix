@@ -39,21 +39,21 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
             return sessions
                .OrderByDescending(t => t.LastUsedAtUtc ?? t.CreatedAtUtc)
                .Select(t => new MySessionResult
-                {
-                    Id = t.Id,
-                    DeviceId = t.DeviceInfo.DeviceId,
-                    DeviceName = t.DeviceInfo.DeviceName,
-                    UserAgent = t.DeviceInfo.UserAgent,
-                    IpAddress = t.DeviceInfo.IpAddress,
-                    Country = t.GeoLocation?.Country,
-                    Region = t.GeoLocation?.Region,
-                    City = t.GeoLocation?.City,
-                    CreatedAtUtc = t.CreatedAtUtc,
-                    LastUsedAtUtc = t.LastUsedAtUtc,
-                    RefreshTokenExpiresAtUtc = t.RefreshTokenExpiresAtUtc,
-                    IsActive = t.IsActive(utcNow),
-                    IsPersistent = t.IsPersistent
-                })
+               {
+                   Id = t.Id,
+                   DeviceId = t.DeviceInfo.DeviceId,
+                   DeviceName = t.DeviceInfo.DeviceName,
+                   UserAgent = t.DeviceInfo.UserAgent,
+                   IpAddress = t.DeviceInfo.IpAddress,
+                   Country = t.GeoLocation?.Country,
+                   Region = t.GeoLocation?.Region,
+                   City = t.GeoLocation?.City,
+                   CreatedAtUtc = t.CreatedAtUtc,
+                   LastUsedAtUtc = t.LastUsedAtUtc,
+                   RefreshTokenExpiresAtUtc = t.RefreshTokenExpiresAtUtc,
+                   IsActive = t.IsActive(utcNow),
+                   IsPersistent = t.IsPersistent
+               })
                .ToArray();
         }
     }
