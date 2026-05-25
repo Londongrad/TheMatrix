@@ -14,13 +14,15 @@ namespace Matrix.ApiGateway.Common.Urls
             if (Uri.TryCreate(
                     uriString: urlOrPath,
                     uriKind: UriKind.Absolute,
-                    result: out _))
+                    result: out Uri? absoluteUri) &&
+                (absoluteUri.Scheme == Uri.UriSchemeHttp ||
+                    absoluteUri.Scheme == Uri.UriSchemeHttps))
                 return urlOrPath;
 
             if (!urlOrPath.StartsWith('/'))
                 urlOrPath = "/" + urlOrPath;
 
-            // Важно: PathBase учтётся (если гейтвей висит не в корне домена)
+            // PathBase is part of the public gateway URL when the gateway is mounted under a prefix.
             return UriHelper.BuildAbsolute(
                 scheme: request.Scheme,
                 host: request.Host,

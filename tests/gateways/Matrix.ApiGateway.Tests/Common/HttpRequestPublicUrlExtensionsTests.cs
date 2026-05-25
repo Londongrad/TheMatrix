@@ -41,6 +41,19 @@ namespace Matrix.ApiGateway.Tests.Common
                 actual: result);
         }
 
+        [Fact]
+        public void ToPublicUrl_WhenValueIsRootRelativePath_BuildsAbsoluteGatewayUrlIncludingPathBase()
+        {
+            DefaultHttpContext httpContext = CreateHttpContext();
+            httpContext.Request.PathBase = "/gateway";
+
+            string? result = httpContext.Request.ToPublicUrl("/avatars/u-01.png");
+
+            Assert.Equal(
+                expected: "https://gateway.test/gateway/avatars/u-01.png",
+                actual: result);
+        }
+
         private static DefaultHttpContext CreateHttpContext()
         {
             DefaultHttpContext httpContext = new();
