@@ -40,7 +40,8 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens.Cleanup
 
             try
             {
-                while (await timer.WaitForNextTickAsync(stoppingToken))
+                do
+                {
                     try
                     {
                         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
@@ -67,6 +68,8 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens.Cleanup
                             exception: ex,
                             message: "Refresh token cleanup loop failed.");
                     }
+                }
+                while (await timer.WaitForNextTickAsync(stoppingToken));
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

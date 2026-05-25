@@ -40,7 +40,8 @@ namespace Matrix.Identity.Infrastructure.Security.Audit.Cleanup
 
             try
             {
-                while (await timer.WaitForNextTickAsync(stoppingToken))
+                do
+                {
                     try
                     {
                         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
@@ -65,6 +66,8 @@ namespace Matrix.Identity.Infrastructure.Security.Audit.Cleanup
                             exception: ex,
                             message: "Security audit cleanup loop failed.");
                     }
+                }
+                while (await timer.WaitForNextTickAsync(stoppingToken));
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
