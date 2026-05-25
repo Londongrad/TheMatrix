@@ -200,75 +200,44 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 {
                     if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure)
                     {
-                        var residents = (await personReadRepository.ListByCityAsync(
-                            cityId: cityId,
-                            cancellationToken: ct)).ToList();
-                        personsSnapshot = residents;
-                        var personsById = residents.ToDictionary(
-                            keySelector: x => x.Id,
-                            elementSelector: x => x);
-                        var residentsByHouseholdId = residents
-                           .GroupBy(x => x.HouseholdId)
-                           .ToDictionary(
-                                keySelector: x => x.Key,
-                                elementSelector: x => (IReadOnlyCollection<PersonEntity>)x.ToList());
-                        placementsSnapshot = await householdWriteRepository.ListPlacementsByCityAsync(
-                            cityId: cityId,
-                            cancellationToken: ct);
-                        IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId = placementsSnapshot
-                           .ToDictionary(
-                                keySelector: x => x.HouseholdId,
-                                elementSelector: x => x.HousingStatus);
-                        IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId = placementsSnapshot
-                           .ToDictionary(
-                                keySelector: x => x.HouseholdId,
-                                elementSelector: x => x.DistrictId);
-                        IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId =
-                            placementsSnapshot.ToDictionary(
-                                keySelector: x => x.HouseholdId,
-                                elementSelector: x => x.ResidentialBuildingId);
-                        IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState>
-                            financialStressByHouseholdId =
-                                (await householdFinancialStressStateRepository.ListByCityAsync(
-                                    cityId: cityId,
-                                    cancellationToken: ct))
-                               .ToDictionary(x => x.HouseholdId);
-                        IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>
-                            employerStressByWorkplaceId =
-                                (await employerFinancialStressStateRepository.ListByCityAsync(
-                                    cityId: cityId,
-                                    cancellationToken: ct))
-                               .ToDictionary(x => x.WorkplaceId);
-                        IReadOnlyList<CityPopulationAnchorCatalogItem> workplaceAnchors =
-                            await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                        AdvanceCityPopulationWorkingSet workingSet =
+                            await AdvanceCityPopulationWorkingSetLoader.LoadAsync(
                                 cityId: cityId,
-                                type: CityAnchorType.Workplace,
-                                cancellationToken: ct);
-                        IReadOnlyList<CityPopulationAnchorCatalogItem> schoolAnchors =
-                            await cityPopulationAnchorCatalogRepository.ListByCityAsync(
-                                cityId: cityId,
-                                type: CityAnchorType.School,
-                                cancellationToken: ct);
-                        IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors =
-                            await cityPopulationAnchorCatalogRepository.ListByCityAsync(
-                                cityId: cityId,
-                                type: CityAnchorType.Hospital,
-                                cancellationToken: ct);
-                        CityPopulationHealthcarePressureProfile healthcarePressureProfile =
-                            healthcarePressurePolicy.Evaluate(
-                                residents: residents,
+                                personReadRepository: personReadRepository,
+                                householdWriteRepository: householdWriteRepository,
+                                householdFinancialStressStateRepository: householdFinancialStressStateRepository,
+                                employerFinancialStressStateRepository: employerFinancialStressStateRepository,
+                                cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
+                                healthcarePressurePolicy: healthcarePressurePolicy,
                                 serviceQualityState: serviceQualityState,
                                 livingConditionsState: livingConditionsState,
-                                essentialsState: essentialsState);
-                        var householdsById = (await householdWriteRepository.ListByCityAsync(
-                            cityId: cityId,
-                            cancellationToken: ct)).ToDictionary(
-                            keySelector: x => x.Id,
-                            elementSelector: x => x);
+                                essentialsState: essentialsState,
+                                cancellationToken: ct);
+                        List<PersonEntity> residents = workingSet.Residents;
+                        personsSnapshot = residents;
+                        placementsSnapshot = workingSet.Placements;
+                        Dictionary<PersonId, PersonEntity> personsById = workingSet.ResidentsById;
+                        Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId =
+                            workingSet.ResidentsByHouseholdId;
+                        IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId =
+                            workingSet.HousingByHouseholdId;
+                        IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId =
+                            workingSet.DistrictByHouseholdId;
+                        IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId =
+                            workingSet.ResidentialBuildingByHouseholdId;
+                        IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState>
+                            financialStressByHouseholdId = workingSet.FinancialStressByHouseholdId;
+                        IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>
+                            employerStressByWorkplaceId = workingSet.EmployerStressByWorkplaceId;
+                        IReadOnlyList<CityPopulationAnchorCatalogItem> workplaceAnchors = workingSet.WorkplaceAnchors;
+                        IReadOnlyList<CityPopulationAnchorCatalogItem> schoolAnchors = workingSet.SchoolAnchors;
+                        IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors = workingSet.HospitalAnchors;
+                        CityPopulationHealthcarePressureProfile healthcarePressureProfile =
+                            workingSet.HealthcarePressureProfile;
+                        Dictionary<HouseholdId, HouseholdEntity> householdsById = workingSet.HouseholdsById;
                         Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools =
-                            ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(residents);
-                        Dictionary<string, List<Job>> workplacePools =
-                            ResidentPlacementPoolBuilder.BuildWorkplacePools(residents);
+                            workingSet.InstitutionPools;
+                        Dictionary<string, List<Job>> workplacePools = workingSet.WorkplacePools;
 
                         foreach (PersonEntity person in residents)
                         {
