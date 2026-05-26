@@ -1,4 +1,5 @@
 using MassTransit;
+using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy;
 using Matrix.SimulationCore.Contracts.Events;
 using MediatR;
@@ -8,6 +9,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
 {
     public sealed class CityTimeAdvancedConsumer(
         IMediator mediator,
+        ICityEconomyDeletionRepository deletionRepository,
         ILogger<CityTimeAdvancedConsumer> logger) : IConsumer<CityTickPhaseReachedV1>
     {
         public async Task Consume(ConsumeContext<CityTickPhaseReachedV1> context)
@@ -23,6 +25,17 @@ namespace Matrix.Economy.Infrastructure.Consumers
         {
             if (message.TickContext.Phase != CityTickPhaseV1.BudgetSettlement)
                 return;
+
+            if (await deletionRepository.GetDeletedAtUtcAsync(
+                    cityId: message.CityId,
+                    cancellationToken: cancellationToken) is not null)
+            {
+                logger.LogDebug(
+                    message: "Skipped city economy progression for deleted cityId={CityId}, tickId={TickId}.",
+                    message.CityId,
+                    message.TickId);
+                return;
+            }
 
             AdvanceCityEconomySimulationResult result = await mediator.Send(
                 request: new AdvanceCityEconomySimulationCommand(

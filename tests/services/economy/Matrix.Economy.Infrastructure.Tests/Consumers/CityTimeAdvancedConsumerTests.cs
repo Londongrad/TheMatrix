@@ -28,6 +28,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
             var logger = new TestLogger<CityTimeAdvancedConsumer>();
             var consumer = new CityTimeAdvancedConsumer(
                 mediator: mediator,
+                deletionRepository: new TestCityEconomyDeletionRepository(),
                 logger: logger);
 
             await consumer.ConsumeAsync(
@@ -56,6 +57,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
             var logger = new TestLogger<CityTimeAdvancedConsumer>();
             var consumer = new CityTimeAdvancedConsumer(
                 mediator: mediator,
+                deletionRepository: new TestCityEconomyDeletionRepository(),
                 logger: logger);
             CityTickPhaseReachedV1 message = CreateMessage(CityTickPhaseV1.BudgetSettlement);
 
@@ -103,6 +105,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
             var logger = new TestLogger<CityTimeAdvancedConsumer>();
             var consumer = new CityTimeAdvancedConsumer(
                 mediator: mediator,
+                deletionRepository: new TestCityEconomyDeletionRepository(),
                 logger: logger);
 
             await consumer.ConsumeAsync(
