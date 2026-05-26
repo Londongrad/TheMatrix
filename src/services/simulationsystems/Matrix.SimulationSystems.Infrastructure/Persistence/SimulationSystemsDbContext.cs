@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
+using Matrix.SimulationSystems.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.SimulationSystems.Infrastructure.Persistence
@@ -10,6 +11,8 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence
     {
         public DbSet<CityEnvironmentalConditionState> CityEnvironmentalConditions
             => Set<CityEnvironmentalConditionState>();
+
+        public DbSet<CitySystemsDeletionState> CitySystemsDeletionStates => Set<CitySystemsDeletionState>();
 
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
