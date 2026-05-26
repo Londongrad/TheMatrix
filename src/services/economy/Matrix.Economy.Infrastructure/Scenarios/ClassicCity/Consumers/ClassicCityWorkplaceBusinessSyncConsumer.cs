@@ -12,6 +12,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
     public sealed class ClassicCityWorkplaceBusinessSyncConsumer(
         ICityBudgetRepository budgetRepository,
         ICityBusinessRepository businessRepository,
+        ICityEconomyDeletionRepository deletionRepository,
         IEconomyUnitOfWork unitOfWork,
         ILogger<ClassicCityWorkplaceBusinessSyncConsumer> logger)
         : IConsumer<ClassicCityWorkplaceBusinessSyncBatchV1>
@@ -19,6 +20,17 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         public async Task Consume(ConsumeContext<ClassicCityWorkplaceBusinessSyncBatchV1> context)
         {
             ClassicCityWorkplaceBusinessSyncBatchV1 message = context.Message;
+
+            if (await deletionRepository.GetDeletedAtUtcAsync(
+                    cityId: message.CityId,
+                    cancellationToken: context.CancellationToken) is not null)
+            {
+                logger.LogDebug(
+                    message: "Skipped workplace business sync for deleted cityId={CityId}, correlationId={CorrelationId}.",
+                    message.CityId,
+                    message.CorrelationId);
+                return;
+            }
 
             CityBudget budget = await CityBudgetInitializationSupport.EnsureExistsAsync(
                 cityId: message.CityId,

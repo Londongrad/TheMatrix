@@ -17,6 +17,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         ICityEconomyCostProfileStateRepository costProfileStateRepository,
         ICityHouseholdAccountRepository householdAccountRepository,
         ICityHouseholdObligationRepository householdObligationRepository,
+        ICityEconomyDeletionRepository deletionRepository,
         IEconomyUnitOfWork unitOfWork,
         ILogger<ClassicCityHouseholdAccountSyncConsumer> logger)
         : IConsumer<ClassicCityHouseholdAccountSyncBatchV1>
@@ -27,6 +28,17 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         public async Task Consume(ConsumeContext<ClassicCityHouseholdAccountSyncBatchV1> context)
         {
             ClassicCityHouseholdAccountSyncBatchV1 message = context.Message;
+
+            if (await deletionRepository.GetDeletedAtUtcAsync(
+                    cityId: message.CityId,
+                    cancellationToken: context.CancellationToken) is not null)
+            {
+                logger.LogDebug(
+                    message: "Skipped household account sync for deleted cityId={CityId}, correlationId={CorrelationId}.",
+                    message.CityId,
+                    message.CorrelationId);
+                return;
+            }
 
             CityBudget budget = await CityBudgetInitializationSupport.EnsureExistsAsync(
                 cityId: message.CityId,
