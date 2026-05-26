@@ -64,6 +64,12 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                         message.CityId,
                         message.SimulationKind);
                     break;
+
+                case SeedCityEnvironmentalConditionsStatus.CityDeleted:
+                    logger.LogWarning(
+                        message: "Ignored environmental initialization for deleted cityId={CityId}.",
+                        message.CityId);
+                    break;
             }
         }
     }

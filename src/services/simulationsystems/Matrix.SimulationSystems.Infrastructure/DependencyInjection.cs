@@ -71,6 +71,7 @@ namespace Matrix.SimulationSystems.Infrastructure
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ICityEnvironmentalConditionRepository, CityEnvironmentalConditionRepository>();
+            services.AddScoped<ICitySystemsDeletionStateRepository, CitySystemsDeletionStateRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationSystemsDbContext>>();
             services.AddPermissionCheckingFromClaims();
