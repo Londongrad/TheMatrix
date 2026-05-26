@@ -15,6 +15,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
         ICityBudgetRepository budgetRepository,
         ICityBudgetLedgerRepository ledgerRepository,
         ICityBudgetSettlementRepository settlementRepository,
+        ICityEconomyDeletionRepository deletionRepository,
         IEconomyUnitOfWork unitOfWork,
         CityBudgetOperatingExpensePolicy operatingExpensePolicy,
         TimeProvider timeProvider,
@@ -32,6 +33,17 @@ namespace Matrix.Economy.Infrastructure.Consumers
             CityEconomyDailySettlementV1 message,
             CancellationToken cancellationToken)
         {
+            if (await deletionRepository.GetDeletedAtUtcAsync(
+                    cityId: message.CityId,
+                    cancellationToken: cancellationToken) is not null)
+            {
+                logger.LogDebug(
+                    message: "Skipped economy settlement for deleted cityId={CityId}, tickId={TickId}.",
+                    message.CityId,
+                    message.TickId);
+                return;
+            }
+
             if (await settlementRepository.ExistsAsync(
                     cityId: message.CityId,
                     tickId: message.TickId,

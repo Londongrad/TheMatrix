@@ -32,6 +32,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
                 budgetRepository: budgetRepository,
                 ledgerRepository: ledgerRepository,
                 settlementRepository: settlementRepository,
+                deletionRepository: new TestCityEconomyDeletionRepository(),
                 unitOfWork: unitOfWork,
                 operatingExpensePolicy: new CityBudgetOperatingExpensePolicy(),
                 timeProvider: new FrozenTimeProvider(
@@ -84,6 +85,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
                 budgetRepository: budgetRepository,
                 ledgerRepository: ledgerRepository,
                 settlementRepository: settlementRepository,
+                deletionRepository: new TestCityEconomyDeletionRepository(),
                 unitOfWork: unitOfWork,
                 operatingExpensePolicy: new CityBudgetOperatingExpensePolicy(),
                 timeProvider: new FrozenTimeProvider(ledgerTime),
