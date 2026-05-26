@@ -71,6 +71,7 @@ namespace Matrix.Resources.Infrastructure
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ICityStockpileRepository, CityStockpileRepository>();
+            services.AddScoped<ICityResourceDeletionStateRepository, CityResourceDeletionStateRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<ResourcesDbContext>>();
             services.AddPermissionCheckingFromClaims();

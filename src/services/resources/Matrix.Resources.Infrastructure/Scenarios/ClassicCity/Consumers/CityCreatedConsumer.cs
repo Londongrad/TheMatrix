@@ -63,6 +63,12 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                         message.CityId,
                         message.SimulationKind);
                     break;
+
+                case SeedCityStockpilesStatus.CityDeleted:
+                    logger.LogWarning(
+                        message: "Ignored stockpile initialization for deleted cityId={CityId}.",
+                        message.CityId);
+                    break;
             }
         }
     }
