@@ -40,6 +40,7 @@ namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stoc
             var outboxWriter = new FakeCityStockpileSnapshotOutboxWriter();
             var handler = new SeedCityStockpilesCommandHandler(
                 repository: repository,
+                deletionStateRepository: new FakeCityResourceDeletionStateRepository(),
                 unitOfWork: unitOfWork,
                 outboxWriter: outboxWriter,
                 policy: new CityStockpilePolicy(),
@@ -74,6 +75,7 @@ namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stoc
             };
             var handler = new SeedCityStockpilesCommandHandler(
                 repository: repository,
+                deletionStateRepository: new FakeCityResourceDeletionStateRepository(),
                 unitOfWork: new FakeUnitOfWork(),
                 outboxWriter: new FakeCityStockpileSnapshotOutboxWriter(),
                 policy: new CityStockpilePolicy(),
@@ -97,6 +99,43 @@ namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stoc
         }
 
         [Fact]
+        public async Task Handler_ReturnsCityDeletedWhenDeletionTombstoneExists()
+        {
+            var repository = new FakeCityStockpileRepository();
+            var unitOfWork = new FakeUnitOfWork();
+            var outboxWriter = new FakeCityStockpileSnapshotOutboxWriter();
+            var handler = new SeedCityStockpilesCommandHandler(
+                repository: repository,
+                deletionStateRepository: new FakeCityResourceDeletionStateRepository
+                {
+                    DeletedAtUtc = LaterUtc
+                },
+                unitOfWork: unitOfWork,
+                outboxWriter: outboxWriter,
+                policy: new CityStockpilePolicy(),
+                timeProvider: CreateTimeProvider());
+
+            SeedCityStockpilesResult result = await handler.Handle(
+                request: new SeedCityStockpilesCommand(
+                    CityId: CityId,
+                    CreatedAtUtc: CreatedAtUtc,
+                    SimulationKind: "ClassicCity",
+                    DevelopmentLevel: "advanced"),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: SeedCityStockpilesStatus.CityDeleted,
+                actual: result.Status);
+            Assert.Equal(
+                expected: 0,
+                actual: repository.AddCallCount);
+            Assert.Empty(outboxWriter.Snapshots);
+            Assert.Equal(
+                expected: 0,
+                actual: unitOfWork.SaveChangesCallCount);
+        }
+
+        [Fact]
         public async Task Handler_CreatesSeedStateAndWritesSnapshotWithInjectedTime()
         {
             var repository = new FakeCityStockpileRepository();
@@ -105,6 +144,7 @@ namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stoc
             DateTimeOffset occurredAtUtc = LaterUtc.AddMinutes(15);
             var handler = new SeedCityStockpilesCommandHandler(
                 repository: repository,
+                deletionStateRepository: new FakeCityResourceDeletionStateRepository(),
                 unitOfWork: unitOfWork,
                 outboxWriter: outboxWriter,
                 policy: new CityStockpilePolicy(),

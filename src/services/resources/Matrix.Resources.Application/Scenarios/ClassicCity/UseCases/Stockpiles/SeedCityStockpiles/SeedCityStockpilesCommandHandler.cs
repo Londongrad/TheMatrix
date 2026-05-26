@@ -12,6 +12,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
 {
     public sealed class SeedCityStockpilesCommandHandler(
         ICityStockpileRepository repository,
+        ICityResourceDeletionStateRepository deletionStateRepository,
         IUnitOfWork unitOfWork,
         ICityStockpileSnapshotOutboxWriter outboxWriter,
         CityStockpilePolicy policy,
@@ -30,6 +31,17 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     EmergencyRationingEnabled: false);
 
             SimulationHostId simulationHostId = new(request.CityId);
+
+            DateTimeOffset? deletedAtUtc = await deletionStateRepository.GetDeletedAtUtcAsync(
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
+
+            if (deletedAtUtc.HasValue)
+                return new SeedCityStockpilesResult(
+                    Status: SeedCityStockpilesStatus.CityDeleted,
+                    CityId: request.CityId,
+                    SupplyStressIndex: 0m,
+                    EmergencyRationingEnabled: false);
 
             CityStockpileState? existing = await repository.GetBySimulationHostIdAsync(
                 simulationHostId: simulationHostId,
