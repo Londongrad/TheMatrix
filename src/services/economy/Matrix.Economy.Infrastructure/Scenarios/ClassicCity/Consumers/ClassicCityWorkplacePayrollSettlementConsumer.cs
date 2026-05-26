@@ -20,6 +20,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         ICityHouseholdAccountRepository householdAccountRepository,
         ICityHouseholdAccountLedgerRepository householdLedgerRepository,
         ICityPopulationSignalPublisher cityPopulationSignalPublisher,
+        ICityEconomyDeletionRepository deletionRepository,
         IEconomyUnitOfWork unitOfWork,
         ILogger<ClassicCityWorkplacePayrollSettlementConsumer> logger)
         : IConsumer<ClassicCityWorkplacePayrollSettlementBatchV1>
@@ -29,6 +30,18 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         public async Task Consume(ConsumeContext<ClassicCityWorkplacePayrollSettlementBatchV1> context)
         {
             ClassicCityWorkplacePayrollSettlementBatchV1 message = context.Message;
+
+            if (await deletionRepository.GetDeletedAtUtcAsync(
+                    cityId: message.CityId,
+                    cancellationToken: context.CancellationToken) is not null)
+            {
+                logger.LogDebug(
+                    message: "Skipped payroll settlement for deleted cityId={CityId}, correlationId={CorrelationId}.",
+                    message.CityId,
+                    message.CorrelationId);
+                return;
+            }
+
             int recordedPayrollOutcomes = 0;
             var employerPayrollByReference = new Dictionary<string, EmployerPayrollSnapshot>(
                 comparer: StringComparer.Ordinal);

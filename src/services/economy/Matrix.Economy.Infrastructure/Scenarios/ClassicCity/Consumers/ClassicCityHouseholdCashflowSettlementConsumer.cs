@@ -17,6 +17,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         ICityHouseholdAccountRepository householdAccountRepository,
         ICityHouseholdAccountLedgerRepository householdLedgerRepository,
         CityHouseholdConsumerSpendAllocationPolicy householdConsumerSpendAllocationPolicy,
+        ICityEconomyDeletionRepository deletionRepository,
         IEconomyUnitOfWork unitOfWork,
         ILogger<ClassicCityHouseholdCashflowSettlementConsumer> logger)
         : IConsumer<ClassicCityHouseholdCashflowSettlementBatchV1>
@@ -24,6 +25,18 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         public async Task Consume(ConsumeContext<ClassicCityHouseholdCashflowSettlementBatchV1> context)
         {
             ClassicCityHouseholdCashflowSettlementBatchV1 message = context.Message;
+
+            if (await deletionRepository.GetDeletedAtUtcAsync(
+                    cityId: message.CityId,
+                    cancellationToken: context.CancellationToken) is not null)
+            {
+                logger.LogDebug(
+                    message: "Skipped household cashflow settlement for deleted cityId={CityId}, correlationId={CorrelationId}.",
+                    message.CityId,
+                    message.CorrelationId);
+                return;
+            }
+
             IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(
                 cityId: message.CityId,
                 cancellationToken: context.CancellationToken);
