@@ -8,6 +8,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
 {
     public sealed class CityCreatedConsumer(
         ICityEconomyBootstrapService cityEconomyBootstrapService,
+        ICityEconomyDeletionRepository deletionRepository,
         ILogger<CityCreatedConsumer> logger)
         : IConsumer<CityCreatedV1>
     {
@@ -22,6 +23,16 @@ namespace Matrix.Economy.Infrastructure.Consumers
             CityCreatedV1 message,
             CancellationToken cancellationToken)
         {
+            if (await deletionRepository.GetDeletedAtUtcAsync(
+                    cityId: message.CityId,
+                    cancellationToken: cancellationToken) is not null)
+            {
+                logger.LogWarning(
+                    message: "Skipped city economy initialization for deleted cityId={CityId}.",
+                    message.CityId);
+                return;
+            }
+
             CityEconomyBootstrapResultDto result = await cityEconomyBootstrapService.BootstrapAsync(
                 cityId: message.CityId,
                 simulationKind: message.SimulationKind,

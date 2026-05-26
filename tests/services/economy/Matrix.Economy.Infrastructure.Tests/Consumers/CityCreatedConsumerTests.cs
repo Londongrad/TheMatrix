@@ -42,6 +42,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
             var logger = new TestLogger<CityCreatedConsumer>();
             var consumer = new CityCreatedConsumer(
                 cityEconomyBootstrapService: bootstrapService,
+                deletionRepository: new TestCityEconomyDeletionRepository(),
                 logger: logger);
 
             await consumer.ConsumeAsync(
@@ -101,6 +102,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
             var logger = new TestLogger<CityCreatedConsumer>();
             var consumer = new CityCreatedConsumer(
                 cityEconomyBootstrapService: bootstrapService,
+                deletionRepository: new TestCityEconomyDeletionRepository(),
                 logger: logger);
 
             await consumer.ConsumeAsync(
@@ -120,6 +122,43 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
             Assert.Contains(
                 expectedSubstring: message.EconomyProfile ?? string.Empty,
                 actualString: entry.Message);
+        }
+
+        [Fact]
+        public async Task ConsumeAsync_WhenCityWasDeleted_DoesNotBootstrapEconomy()
+        {
+            CityCreatedV1 message = new(
+                CityId: Guid.Parse("f1bec638-b975-4e43-a8a6-a662c296c7bf"),
+                Name: "Aurora",
+                SimulationKind: "classic-city",
+                CreatedAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 8,
+                    minute: 30,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                DevelopmentLevel: "seed",
+                EconomyProfile: "service-heavy");
+            var bootstrapService = new TestCityEconomyBootstrapService();
+            var logger = new TestLogger<CityCreatedConsumer>();
+            var consumer = new CityCreatedConsumer(
+                cityEconomyBootstrapService: bootstrapService,
+                deletionRepository: new TestCityEconomyDeletionRepository
+                {
+                    DeletedAtUtc = message.CreatedAtUtc.AddMinutes(1)
+                },
+                logger: logger);
+
+            await consumer.ConsumeAsync(
+                message: message,
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(Guid.Empty, bootstrapService.CityId);
+            TestLogEntry entry = Assert.Single(logger.Entries);
+            Assert.Equal(LogLevel.Warning, entry.LogLevel);
+            Assert.Contains(message.CityId.ToString(), entry.Message);
         }
 
         private sealed class TestCityEconomyBootstrapService : ICityEconomyBootstrapService

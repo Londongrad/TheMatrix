@@ -1,7 +1,38 @@
+using Matrix.Economy.Application.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Tests.TestSupport
 {
+    internal sealed class TestCityEconomyDeletionRepository : ICityEconomyDeletionRepository
+    {
+        public DateTimeOffset? DeletedAtUtc { get; set; }
+        public Guid? RequestedCityId { get; private set; }
+
+        public Task<DateTimeOffset?> GetDeletedAtUtcAsync(
+            Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(DeletedAtUtc);
+        }
+
+        public Task DeleteCityDataAsync(
+            Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task RecordAsync(
+            Guid cityId,
+            DateTimeOffset deletedAtUtc,
+            DateTimeOffset updatedAtUtc,
+            CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
     internal sealed class TestLogger<T> : ILogger<T>
     {
         public List<TestLogEntry> Entries { get; } = [];
