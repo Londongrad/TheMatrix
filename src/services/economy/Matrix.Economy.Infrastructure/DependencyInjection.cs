@@ -62,6 +62,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
+            services.AddScoped<ICityEconomyDeletionRepository, CityEconomyDeletionRepository>();
             services.AddScoped<ICityBudgetAllocationRepository, CityBudgetAllocationRepository>();
             services.AddScoped<ICityBudgetLedgerRepository, CityBudgetLedgerRepository>();
             services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
@@ -88,6 +89,7 @@ namespace Matrix.Economy.Infrastructure
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
                 x.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
+                x.AddConsumer<CityDeletedConsumer, CityDeletedConsumerDefinition>();
                 x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
                 x.AddClassicCityScenarioConsumers();
