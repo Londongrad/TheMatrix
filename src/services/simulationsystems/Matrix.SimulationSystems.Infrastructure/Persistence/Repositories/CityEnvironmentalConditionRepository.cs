@@ -48,5 +48,17 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Repositories
                     cancellationToken: cancellationToken)
                .AsTask();
         }
+
+        public async Task DeleteBySimulationHostIdAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken)
+        {
+            CityEnvironmentalConditionState? state = await GetBySimulationHostIdAsync(
+                simulationHostId: simulationHostId,
+                cancellationToken: cancellationToken);
+
+            if (state is not null)
+                dbContext.CityEnvironmentalConditions.Remove(state);
+        }
     }
 }

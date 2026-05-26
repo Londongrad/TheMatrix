@@ -92,6 +92,7 @@ namespace Matrix.SimulationSystems.Application.Tests.TestSupport
         public CityEnvironmentalConditionState? State { get; set; }
         public SimulationHostId? RequestedSimulationHostId { get; private set; }
         public int AddCallCount { get; private set; }
+        public int DeleteCallCount { get; private set; }
 
         public Task<CityEnvironmentalConditionState?> GetBySimulationHostIdAsync(
             SimulationHostId simulationHostId,
@@ -125,6 +126,42 @@ namespace Matrix.SimulationSystems.Application.Tests.TestSupport
             State = state;
             return Task.CompletedTask;
         }
+
+        public Task DeleteBySimulationHostIdAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken)
+        {
+            RequestedSimulationHostId = simulationHostId;
+            DeleteCallCount++;
+            State = null;
+            return Task.CompletedTask;
+        }
+    }
+
+    internal sealed class FakeCitySystemsDeletionStateRepository : ICitySystemsDeletionStateRepository
+    {
+        public DateTimeOffset? DeletedAtUtc { get; set; }
+        public DateTimeOffset? UpdatedAtUtc { get; private set; }
+        public int RecordCallCount { get; private set; }
+
+        public Task<DateTimeOffset?> GetDeletedAtUtcAsync(
+            Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(DeletedAtUtc);
+        }
+
+        public Task RecordAsync(
+            Guid cityId,
+            DateTimeOffset deletedAtUtc,
+            DateTimeOffset updatedAtUtc,
+            CancellationToken cancellationToken)
+        {
+            DeletedAtUtc = deletedAtUtc;
+            UpdatedAtUtc = updatedAtUtc;
+            RecordCallCount++;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeUnitOfWork : IUnitOfWork
@@ -142,12 +179,12 @@ namespace Matrix.SimulationSystems.Application.Tests.TestSupport
             return Task.CompletedTask;
         }
 
-        public Task ExecuteInTransactionAsync(
+        public async Task ExecuteInTransactionAsync(
             Func<CancellationToken, Task> action,
             CancellationToken cancellationToken,
             IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            throw new NotSupportedException();
+            await action(cancellationToken);
         }
 
         public Task<T> ExecuteInTransactionAsync<T>(
@@ -155,7 +192,7 @@ namespace Matrix.SimulationSystems.Application.Tests.TestSupport
             CancellationToken cancellationToken,
             IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            throw new NotSupportedException();
+            return action(cancellationToken);
         }
     }
 

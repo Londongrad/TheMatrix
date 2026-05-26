@@ -20,5 +20,9 @@ namespace Matrix.SimulationSystems.Application.Abstractions
         Task AddAsync(
             CityEnvironmentalConditionState state,
             CancellationToken cancellationToken);
+
+        Task DeleteBySimulationHostIdAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken);
     }
 }

@@ -98,5 +98,29 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Persistence.Repositories
                 actual: dbContext.Entry(loaded!)
                    .State);
         }
+
+        [Fact]
+        public async Task DeleteBySimulationHostIdAsync_RemovesExistingStateAndIgnoresMissingState()
+        {
+            await using SimulationSystemsDbContext dbContext = CreateDbContext();
+            CityEnvironmentalConditionRepository repository = new(dbContext);
+            await repository.AddAsync(
+                state: CreateState(),
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
+
+            await repository.DeleteBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
+            await dbContext.SaveChangesAsync();
+            await repository.DeleteBySimulationHostIdAsync(
+                simulationHostId: CreateHostId(),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Null(
+                await repository.GetBySimulationHostIdAsync(
+                    simulationHostId: CreateHostId(),
+                    cancellationToken: CancellationToken.None));
+        }
     }
 }
