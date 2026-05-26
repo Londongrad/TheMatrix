@@ -11,6 +11,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class ClassicCityOperationalExpenseConsumer(
         CityBudgetOperationalExpenseSupport operationalExpenseSupport,
+        ICityEconomyDeletionRepository deletionRepository,
         IEconomyUnitOfWork unitOfWork,
         ICityOperationalBudgetPressureProjectionService operationalBudgetPressureProjectionService,
         ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
@@ -21,6 +22,17 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         public async Task Consume(ConsumeContext<ClassicCityOperationalExpenseIncurredV1> context)
         {
             ClassicCityOperationalExpenseIncurredV1 message = context.Message;
+
+            if (await deletionRepository.GetDeletedAtUtcAsync(
+                    cityId: message.CityId,
+                    cancellationToken: context.CancellationToken) is not null)
+            {
+                logger.LogDebug(
+                    message: "Skipped operational expense for deleted cityId={CityId}, expenseId={ExpenseId}.",
+                    message.CityId,
+                    message.ExpenseId);
+                return;
+            }
 
             if (!Enum.TryParse(
                     value: message.Category,
