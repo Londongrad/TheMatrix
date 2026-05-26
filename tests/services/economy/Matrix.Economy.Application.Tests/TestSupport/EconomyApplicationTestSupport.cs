@@ -715,6 +715,47 @@ namespace Matrix.Economy.Application.Tests.TestSupport
             }
         }
 
+        internal sealed class FakeCityEconomyDeletionRepository : ICityEconomyDeletionRepository
+        {
+            public DateTimeOffset? DeletedAtUtc { get; set; }
+            public Guid? RequestedCityId { get; private set; }
+            public int DeleteCityDataCallCount { get; private set; }
+            public int RecordCallCount { get; private set; }
+            public DateTimeOffset? RecordedDeletedAtUtc { get; private set; }
+            public DateTimeOffset? RecordedUpdatedAtUtc { get; private set; }
+
+            public Task<DateTimeOffset?> GetDeletedAtUtcAsync(
+                Guid cityId,
+                CancellationToken cancellationToken)
+            {
+                RequestedCityId = cityId;
+                return Task.FromResult(DeletedAtUtc);
+            }
+
+            public Task DeleteCityDataAsync(
+                Guid cityId,
+                CancellationToken cancellationToken)
+            {
+                RequestedCityId = cityId;
+                DeleteCityDataCallCount++;
+                return Task.CompletedTask;
+            }
+
+            public Task RecordAsync(
+                Guid cityId,
+                DateTimeOffset deletedAtUtc,
+                DateTimeOffset updatedAtUtc,
+                CancellationToken cancellationToken)
+            {
+                RequestedCityId = cityId;
+                RecordCallCount++;
+                RecordedDeletedAtUtc = deletedAtUtc;
+                RecordedUpdatedAtUtc = updatedAtUtc;
+                DeletedAtUtc = deletedAtUtc;
+                return Task.CompletedTask;
+            }
+        }
+
         internal sealed class FakeEconomyUnitOfWork : IEconomyUnitOfWork
         {
             public int SaveChangesCallCount { get; private set; }
