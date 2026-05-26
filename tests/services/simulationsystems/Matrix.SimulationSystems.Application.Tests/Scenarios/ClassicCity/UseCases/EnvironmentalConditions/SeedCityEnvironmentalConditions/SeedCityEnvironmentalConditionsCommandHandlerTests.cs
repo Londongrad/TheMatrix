@@ -66,6 +66,35 @@ namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCa
         }
 
         [Fact]
+        public async Task Handle_WhenDeletionTombstoneExists_ReturnsCityDeleted()
+        {
+            var repository = new FakeCityEnvironmentalConditionRepository();
+            var unitOfWork = new FakeUnitOfWork();
+            var outbox = new FakeCityPopulationLivingConditionsOutboxWriter();
+            SeedCityEnvironmentalConditionsCommandHandler handler = CreateHandler(
+                repository: repository,
+                unitOfWork: unitOfWork,
+                outbox: outbox,
+                deletionStateRepository: new FakeCitySystemsDeletionStateRepository
+                {
+                    DeletedAtUtc = SimulationSystemsApplicationTestSupport.LaterUtc
+                });
+
+            SeedCityEnvironmentalConditionsResult result = await handler.Handle(
+                request: new SeedCityEnvironmentalConditionsCommand(
+                    CityId: SimulationSystemsApplicationTestSupport.CityId,
+                    CreatedAtUtc: SimulationSystemsApplicationTestSupport.CreatedAtUtc,
+                    SimulationKind: "ClassicCity",
+                    DevelopmentLevel: "advanced"),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(SeedCityEnvironmentalConditionsStatus.CityDeleted, result.Status);
+            Assert.Equal(0, repository.AddCallCount);
+            Assert.Equal(0, unitOfWork.SaveChangesCallCount);
+            Assert.Empty(outbox.Snapshots);
+        }
+
+        [Fact]
         public async Task Handle_WhenSeedSucceeds_AddsStateAndWritesOutboxWithInjectedTime()
         {
             var repository = new FakeCityEnvironmentalConditionRepository();
@@ -112,10 +141,12 @@ namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCa
             FakeCityEnvironmentalConditionRepository repository,
             FakeUnitOfWork unitOfWork,
             FakeCityPopulationLivingConditionsOutboxWriter outbox,
-            TimeProvider? timeProvider = null)
+            TimeProvider? timeProvider = null,
+            FakeCitySystemsDeletionStateRepository? deletionStateRepository = null)
         {
             return new SeedCityEnvironmentalConditionsCommandHandler(
                 repository: repository,
+                deletionStateRepository: deletionStateRepository ?? new FakeCitySystemsDeletionStateRepository(),
                 unitOfWork: unitOfWork,
                 populationLivingConditionsOutboxWriter: outbox,
                 policy: new CityEnvironmentalConditionPolicy(),

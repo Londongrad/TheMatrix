@@ -13,6 +13,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
 {
     public sealed class SeedCityEnvironmentalConditionsCommandHandler(
         ICityEnvironmentalConditionRepository repository,
+        ICitySystemsDeletionStateRepository deletionStateRepository,
         IUnitOfWork unitOfWork,
         ICityPopulationLivingConditionsOutboxWriter populationLivingConditionsOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
@@ -29,6 +30,15 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     LastEvaluatedAtUtc: request.CreatedAtUtc);
 
             var simulationHostId = new SimulationHostId(request.CityId);
+
+            DateTimeOffset? deletedAtUtc = await deletionStateRepository.GetDeletedAtUtcAsync(
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
+
+            if (deletedAtUtc.HasValue)
+                return new SeedCityEnvironmentalConditionsResult(
+                    Status: SeedCityEnvironmentalConditionsStatus.CityDeleted,
+                    LastEvaluatedAtUtc: deletedAtUtc.Value);
 
             CityEnvironmentalConditionState? existing = await repository.GetBySimulationHostIdAsync(
                 simulationHostId: simulationHostId,
