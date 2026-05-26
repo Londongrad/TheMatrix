@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Economy.Infrastructure.Persistence
@@ -23,6 +24,7 @@ namespace Matrix.Economy.Infrastructure.Persistence
         public DbSet<CityEconomyCostProfileState> CityEconomyCostProfileStates => Set<CityEconomyCostProfileState>();
         public DbSet<CityEconomyProgressionState> CityEconomyProgressionStates => Set<CityEconomyProgressionState>();
         public DbSet<CityBudgetSettlement> CityBudgetSettlements => Set<CityBudgetSettlement>();
+        public DbSet<CityEconomyDeletionState> CityEconomyDeletionStates => Set<CityEconomyDeletionState>();
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
