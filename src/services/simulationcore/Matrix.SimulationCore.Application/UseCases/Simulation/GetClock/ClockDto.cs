@@ -19,7 +19,7 @@ namespace Matrix.SimulationCore.Application.UseCases.Simulation.GetClock
         {
             return new ClockDto(
                 SimulationId: clock.SimulationId.Value,
-                HostId: clock.HostId.Value,
+                HostId: host.HostId.Value,
                 HostKind: host.HostKind.ToString(),
                 SimulationKind: host.SimulationKind.ToString(),
                 SimTimeUtc: clock.CurrentTime.ValueUtc,

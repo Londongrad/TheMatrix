@@ -57,13 +57,17 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.GetClock
         public async Task Handle_WhenHostIsActive_ReturnsClockDto()
         {
             var simulationId = Guid.NewGuid();
+            var hostId = Guid.NewGuid();
             SimulationClock clock = SimulationTestSupport.CreateClock(
                 simulationId: simulationId,
                 state: ClockState.Running,
                 speed: 60m);
             SimulationHost host = SimulationTestSupport.CreateHost(
                 simulationId: simulationId,
-                state: SimulationHostState.Active);
+                state: SimulationHostState.Active) with
+            {
+                HostId = new SimulationHostId(hostId)
+            };
             var handler = new GetClockQueryHandler(
                 repository: new SimulationTestSupport.FakeSimulationClockRepository
                 {
@@ -83,7 +87,7 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.GetClock
                 expected: simulationId,
                 actual: result!.SimulationId);
             Assert.Equal(
-                expected: simulationId,
+                expected: hostId,
                 actual: result.HostId);
             Assert.Equal(
                 expected: "City",
