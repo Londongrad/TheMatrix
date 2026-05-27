@@ -132,6 +132,17 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
             Assert.Equal(
                 expected: plan.City.Id.Value,
                 actual: plan.Clock.SimulationId.Value);
+            Assert.Equal(
+                expected: plan.City.Id.Value,
+                actual: plan.Instance.Id.Value);
+            Assert.Equal(
+                expected: plan.City.Id.Value,
+                actual: plan.Instance.HostId.Value);
+            Assert.Equal("classic-city:city", plan.Instance.RuntimeKey.ToString());
+            Assert.Equal(plan.City.GenerationSeed.Value, plan.Instance.Seed.Value);
+            Assert.Equal(plan.City.RunId, plan.Instance.RunId);
+            Assert.Equal(plan.City.ScenarioModelSetVersion.Value, plan.Instance.ModelVersion.Value);
+            Assert.Equal(SimulationHostState.Provisioning, plan.Instance.State);
             Assert.True(plan.SupportsAutomaticPopulationBootstrap);
         }
 

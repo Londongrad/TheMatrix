@@ -5,6 +5,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.A
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
@@ -105,6 +106,17 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                 requiresEconomyBootstrap: true,
                 createdAtUtc: timeProvider.GetUtcNow());
 
+            SimulationInstance instance = SimulationInstance.Create(
+                id: new SimulationId(city.Id.Value),
+                hostId: new SimulationHostId(city.Id.Value),
+                runtimeKey: ClassicCityRuntime.Key,
+                seed: new SimulationSeed(city.GenerationSeed.Value),
+                runId: city.RunId,
+                modelVersion: new SimulationModelVersion(city.ScenarioModelSetVersion.Value),
+                provisioningCorrelationId: city.ProvisioningCorrelationId,
+                initialState: SimulationHostState.Provisioning,
+                createdAtUtc: city.CreatedAtUtc);
+
             CityTopologySeed topology = cityTopologyBootstrapFactory.CreateInitial(city);
 
             CityWeather weather = cityWeatherBootstrapFactory.CreateInitial(
@@ -121,6 +133,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                 speed: speed);
 
             return new CitySimulationBootstrapPlan(
+                Instance: instance,
                 City: city,
                 Clock: clock,
                 Topology: topology,

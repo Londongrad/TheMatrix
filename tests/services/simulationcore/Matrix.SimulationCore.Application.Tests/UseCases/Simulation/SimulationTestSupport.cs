@@ -4,6 +4,7 @@ using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Domain.Events.Simulation;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 
@@ -48,6 +49,22 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
                 ArchivedAtUtc: state == SimulationHostState.Archived
                     ? SimStartTimeUtc
                     : null);
+        }
+
+        internal static SimulationInstance CreateInstance(City city)
+        {
+            return SimulationInstance.Create(
+                id: new SimulationId(city.Id.Value),
+                hostId: new SimulationHostId(city.Id.Value),
+                runtimeKey: ClassicCityRuntime.Key,
+                seed: new SimulationSeed(city.GenerationSeed.Value),
+                runId: city.RunId,
+                modelVersion: new SimulationModelVersion(city.ScenarioModelSetVersion.Value),
+                provisioningCorrelationId: city.ProvisioningCorrelationId,
+                initialState: city.IsActive
+                    ? SimulationHostState.Active
+                    : SimulationHostState.Provisioning,
+                createdAtUtc: city.CreatedAtUtc);
         }
 
         internal sealed class FakeSimulationClockRepository : ISimulationClockRepository

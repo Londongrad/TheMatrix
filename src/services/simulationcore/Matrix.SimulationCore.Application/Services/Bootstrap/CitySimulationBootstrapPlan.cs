@@ -6,6 +6,7 @@ using Matrix.SimulationCore.Domain.Simulation;
 namespace Matrix.SimulationCore.Application.Services.Bootstrap
 {
     public sealed record CitySimulationBootstrapPlan(
+        SimulationInstance Instance,
         City City,
         SimulationClock Clock,
         CityTopologySeed Topology,

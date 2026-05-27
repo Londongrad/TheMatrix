@@ -160,6 +160,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                     Description: "Classic city simulation.",
                     SupportsAutomaticPopulationBootstrap: true),
                 Plan = new CitySimulationBootstrapPlan(
+                    Instance: SimulationTestSupport.CreateInstance(city),
                     City: city,
                     Clock: clock,
                     Topology: topology,
@@ -282,6 +283,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                     Description: "Classic city simulation.",
                     SupportsAutomaticPopulationBootstrap: true),
                 Plan = new CitySimulationBootstrapPlan(
+                    Instance: SimulationTestSupport.CreateInstance(createdCity),
                     City: createdCity,
                     Clock: clock,
                     Topology: topology,
