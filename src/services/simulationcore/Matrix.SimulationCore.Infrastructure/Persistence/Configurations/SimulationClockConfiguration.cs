@@ -1,4 +1,3 @@
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,7 +15,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder.Property(x => x.Id)
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
-                    convertFromProviderExpression: x => new CityId(x))
+                    convertFromProviderExpression: x => new SimulationId(x))
                .ValueGeneratedNever();
 
             builder.Property(x => x.CurrentTime)
@@ -52,7 +51,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder.Ignore(x => x.DomainEvents);
 
             builder
-               .HasOne<City>()
+               .HasOne<SimulationInstance>()
                .WithOne()
                .HasForeignKey<SimulationClock>(x => x.Id)
                .OnDelete(DeleteBehavior.Cascade);

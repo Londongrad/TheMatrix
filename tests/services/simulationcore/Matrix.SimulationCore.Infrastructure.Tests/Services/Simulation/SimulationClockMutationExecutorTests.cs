@@ -121,7 +121,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation
 
             SimulationClock persistedClock = await dbContext.SimulationClocks
                .AsNoTracking()
-               .SingleAsync(x => x.Id == city.Id);
+               .SingleAsync(x => x.Id == new SimulationId(city.Id.Value));
 
             Assert.True(result);
             Assert.Equal(
@@ -171,7 +171,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation
 
             SimulationClock persistedClock = await dbContext.SimulationClocks
                .AsNoTracking()
-               .SingleAsync(x => x.Id == city.Id);
+               .SingleAsync(x => x.Id == new SimulationId(city.Id.Value));
 
             Assert.True(result);
             Assert.Equal(
@@ -226,7 +226,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation
 
                 SimulationClock persistedClock = await dbContext.SimulationClocks
                    .AsNoTracking()
-                   .SingleAsync(x => x.Id == city.Id);
+                   .SingleAsync(x => x.Id == new SimulationId(city.Id.Value));
 
                 Assert.True(result);
                 Assert.Equal(
@@ -289,7 +289,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation
 
                 SimulationClock persistedClock = await dbContext.SimulationClocks
                    .AsNoTracking()
-                   .SingleAsync(x => x.Id == city.Id);
+                   .SingleAsync(x => x.Id == new SimulationId(city.Id.Value));
 
                 Assert.Equal(
                     expected: "SimulationCore.SimulationClockConflict",

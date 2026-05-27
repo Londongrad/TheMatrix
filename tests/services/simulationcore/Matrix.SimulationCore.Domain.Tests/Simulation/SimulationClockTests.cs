@@ -10,6 +10,7 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
     {
         private const string RealDeltaNotPositiveErrorCode = "SimulationCore.SimSpeed.RealDelta.NotPositive";
         private static readonly CityId TestCityId = new(Guid.Parse("11111111-1111-1111-1111-111111111111"));
+        private static readonly SimulationId TestSimulationId = new(TestCityId.Value);
 
         private static readonly SimTime TestStartTime = SimTime.FromUtc(
             new DateTimeOffset(
@@ -37,7 +38,7 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
             var speed = SimSpeed.From(60m);
 
             var clock = SimulationClock.Create(
-                cityId: TestCityId,
+                simulationId: TestSimulationId,
                 startTime: TestStartTime,
                 speed: speed,
                 initialState: ClockState.Running);
@@ -671,7 +672,7 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
             SimTime? startTime = null)
         {
             return SimulationClock.Create(
-                cityId: TestCityId,
+                simulationId: TestSimulationId,
                 startTime: startTime ?? TestStartTime,
                 speed: speed ?? SimSpeed.RealTime(),
                 initialState: initialState);

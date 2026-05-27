@@ -128,7 +128,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                 : SimSpeed.From(request.SpeedMultiplier);
 
             var clock = SimulationClock.Create(
-                cityId: city.Id,
+                simulationId: instance.Id,
                 startTime: startSimTime,
                 speed: speed);
 

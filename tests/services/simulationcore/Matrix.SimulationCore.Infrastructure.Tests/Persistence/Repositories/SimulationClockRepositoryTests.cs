@@ -27,7 +27,9 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
             SimulationClock clock = SimulationInfrastructureTestSupport.CreateClock(
                 cityId: city.Id,
                 startAtUtc: createdAtUtc.AddMinutes(30));
+            SimulationInstance instance = SimulationInfrastructureTestSupport.CreateInstance(city);
             await dbContext.Cities.AddAsync(city);
+            await dbContext.SimulationInstances.AddAsync(instance);
             await dbContext.SimulationClocks.AddAsync(clock);
             await dbContext.SaveChangesAsync();
             var repository = new SimulationClockRepository(dbContext);
@@ -38,7 +40,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
 
             Assert.NotNull(result);
             Assert.Equal(
-                expected: city.Id,
+                expected: new SimulationId(city.Id.Value),
                 actual: result.Id);
             Assert.Equal(
                 expected: clock.CurrentTime,
@@ -49,10 +51,10 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
         }
 
         [Fact]
-        public async Task ListActiveRunningSimulationIdsAsync_ReturnsOnlyRunningClocksForNonArchivedCities()
+        public async Task ListActiveRunningSimulationIdsAsync_ReturnsOnlyRunningClocksForNonArchivedInstances()
         {
             using SimulationCoreDbContext dbContext = SimulationInfrastructureTestSupport.CreateDbContext(
-                nameof(ListActiveRunningSimulationIdsAsync_ReturnsOnlyRunningClocksForNonArchivedCities));
+                nameof(ListActiveRunningSimulationIdsAsync_ReturnsOnlyRunningClocksForNonArchivedInstances));
             DateTimeOffset createdAtUtc = new(
                 year: 2048,
                 month: 2,
@@ -85,10 +87,21 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
                 cityId: archivedRunningCity.Id,
                 startAtUtc: createdAtUtc.AddMinutes(12));
 
+            SimulationInstance activeRunningInstance = SimulationInfrastructureTestSupport.CreateInstance(
+                activeRunningCity);
+            SimulationInstance activePausedInstance = SimulationInfrastructureTestSupport.CreateInstance(
+                activePausedCity);
+            SimulationInstance archivedRunningInstance = SimulationInfrastructureTestSupport.CreateInstance(
+                archivedRunningCity);
+
             await dbContext.Cities.AddRangeAsync(
                 activeRunningCity,
                 activePausedCity,
                 archivedRunningCity);
+            await dbContext.SimulationInstances.AddRangeAsync(
+                activeRunningInstance,
+                activePausedInstance,
+                archivedRunningInstance);
             await dbContext.SimulationClocks.AddRangeAsync(
                 activeRunningClock,
                 activePausedClock,
@@ -121,7 +134,9 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
             SimulationClock clock = SimulationInfrastructureTestSupport.CreateClock(
                 cityId: city.Id,
                 startAtUtc: createdAtUtc.AddMinutes(40));
+            SimulationInstance instance = SimulationInfrastructureTestSupport.CreateInstance(city);
             await dbContext.Cities.AddAsync(city);
+            await dbContext.SimulationInstances.AddAsync(instance);
             await dbContext.SimulationClocks.AddAsync(clock);
             await dbContext.SaveChangesAsync();
             var repository = new SimulationClockRepository(dbContext);

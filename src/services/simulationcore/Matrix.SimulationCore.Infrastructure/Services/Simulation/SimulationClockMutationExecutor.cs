@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -50,10 +49,8 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
                                     "Archived simulation hosts are read-only. Simulation controls are unavailable.",
                                     errorType: ApplicationErrorType.Conflict);
 
-                            CityId cityId = new(host.HostId.Value);
-
                             SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
-                                predicate: x => x.Id == cityId,
+                                predicate: x => x.Id == simulationId,
                                 cancellationToken: ct);
 
                             if (clock is null)

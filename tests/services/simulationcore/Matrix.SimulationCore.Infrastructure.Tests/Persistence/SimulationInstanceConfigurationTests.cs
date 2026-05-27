@@ -34,4 +34,17 @@ public sealed class SimulationInstanceConfigurationTests
 
         Assert.True(hostIdentityIndex.IsUnique);
     }
+
+    [Fact]
+    public void Model_ShouldAttachClockToSimulationInstanceInsteadOfScenarioHost()
+    {
+        using SimulationCoreDbContext dbContext = SimulationInfrastructureTestSupport.CreateDbContext(
+            nameof(Model_ShouldAttachClockToSimulationInstanceInsteadOfScenarioHost));
+
+        IEntityType clockType = dbContext.Model.FindEntityType(typeof(SimulationClock))!;
+        IForeignKey foreignKey = Assert.Single(clockType.GetForeignKeys());
+
+        Assert.Equal(typeof(SimulationInstance), foreignKey.PrincipalEntityType.ClrType);
+        Assert.Equal(nameof(SimulationClock.Id), foreignKey.Properties.Single().Name);
+    }
 }

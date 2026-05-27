@@ -1,5 +1,4 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,32 +10,28 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
             SimulationId simulationId,
             CancellationToken cancellationToken)
         {
-            CityId cityId = new(simulationId.Value);
-
             return dbContext.SimulationClocks.SingleOrDefaultAsync(
-                predicate: x => x.Id == cityId,
+                predicate: x => x.Id == simulationId,
                 cancellationToken: cancellationToken);
         }
 
         public async Task<IReadOnlyList<SimulationId>> ListActiveRunningSimulationIdsAsync(
             CancellationToken cancellationToken)
         {
-            List<CityId> cityIds = await dbContext.SimulationClocks
+            List<SimulationId> simulationIds = await dbContext.SimulationClocks
                .AsNoTracking()
                .Where(clock => clock.State == ClockState.Running)
                .Join(
-                    inner: dbContext.Cities.AsNoTracking()
-                       .Where(city => city.Status != CityStatus.Archived),
+                    inner: dbContext.SimulationInstances.AsNoTracking()
+                       .Where(instance => instance.State != SimulationHostState.Archived),
                     outerKeySelector: clock => clock.Id,
-                    innerKeySelector: city => city.Id,
+                    innerKeySelector: instance => instance.Id,
                     resultSelector: (
                         clock,
-                        city) => clock.Id)
+                        instance) => clock.Id)
                .ToListAsync(cancellationToken);
 
-            return cityIds
-               .Select(cityId => new SimulationId(cityId.Value))
-               .ToArray();
+            return simulationIds;
         }
 
         public Task AddAsync(
@@ -53,10 +48,8 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
             SimulationId simulationId,
             CancellationToken cancellationToken)
         {
-            CityId cityId = new(simulationId.Value);
-
             SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
-                predicate: x => x.Id == cityId,
+                predicate: x => x.Id == simulationId,
                 cancellationToken: cancellationToken);
 
             if (clock is null)

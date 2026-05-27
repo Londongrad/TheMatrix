@@ -27,9 +27,8 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
             ClockState state = ClockState.Running,
             decimal speed = 60m)
         {
-            var cityId = new CityId(simulationId ?? Guid.NewGuid());
             return SimulationClock.Create(
-                cityId: cityId,
+                simulationId: new SimulationId(simulationId ?? Guid.NewGuid()),
                 startTime: SimTime.FromUtc(SimStartTimeUtc),
                 speed: SimSpeed.From(speed),
                 initialState: state);

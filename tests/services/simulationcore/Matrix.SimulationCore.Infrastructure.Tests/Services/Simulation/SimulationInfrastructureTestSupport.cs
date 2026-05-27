@@ -2,6 +2,7 @@ using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
@@ -66,10 +67,31 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation
             DateTimeOffset startAtUtc)
         {
             return SimulationClock.Create(
-                cityId: cityId,
+                simulationId: new SimulationId(cityId.Value),
                 startTime: SimTime.FromUtc(startAtUtc),
                 speed: SimSpeed.RealTime(),
                 initialState: ClockState.Running);
+        }
+
+        internal static SimulationInstance CreateInstance(City city)
+        {
+            SimulationInstance instance = SimulationInstance.Create(
+                id: new SimulationId(city.Id.Value),
+                hostId: new SimulationHostId(city.Id.Value),
+                runtimeKey: ClassicCityRuntime.Key,
+                seed: new SimulationSeed(city.GenerationSeed.Value),
+                runId: city.RunId,
+                modelVersion: new SimulationModelVersion(city.ScenarioModelSetVersion.Value),
+                provisioningCorrelationId: city.ProvisioningCorrelationId,
+                initialState: city.IsProvisioning
+                    ? SimulationHostState.Provisioning
+                    : SimulationHostState.Active,
+                createdAtUtc: city.CreatedAtUtc);
+
+            if (city.IsArchived)
+                instance.Archive(city.ArchivedAtUtc!.Value);
+
+            return instance;
         }
 
         internal static SimulationHost CreateHost(
