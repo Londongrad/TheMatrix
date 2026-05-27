@@ -38,6 +38,44 @@ namespace Matrix.SimulationCore.Domain.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException SimulationSeedNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.Seed.NullOrEmpty",
+                message: "Simulation seed cannot be empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException SimulationSeedTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.Seed.TooLong",
+                message: $"Simulation seed cannot exceed {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException SimulationModelVersionNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.ModelVersion.NullOrEmpty",
+                message: "Simulation model version cannot be empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException SimulationModelVersionTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.ModelVersion.TooLong",
+                message: $"Simulation model version cannot exceed {max} characters.",
+                propertyName: propertyName);
+        }
+
         #endregion [ Simulation ]
     }
 }
