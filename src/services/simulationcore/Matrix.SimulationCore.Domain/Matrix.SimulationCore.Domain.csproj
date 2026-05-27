@@ -5,6 +5,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Domain\Matrix.BuildingBlocks.Domain.csproj"/>
+    <ProjectReference Include="..\..\..\shared\Matrix.Simulation.Primitives\Matrix.Simulation.Primitives.csproj"/>
   </ItemGroup>
 
 </Project>
