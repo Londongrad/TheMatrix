@@ -108,13 +108,16 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
 
         internal sealed class FakeSimulationInstanceRepository : ISimulationInstanceRepository
         {
+            public SimulationInstance? InstanceById { get; set; }
+            public SimulationId? RequestedSimulationId { get; private set; }
             public SimulationInstance? AddedInstance { get; private set; }
 
             public Task<SimulationInstance?> GetByIdAsync(
                 SimulationId simulationId,
                 CancellationToken cancellationToken)
             {
-                throw new NotSupportedException();
+                RequestedSimulationId = simulationId;
+                return Task.FromResult(InstanceById);
             }
 
             public Task<SimulationInstance?> GetByHostAsync(

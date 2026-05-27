@@ -10,6 +10,7 @@ using MediatR;
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.ArchiveCity
 {
     public sealed class ArchiveCityCommandHandler(
+        ISimulationInstanceRepository simulationInstanceRepository,
         ICityRepository cityRepository,
         ISimulationClockMutationExecutor simulationClockMutationExecutor,
         ISimulationCoreOutboxWriter outboxWriter,
@@ -43,7 +44,18 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             if (city is null || city.IsArchived)
                 return city is not null;
 
-            city.Archive(timeProvider.GetUtcNow());
+            SimulationId simulationId = new(city.Id.Value);
+            SimulationInstance? instance = await simulationInstanceRepository.GetByIdAsync(
+                simulationId: simulationId,
+                cancellationToken: cancellationToken);
+
+            if (instance is null)
+                throw new InvalidOperationException(
+                    $"Simulation instance '{simulationId}' is missing for classic city '{city.Id}'.");
+
+            DateTimeOffset archivedAtUtc = timeProvider.GetUtcNow();
+            instance.Archive(archivedAtUtc);
+            city.Archive(archivedAtUtc);
             await DomainEventDispatchHelper.PublishAndClearAsync(
                 source: city,
                 publish: outboxWriter.AddCityEventsAsync,

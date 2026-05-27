@@ -15,7 +15,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.A
         public async Task Handle_WhenCityDoesNotExist_ReturnsFalse()
         {
             var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
+            var instanceRepository = new SimulationTestSupport.FakeSimulationInstanceRepository();
             var handler = new ArchiveCityCommandHandler(
+                simulationInstanceRepository: instanceRepository,
                 cityRepository: cityRepository,
                 simulationClockMutationExecutor: new SimulationTestSupport.FakeSimulationClockMutationExecutor(),
                 outboxWriter: new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter(),
@@ -28,6 +30,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.A
                 cancellationToken: CancellationToken.None);
 
             Assert.False(result);
+            Assert.Null(instanceRepository.RequestedSimulationId);
         }
 
         [Fact]
@@ -43,6 +46,11 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.A
             {
                 CityById = city
             };
+            SimulationInstance instance = SimulationTestSupport.CreateInstance(city);
+            var instanceRepository = new SimulationTestSupport.FakeSimulationInstanceRepository
+            {
+                InstanceById = instance
+            };
             var mutationExecutor = new SimulationTestSupport.FakeSimulationClockMutationExecutor
             {
                 Clock = clock,
@@ -52,6 +60,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.A
             var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork();
             var timeProvider = new ApplicationTestSupport.FixedTimeProvider(archivedAtUtc);
             var handler = new ArchiveCityCommandHandler(
+                simulationInstanceRepository: instanceRepository,
                 cityRepository: cityRepository,
                 simulationClockMutationExecutor: mutationExecutor,
                 outboxWriter: outboxWriter,
@@ -64,9 +73,16 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.A
 
             Assert.True(result);
             Assert.True(city.IsArchived);
+            Assert.True(instance.IsArchived);
             Assert.Equal(
                 expected: archivedAtUtc,
                 actual: city.ArchivedAtUtc);
+            Assert.Equal(
+                expected: archivedAtUtc,
+                actual: instance.ArchivedAtUtc);
+            Assert.Equal(
+                expected: city.Id.Value,
+                actual: instanceRepository.RequestedSimulationId!.Value.Value);
             Assert.Equal(
                 expected: ClockState.Paused,
                 actual: clock.State);
