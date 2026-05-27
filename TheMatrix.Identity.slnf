@@ -18,7 +18,8 @@
       "src\\services\\simulationcore\\Matrix.SimulationCore.Contracts\\Matrix.SimulationCore.Contracts.csproj",
       "src\\services\\simulationsystems\\Matrix.SimulationSystems.Contracts\\Matrix.SimulationSystems.Contracts.csproj",
       "src\\shared\\Matrix.PermissionCatalog.Abstractions\\Matrix.PermissionCatalog.Abstractions.csproj",
-      "src\\shared\\Matrix.PermissionCatalog\\Matrix.PermissionCatalog.csproj"
+      "src\\shared\\Matrix.PermissionCatalog\\Matrix.PermissionCatalog.csproj",
+      "src\\shared\\Matrix.Simulation.Primitives\\Matrix.Simulation.Primitives.csproj"
     ]
   }
 }
