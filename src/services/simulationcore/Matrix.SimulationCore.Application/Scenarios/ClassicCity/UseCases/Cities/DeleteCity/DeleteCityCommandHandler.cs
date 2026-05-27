@@ -9,6 +9,7 @@ using MediatR;
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.DeleteCity
 {
     public sealed class DeleteCityCommandHandler(
+        ISimulationInstanceRepository simulationInstanceRepository,
         ICityRepository cityRepository,
         ISimulationClockRepository clockRepository,
         ISimulationCoreOutboxWriter outboxWriter,
@@ -43,6 +44,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                         ],
                         cancellationToken: ct);
                     await clockRepository.DeleteBySimulationIdAsync(
+                        simulationId: new SimulationId(city.Id.Value),
+                        cancellationToken: ct);
+                    await simulationInstanceRepository.DeleteByIdAsync(
                         simulationId: new SimulationId(city.Id.Value),
                         cancellationToken: ct);
                     await cityRepository.DeleteAsync(

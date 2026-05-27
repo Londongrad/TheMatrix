@@ -110,6 +110,7 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
         {
             public SimulationInstance? InstanceById { get; set; }
             public SimulationId? RequestedSimulationId { get; private set; }
+            public SimulationId? DeletedSimulationId { get; private set; }
             public SimulationInstance? AddedInstance { get; private set; }
 
             public Task<SimulationInstance?> GetByIdAsync(
@@ -140,7 +141,8 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
                 SimulationId simulationId,
                 CancellationToken cancellationToken)
             {
-                throw new NotSupportedException();
+                DeletedSimulationId = simulationId;
+                return Task.CompletedTask;
             }
         }
 

@@ -14,6 +14,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.D
         public async Task Handle_WhenCityDoesNotExist_ReturnsNotFound()
         {
             var handler = new DeleteCityCommandHandler(
+                simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository(),
                 cityRepository: new ClassicCityTestSupport.FakeCityRepository(),
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
                 outboxWriter: new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter(),
@@ -39,6 +40,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.D
                 CityById = city
             };
             var handler = new DeleteCityCommandHandler(
+                simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository(),
                 cityRepository: cityRepository,
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
                 outboxWriter: new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter(),
@@ -67,9 +69,11 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.D
                 CityById = city
             };
             var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
+            var instanceRepository = new SimulationTestSupport.FakeSimulationInstanceRepository();
             var outboxWriter = new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter();
             var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork();
             var handler = new DeleteCityCommandHandler(
+                simulationInstanceRepository: instanceRepository,
                 cityRepository: cityRepository,
                 clockRepository: clockRepository,
                 outboxWriter: outboxWriter,
@@ -92,6 +96,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.D
             Assert.Equal(
                 expected: city.Id.Value,
                 actual: clockRepository.DeletedSimulationId!.Value.Value);
+            Assert.Equal(
+                expected: city.Id.Value,
+                actual: instanceRepository.DeletedSimulationId!.Value.Value);
             Assert.Same(
                 expected: city,
                 actual: cityRepository.DeletedCity);
