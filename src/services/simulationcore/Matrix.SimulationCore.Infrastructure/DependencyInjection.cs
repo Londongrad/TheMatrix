@@ -72,6 +72,7 @@ namespace Matrix.SimulationCore.Infrastructure
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
+            services.AddScoped<ISimulationInstanceRepository, SimulationInstanceRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationCoreDbContext>>();
             services.AddSingleton<SimulationOperationGate>();
