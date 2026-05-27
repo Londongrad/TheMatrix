@@ -1,0 +1,119 @@
+using Matrix.BuildingBlocks.Domain.Exceptions;
+using Matrix.Simulation.Primitives;
+using Matrix.SimulationCore.Domain.Simulation;
+using Xunit;
+
+namespace Matrix.SimulationCore.Domain.Tests.Simulation;
+
+public sealed class SimulationInstanceTests
+{
+    private static readonly SimulationRuntimeKey RuntimeKey = new(
+        new SimulationScenarioKey("classic-city"),
+        new SimulationHostTypeKey("city"));
+
+    [Fact]
+    public void Create_ShouldKeepSimulationAndHostIdentityIndependent()
+    {
+        SimulationId simulationId = SimulationId.New();
+        var hostId = new SimulationHostId(Guid.NewGuid());
+        Guid runId = Guid.NewGuid();
+        Guid provisioningCorrelationId = Guid.NewGuid();
+        DateTimeOffset createdAtUtc = UtcNow();
+
+        SimulationInstance instance = SimulationInstance.Create(
+            id: simulationId,
+            hostId: hostId,
+            runtimeKey: RuntimeKey,
+            seed: new SimulationSeed("seed-42"),
+            runId: runId,
+            modelVersion: new SimulationModelVersion("classic-city-v1"),
+            provisioningCorrelationId: provisioningCorrelationId,
+            initialState: SimulationHostState.Provisioning,
+            createdAtUtc: createdAtUtc);
+
+        Assert.NotEqual(simulationId.Value, hostId.Value);
+        Assert.Equal(simulationId, instance.Id);
+        Assert.Equal(hostId, instance.HostId);
+        Assert.Equal(RuntimeKey, instance.RuntimeKey);
+        Assert.Equal("seed-42", instance.Seed.Value);
+        Assert.Equal(runId, instance.RunId);
+        Assert.Equal("classic-city-v1", instance.ModelVersion.Value);
+        Assert.Equal(provisioningCorrelationId, instance.ProvisioningCorrelationId);
+        Assert.Equal(SimulationHostState.Provisioning, instance.State);
+        Assert.Equal(createdAtUtc, instance.CreatedAtUtc);
+        Assert.Null(instance.ArchivedAtUtc);
+    }
+
+    [Fact]
+    public void Create_ShouldAllowActiveInitialState()
+    {
+        SimulationInstance instance = Create(initialState: SimulationHostState.Active);
+
+        Assert.True(instance.IsActive);
+        Assert.False(instance.IsArchived);
+    }
+
+    [Theory]
+    [InlineData(SimulationHostState.Archived)]
+    [InlineData(SimulationHostState.ProvisioningFailed)]
+    public void Create_ShouldRejectTerminalInitialState(SimulationHostState state)
+    {
+        DomainException exception = Assert.Throws<DomainException>(() => Create(initialState: state));
+
+        Assert.Equal("SimulationCore.Simulation.InitialState.Invalid", exception.Code);
+    }
+
+    [Fact]
+    public void Create_ShouldRejectEmptyRuntimeKey()
+    {
+        DomainException exception = Assert.Throws<DomainException>(() =>
+            Create(runtimeKey: new SimulationRuntimeKey()));
+
+        Assert.Equal("SimulationCore.Simulation.RuntimeKey.Missing", exception.Code);
+    }
+
+    [Fact]
+    public void Create_ShouldRejectNonUtcTimestamp()
+    {
+        DomainException exception = Assert.Throws<DomainException>(() => Create(
+            createdAtUtc: new DateTimeOffset(
+                year: 2042,
+                month: 2,
+                day: 3,
+                hour: 4,
+                minute: 5,
+                second: 6,
+                offset: TimeSpan.FromHours(3))));
+
+        Assert.Equal("SimulationCore.Simulation.Timestamp.NotUtc", exception.Code);
+    }
+
+    private static SimulationInstance Create(
+        SimulationRuntimeKey? runtimeKey = null,
+        SimulationHostState initialState = SimulationHostState.Provisioning,
+        DateTimeOffset? createdAtUtc = null)
+    {
+        return SimulationInstance.Create(
+            id: SimulationId.New(),
+            hostId: new SimulationHostId(Guid.NewGuid()),
+            runtimeKey: runtimeKey ?? RuntimeKey,
+            seed: new SimulationSeed("seed-42"),
+            runId: Guid.NewGuid(),
+            modelVersion: new SimulationModelVersion("classic-city-v1"),
+            provisioningCorrelationId: Guid.NewGuid(),
+            initialState: initialState,
+            createdAtUtc: createdAtUtc ?? UtcNow());
+    }
+
+    private static DateTimeOffset UtcNow()
+    {
+        return new DateTimeOffset(
+            year: 2042,
+            month: 2,
+            day: 3,
+            hour: 4,
+            minute: 5,
+            second: 6,
+            offset: TimeSpan.Zero);
+    }
+}

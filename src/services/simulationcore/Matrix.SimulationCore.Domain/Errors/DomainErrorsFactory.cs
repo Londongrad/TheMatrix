@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain.Exceptions;
+using Matrix.SimulationCore.Domain.Simulation;
 
 namespace Matrix.SimulationCore.Domain.Errors
 {
@@ -73,6 +74,34 @@ namespace Matrix.SimulationCore.Domain.Errors
             return new DomainException(
                 code: "SimulationCore.Simulation.ModelVersion.TooLong",
                 message: $"Simulation model version cannot exceed {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException SimulationRuntimeKeyMissing(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.RuntimeKey.Missing",
+                message: "Simulation runtime key is required.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException SimulationTimestampMustBeUtc(
+            DateTimeOffset value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.Timestamp.NotUtc",
+                message: "Simulation timestamps must use UTC.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException SimulationInitialStateInvalid(
+            SimulationHostState value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.InitialState.Invalid",
+                message: $"Simulation cannot be created in state '{value}'.",
                 propertyName: propertyName);
         }
 
