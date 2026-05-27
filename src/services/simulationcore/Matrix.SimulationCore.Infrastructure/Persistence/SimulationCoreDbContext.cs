@@ -12,6 +12,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence
     public sealed class SimulationCoreDbContext(DbContextOptions<SimulationCoreDbContext> options)
         : DbContext(options)
     {
+        public DbSet<SimulationInstance> SimulationInstances => Set<SimulationInstance>();
         public DbSet<SimulationClock> SimulationClocks => Set<SimulationClock>();
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
         public DbSet<City> Cities => Set<City>();
