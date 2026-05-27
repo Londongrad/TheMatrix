@@ -12,6 +12,7 @@ using MediatR;
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity
 {
     public sealed class CreateCityCommandHandler(
+        ISimulationInstanceRepository simulationInstanceRepository,
         ICityRepository cityRepository,
         IDistrictRepository districtRepository,
         IResidentialBuildingRepository residentialBuildingRepository,
@@ -45,6 +46,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             CitySimulationBootstrapPlan bootstrapPlan = bootstrapStrategy.CreatePlan(request);
 
             City city = bootstrapPlan.City;
+            SimulationInstance instance = bootstrapPlan.Instance;
             CityTopologySeed topology = bootstrapPlan.Topology;
             SimulationClock clock = bootstrapPlan.Clock;
 
@@ -53,6 +55,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                 await unitOfWork.ExecuteInTransactionAsync(
                     action: async ct =>
                     {
+                        await simulationInstanceRepository.AddAsync(
+                            instance: instance,
+                            cancellationToken: ct);
                         await cityRepository.AddAsync(
                             city: city,
                             cancellationToken: ct);

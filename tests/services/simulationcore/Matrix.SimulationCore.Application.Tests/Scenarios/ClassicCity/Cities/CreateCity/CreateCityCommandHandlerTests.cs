@@ -47,7 +47,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             };
             var outboxWriter = new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter();
             var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork();
+            var simulationInstanceRepository = new SimulationTestSupport.FakeSimulationInstanceRepository();
             var handler = new CreateCityCommandHandler(
+                simulationInstanceRepository: simulationInstanceRepository,
                 cityRepository: cityRepository,
                 districtRepository: districtRepository,
                 residentialBuildingRepository: residentialBuildingRepository,
@@ -80,6 +82,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 expected: provisioningCorrelationId,
                 actual: cityRepository.RequestedProvisioningCorrelationId);
             Assert.Null(cityRepository.AddedCity);
+            Assert.Null(simulationInstanceRepository.AddedInstance);
             Assert.Empty(districtRepository.AddedDistricts);
             Assert.Empty(residentialBuildingRepository.AddedBuildings);
             Assert.Empty(cityAnchorRepository.AddedAnchors);
@@ -169,7 +172,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             };
             var outboxWriter = new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter();
             var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork();
+            var simulationInstanceRepository = new SimulationTestSupport.FakeSimulationInstanceRepository();
             var handler = new CreateCityCommandHandler(
+                simulationInstanceRepository: simulationInstanceRepository,
                 cityRepository: cityRepository,
                 districtRepository: districtRepository,
                 residentialBuildingRepository: residentialBuildingRepository,
@@ -196,6 +201,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             Assert.Same(
                 expected: city,
                 actual: cityRepository.AddedCity);
+            Assert.Same(
+                expected: strategy.Plan.Instance,
+                actual: simulationInstanceRepository.AddedInstance);
             Assert.Same(
                 expected: weather,
                 actual: cityWeatherRepository.AddedWeather);
@@ -295,6 +303,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 ExceptionToThrowAfterAction = new InvalidOperationException("duplicate provisioning race")
             };
             var handler = new CreateCityCommandHandler(
+                simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository(),
                 cityRepository: cityRepository,
                 districtRepository: new TopologyTestSupport.FakeDistrictRepository(),
                 residentialBuildingRepository: new TopologyTestSupport.FakeResidentialBuildingRepository(),

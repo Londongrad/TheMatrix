@@ -1,5 +1,6 @@
 using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
@@ -99,6 +100,41 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
             }
 
             public Task<IReadOnlyList<SimulationId>> ListActiveRunningSimulationIdsAsync(
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        internal sealed class FakeSimulationInstanceRepository : ISimulationInstanceRepository
+        {
+            public SimulationInstance? AddedInstance { get; private set; }
+
+            public Task<SimulationInstance?> GetByIdAsync(
+                SimulationId simulationId,
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<SimulationInstance?> GetByHostAsync(
+                SimulationRuntimeKey runtimeKey,
+                SimulationHostId hostId,
+                CancellationToken cancellationToken)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task AddAsync(
+                SimulationInstance instance,
+                CancellationToken cancellationToken)
+            {
+                AddedInstance = instance;
+                return Task.CompletedTask;
+            }
+
+            public Task DeleteByIdAsync(
+                SimulationId simulationId,
                 CancellationToken cancellationToken)
             {
                 throw new NotSupportedException();
