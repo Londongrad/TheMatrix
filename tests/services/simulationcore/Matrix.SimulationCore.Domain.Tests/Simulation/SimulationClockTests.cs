@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.SimulationCore.Domain.Events.Simulation;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
@@ -9,8 +8,8 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
     public sealed class SimulationClockTests
     {
         private const string RealDeltaNotPositiveErrorCode = "SimulationCore.SimSpeed.RealDelta.NotPositive";
-        private static readonly CityId TestCityId = new(Guid.Parse("11111111-1111-1111-1111-111111111111"));
-        private static readonly SimulationId TestSimulationId = new(TestCityId.Value);
+        private static readonly SimulationId TestSimulationId =
+            new(Guid.Parse("11111111-1111-1111-1111-111111111111"));
 
         private static readonly SimTime TestStartTime = SimTime.FromUtc(
             new DateTimeOffset(
@@ -70,9 +69,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
                 expected: clock.SimulationId,
                 actual: createdEvent.SimulationId);
             Assert.Equal(
-                expected: TestCityId,
-                actual: createdEvent.CityId);
-            Assert.Equal(
                 expected: TestStartTime,
                 actual: createdEvent.StartTime);
             Assert.Equal(
@@ -110,9 +106,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
             Assert.Equal(
                 expected: clock.SimulationId,
                 actual: advancedEvent.SimulationId);
-            Assert.Equal(
-                expected: TestCityId,
-                actual: advancedEvent.CityId);
             Assert.Equal(
                 expected: TestStartTime,
                 actual: advancedEvent.From);
@@ -297,9 +290,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
                 expected: clock.SimulationId,
                 actual: advancedEvent.SimulationId);
             Assert.Equal(
-                expected: TestCityId,
-                actual: advancedEvent.CityId);
-            Assert.Equal(
                 expected: TestStartTime,
                 actual: advancedEvent.From);
             Assert.Equal(
@@ -448,9 +438,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
                 expected: clock.SimulationId,
                 actual: pausedEvent.SimulationId);
             Assert.Equal(
-                expected: TestCityId,
-                actual: pausedEvent.CityId);
-            Assert.Equal(
                 expected: new TickId(1),
                 actual: pausedEvent.TickId);
             Assert.Equal(
@@ -488,9 +475,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
             Assert.Equal(
                 expected: clock.SimulationId,
                 actual: resumedEvent.SimulationId);
-            Assert.Equal(
-                expected: TestCityId,
-                actual: resumedEvent.CityId);
             Assert.Equal(
                 expected: new TickId(1),
                 actual: resumedEvent.TickId);
@@ -541,9 +525,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
                 expected: clock.SimulationId,
                 actual: speedChangedEvent.SimulationId);
             Assert.Equal(
-                expected: TestCityId,
-                actual: speedChangedEvent.CityId);
-            Assert.Equal(
                 expected: new TickId(1),
                 actual: speedChangedEvent.TickId);
             Assert.Equal(
@@ -589,9 +570,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
                 expected: clock.SimulationId,
                 actual: jumpedEvent.SimulationId);
             Assert.Equal(
-                expected: TestCityId,
-                actual: jumpedEvent.CityId);
-            Assert.Equal(
                 expected: new TickId(1),
                 actual: jumpedEvent.TickId);
             Assert.Equal(
@@ -636,9 +614,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Simulation
             Assert.Equal(
                 expected: clock.SimulationId,
                 actual: jumpedEvent.SimulationId);
-            Assert.Equal(
-                expected: TestCityId,
-                actual: jumpedEvent.CityId);
             Assert.Equal(
                 expected: new TickId(1),
                 actual: jumpedEvent.TickId);

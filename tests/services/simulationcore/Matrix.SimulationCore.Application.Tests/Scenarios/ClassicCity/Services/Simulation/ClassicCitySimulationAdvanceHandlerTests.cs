@@ -19,8 +19,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
         {
             SimulationHost host = CreateHost();
             SimulationTimeAdvancedDomainEvent advancedEvent = CreateAdvancedEvent(
-                simulationId: host.SimulationId,
-                cityId: new CityId(host.HostId.Value));
+                simulationId: host.SimulationId);
             var weatherAdvanceExecutor = new FakeWeatherAdvanceExecutor();
             var activeTripAdvanceExecutor = new FakeCityActiveTripAdvanceExecutor();
             var outboxWriter = new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter();
@@ -117,8 +116,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
             await handler.HandleAdvancedAsync(
                 host: host,
                 advancedEvent: CreateAdvancedEvent(
-                    simulationId: host.SimulationId,
-                    cityId: cityId),
+                    simulationId: host.SimulationId),
                 cancellationToken: CancellationToken.None);
 
             CityWeatherCreatedDomainEvent publishedEvent =
@@ -144,15 +142,13 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
         }
 
         private static SimulationTimeAdvancedDomainEvent CreateAdvancedEvent(
-            SimulationId simulationId,
-            CityId cityId)
+            SimulationId simulationId)
         {
             var from = SimTime.FromUtc(DateTimeOffset.Parse("2048-04-05T06:07:08+00:00"));
             var to = SimTime.FromUtc(DateTimeOffset.Parse("2048-04-05T06:08:08+00:00"));
 
             return new SimulationTimeAdvancedDomainEvent(
                 SimulationId: simulationId,
-                CityId: cityId,
                 From: from,
                 To: to,
                 TickId: TickId.Start()

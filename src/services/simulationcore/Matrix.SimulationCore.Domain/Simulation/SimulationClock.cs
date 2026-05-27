@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
 using Matrix.SimulationCore.Domain.Errors;
 using Matrix.SimulationCore.Domain.Events.Simulation;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 
 namespace Matrix.SimulationCore.Domain.Simulation
 {
@@ -51,8 +50,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
                 id: simulationId.Value,
                 propertyName: nameof(simulationId));
 
-            var cityId = new CityId(simulationId.Value);
-
             var clock = new SimulationClock(
                 simulationId: simulationId,
                 currentTime: startTime,
@@ -63,7 +60,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
             clock.AddDomainEvent(
                 new SimulationClockCreatedDomainEvent(
                     SimulationId: simulationId,
-                    CityId: cityId,
                     StartTime: startTime,
                     Speed: speed,
                     State: initialState,
@@ -97,7 +93,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
             AddDomainEvent(
                 new SimulationTimeAdvancedDomainEvent(
                     SimulationId: simulationId,
-                    CityId: new CityId(Id.Value),
                     From: from,
                     To: to,
                     TickId: TickId,
@@ -144,7 +139,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
             AddDomainEvent(
                 new SimulationTimeAdvancedDomainEvent(
                     SimulationId: simulationId,
-                    CityId: new CityId(Id.Value),
                     From: from,
                     To: to,
                     TickId: TickId,
@@ -170,7 +164,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
             AddDomainEvent(
                 new SimulationPausedDomainEvent(
                     SimulationId: simulationId,
-                    CityId: new CityId(Id.Value),
                     TickId: TickId,
                     AtSimTime: CurrentTime));
         }
@@ -187,7 +180,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
             AddDomainEvent(
                 new SimulationResumedDomainEvent(
                     SimulationId: simulationId,
-                    CityId: new CityId(Id.Value),
                     TickId: TickId,
                     AtSimTime: CurrentTime));
         }
@@ -206,7 +198,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
             AddDomainEvent(
                 new SimulationSpeedChangedDomainEvent(
                     SimulationId: simulationId,
-                    CityId: new CityId(Id.Value),
                     TickId: TickId,
                     From: from,
                     To: newSpeed,
@@ -231,7 +222,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
             AddDomainEvent(
                 new SimulationTimeJumpedDomainEvent(
                     SimulationId: simulationId,
-                    CityId: new CityId(Id.Value),
                     TickId: TickId,
                     From: from,
                     To: newTime));
