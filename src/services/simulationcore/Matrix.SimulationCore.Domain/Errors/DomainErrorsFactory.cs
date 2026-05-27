@@ -105,6 +105,16 @@ namespace Matrix.SimulationCore.Domain.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException SimulationArchiveTimestampBeforeCreation(
+            DateTimeOffset value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.ArchiveTimestamp.BeforeCreation",
+                message: "Simulation archive timestamp cannot precede its creation timestamp.",
+                propertyName: propertyName);
+        }
+
         #endregion [ Simulation ]
     }
 }

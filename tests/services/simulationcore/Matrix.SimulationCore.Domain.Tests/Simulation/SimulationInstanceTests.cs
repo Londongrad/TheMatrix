@@ -88,6 +88,30 @@ public sealed class SimulationInstanceTests
         Assert.Equal("SimulationCore.Simulation.Timestamp.NotUtc", exception.Code);
     }
 
+    [Fact]
+    public void Archive_ShouldMoveInstanceToArchivedState()
+    {
+        SimulationInstance instance = Create(initialState: SimulationHostState.Active);
+        DateTimeOffset archivedAtUtc = UtcNow().AddHours(1);
+
+        instance.Archive(archivedAtUtc);
+
+        Assert.True(instance.IsArchived);
+        Assert.False(instance.IsActive);
+        Assert.Equal(archivedAtUtc, instance.ArchivedAtUtc);
+    }
+
+    [Fact]
+    public void Archive_ShouldRejectTimestampBeforeCreation()
+    {
+        SimulationInstance instance = Create(initialState: SimulationHostState.Active);
+
+        DomainException exception = Assert.Throws<DomainException>(() =>
+            instance.Archive(UtcNow().AddTicks(-1)));
+
+        Assert.Equal("SimulationCore.Simulation.ArchiveTimestamp.BeforeCreation", exception.Code);
+    }
+
     private static SimulationInstance Create(
         SimulationRuntimeKey? runtimeKey = null,
         SimulationHostState initialState = SimulationHostState.Provisioning,

@@ -111,6 +111,22 @@ public sealed class SimulationInstance : AggregateRoot<SimulationId>
             archivedAtUtc: null);
     }
 
+    public void Archive(DateTimeOffset archivedAtUtc)
+    {
+        EnsureUtc(archivedAtUtc);
+
+        if (archivedAtUtc < CreatedAtUtc)
+            throw DomainErrorsFactory.SimulationArchiveTimestampBeforeCreation(
+                value: archivedAtUtc,
+                propertyName: nameof(archivedAtUtc));
+
+        if (IsArchived)
+            return;
+
+        State = SimulationHostState.Archived;
+        ArchivedAtUtc = archivedAtUtc;
+    }
+
     private static void EnsureUtc(DateTimeOffset value)
     {
         GuardHelper.Ensure(
