@@ -164,7 +164,7 @@ namespace Matrix.SimulationCore.Application.Tests.Services.Simulation
         }
 
         [Fact]
-        public async Task ExecuteAsync_WhenNoMatchingScenarioHandlerExists_StillProcessesDueSteps()
+        public async Task ExecuteAsync_WhenNoMatchingScenarioHandlerExists_RejectsAdvance()
         {
             SimulationClock clock = SimulationTestSupport.CreateClock(speed: 60m);
             clock.ClearDomainEvents();
@@ -180,22 +180,18 @@ namespace Matrix.SimulationCore.Application.Tests.Services.Simulation
                 host: host,
                 unmatchedHandler);
 
-            SimulationAdvanceExecutionResult result = await executor.ExecuteAsync(
-                simulationId: clock.SimulationId,
-                realDelta: TimeSpan.FromSeconds(1),
-                cancellationToken: CancellationToken.None);
+            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                executor.ExecuteAsync(
+                    simulationId: clock.SimulationId,
+                    realDelta: TimeSpan.FromSeconds(1),
+                    cancellationToken: CancellationToken.None));
 
-            Assert.Equal(
-                expected: SimulationAdvanceExecutionStatus.Advanced,
-                actual: result.Status);
-            Assert.Equal(
-                expected: 1,
-                actual: result.StepsProcessed);
+            Assert.Contains("classic-city:city", exception.Message, StringComparison.Ordinal);
             Assert.Equal(
                 expected: 0,
                 actual: unmatchedHandler.HandleCallCount);
             Assert.Equal(
-                expected: SimTime.FromUtc(SimulationTestSupport.SimStartTimeUtc.AddSeconds(60)),
+                expected: SimTime.FromUtc(SimulationTestSupport.SimStartTimeUtc),
                 actual: clock.CurrentTime);
             Assert.Equal(
                 expected: 0,
@@ -220,7 +216,7 @@ namespace Matrix.SimulationCore.Application.Tests.Services.Simulation
             return new SimulationAdvanceExecutor(
                 repository: clockRepository,
                 simulationHostRepository: hostRepository,
-                scenarioAdvanceHandlers: handlers,
+                scenarioAdvanceHandlerRegistry: new SimulationScenarioAdvanceHandlerRegistry(handlers),
                 fixedStepSettings: new SimulationTestSupport.FakeSimulationFixedStepSettings(),
                 unitOfWork: new SimulationTestSupport.FakeUnitOfWork());
         }

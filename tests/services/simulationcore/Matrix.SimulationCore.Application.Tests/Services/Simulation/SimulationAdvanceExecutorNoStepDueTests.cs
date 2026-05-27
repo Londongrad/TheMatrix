@@ -18,7 +18,8 @@ namespace Matrix.SimulationCore.Application.Tests.Services.Simulation
             var executor = new SimulationAdvanceExecutor(
                 repository: clockRepository,
                 simulationHostRepository: hostRepository,
-                scenarioAdvanceHandlers: Array.Empty<ISimulationScenarioAdvanceHandler>(),
+                scenarioAdvanceHandlerRegistry: new SimulationScenarioAdvanceHandlerRegistry(
+                    Array.Empty<ISimulationScenarioAdvanceHandler>()),
                 fixedStepSettings: new SimulationTestSupport.FakeSimulationFixedStepSettings(),
                 unitOfWork: unitOfWork);
 
@@ -58,7 +59,8 @@ namespace Matrix.SimulationCore.Application.Tests.Services.Simulation
             var executor = new SimulationAdvanceExecutor(
                 repository: clockRepository,
                 simulationHostRepository: hostRepository,
-                scenarioAdvanceHandlers: Array.Empty<ISimulationScenarioAdvanceHandler>(),
+                scenarioAdvanceHandlerRegistry: new SimulationScenarioAdvanceHandlerRegistry(
+                    Array.Empty<ISimulationScenarioAdvanceHandler>()),
                 fixedStepSettings: new SimulationTestSupport.FakeSimulationFixedStepSettings(),
                 unitOfWork: unitOfWork);
 
@@ -223,7 +225,7 @@ namespace Matrix.SimulationCore.Application.Tests.Services.Simulation
             return new SimulationAdvanceExecutor(
                 repository: clockRepository,
                 simulationHostRepository: hostRepository,
-                scenarioAdvanceHandlers: handlers,
+                scenarioAdvanceHandlerRegistry: new SimulationScenarioAdvanceHandlerRegistry(handlers),
                 fixedStepSettings: new SimulationTestSupport.FakeSimulationFixedStepSettings(),
                 unitOfWork: new SimulationTestSupport.FakeUnitOfWork());
         }

@@ -21,6 +21,7 @@ namespace Matrix.SimulationCore.Application
             services.AddValidatorsFromAssembly(assembly);
 
             services.AddScoped<ISimulationAdvanceExecutor, SimulationAdvanceExecutor>();
+            services.AddScoped<SimulationScenarioAdvanceHandlerRegistry>();
             services.TryAddSingleton<ISimulationFixedStepSettings, DefaultSimulationFixedStepSettings>();
             services.AddScoped<IValidationExceptionFactory, SimulationCoreValidationErrorFactory>();
             services.AddClassicCityScenarioApplication();

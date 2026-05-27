@@ -9,7 +9,7 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
     public sealed class SimulationAdvanceExecutor(
         ISimulationClockRepository repository,
         ISimulationHostReadRepository simulationHostRepository,
-        IEnumerable<ISimulationScenarioAdvanceHandler> scenarioAdvanceHandlers,
+        SimulationScenarioAdvanceHandlerRegistry scenarioAdvanceHandlerRegistry,
         ISimulationFixedStepSettings fixedStepSettings,
         IUnitOfWork unitOfWork) : ISimulationAdvanceExecutor
     {
@@ -36,6 +36,8 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
                     SimulationId: simulationId,
                     Status: SimulationAdvanceExecutionStatus.NotFound);
 
+            ISimulationScenarioAdvanceHandler handler = scenarioAdvanceHandlerRegistry.Resolve(host.RuntimeKey);
+
             int stepsProcessed = 0;
             long remainingPendingSimulationTicks = 0;
             bool hasRemainingBacklog = false;
@@ -46,8 +48,6 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
                     clock.AccumulatePendingSimulationTime(realDelta);
 
                     var fixedStep = TimeSpan.FromSeconds(fixedStepSettings.FixedStepSeconds);
-                    ISimulationScenarioAdvanceHandler? handler = scenarioAdvanceHandlers
-                       .FirstOrDefault(x => x.RuntimeKey == host.RuntimeKey);
 
                     while (stepsProcessed < fixedStepSettings.MaxStepsPerSimulationPerCycle &&
                            clock.TryAdvanceFixedStep(fixedStep))
@@ -56,11 +56,10 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
                            .OfType<SimulationTimeAdvancedDomainEvent>()
                            .Last();
 
-                        if (handler is not null)
-                            await handler.HandleAdvancedAsync(
-                                host: host,
-                                advancedEvent: advancedEvent,
-                                cancellationToken: ct);
+                        await handler.HandleAdvancedAsync(
+                            host: host,
+                            advancedEvent: advancedEvent,
+                            cancellationToken: ct);
 
                         stepsProcessed++;
                         clock.ClearDomainEvents();
