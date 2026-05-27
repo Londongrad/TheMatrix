@@ -1,9 +1,11 @@
 using Matrix.BuildingBlocks.Application.Events;
+using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Domain.Events.Simulation;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Domain.Simulation;
@@ -15,7 +17,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
         ICityActiveTripAdvanceExecutor activeTripAdvanceExecutor,
         ISimulationCoreOutboxWriter outboxWriter) : ISimulationScenarioAdvanceHandler
     {
-        public SimulationHostKind HostKind => SimulationHostKind.City;
+        public SimulationRuntimeKey RuntimeKey => ClassicCityRuntime.Key;
 
         public async Task HandleAdvancedAsync(
             SimulationHost host,

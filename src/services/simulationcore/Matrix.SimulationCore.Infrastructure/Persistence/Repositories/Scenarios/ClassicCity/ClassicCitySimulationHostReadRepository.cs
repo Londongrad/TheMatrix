@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories.Scenario
                 : new SimulationHost(
                     SimulationId: simulationId,
                     HostId: new SimulationHostId(projection.CityId.Value),
+                    RuntimeKey: ClassicCityRuntime.Key,
                     HostKind: SimulationHostKind.City,
                     SimulationKind: projection.SimulationKind,
                     State: MapState(projection.Status),

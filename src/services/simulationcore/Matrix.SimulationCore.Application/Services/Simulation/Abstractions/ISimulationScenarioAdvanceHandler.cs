@@ -1,3 +1,4 @@
+using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Simulation;
 
@@ -5,7 +6,7 @@ namespace Matrix.SimulationCore.Application.Services.Simulation.Abstractions
 {
     public interface ISimulationScenarioAdvanceHandler
     {
-        SimulationHostKind HostKind { get; }
+        SimulationRuntimeKey RuntimeKey { get; }
 
         Task HandleAdvancedAsync(
             SimulationHost host,

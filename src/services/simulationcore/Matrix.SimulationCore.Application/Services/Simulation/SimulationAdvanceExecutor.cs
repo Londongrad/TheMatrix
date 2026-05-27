@@ -47,7 +47,7 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
 
                     var fixedStep = TimeSpan.FromSeconds(fixedStepSettings.FixedStepSeconds);
                     ISimulationScenarioAdvanceHandler? handler = scenarioAdvanceHandlers
-                       .FirstOrDefault(x => x.HostKind == host.HostKind);
+                       .FirstOrDefault(x => x.RuntimeKey == host.RuntimeKey);
 
                     while (stepsProcessed < fixedStepSettings.MaxStepsPerSimulationPerCycle &&
                            clock.TryAdvanceFixedStep(fixedStep))

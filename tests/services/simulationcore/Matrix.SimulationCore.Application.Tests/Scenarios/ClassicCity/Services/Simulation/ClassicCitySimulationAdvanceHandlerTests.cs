@@ -4,6 +4,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abs
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Domain.Events.Simulation;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Weather;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
@@ -134,6 +135,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
             return new SimulationHost(
                 SimulationId: new SimulationId(Guid.NewGuid()),
                 HostId: new SimulationHostId(cityId.Value),
+                RuntimeKey: ClassicCityRuntime.Key,
                 HostKind: SimulationHostKind.City,
                 SimulationKind: SimulationKind.ClassicCity,
                 State: SimulationHostState.Active,

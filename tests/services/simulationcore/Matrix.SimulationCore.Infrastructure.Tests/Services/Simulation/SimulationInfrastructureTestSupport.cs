@@ -101,6 +101,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation
             return new SimulationHost(
                 SimulationId: simulationId,
                 HostId: new SimulationHostId(simulationId.Value),
+                RuntimeKey: ClassicCityRuntime.Key,
                 HostKind: SimulationHostKind.City,
                 SimulationKind: SimulationKind.ClassicCity,
                 State: state,

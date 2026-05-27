@@ -42,6 +42,7 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
             return new SimulationHost(
                 SimulationId: new SimulationId(id),
                 HostId: new SimulationHostId(id),
+                RuntimeKey: ClassicCityRuntime.Key,
                 HostKind: SimulationHostKind.City,
                 SimulationKind: SimulationKind.ClassicCity,
                 State: state,
@@ -268,7 +269,7 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
             public SimulationTimeAdvancedDomainEvent? RequestedAdvancedEvent { get; private set; }
             public List<SimulationTimeAdvancedDomainEvent> RequestedAdvancedEvents { get; } = [];
             public int HandleCallCount { get; private set; }
-            public SimulationHostKind HostKind { get; init; } = SimulationHostKind.City;
+            public SimulationRuntimeKey RuntimeKey { get; init; } = ClassicCityRuntime.Key;
 
             public Task HandleAdvancedAsync(
                 SimulationHost host,

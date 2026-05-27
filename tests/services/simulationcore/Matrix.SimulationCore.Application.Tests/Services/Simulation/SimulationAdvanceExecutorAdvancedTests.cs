@@ -1,3 +1,4 @@
+using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
 using Matrix.SimulationCore.Domain.Events.Simulation;
@@ -170,7 +171,9 @@ namespace Matrix.SimulationCore.Application.Tests.Services.Simulation
             SimulationHost host = SimulationTestSupport.CreateHost(clock.SimulationId.Value);
             var unmatchedHandler = new SimulationTestSupport.FakeSimulationScenarioAdvanceHandler
             {
-                HostKind = (SimulationHostKind)999
+                RuntimeKey = new SimulationRuntimeKey(
+                    new SimulationScenarioKey("metro"),
+                    new SimulationHostTypeKey("city"))
             };
             SimulationAdvanceExecutor executor = CreateExecutor(
                 clock: clock,
