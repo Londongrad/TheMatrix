@@ -110,6 +110,8 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
         {
             public SimulationInstance? InstanceById { get; set; }
             public SimulationId? RequestedSimulationId { get; private set; }
+            public SimulationRuntimeKey? RequestedRuntimeKey { get; private set; }
+            public SimulationHostId? RequestedHostId { get; private set; }
             public SimulationId? DeletedSimulationId { get; private set; }
             public SimulationInstance? AddedInstance { get; private set; }
 
@@ -126,7 +128,9 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
                 SimulationHostId hostId,
                 CancellationToken cancellationToken)
             {
-                throw new NotSupportedException();
+                RequestedRuntimeKey = runtimeKey;
+                RequestedHostId = hostId;
+                return Task.FromResult(InstanceById);
             }
 
             public Task AddAsync(
