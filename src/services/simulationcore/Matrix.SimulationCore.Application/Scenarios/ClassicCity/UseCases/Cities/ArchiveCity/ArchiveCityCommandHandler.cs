@@ -57,6 +57,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             instance.Archive(archivedAtUtc);
             city.Archive(archivedAtUtc);
             await DomainEventDispatchHelper.PublishAndClearAsync(
+                source: instance,
+                publish: outboxWriter.AddSimulationEventsAsync,
+                cancellationToken: cancellationToken);
+            await DomainEventDispatchHelper.PublishAndClearAsync(
                 source: city,
                 publish: outboxWriter.AddCityEventsAsync,
                 cancellationToken: cancellationToken);
