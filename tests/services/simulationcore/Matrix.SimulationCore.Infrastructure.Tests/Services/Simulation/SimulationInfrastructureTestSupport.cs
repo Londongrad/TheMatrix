@@ -83,10 +83,13 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation
                 runId: city.RunId,
                 modelVersion: new SimulationModelVersion(city.ScenarioModelSetVersion.Value),
                 provisioningCorrelationId: city.ProvisioningCorrelationId,
-                initialState: city.IsProvisioning
-                    ? SimulationHostState.Provisioning
-                    : SimulationHostState.Active,
+                initialState: city.IsActive
+                    ? SimulationHostState.Active
+                    : SimulationHostState.Provisioning,
                 createdAtUtc: city.CreatedAtUtc);
+
+            if (city.Status == CityStatus.ProvisioningFailed)
+                instance.FailProvisioning();
 
             if (city.IsArchived)
                 instance.Archive(city.ArchivedAtUtc!.Value);

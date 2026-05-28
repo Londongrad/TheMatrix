@@ -10,10 +10,10 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
     public sealed class ClassicCitySimulationHostReadRepositoryTests
     {
         [Fact]
-        public async Task GetBySimulationIdAsync_WhenCityIsMissing_ReturnsNull()
+        public async Task GetBySimulationIdAsync_WhenInstanceIsMissing_ReturnsNull()
         {
             using SimulationCoreDbContext dbContext = SimulationInfrastructureTestSupport.CreateDbContext(
-                nameof(GetBySimulationIdAsync_WhenCityIsMissing_ReturnsNull));
+                nameof(GetBySimulationIdAsync_WhenInstanceIsMissing_ReturnsNull));
             var repository = new ClassicCitySimulationHostReadRepository(dbContext);
 
             SimulationHost? result = await repository.GetBySimulationIdAsync(
@@ -36,14 +36,15 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
         [InlineData(
             CityStatus.Archived,
             SimulationHostState.Archived)]
-        public async Task GetBySimulationIdAsync_MapsCityStatusToSimulationHostState(
+        public async Task GetBySimulationIdAsync_ProjectsRuntimeInstanceState(
             CityStatus cityStatus,
             SimulationHostState expectedState)
         {
             using SimulationCoreDbContext dbContext = SimulationInfrastructureTestSupport.CreateDbContext(
-                $"{nameof(GetBySimulationIdAsync_MapsCityStatusToSimulationHostState)}_{cityStatus}");
+                $"{nameof(GetBySimulationIdAsync_ProjectsRuntimeInstanceState)}_{cityStatus}");
             City city = CreateCityWithStatus(cityStatus);
-            await dbContext.Cities.AddAsync(city);
+            SimulationInstance instance = SimulationInfrastructureTestSupport.CreateInstance(city);
+            await dbContext.SimulationInstances.AddAsync(instance);
             await dbContext.SaveChangesAsync();
             dbContext.ChangeTracker.Clear();
             var repository = new ClassicCitySimulationHostReadRepository(dbContext);
@@ -54,11 +55,14 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
 
             Assert.NotNull(result);
             Assert.Equal(
-                expected: new SimulationId(city.Id.Value),
+                expected: instance.Id,
                 actual: result.SimulationId);
             Assert.Equal(
-                expected: new SimulationHostId(city.Id.Value),
+                expected: instance.HostId,
                 actual: result.HostId);
+            Assert.Equal(
+                expected: instance.RuntimeKey,
+                actual: result.RuntimeKey);
             Assert.Equal(
                 expected: SimulationHostKind.City,
                 actual: result.HostKind);
@@ -69,12 +73,12 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
                 expected: expectedState,
                 actual: result.State);
             Assert.Equal(
-                expected: city.CreatedAtUtc,
+                expected: instance.CreatedAtUtc,
                 actual: result.CreatedAtUtc);
             Assert.Equal(
-                expected: city.ArchivedAtUtc,
+                expected: instance.ArchivedAtUtc,
                 actual: result.ArchivedAtUtc);
-            Assert.Empty(dbContext.ChangeTracker.Entries<City>());
+            Assert.Empty(dbContext.ChangeTracker.Entries<SimulationInstance>());
         }
 
         private static City CreateCityWithStatus(CityStatus status)

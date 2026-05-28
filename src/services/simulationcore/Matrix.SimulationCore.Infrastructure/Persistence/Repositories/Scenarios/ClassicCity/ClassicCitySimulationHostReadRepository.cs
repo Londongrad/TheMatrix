@@ -1,6 +1,5 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,18 +12,18 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories.Scenario
             SimulationId simulationId,
             CancellationToken cancellationToken)
         {
-            CityId cityId = new(simulationId.Value);
-
-            var projection = await dbContext.Cities
+            var projection = await dbContext.SimulationInstances
                .AsNoTracking()
-               .Where(city => city.Id == cityId)
-               .Select(city => new
+               .Where(instance =>
+                    instance.Id == simulationId &&
+                    instance.ScenarioKey == ClassicCityRuntime.ScenarioKey &&
+                    instance.HostTypeKey == ClassicCityRuntime.HostTypeKey)
+               .Select(instance => new
                {
-                   CityId = city.Id,
-                   city.SimulationKind,
-                   city.Status,
-                   city.CreatedAtUtc,
-                   city.ArchivedAtUtc
+                   instance.HostId,
+                   instance.State,
+                   instance.CreatedAtUtc,
+                   instance.ArchivedAtUtc
                })
                .SingleOrDefaultAsync(cancellationToken);
 
@@ -32,28 +31,13 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories.Scenario
                 ? null
                 : new SimulationHost(
                     SimulationId: simulationId,
-                    HostId: new SimulationHostId(projection.CityId.Value),
+                    HostId: projection.HostId,
                     RuntimeKey: ClassicCityRuntime.Key,
                     HostKind: SimulationHostKind.City,
-                    SimulationKind: projection.SimulationKind,
-                    State: MapState(projection.Status),
+                    SimulationKind: SimulationKind.ClassicCity,
+                    State: projection.State,
                     CreatedAtUtc: projection.CreatedAtUtc,
                     ArchivedAtUtc: projection.ArchivedAtUtc);
-        }
-
-        private static SimulationHostState MapState(CityStatus status)
-        {
-            return status switch
-            {
-                CityStatus.Active => SimulationHostState.Active,
-                CityStatus.Archived => SimulationHostState.Archived,
-                CityStatus.Provisioning => SimulationHostState.Provisioning,
-                CityStatus.ProvisioningFailed => SimulationHostState.ProvisioningFailed,
-                _ => throw new ArgumentOutOfRangeException(
-                    paramName: nameof(status),
-                    actualValue: status,
-                    message: "Unsupported classic city status.")
-            };
         }
     }
 }
