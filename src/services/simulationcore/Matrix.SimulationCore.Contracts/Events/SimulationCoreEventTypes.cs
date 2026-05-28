@@ -2,6 +2,9 @@ namespace Matrix.SimulationCore.Contracts.Events
 {
     public static class SimulationCoreEventTypes
     {
+        public const string SimulationCreatedV1 = "simulationcore.simulation-created.v1";
+        public const string SimulationArchivedV1 = "simulationcore.simulation-archived.v1";
+        public const string SimulationDeletedV1 = "simulationcore.simulation-deleted.v1";
         public const string CityCreatedV1 = "simulationcore.city-created.v1";
         public const string CityArchivedV1 = "simulationcore.city-archived.v1";
         public const string CityDeletedV1 = "simulationcore.city-deleted.v1";

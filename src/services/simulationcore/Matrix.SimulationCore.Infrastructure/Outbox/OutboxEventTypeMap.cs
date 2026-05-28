@@ -7,6 +7,9 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
         public static readonly IReadOnlyDictionary<string, Type> Map =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
+                [SimulationCoreEventTypes.SimulationCreatedV1] = typeof(SimulationCreatedV1),
+                [SimulationCoreEventTypes.SimulationArchivedV1] = typeof(SimulationArchivedV1),
+                [SimulationCoreEventTypes.SimulationDeletedV1] = typeof(SimulationDeletedV1),
                 [SimulationCoreEventTypes.CityCreatedV1] = typeof(CityCreatedV1),
                 [SimulationCoreEventTypes.CityArchivedV1] = typeof(CityArchivedV1),
                 [SimulationCoreEventTypes.CityDeletedV1] = typeof(CityDeletedV1),

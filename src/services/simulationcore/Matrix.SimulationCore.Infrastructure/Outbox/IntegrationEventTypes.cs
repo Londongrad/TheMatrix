@@ -4,6 +4,9 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 {
     public static class IntegrationEventTypes
     {
+        public const string SimulationCreatedV1 = SimulationCoreEventTypes.SimulationCreatedV1;
+        public const string SimulationArchivedV1 = SimulationCoreEventTypes.SimulationArchivedV1;
+        public const string SimulationDeletedV1 = SimulationCoreEventTypes.SimulationDeletedV1;
         public const string CityCreatedV1 = SimulationCoreEventTypes.CityCreatedV1;
         public const string CityArchivedV1 = SimulationCoreEventTypes.CityArchivedV1;
         public const string CityDeletedV1 = SimulationCoreEventTypes.CityDeletedV1;
