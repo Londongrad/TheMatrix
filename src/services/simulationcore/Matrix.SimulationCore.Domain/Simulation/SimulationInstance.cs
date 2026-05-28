@@ -127,6 +127,53 @@ public sealed class SimulationInstance : AggregateRoot<SimulationId>
         ArchivedAtUtc = archivedAtUtc;
     }
 
+    public void Activate()
+    {
+        if (State == SimulationHostState.Active)
+            return;
+
+        EnsureTransitionFrom(
+            expectedState: SimulationHostState.Provisioning,
+            targetState: SimulationHostState.Active);
+
+        State = SimulationHostState.Active;
+    }
+
+    public void FailProvisioning()
+    {
+        if (State == SimulationHostState.ProvisioningFailed)
+            return;
+
+        EnsureTransitionFrom(
+            expectedState: SimulationHostState.Provisioning,
+            targetState: SimulationHostState.ProvisioningFailed);
+
+        State = SimulationHostState.ProvisioningFailed;
+    }
+
+    public void RestartProvisioning()
+    {
+        if (State == SimulationHostState.Provisioning)
+            return;
+
+        EnsureTransitionFrom(
+            expectedState: SimulationHostState.ProvisioningFailed,
+            targetState: SimulationHostState.Provisioning);
+
+        State = SimulationHostState.Provisioning;
+    }
+
+    private void EnsureTransitionFrom(
+        SimulationHostState expectedState,
+        SimulationHostState targetState)
+    {
+        if (State != expectedState)
+            throw DomainErrorsFactory.SimulationStateTransitionInvalid(
+                from: State,
+                to: targetState,
+                propertyName: nameof(State));
+    }
+
     private static void EnsureUtc(DateTimeOffset value)
     {
         GuardHelper.Ensure(

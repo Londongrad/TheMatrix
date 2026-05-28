@@ -112,6 +112,73 @@ public sealed class SimulationInstanceTests
         Assert.Equal("SimulationCore.Simulation.ArchiveTimestamp.BeforeCreation", exception.Code);
     }
 
+    [Fact]
+    public void Activate_ShouldMoveProvisioningInstanceToActiveState()
+    {
+        SimulationInstance instance = Create();
+
+        instance.Activate();
+
+        Assert.True(instance.IsActive);
+    }
+
+    [Theory]
+    [InlineData(SimulationHostState.ProvisioningFailed)]
+    [InlineData(SimulationHostState.Archived)]
+    public void Activate_ShouldRejectInvalidSourceState(SimulationHostState state)
+    {
+        SimulationInstance instance = CreateInState(state);
+
+        DomainException exception = Assert.Throws<DomainException>(instance.Activate);
+
+        Assert.Equal("SimulationCore.Simulation.StateTransition.Invalid", exception.Code);
+    }
+
+    [Fact]
+    public void FailProvisioning_ShouldMoveProvisioningInstanceToFailedState()
+    {
+        SimulationInstance instance = Create();
+
+        instance.FailProvisioning();
+
+        Assert.Equal(SimulationHostState.ProvisioningFailed, instance.State);
+    }
+
+    [Theory]
+    [InlineData(SimulationHostState.Active)]
+    [InlineData(SimulationHostState.Archived)]
+    public void FailProvisioning_ShouldRejectInvalidSourceState(SimulationHostState state)
+    {
+        SimulationInstance instance = CreateInState(state);
+
+        DomainException exception = Assert.Throws<DomainException>(instance.FailProvisioning);
+
+        Assert.Equal("SimulationCore.Simulation.StateTransition.Invalid", exception.Code);
+    }
+
+    [Fact]
+    public void RestartProvisioning_ShouldMoveFailedInstanceToProvisioningState()
+    {
+        SimulationInstance instance = Create();
+        instance.FailProvisioning();
+
+        instance.RestartProvisioning();
+
+        Assert.Equal(SimulationHostState.Provisioning, instance.State);
+    }
+
+    [Theory]
+    [InlineData(SimulationHostState.Active)]
+    [InlineData(SimulationHostState.Archived)]
+    public void RestartProvisioning_ShouldRejectInvalidSourceState(SimulationHostState state)
+    {
+        SimulationInstance instance = CreateInState(state);
+
+        DomainException exception = Assert.Throws<DomainException>(instance.RestartProvisioning);
+
+        Assert.Equal("SimulationCore.Simulation.StateTransition.Invalid", exception.Code);
+    }
+
     private static SimulationInstance Create(
         SimulationRuntimeKey? runtimeKey = null,
         SimulationHostState initialState = SimulationHostState.Provisioning,
@@ -127,6 +194,23 @@ public sealed class SimulationInstanceTests
             provisioningCorrelationId: Guid.NewGuid(),
             initialState: initialState,
             createdAtUtc: createdAtUtc ?? UtcNow());
+    }
+
+    private static SimulationInstance CreateInState(SimulationHostState state)
+    {
+        SimulationInstance instance = Create(
+            initialState: state == SimulationHostState.Archived
+                ? SimulationHostState.Active
+                : SimulationHostState.Provisioning);
+
+        if (state == SimulationHostState.ProvisioningFailed)
+            instance.FailProvisioning();
+        else if (state == SimulationHostState.Archived)
+            instance.Archive(UtcNow());
+        else if (state == SimulationHostState.Active)
+            instance.Activate();
+
+        return instance;
     }
 
     private static DateTimeOffset UtcNow()

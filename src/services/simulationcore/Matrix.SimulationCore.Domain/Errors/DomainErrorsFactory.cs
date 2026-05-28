@@ -115,6 +115,17 @@ namespace Matrix.SimulationCore.Domain.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException SimulationStateTransitionInvalid(
+            SimulationHostState from,
+            SimulationHostState to,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Simulation.StateTransition.Invalid",
+                message: $"Simulation cannot transition from '{from}' to '{to}'.",
+                propertyName: propertyName);
+        }
+
         #endregion [ Simulation ]
     }
 }
