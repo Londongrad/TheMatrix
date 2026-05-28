@@ -12,7 +12,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             IReadOnlyDictionary<string, Type> map = OutboxEventTypeMap.Map;
 
             Assert.Equal(
-                expected: 15,
+                expected: 16,
                 actual: map.Count);
             Assert.Equal(
                 expected: typeof(SimulationCreatedV1),
@@ -23,6 +23,9 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             Assert.Equal(
                 expected: typeof(SimulationDeletedV1),
                 actual: map[SimulationCoreEventTypes.SimulationDeletedV1]);
+            Assert.Equal(
+                expected: typeof(SimulationTickPhaseReachedV1),
+                actual: map[SimulationCoreEventTypes.SimulationTickPhaseReachedV1]);
             Assert.Equal(
                 expected: typeof(CityCreatedV1),
                 actual: map[SimulationCoreEventTypes.CityCreatedV1]);
