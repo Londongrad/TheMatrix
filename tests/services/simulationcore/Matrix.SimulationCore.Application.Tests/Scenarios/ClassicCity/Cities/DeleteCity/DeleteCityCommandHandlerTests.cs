@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.DeleteCity;
 using Matrix.SimulationCore.Application.Tests.TestSupport;
 using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
+using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
@@ -63,14 +64,16 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.D
         {
             var deletedAtUtc = DateTimeOffset.Parse("2048-06-01T10:00:00+00:00");
             City city = ClassicCityTestSupport.CreateCity();
+            SimulationInstance instance = SimulationTestSupport.CreateInstance(city);
             city.Archive(deletedAtUtc.AddHours(-1));
+            instance.Archive(deletedAtUtc.AddHours(-1));
             city.ClearDomainEvents();
+            instance.ClearDomainEvents();
             var cityRepository = new ClassicCityTestSupport.FakeCityRepository
             {
                 CityById = city
             };
             var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
-            SimulationInstance instance = SimulationTestSupport.CreateInstance(city);
             var instanceRepository = new SimulationTestSupport.FakeSimulationInstanceRepository
             {
                 InstanceById = instance
@@ -107,6 +110,12 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.D
             Assert.Same(
                 expected: city,
                 actual: cityRepository.DeletedCity);
+            IDomainEvent simulationEvent = Assert.Single(outboxWriter.SimulationEvents);
+            SimulationDeletedDomainEvent simulationDeletedEvent =
+                Assert.IsType<SimulationDeletedDomainEvent>(simulationEvent);
+            Assert.Equal(
+                expected: instance.Id,
+                actual: simulationDeletedEvent.SimulationId);
             IDomainEvent domainEvent = Assert.Single(outboxWriter.CityEvents);
             CityDeletedDomainEvent deletedEvent = Assert.IsType<CityDeletedDomainEvent>(domainEvent);
             Assert.Equal(
