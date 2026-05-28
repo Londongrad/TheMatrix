@@ -1,6 +1,8 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RestartPopulationBootstrap;
 using Matrix.SimulationCore.Application.Tests.TestSupport;
+using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
 namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.RestartPopulationBootstrap
@@ -12,6 +14,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.R
         {
             var handler = new RestartCityPopulationBootstrapCommandHandler(
                 cityRepository: new ClassicCityTestSupport.FakeCityRepository(),
+                simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository(),
                 unitOfWork: new ApplicationTestSupport.FakeUnitOfWork(),
                 timeProvider: new ApplicationTestSupport.FixedTimeProvider(
                     DateTimeOffset.Parse("2048-06-02T08:00:00+00:00")));
@@ -37,6 +40,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.R
             };
             var handler = new RestartCityPopulationBootstrapCommandHandler(
                 cityRepository: cityRepository,
+                simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository(),
                 unitOfWork: new ApplicationTestSupport.FakeUnitOfWork(),
                 timeProvider: new ApplicationTestSupport.FixedTimeProvider(
                     DateTimeOffset.Parse("2048-06-02T08:00:00+00:00")));
@@ -69,8 +73,14 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.R
                 CityById = city
             };
             var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork();
+            SimulationInstance instance = SimulationTestSupport.CreateInstance(city);
+            instance.FailProvisioning();
             var handler = new RestartCityPopulationBootstrapCommandHandler(
                 cityRepository: cityRepository,
+                simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository
+                {
+                    InstanceById = instance
+                },
                 unitOfWork: unitOfWork,
                 timeProvider: new ApplicationTestSupport.FixedTimeProvider(restartedAtUtc));
 
@@ -103,6 +113,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.R
             Assert.Equal(
                 expected: restartedAtUtc,
                 actual: city.ProvisioningHeartbeatAtUtc);
+            Assert.Equal(
+                expected: SimulationHostState.Provisioning,
+                actual: instance.State);
             Assert.Equal(
                 expected: 1,
                 actual: unitOfWork.SaveChangesCallCount);

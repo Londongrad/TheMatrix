@@ -1,12 +1,15 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RestartPopulationBootstrap
 {
     public sealed class RestartCityPopulationBootstrapCommandHandler(
         ICityRepository cityRepository,
+        ISimulationInstanceRepository simulationInstanceRepository,
         IUnitOfWork unitOfWork,
         TimeProvider timeProvider)
         : IRequestHandler<RestartCityPopulationBootstrapCommand, RestartCityPopulationBootstrapResult>
@@ -33,6 +36,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 
             if (!restarted)
                 return RestartCityPopulationBootstrapResult.NotAllowed();
+
+            SimulationInstance instance = await simulationInstanceRepository.GetRequiredByHostAsync(
+                runtimeKey: ClassicCityRuntime.Key,
+                hostId: new SimulationHostId(city.Id.Value),
+                cancellationToken: cancellationToken);
+            instance.RestartProvisioning();
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
