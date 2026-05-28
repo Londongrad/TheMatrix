@@ -7,6 +7,7 @@ using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Application.Tests.TestSupport;
 using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
+using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Weather;
@@ -238,6 +239,12 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             Assert.Equal(
                 expected: 1,
                 actual: unitOfWork.SaveChangesCallCount);
+            IDomainEvent simulationEvent = Assert.Single(outboxWriter.SimulationEvents);
+            SimulationCreatedDomainEvent simulationCreatedEvent =
+                Assert.IsType<SimulationCreatedDomainEvent>(simulationEvent);
+            Assert.Equal(
+                expected: strategy.Plan.Instance.Id,
+                actual: simulationCreatedEvent.SimulationId);
             IDomainEvent cityEvent = Assert.Single(outboxWriter.CityEvents);
             CityCreatedDomainEvent createdEvent = Assert.IsType<CityCreatedDomainEvent>(cityEvent);
             Assert.Equal(
