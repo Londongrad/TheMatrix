@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain.Events;
+using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;

@@ -95,6 +95,25 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 ],
                 actual: outboxWriter.CityTickPhaseReachedCalls.Select(static x => x.Phase)
                    .ToArray());
+            Assert.All(
+                outboxWriter.SimulationTickPhaseReachedCalls,
+                call => Assert.Same(host, call.Host));
+            Assert.Equal(
+                expected:
+                [
+                    "advance-time",
+                    "systems-degradation",
+                    "incident-generation",
+                    "dispatch-execution",
+                    "resource-settlement",
+                    "budget-settlement",
+                    "population-reaction",
+                    "projection",
+                    "tick-completed"
+                ],
+                actual: outboxWriter.SimulationTickPhaseReachedCalls
+                   .Select(static call => call.PhaseKey.Value)
+                   .ToArray());
         }
 
         [Fact]

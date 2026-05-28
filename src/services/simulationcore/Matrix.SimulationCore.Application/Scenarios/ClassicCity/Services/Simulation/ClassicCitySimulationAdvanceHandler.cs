@@ -48,6 +48,11 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                 speed: advancedEvent.Speed,
                 phase: CityTickPhase.AdvanceTime,
                 cancellationToken: cancellationToken);
+            await AddSimulationPhaseAsync(
+                host: host,
+                advancedEvent: advancedEvent,
+                phase: CityTickPhase.AdvanceTime,
+                cancellationToken: cancellationToken);
 
             if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
                 await DomainEventDispatchHelper.PublishAndClearAsync(
@@ -56,6 +61,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                     cancellationToken: cancellationToken);
 
             foreach (CityTickPhase phase in GetClassicCityPhaseWatermarks())
+            {
                 await outboxWriter.AddCityTickPhaseReachedAsync(
                     cityId: cityId,
                     simulationId: host.SimulationId,
@@ -66,6 +72,28 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                     speed: advancedEvent.Speed,
                     phase: phase,
                     cancellationToken: cancellationToken);
+                await AddSimulationPhaseAsync(
+                    host: host,
+                    advancedEvent: advancedEvent,
+                    phase: phase,
+                    cancellationToken: cancellationToken);
+            }
+        }
+
+        private Task AddSimulationPhaseAsync(
+            SimulationHost host,
+            SimulationTimeAdvancedDomainEvent advancedEvent,
+            CityTickPhase phase,
+            CancellationToken cancellationToken)
+        {
+            return outboxWriter.AddSimulationTickPhaseReachedAsync(
+                host: host,
+                from: advancedEvent.From,
+                to: advancedEvent.To,
+                tickId: advancedEvent.TickId,
+                speed: advancedEvent.Speed,
+                phaseKey: phase.ToPhaseKey(),
+                cancellationToken: cancellationToken);
         }
 
         private static IReadOnlyList<CityTickPhase> GetClassicCityPhaseWatermarks()
