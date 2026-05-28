@@ -57,16 +57,16 @@ public sealed class SimulationInstanceRepositoryTests
     }
 
     [Fact]
-    public async Task DeleteByIdAsync_ShouldRemoveMatchingInstance()
+    public async Task Delete_ShouldRemoveTrackedInstance()
     {
         using SimulationCoreDbContext dbContext = SimulationInfrastructureTestSupport.CreateDbContext(
-            nameof(DeleteByIdAsync_ShouldRemoveMatchingInstance));
+            nameof(Delete_ShouldRemoveTrackedInstance));
         var repository = new SimulationInstanceRepository(dbContext);
         SimulationInstance instance = CreateInstance();
         await dbContext.SimulationInstances.AddAsync(instance);
         await dbContext.SaveChangesAsync();
 
-        await repository.DeleteByIdAsync(instance.Id, CancellationToken.None);
+        repository.Delete(instance);
         await dbContext.SaveChangesAsync();
 
         Assert.Null(await repository.GetByIdAsync(instance.Id, CancellationToken.None));

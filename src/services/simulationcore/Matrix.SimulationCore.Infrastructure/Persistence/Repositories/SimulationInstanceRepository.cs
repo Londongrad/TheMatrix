@@ -40,15 +40,8 @@ public sealed class SimulationInstanceRepository(SimulationCoreDbContext dbConte
            .AsTask();
     }
 
-    public async Task DeleteByIdAsync(
-        SimulationId simulationId,
-        CancellationToken cancellationToken)
+    public void Delete(SimulationInstance instance)
     {
-        SimulationInstance? instance = await GetByIdAsync(
-            simulationId: simulationId,
-            cancellationToken: cancellationToken);
-
-        if (instance is not null)
-            dbContext.SimulationInstances.Remove(instance);
+        dbContext.SimulationInstances.Remove(instance);
     }
 }

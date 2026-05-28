@@ -4,6 +4,7 @@ using Matrix.SimulationCore.Application.Tests.TestSupport;
 using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
+using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
 namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.DeleteCity
@@ -69,7 +70,11 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.D
                 CityById = city
             };
             var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
-            var instanceRepository = new SimulationTestSupport.FakeSimulationInstanceRepository();
+            SimulationInstance instance = SimulationTestSupport.CreateInstance(city);
+            var instanceRepository = new SimulationTestSupport.FakeSimulationInstanceRepository
+            {
+                InstanceById = instance
+            };
             var outboxWriter = new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter();
             var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork();
             var handler = new DeleteCityCommandHandler(
@@ -96,9 +101,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.D
             Assert.Equal(
                 expected: city.Id.Value,
                 actual: clockRepository.DeletedSimulationId!.Value.Value);
-            Assert.Equal(
-                expected: city.Id.Value,
-                actual: instanceRepository.DeletedSimulationId!.Value.Value);
+            Assert.Same(
+                expected: instance,
+                actual: instanceRepository.DeletedInstance);
             Assert.Same(
                 expected: city,
                 actual: cityRepository.DeletedCity);

@@ -30,6 +30,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             if (!city.IsArchived)
                 return DeleteCityResult.NotAllowed;
 
+            SimulationId simulationId = new(city.Id.Value);
+            SimulationInstance? instance = await simulationInstanceRepository.GetByIdAsync(
+                simulationId: simulationId,
+                cancellationToken: cancellationToken);
+
+            if (instance is null)
+                throw new InvalidOperationException(
+                    $"Simulation instance '{simulationId}' is missing for classic city '{city.Id}'.");
+
             DateTimeOffset deletedAtUtc = timeProvider.GetUtcNow();
 
             await unitOfWork.ExecuteInTransactionAsync(
@@ -44,11 +53,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                         ],
                         cancellationToken: ct);
                     await clockRepository.DeleteBySimulationIdAsync(
-                        simulationId: new SimulationId(city.Id.Value),
+                        simulationId: simulationId,
                         cancellationToken: ct);
-                    await simulationInstanceRepository.DeleteByIdAsync(
-                        simulationId: new SimulationId(city.Id.Value),
-                        cancellationToken: ct);
+                    simulationInstanceRepository.Delete(instance);
                     await cityRepository.DeleteAsync(
                         city: city,
                         cancellationToken: ct);

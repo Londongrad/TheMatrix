@@ -112,7 +112,7 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
             public SimulationId? RequestedSimulationId { get; private set; }
             public SimulationRuntimeKey? RequestedRuntimeKey { get; private set; }
             public SimulationHostId? RequestedHostId { get; private set; }
-            public SimulationId? DeletedSimulationId { get; private set; }
+            public SimulationInstance? DeletedInstance { get; private set; }
             public SimulationInstance? AddedInstance { get; private set; }
 
             public Task<SimulationInstance?> GetByIdAsync(
@@ -141,12 +141,9 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
                 return Task.CompletedTask;
             }
 
-            public Task DeleteByIdAsync(
-                SimulationId simulationId,
-                CancellationToken cancellationToken)
+            public void Delete(SimulationInstance instance)
             {
-                DeletedSimulationId = simulationId;
-                return Task.CompletedTask;
+                DeletedInstance = instance;
             }
         }
 

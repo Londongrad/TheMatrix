@@ -18,7 +18,5 @@ public interface ISimulationInstanceRepository
         SimulationInstance instance,
         CancellationToken cancellationToken);
 
-    Task DeleteByIdAsync(
-        SimulationId simulationId,
-        CancellationToken cancellationToken);
+    void Delete(SimulationInstance instance);
 }
