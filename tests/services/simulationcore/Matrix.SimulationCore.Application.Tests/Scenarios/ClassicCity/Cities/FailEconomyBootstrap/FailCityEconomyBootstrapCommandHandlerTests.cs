@@ -1,6 +1,8 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
 using Matrix.SimulationCore.Application.Tests.TestSupport;
+using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
 namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.FailEconomyBootstrap
@@ -12,6 +14,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.F
         {
             var handler = new FailCityEconomyBootstrapCommandHandler(
                 cityRepository: new ClassicCityTestSupport.FakeCityRepository(),
+                simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository(),
                 unitOfWork: new ApplicationTestSupport.FakeUnitOfWork(),
                 timeProvider: new ApplicationTestSupport.FixedTimeProvider(
                     DateTimeOffset.Parse("2048-06-02T08:00:00+00:00")));
@@ -38,8 +41,13 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.F
                 CityById = city
             };
             var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork();
+            SimulationInstance instance = SimulationTestSupport.CreateInstance(city);
             var handler = new FailCityEconomyBootstrapCommandHandler(
                 cityRepository: cityRepository,
+                simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository
+                {
+                    InstanceById = instance
+                },
                 unitOfWork: unitOfWork,
                 timeProvider: new ApplicationTestSupport.FixedTimeProvider(failedAtUtc));
 
@@ -57,6 +65,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.F
             Assert.Equal(
                 expected: "CAPACITY_LIMIT",
                 actual: city.EconomyBootstrapFailureCode);
+            Assert.Equal(
+                expected: SimulationHostState.ProvisioningFailed,
+                actual: instance.State);
             Assert.Equal(
                 expected: 1,
                 actual: unitOfWork.SaveChangesCallCount);
