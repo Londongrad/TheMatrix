@@ -7,6 +7,10 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
 {
     public interface ISimulationCoreOutboxWriter
     {
+        Task AddSimulationEventsAsync(
+            IReadOnlyCollection<IDomainEvent> domainEvents,
+            CancellationToken cancellationToken);
+
         Task AddCityEventsAsync(
             IReadOnlyCollection<IDomainEvent> domainEvents,
             CancellationToken cancellationToken);

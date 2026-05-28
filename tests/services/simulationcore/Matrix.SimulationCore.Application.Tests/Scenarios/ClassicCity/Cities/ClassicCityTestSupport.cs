@@ -172,10 +172,19 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
 
         internal sealed class FakeSimulationCoreOutboxWriter : ISimulationCoreOutboxWriter
         {
+            public IReadOnlyList<IDomainEvent> SimulationEvents { get; private set; } = Array.Empty<IDomainEvent>();
             public IReadOnlyList<IDomainEvent> CityEvents { get; private set; } = Array.Empty<IDomainEvent>();
             public IReadOnlyList<IDomainEvent> WeatherEvents { get; private set; } = Array.Empty<IDomainEvent>();
             public List<CityTimeAdvancedCall> CityTimeAdvancedCalls { get; } = [];
             public List<CityTickPhaseReachedCall> CityTickPhaseReachedCalls { get; } = [];
+
+            public Task AddSimulationEventsAsync(
+                IReadOnlyCollection<IDomainEvent> domainEvents,
+                CancellationToken cancellationToken)
+            {
+                SimulationEvents = domainEvents.ToArray();
+                return Task.CompletedTask;
+            }
 
             public Task AddCityEventsAsync(
                 IReadOnlyCollection<IDomainEvent> domainEvents,
