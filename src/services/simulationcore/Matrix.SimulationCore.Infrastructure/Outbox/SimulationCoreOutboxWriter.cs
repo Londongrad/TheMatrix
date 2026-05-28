@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
+using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Contracts.Events;
@@ -235,6 +236,44 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             dbContext.OutboxMessages.Add(
                 OutboxMessage.Create(
                     type: IntegrationEventTypes.CityTickPhaseReachedV1,
+                    occurredOnUtc: occurredOnUtc,
+                    payload: integrationEvent));
+
+            return Task.CompletedTask;
+        }
+
+        public Task AddSimulationTickPhaseReachedAsync(
+            SimulationHost host,
+            SimTime from,
+            SimTime to,
+            TickId tickId,
+            SimSpeed speed,
+            SimulationPhaseKey phaseKey,
+            CancellationToken cancellationToken)
+        {
+            DateTime occurredOnUtc = timeProvider.GetUtcNow().UtcDateTime;
+            string correlationId =
+                $"simulation:{host.SimulationId.Value:N}:host:{host.HostId.Value:N}:tick:{tickId.Value}";
+            string causationId = $"{correlationId}:phase:{phaseKey.Value}";
+
+            var integrationEvent = new SimulationTickPhaseReachedV1(
+                SimulationId: host.SimulationId.Value,
+                HostId: host.HostId.Value,
+                ScenarioKey: host.RuntimeKey.ScenarioKey.Value,
+                HostTypeKey: host.RuntimeKey.HostTypeKey.Value,
+                PhaseKey: phaseKey.Value,
+                FromSimTimeUtc: from.ValueUtc,
+                ToSimTimeUtc: to.ValueUtc,
+                TickId: tickId.Value,
+                SpeedMultiplier: speed.Multiplier,
+                ModelVersion: 1,
+                CausationId: causationId,
+                CorrelationId: correlationId,
+                OccurredOnUtc: occurredOnUtc);
+
+            dbContext.OutboxMessages.Add(
+                OutboxMessage.Create(
+                    type: IntegrationEventTypes.SimulationTickPhaseReachedV1,
                     occurredOnUtc: occurredOnUtc,
                     payload: integrationEvent));
 

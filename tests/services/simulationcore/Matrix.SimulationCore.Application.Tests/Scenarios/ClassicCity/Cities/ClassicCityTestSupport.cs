@@ -177,6 +177,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
             public IReadOnlyList<IDomainEvent> WeatherEvents { get; private set; } = Array.Empty<IDomainEvent>();
             public List<CityTimeAdvancedCall> CityTimeAdvancedCalls { get; } = [];
             public List<CityTickPhaseReachedCall> CityTickPhaseReachedCalls { get; } = [];
+            public List<SimulationTickPhaseReachedCall> SimulationTickPhaseReachedCalls { get; } = [];
 
             public Task AddSimulationEventsAsync(
                 IReadOnlyCollection<IDomainEvent> domainEvents,
@@ -250,6 +251,26 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
                 return Task.CompletedTask;
             }
 
+            public Task AddSimulationTickPhaseReachedAsync(
+                SimulationHost host,
+                SimTime from,
+                SimTime to,
+                TickId tickId,
+                SimSpeed speed,
+                SimulationPhaseKey phaseKey,
+                CancellationToken cancellationToken)
+            {
+                SimulationTickPhaseReachedCalls.Add(
+                    new SimulationTickPhaseReachedCall(
+                        Host: host,
+                        From: from,
+                        To: to,
+                        TickId: tickId,
+                        Speed: speed,
+                        PhaseKey: phaseKey));
+                return Task.CompletedTask;
+            }
+
             public sealed record CityTimeAdvancedCall(
                 CityId CityId,
                 SimulationId SimulationId,
@@ -269,6 +290,14 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
                 TickId TickId,
                 SimSpeed Speed,
                 CityTickPhase Phase);
+
+            public sealed record SimulationTickPhaseReachedCall(
+                SimulationHost Host,
+                SimTime From,
+                SimTime To,
+                TickId TickId,
+                SimSpeed Speed,
+                SimulationPhaseKey PhaseKey);
         }
     }
 }
