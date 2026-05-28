@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Simulation.Primitives;
+using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
@@ -42,6 +43,11 @@ public sealed class SimulationInstanceTests
         Assert.Equal(SimulationHostState.Provisioning, instance.State);
         Assert.Equal(createdAtUtc, instance.CreatedAtUtc);
         Assert.Null(instance.ArchivedAtUtc);
+        SimulationCreatedDomainEvent createdEvent =
+            Assert.IsType<SimulationCreatedDomainEvent>(Assert.Single(instance.DomainEvents));
+        Assert.Equal(simulationId, createdEvent.SimulationId);
+        Assert.Equal(hostId, createdEvent.HostId);
+        Assert.Equal(RuntimeKey, createdEvent.RuntimeKey);
     }
 
     [Fact]
@@ -99,6 +105,11 @@ public sealed class SimulationInstanceTests
         Assert.True(instance.IsArchived);
         Assert.False(instance.IsActive);
         Assert.Equal(archivedAtUtc, instance.ArchivedAtUtc);
+        SimulationArchivedDomainEvent archivedEvent =
+            Assert.IsType<SimulationArchivedDomainEvent>(instance.DomainEvents.Last());
+        Assert.Equal(instance.Id, archivedEvent.SimulationId);
+        Assert.Equal(instance.HostId, archivedEvent.HostId);
+        Assert.Equal(RuntimeKey, archivedEvent.RuntimeKey);
     }
 
     [Fact]

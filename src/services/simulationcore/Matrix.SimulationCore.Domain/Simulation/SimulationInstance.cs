@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
 using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Domain.Errors;
+using Matrix.SimulationCore.Domain.Events.Simulation;
 
 namespace Matrix.SimulationCore.Domain.Simulation;
 
@@ -97,7 +98,7 @@ public sealed class SimulationInstance : AggregateRoot<SimulationId>
 
         EnsureUtc(createdAtUtc);
 
-        return new SimulationInstance(
+        var instance = new SimulationInstance(
             id: id,
             hostId: hostId,
             scenarioKey: runtimeKey.ScenarioKey,
@@ -109,6 +110,20 @@ public sealed class SimulationInstance : AggregateRoot<SimulationId>
             state: initialState,
             createdAtUtc: createdAtUtc,
             archivedAtUtc: null);
+
+        instance.AddDomainEvent(
+            new SimulationCreatedDomainEvent(
+                SimulationId: instance.Id,
+                HostId: instance.HostId,
+                RuntimeKey: instance.RuntimeKey,
+                Seed: instance.Seed,
+                RunId: instance.RunId,
+                ModelVersion: instance.ModelVersion,
+                ProvisioningCorrelationId: instance.ProvisioningCorrelationId,
+                State: instance.State,
+                CreatedAtUtc: instance.CreatedAtUtc));
+
+        return instance;
     }
 
     public void Archive(DateTimeOffset archivedAtUtc)
@@ -125,6 +140,12 @@ public sealed class SimulationInstance : AggregateRoot<SimulationId>
 
         State = SimulationHostState.Archived;
         ArchivedAtUtc = archivedAtUtc;
+        AddDomainEvent(
+            new SimulationArchivedDomainEvent(
+                SimulationId: Id,
+                HostId: HostId,
+                RuntimeKey: RuntimeKey,
+                ArchivedAtUtc: archivedAtUtc));
     }
 
     public void Activate()
