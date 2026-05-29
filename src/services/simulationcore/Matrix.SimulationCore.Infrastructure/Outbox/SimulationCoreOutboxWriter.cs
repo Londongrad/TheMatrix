@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
@@ -146,102 +145,6 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             return Task.CompletedTask;
         }
 
-        public Task AddCityTimeAdvancedAsync(
-            CityId cityId,
-            SimulationId simulationId,
-            SimulationKind simulationKind,
-            SimTime from,
-            SimTime to,
-            TickId tickId,
-            SimSpeed speed,
-            CityTickPhase phase,
-            CancellationToken cancellationToken)
-        {
-            DateTime occurredOnUtc = timeProvider.GetUtcNow()
-               .UtcDateTime;
-            string correlationId = BuildTickCorrelationId(
-                simulationId: simulationId,
-                cityId: cityId,
-                tickId: tickId);
-            string causationId = BuildTickCausationId(
-                correlationId: correlationId,
-                phase: phase);
-
-            var integrationEvent = new CityTimeAdvancedV1(
-                CityId: cityId.Value,
-                FromSimTimeUtc: from.ValueUtc,
-                ToSimTimeUtc: to.ValueUtc,
-                TickId: tickId.Value,
-                SpeedMultiplier: speed.Multiplier,
-                TickContext: new CityTickContextV1(
-                    SimulationId: simulationId.Value,
-                    CityId: cityId.Value,
-                    SimulationKind: simulationKind.ToString(),
-                    TickId: tickId.Value,
-                    EffectiveSimTimeUtc: to.ValueUtc,
-                    Phase: MapPhase(phase),
-                    ModelVersion: 1,
-                    CausationId: causationId,
-                    CorrelationId: correlationId),
-                OccurredOnUtc: occurredOnUtc);
-
-            dbContext.OutboxMessages.Add(
-                OutboxMessage.Create(
-                    type: IntegrationEventTypes.CityTimeAdvancedV1,
-                    occurredOnUtc: occurredOnUtc,
-                    payload: integrationEvent));
-
-            return Task.CompletedTask;
-        }
-
-        public Task AddCityTickPhaseReachedAsync(
-            CityId cityId,
-            SimulationId simulationId,
-            SimulationKind simulationKind,
-            SimTime from,
-            SimTime to,
-            TickId tickId,
-            SimSpeed speed,
-            CityTickPhase phase,
-            CancellationToken cancellationToken)
-        {
-            DateTime occurredOnUtc = timeProvider.GetUtcNow()
-               .UtcDateTime;
-            string correlationId = BuildTickCorrelationId(
-                simulationId: simulationId,
-                cityId: cityId,
-                tickId: tickId);
-            string causationId = BuildTickCausationId(
-                correlationId: correlationId,
-                phase: phase);
-
-            var integrationEvent = new CityTickPhaseReachedV1(
-                CityId: cityId.Value,
-                FromSimTimeUtc: from.ValueUtc,
-                ToSimTimeUtc: to.ValueUtc,
-                TickId: tickId.Value,
-                SpeedMultiplier: speed.Multiplier,
-                TickContext: new CityTickContextV1(
-                    SimulationId: simulationId.Value,
-                    CityId: cityId.Value,
-                    SimulationKind: simulationKind.ToString(),
-                    TickId: tickId.Value,
-                    EffectiveSimTimeUtc: to.ValueUtc,
-                    Phase: MapPhase(phase),
-                    ModelVersion: 1,
-                    CausationId: causationId,
-                    CorrelationId: correlationId),
-                OccurredOnUtc: occurredOnUtc);
-
-            dbContext.OutboxMessages.Add(
-                OutboxMessage.Create(
-                    type: IntegrationEventTypes.CityTickPhaseReachedV1,
-                    occurredOnUtc: occurredOnUtc,
-                    payload: integrationEvent));
-
-            return Task.CompletedTask;
-        }
-
         public Task AddSimulationTickPhaseReachedAsync(
             SimulationHost host,
             SimTime from,
@@ -358,38 +261,6 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             }
 
             return Task.CompletedTask;
-        }
-
-        private static string BuildTickCorrelationId(
-            SimulationId simulationId,
-            CityId cityId,
-            TickId tickId)
-        {
-            return $"simulation:{simulationId.Value:N}:city:{cityId.Value:N}:tick:{tickId.Value}";
-        }
-
-        private static string BuildTickCausationId(
-            string correlationId,
-            CityTickPhase phase)
-        {
-            return $"{correlationId}:phase:{phase}";
-        }
-
-        private static CityTickPhaseV1 MapPhase(CityTickPhase phase)
-        {
-            return phase switch
-            {
-                CityTickPhase.AdvanceTime => CityTickPhaseV1.AdvanceTime,
-                CityTickPhase.SystemsDegradation => CityTickPhaseV1.SystemsDegradation,
-                CityTickPhase.IncidentGeneration => CityTickPhaseV1.IncidentGeneration,
-                CityTickPhase.DispatchExecution => CityTickPhaseV1.DispatchExecution,
-                CityTickPhase.ResourceSettlement => CityTickPhaseV1.ResourceSettlement,
-                CityTickPhase.BudgetSettlement => CityTickPhaseV1.BudgetSettlement,
-                CityTickPhase.PopulationReaction => CityTickPhaseV1.PopulationReaction,
-                CityTickPhase.Projection => CityTickPhaseV1.Projection,
-                CityTickPhase.TickCompleted => CityTickPhaseV1.TickCompleted,
-                _ => throw new InvalidOperationException($"Unsupported city tick phase '{phase}'.")
-            };
         }
 
         private static WeatherStateV1 ToWeatherState(WeatherState state)
