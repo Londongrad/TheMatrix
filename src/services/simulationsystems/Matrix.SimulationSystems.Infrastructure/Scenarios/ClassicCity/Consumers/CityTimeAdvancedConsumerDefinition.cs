@@ -13,7 +13,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
 
         public CityTimeAdvancedConsumerDefinition()
         {
-            EndpointName = "simulation-systems-city-time-advanced";
+            EndpointName = "simulation-systems-classic-city-tick-phase-reached-v1";
             ConcurrentMessageLimit = 1;
         }
 

@@ -1,5 +1,7 @@
 using MassTransit;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Simulation;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     AdvanceCityEnvironmentalConditions;
 using MediatR;
@@ -9,9 +11,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
 {
     public sealed class CityTimeAdvancedConsumer(
         IMediator mediator,
-        ILogger<CityTimeAdvancedConsumer> logger) : IConsumer<CityTickPhaseReachedV1>
+        ILogger<CityTimeAdvancedConsumer> logger) : IConsumer<SimulationTickPhaseReachedV1>
     {
-        public Task Consume(ConsumeContext<CityTickPhaseReachedV1> context)
+        public Task Consume(ConsumeContext<SimulationTickPhaseReachedV1> context)
         {
             return ConsumeAsync(
                 message: context.Message,
@@ -19,15 +21,19 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
         }
 
         internal async Task ConsumeAsync(
-            CityTickPhaseReachedV1 message,
+            SimulationTickPhaseReachedV1 message,
             CancellationToken cancellationToken)
         {
-            if (message.TickContext.Phase != CityTickPhaseV1.SystemsDegradation)
+            if (!ClassicCityRuntimeKeys.IsMatch(message.ScenarioKey, message.HostTypeKey) ||
+                !string.Equals(
+                    message.PhaseKey,
+                    ClassicCityTickPhaseKeys.SystemsDegradation,
+                    StringComparison.Ordinal))
                 return;
 
             AdvanceCityEnvironmentalConditionsResult result = await mediator.Send(
                 request: new AdvanceCityEnvironmentalConditionsCommand(
-                    CityId: message.CityId,
+                    CityId: message.HostId,
                     FromSimTimeUtc: message.FromSimTimeUtc,
                     ToSimTimeUtc: message.ToSimTimeUtc,
                     TickId: message.TickId),
@@ -39,7 +45,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     logger.LogInformation(
                         message:
                         "Applied classic city environmental time progression for cityId={CityId}, tickId={TickId}, processedSimMinutes={ProcessedSimMinutes}, flooding={Flooding}, snow={Snow}, roadAccessibility={RoadAccessibility}.",
-                        message.CityId,
+                        message.HostId,
                         message.TickId,
                         result.ProcessedSimMinutes,
                         result.FloodingIndex,
@@ -51,7 +57,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     logger.LogDebug(
                         message:
                         "Skipped duplicate classic city environmental time progression for cityId={CityId}, tickId={TickId}.",
-                        message.CityId,
+                        message.HostId,
                         message.TickId);
                     break;
 
@@ -59,7 +65,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     logger.LogDebug(
                         message:
                         "Skipped out-of-order classic city environmental time progression for cityId={CityId}, tickId={TickId}.",
-                        message.CityId,
+                        message.HostId,
                         message.TickId);
                     break;
 
@@ -67,7 +73,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     logger.LogDebug(
                         message:
                         "Skipped classic city environmental time progression for cityId={CityId}, tickId={TickId} because state is not initialized yet.",
-                        message.CityId,
+                        message.HostId,
                         message.TickId);
                     break;
             }

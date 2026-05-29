@@ -1,4 +1,6 @@
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Simulation;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     AdvanceCityEnvironmentalConditions;
@@ -102,7 +104,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Co
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateTickMessage(CityTickPhaseV1.Projection),
+                message: CreateTickMessage(ClassicCityTickPhaseKeys.Projection),
                 cancellationToken: CancellationToken.None);
 
             Assert.Empty(mediator.Commands);
@@ -110,9 +112,36 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Co
         }
 
         [Fact]
+        public async Task CityTimeAdvancedConsumeAsync_WhenRuntimeDoesNotMatch_DoesNothing()
+        {
+            var mediator = new TestAdvanceMediator
+            {
+                Result = new AdvanceCityEnvironmentalConditionsResult(
+                    Status: AdvanceCityEnvironmentalConditionsStatus.Applied,
+                    ProcessedSimMinutes: 60,
+                    FloodingIndex: 0.12m,
+                    SnowAccumulationIndex: 0.31m,
+                    RoadAccessibilityIndex: 0.77m)
+            };
+            var consumer = new CityTimeAdvancedConsumer(
+                mediator,
+                new TestLogger<CityTimeAdvancedConsumer>());
+
+            await consumer.ConsumeAsync(
+                CreateTickMessage(
+                    ClassicCityTickPhaseKeys.SystemsDegradation,
+                    scenarioKey: "metro",
+                    hostTypeKey: "network"),
+                CancellationToken.None);
+
+            Assert.Empty(mediator.Commands);
+        }
+
+        [Fact]
         public async Task CityTimeAdvancedConsumeAsync_WhenAdvanceIsApplied_SendsCommandAndLogsInformation()
         {
-            CityTickPhaseReachedV1 message = CreateTickMessage(CityTickPhaseV1.SystemsDegradation);
+            SimulationTickPhaseReachedV1 message =
+                CreateTickMessage(ClassicCityTickPhaseKeys.SystemsDegradation);
             var mediator = new TestAdvanceMediator
             {
                 Result = new AdvanceCityEnvironmentalConditionsResult(
@@ -133,7 +162,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Co
 
             AdvanceCityEnvironmentalConditionsCommand command = Assert.Single(mediator.Commands);
             Assert.Equal(
-                expected: message.CityId,
+                expected: message.HostId,
                 actual: command.CityId);
             Assert.Equal(
                 expected: message.FromSimTimeUtc,
@@ -171,7 +200,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Co
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateTickMessage(CityTickPhaseV1.SystemsDegradation),
+                message: CreateTickMessage(ClassicCityTickPhaseKeys.SystemsDegradation),
                 cancellationToken: CancellationToken.None);
 
             TestLogEntry entry = Assert.Single(logger.Entries);
@@ -194,24 +223,24 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Co
                 EconomyProfile: "balanced");
         }
 
-        private static CityTickPhaseReachedV1 CreateTickMessage(CityTickPhaseV1 phase)
+        private static SimulationTickPhaseReachedV1 CreateTickMessage(
+            string phaseKey,
+            string scenarioKey = ClassicCityRuntimeKeys.ScenarioKey,
+            string hostTypeKey = ClassicCityRuntimeKeys.HostTypeKey)
         {
-            return new CityTickPhaseReachedV1(
-                CityId: CityId,
+            return new SimulationTickPhaseReachedV1(
+                SimulationId: Guid.Parse("94c5dc18-f29b-4055-8b79-fcd49ca62b76"),
+                HostId: CityId,
+                ScenarioKey: scenarioKey,
+                HostTypeKey: hostTypeKey,
+                PhaseKey: phaseKey,
                 FromSimTimeUtc: CreatedAtUtc,
                 ToSimTimeUtc: LaterUtc,
                 TickId: 9,
                 SpeedMultiplier: 60m,
-                TickContext: new CityTickContextV1(
-                    SimulationId: Guid.Parse("94c5dc18-f29b-4055-8b79-fcd49ca62b76"),
-                    CityId: CityId,
-                    SimulationKind: ClassicCityScenario.Name,
-                    TickId: 9,
-                    EffectiveSimTimeUtc: LaterUtc,
-                    Phase: phase,
-                    ModelVersion: 1,
-                    CausationId: "tick:9",
-                    CorrelationId: "corr:9"),
+                ModelVersion: 1,
+                CausationId: "tick:9",
+                CorrelationId: "corr:9",
                 OccurredOnUtc: LaterUtc.UtcDateTime);
         }
 
