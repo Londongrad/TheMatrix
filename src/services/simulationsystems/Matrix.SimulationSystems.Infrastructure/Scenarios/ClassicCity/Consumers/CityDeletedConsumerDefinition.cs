@@ -6,7 +6,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
     {
         public CityDeletedConsumerDefinition()
         {
-            EndpointName = "simulation-systems-city-deleted";
+            EndpointName = "simulation-systems-classic-city-simulation-deleted-v1";
             ConcurrentMessageLimit = 1;
         }
     }

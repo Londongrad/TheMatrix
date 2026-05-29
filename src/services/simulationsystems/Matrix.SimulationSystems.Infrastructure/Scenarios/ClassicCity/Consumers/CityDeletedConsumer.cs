@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     DeleteCitySystemsData;
 using MediatR;
@@ -9,9 +10,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
 {
     public sealed class CityDeletedConsumer(
         IMediator mediator,
-        ILogger<CityDeletedConsumer> logger) : IConsumer<CityDeletedV1>
+        ILogger<CityDeletedConsumer> logger) : IConsumer<SimulationDeletedV1>
     {
-        public Task Consume(ConsumeContext<CityDeletedV1> context)
+        public Task Consume(ConsumeContext<SimulationDeletedV1> context)
         {
             return ConsumeAsync(
                 message: context.Message,
@@ -19,12 +20,22 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
         }
 
         internal async Task ConsumeAsync(
-            CityDeletedV1 message,
+            SimulationDeletedV1 message,
             CancellationToken cancellationToken)
         {
+            if (!ClassicCityRuntimeKeys.IsMatch(message.ScenarioKey, message.HostTypeKey))
+            {
+                logger.LogDebug(
+                    "Ignored simulation deletion for simulationId={SimulationId}, scenarioKey={ScenarioKey}, hostTypeKey={HostTypeKey}.",
+                    message.SimulationId,
+                    message.ScenarioKey,
+                    message.HostTypeKey);
+                return;
+            }
+
             DeleteCitySystemsDataResult result = await mediator.Send(
                 request: new DeleteCitySystemsDataCommand(
-                    CityId: message.CityId,
+                    CityId: message.HostId,
                     DeletedAtUtc: message.DeletedAtUtc),
                 cancellationToken: cancellationToken);
 
@@ -33,17 +44,17 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                 case DeleteCitySystemsDataStatus.Applied:
                     logger.LogInformation(
                         message: "Deleted simulation systems data for cityId={CityId}.",
-                        message.CityId);
+                        message.HostId);
                     break;
                 case DeleteCitySystemsDataStatus.Duplicate:
                     logger.LogDebug(
                         message: "Skipped duplicate simulation systems deletion for cityId={CityId}.",
-                        message.CityId);
+                        message.HostId);
                     break;
                 case DeleteCitySystemsDataStatus.Stale:
                     logger.LogWarning(
                         message: "Ignored stale simulation systems deletion for cityId={CityId}.",
-                        message.CityId);
+                        message.HostId);
                     break;
             }
         }
