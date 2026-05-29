@@ -14,7 +14,7 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity
         public static void AddClassicCityScenarioConsumers(this IBusRegistrationConfigurator configurator)
         {
             configurator.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
-            configurator.AddConsumer<CityDeletedConsumer, CityDeletedConsumerDefinition>();
+            configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
             configurator.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
             configurator
                .AddConsumer<CityOperationalBudgetPressureConsumer, CityOperationalBudgetPressureConsumerDefinition>();
