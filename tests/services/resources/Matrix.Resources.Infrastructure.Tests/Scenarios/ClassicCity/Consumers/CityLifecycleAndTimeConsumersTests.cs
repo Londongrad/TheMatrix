@@ -4,6 +4,8 @@ using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.See
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Resources.Infrastructure.Tests.TestSupport;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Simulation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -115,7 +117,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
         }
 
         [Fact]
-        public async Task CityTimeAdvancedConsumeAsync_WhenPhaseDoesNotMatchResourceSettlement_DoesNothing()
+        public async Task TickConsumeAsync_WhenPhaseDoesNotMatchResourceSettlement_DoesNothing()
         {
             var mediator = new TestAdvanceMediator
             {
@@ -128,13 +130,13 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     FoodStockLevelIndex: 0.7m,
                     EmergencyWaterStockLevelIndex: 0.9m)
             };
-            var logger = new TestLogger<CityTimeAdvancedConsumer>();
-            var consumer = new CityTimeAdvancedConsumer(
+            var logger = new TestLogger<SimulationTickPhaseReachedConsumer>();
+            var consumer = new SimulationTickPhaseReachedConsumer(
                 mediator: mediator,
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateTickMessage(CityTickPhaseV1.Projection),
+                message: CreateTickMessage(ClassicCityTickPhaseKeys.Projection),
                 cancellationToken: CancellationToken.None);
 
             Assert.Empty(mediator.Commands);
@@ -142,22 +144,51 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
         }
 
         [Fact]
-        public async Task CityTimeAdvancedConsumeAsync_WhenAdvanceIsApplied_SendsCommandAndLogsInformation()
+        public async Task TickConsumeAsync_WhenRuntimeDoesNotMatch_DoesNothing()
         {
-            CityTickPhaseReachedV1 message = CreateTickMessage(CityTickPhaseV1.ResourceSettlement);
             var mediator = new TestAdvanceMediator
             {
                 Result = new AdvanceCityStockpilesResult(
                     Status: AdvanceCityStockpilesStatus.Applied,
-                    CityId: message.CityId,
+                    CityId: ResourcesInfrastructureTestSupport.CityId,
+                    ProcessedSimMinutes: 60,
+                    SupplyStressIndex: 0.2m,
+                    FuelStockLevelIndex: 0.8m,
+                    FoodStockLevelIndex: 0.7m,
+                    EmergencyWaterStockLevelIndex: 0.9m)
+            };
+            var consumer = new SimulationTickPhaseReachedConsumer(
+                mediator,
+                new TestLogger<SimulationTickPhaseReachedConsumer>());
+
+            await consumer.ConsumeAsync(
+                CreateTickMessage(
+                    phaseKey: ClassicCityTickPhaseKeys.ResourceSettlement,
+                    scenarioKey: "metro",
+                    hostTypeKey: "network"),
+                CancellationToken.None);
+
+            Assert.Empty(mediator.Commands);
+        }
+
+        [Fact]
+        public async Task TickConsumeAsync_WhenAdvanceIsApplied_SendsCommandAndLogsInformation()
+        {
+            SimulationTickPhaseReachedV1 message =
+                CreateTickMessage(ClassicCityTickPhaseKeys.ResourceSettlement);
+            var mediator = new TestAdvanceMediator
+            {
+                Result = new AdvanceCityStockpilesResult(
+                    Status: AdvanceCityStockpilesStatus.Applied,
+                    CityId: message.HostId,
                     ProcessedSimMinutes: 120,
                     SupplyStressIndex: 0.33m,
                     FuelStockLevelIndex: 0.61m,
                     FoodStockLevelIndex: 0.58m,
                     EmergencyWaterStockLevelIndex: 0.73m)
             };
-            var logger = new TestLogger<CityTimeAdvancedConsumer>();
-            var consumer = new CityTimeAdvancedConsumer(
+            var logger = new TestLogger<SimulationTickPhaseReachedConsumer>();
+            var consumer = new SimulationTickPhaseReachedConsumer(
                 mediator: mediator,
                 logger: logger);
 
@@ -167,7 +198,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
 
             AdvanceCityStockpilesCommand command = Assert.Single(mediator.Commands);
             Assert.Equal(
-                expected: message.CityId,
+                expected: message.HostId,
                 actual: command.CityId);
             Assert.Equal(
                 expected: message.FromSimTimeUtc,
@@ -188,7 +219,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
         }
 
         [Fact]
-        public async Task CityTimeAdvancedConsumeAsync_WhenAdvanceIsOutOfOrder_LogsDebug()
+        public async Task TickConsumeAsync_WhenAdvanceIsOutOfOrder_LogsDebug()
         {
             var mediator = new TestAdvanceMediator
             {
@@ -201,13 +232,13 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     FoodStockLevelIndex: 0m,
                     EmergencyWaterStockLevelIndex: 0m)
             };
-            var logger = new TestLogger<CityTimeAdvancedConsumer>();
-            var consumer = new CityTimeAdvancedConsumer(
+            var logger = new TestLogger<SimulationTickPhaseReachedConsumer>();
+            var consumer = new SimulationTickPhaseReachedConsumer(
                 mediator: mediator,
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateTickMessage(CityTickPhaseV1.ResourceSettlement),
+                message: CreateTickMessage(ClassicCityTickPhaseKeys.ResourceSettlement),
                 cancellationToken: CancellationToken.None);
 
             TestLogEntry entry = Assert.Single(logger.Entries);
@@ -220,7 +251,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
         }
 
         [Fact]
-        public async Task CityTimeAdvancedConsumeAsync_WhenAdvanceIsDuplicate_LogsDebug()
+        public async Task TickConsumeAsync_WhenAdvanceIsDuplicate_LogsDebug()
         {
             var mediator = new TestAdvanceMediator
             {
@@ -233,13 +264,13 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     FoodStockLevelIndex: 0m,
                     EmergencyWaterStockLevelIndex: 0m)
             };
-            var logger = new TestLogger<CityTimeAdvancedConsumer>();
-            var consumer = new CityTimeAdvancedConsumer(
+            var logger = new TestLogger<SimulationTickPhaseReachedConsumer>();
+            var consumer = new SimulationTickPhaseReachedConsumer(
                 mediator: mediator,
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateTickMessage(CityTickPhaseV1.ResourceSettlement),
+                message: CreateTickMessage(ClassicCityTickPhaseKeys.ResourceSettlement),
                 cancellationToken: CancellationToken.None);
 
             TestLogEntry entry = Assert.Single(logger.Entries);
@@ -252,7 +283,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
         }
 
         [Fact]
-        public async Task CityTimeAdvancedConsumeAsync_WhenStateIsNotInitialized_LogsDebug()
+        public async Task TickConsumeAsync_WhenStateIsNotInitialized_LogsDebug()
         {
             var mediator = new TestAdvanceMediator
             {
@@ -265,13 +296,13 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     FoodStockLevelIndex: 0m,
                     EmergencyWaterStockLevelIndex: 0m)
             };
-            var logger = new TestLogger<CityTimeAdvancedConsumer>();
-            var consumer = new CityTimeAdvancedConsumer(
+            var logger = new TestLogger<SimulationTickPhaseReachedConsumer>();
+            var consumer = new SimulationTickPhaseReachedConsumer(
                 mediator: mediator,
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateTickMessage(CityTickPhaseV1.ResourceSettlement),
+                message: CreateTickMessage(ClassicCityTickPhaseKeys.ResourceSettlement),
                 cancellationToken: CancellationToken.None);
 
             TestLogEntry entry = Assert.Single(logger.Entries);
@@ -294,24 +325,24 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 EconomyProfile: "balanced");
         }
 
-        private static CityTickPhaseReachedV1 CreateTickMessage(CityTickPhaseV1 phase)
+        private static SimulationTickPhaseReachedV1 CreateTickMessage(
+            string phaseKey,
+            string scenarioKey = ClassicCityRuntimeKeys.ScenarioKey,
+            string hostTypeKey = ClassicCityRuntimeKeys.HostTypeKey)
         {
-            return new CityTickPhaseReachedV1(
-                CityId: ResourcesInfrastructureTestSupport.CityId,
+            return new SimulationTickPhaseReachedV1(
+                SimulationId: Guid.Parse("94c5dc18-f29b-4055-8b79-fcd49ca62b76"),
+                HostId: ResourcesInfrastructureTestSupport.CityId,
+                ScenarioKey: scenarioKey,
+                HostTypeKey: hostTypeKey,
+                PhaseKey: phaseKey,
                 FromSimTimeUtc: ResourcesInfrastructureTestSupport.CreatedAtUtc,
                 ToSimTimeUtc: ResourcesInfrastructureTestSupport.LaterUtc,
                 TickId: 9,
                 SpeedMultiplier: 60m,
-                TickContext: new CityTickContextV1(
-                    SimulationId: Guid.Parse("94c5dc18-f29b-4055-8b79-fcd49ca62b76"),
-                    CityId: ResourcesInfrastructureTestSupport.CityId,
-                    SimulationKind: ClassicCityScenario.Name,
-                    TickId: 9,
-                    EffectiveSimTimeUtc: ResourcesInfrastructureTestSupport.LaterUtc,
-                    Phase: phase,
-                    ModelVersion: 1,
-                    CausationId: "tick:9",
-                    CorrelationId: "corr:9"),
+                ModelVersion: 1,
+                CausationId: "tick:9",
+                CorrelationId: "corr:9",
                 OccurredOnUtc: ResourcesInfrastructureTestSupport.LaterUtc.UtcDateTime);
         }
 

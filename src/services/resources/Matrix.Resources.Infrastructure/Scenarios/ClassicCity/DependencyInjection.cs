@@ -15,7 +15,8 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity
         {
             configurator.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
             configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
-            configurator.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
+            configurator
+               .AddConsumer<SimulationTickPhaseReachedConsumer, SimulationTickPhaseReachedConsumerDefinition>();
             configurator
                .AddConsumer<CityOperationalBudgetPressureConsumer, CityOperationalBudgetPressureConsumerDefinition>();
             configurator.AddConsumer<CitySystemsResourceDemandConsumer, CitySystemsResourceDemandConsumerDefinition>();
