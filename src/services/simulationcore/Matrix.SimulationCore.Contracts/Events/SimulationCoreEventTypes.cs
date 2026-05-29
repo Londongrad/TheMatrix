@@ -7,8 +7,6 @@ namespace Matrix.SimulationCore.Contracts.Events
         public const string SimulationDeletedV1 = "simulationcore.simulation-deleted.v1";
         public const string SimulationTickPhaseReachedV1 = "simulationcore.simulation-tick-phase-reached.v1";
         public const string CityCreatedV1 = "simulationcore.city-created.v1";
-        public const string CityArchivedV1 = "simulationcore.city-archived.v1";
-        public const string CityDeletedV1 = "simulationcore.city-deleted.v1";
         public const string CityEnvironmentChangedV1 = "simulationcore.city-environment-changed.v1";
         public const string CityWeatherCreatedV1 = "simulationcore.city-weather-created.v1";
         public const string CityWeatherChangedV1 = "simulationcore.city-weather-changed.v1";
