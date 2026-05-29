@@ -6,7 +6,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
     {
         public CityTimeAdvancedConsumerDefinition()
         {
-            EndpointName = "population-city-time-advanced";
+            EndpointName = "population-classic-city-tick-phase-reached-v1";
             ConcurrentMessageLimit = 1;
         }
     }

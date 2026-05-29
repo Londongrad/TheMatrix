@@ -2,6 +2,8 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Ad
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Population.Infrastructure.Tests.TestSupport;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Simulation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -25,11 +27,34 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateMessage(CityTickPhaseV1.Projection),
+                message: CreateMessage(ClassicCityTickPhaseKeys.Projection),
                 cancellationToken: CancellationToken.None);
 
             Assert.Empty(mediator.Commands);
             Assert.Empty(logger.Entries);
+        }
+
+        [Fact]
+        public async Task ConsumeAsync_WhenRuntimeDoesNotMatch_DoesNothing()
+        {
+            var mediator = new TestMediator
+            {
+                Result = new AdvanceCityPopulationResult(
+                    AdvanceCityPopulationStatus.Applied,
+                    5)
+            };
+            var consumer = new CityTimeAdvancedConsumer(
+                mediator,
+                new TestLogger<CityTimeAdvancedConsumer>());
+
+            await consumer.ConsumeAsync(
+                CreateMessage(
+                    ClassicCityTickPhaseKeys.PopulationReaction,
+                    scenarioKey: "metro",
+                    hostTypeKey: "network"),
+                CancellationToken.None);
+
+            Assert.Empty(mediator.Commands);
         }
 
         [Fact]
@@ -45,7 +70,8 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
             var consumer = new CityTimeAdvancedConsumer(
                 mediator: mediator,
                 logger: logger);
-            CityTickPhaseReachedV1 message = CreateMessage(CityTickPhaseV1.PopulationReaction);
+            SimulationTickPhaseReachedV1 message =
+                CreateMessage(ClassicCityTickPhaseKeys.PopulationReaction);
 
             await consumer.ConsumeAsync(
                 message: message,
@@ -53,7 +79,7 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
 
             AdvanceCityPopulationCommand command = Assert.Single(mediator.Commands);
             Assert.Equal(
-                expected: message.CityId,
+                expected: message.HostId,
                 actual: command.CityId);
             Assert.Equal(
                 expected: message.TickId,
@@ -82,7 +108,7 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateMessage(CityTickPhaseV1.PopulationReaction),
+                message: CreateMessage(ClassicCityTickPhaseKeys.PopulationReaction),
                 cancellationToken: CancellationToken.None);
 
             TestLogEntry entry = Assert.Single(logger.Entries);
@@ -94,10 +120,17 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 actualString: entry.Message);
         }
 
-        private static CityTickPhaseReachedV1 CreateMessage(CityTickPhaseV1 phase)
+        private static SimulationTickPhaseReachedV1 CreateMessage(
+            string phaseKey,
+            string scenarioKey = ClassicCityRuntimeKeys.ScenarioKey,
+            string hostTypeKey = ClassicCityRuntimeKeys.HostTypeKey)
         {
-            return new CityTickPhaseReachedV1(
-                CityId: Guid.Parse("825bc802-3315-4387-8ee9-234270789660"),
+            return new SimulationTickPhaseReachedV1(
+                SimulationId: Guid.Parse("ec4cc0b5-363a-41ec-b088-2432daa26ffd"),
+                HostId: Guid.Parse("825bc802-3315-4387-8ee9-234270789660"),
+                ScenarioKey: scenarioKey,
+                HostTypeKey: hostTypeKey,
+                PhaseKey: phaseKey,
                 FromSimTimeUtc: new DateTimeOffset(
                     year: 2048,
                     month: 5,
@@ -116,23 +149,9 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     offset: TimeSpan.Zero),
                 TickId: 42,
                 SpeedMultiplier: 60m,
-                TickContext: new CityTickContextV1(
-                    SimulationId: Guid.Parse("ec4cc0b5-363a-41ec-b088-2432daa26ffd"),
-                    CityId: Guid.Parse("825bc802-3315-4387-8ee9-234270789660"),
-                    SimulationKind: "classic-city",
-                    TickId: 42,
-                    EffectiveSimTimeUtc: new DateTimeOffset(
-                        year: 2048,
-                        month: 5,
-                        day: 7,
-                        hour: 8,
-                        minute: 0,
-                        second: 0,
-                        offset: TimeSpan.Zero),
-                    Phase: phase,
-                    ModelVersion: 1,
-                    CausationId: "tick:42",
-                    CorrelationId: "corr:42"),
+                ModelVersion: 1,
+                CausationId: "tick:42",
+                CorrelationId: "corr:42",
                 OccurredOnUtc: new DateTime(
                     year: 2048,
                     month: 5,
