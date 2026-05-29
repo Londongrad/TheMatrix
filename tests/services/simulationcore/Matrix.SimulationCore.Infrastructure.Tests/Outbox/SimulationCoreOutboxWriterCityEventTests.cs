@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationCore.Contracts.Events;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence;
@@ -118,32 +117,20 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
         }
 
         [Fact]
-        public async Task
-            AddCityEventsAsync_WhenArchiveDeleteAndEnvironmentChangeEventsAreAdded_WritesMatchingMessages()
+        public async Task AddCityEventsAsync_WhenEnvironmentChanges_WritesMatchingMessage()
         {
             using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
-                nameof(AddCityEventsAsync_WhenArchiveDeleteAndEnvironmentChangeEventsAreAdded_WritesMatchingMessages));
+                nameof(AddCityEventsAsync_WhenEnvironmentChanges_WritesMatchingMessage));
             DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(25);
             var writer = new SimulationCoreOutboxWriter(
                 dbContext: dbContext,
                 timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
             var cityId = Guid.Parse("55555555-5555-5555-5555-555555555555");
-            var archivedEvent = new CityArchivedDomainEvent(
-                CityId: new CityId(cityId),
-                ArchivedAtUtc: OutboxTestSupport.BaseUtc.AddHours(5));
-            var deletedEvent = new CityDeletedDomainEvent(
-                CityId: new CityId(cityId),
-                DeletedAtUtc: OutboxTestSupport.BaseUtc.AddHours(6));
             CityEnvironmentChangedDomainEvent environmentChangedEvent =
                 OutboxTestSupport.CreateCityEnvironmentChangedDomainEvent(cityId);
 
             await writer.AddCityEventsAsync(
-                domainEvents:
-                [
-                    archivedEvent,
-                    deletedEvent,
-                    environmentChangedEvent
-                ],
+                domainEvents: [environmentChangedEvent],
                 cancellationToken: CancellationToken.None);
             await dbContext.SaveChangesAsync();
 
@@ -152,37 +139,9 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
                .OrderBy(x => x.Type)
                .ToListAsync();
 
-            Assert.Equal(
-                expected: 3,
-                actual: messages.Count);
-
-            CityArchivedV1 archivedPayload = OutboxTestSupport.DeserializePayload<CityArchivedV1>(
-                Assert.Single(
-                    collection: messages,
-                    predicate: x => x.Type == IntegrationEventTypes.CityArchivedV1));
-            Assert.Equal(
-                expected: cityId,
-                actual: archivedPayload.CityId);
-            Assert.Equal(
-                expected: archivedEvent.ArchivedAtUtc,
-                actual: archivedPayload.ArchivedAtUtc);
-
-            CityDeletedV1 deletedPayload = OutboxTestSupport.DeserializePayload<CityDeletedV1>(
-                Assert.Single(
-                    collection: messages,
-                    predicate: x => x.Type == IntegrationEventTypes.CityDeletedV1));
-            Assert.Equal(
-                expected: cityId,
-                actual: deletedPayload.CityId);
-            Assert.Equal(
-                expected: deletedEvent.DeletedAtUtc,
-                actual: deletedPayload.DeletedAtUtc);
-
             CityEnvironmentChangedV1 environmentChangedPayload =
                 OutboxTestSupport.DeserializePayload<CityEnvironmentChangedV1>(
-                    Assert.Single(
-                        collection: messages,
-                        predicate: x => x.Type == IntegrationEventTypes.CityEnvironmentChangedV1));
+                    Assert.Single(messages));
             Assert.Equal(
                 expected: cityId,
                 actual: environmentChangedPayload.CityId);

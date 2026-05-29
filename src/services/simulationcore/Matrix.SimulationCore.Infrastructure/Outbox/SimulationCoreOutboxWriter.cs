@@ -115,18 +115,6 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 
                 OutboxMessage? message = domainEvent switch
                 {
-                    CityArchivedDomainEvent archived => OutboxMessage.Create(
-                        type: IntegrationEventTypes.CityArchivedV1,
-                        occurredOnUtc: occurredOnUtc.UtcDateTime,
-                        payload: new CityArchivedV1(
-                            CityId: archived.CityId.Value,
-                            ArchivedAtUtc: archived.ArchivedAtUtc)),
-                    CityDeletedDomainEvent deleted => OutboxMessage.Create(
-                        type: IntegrationEventTypes.CityDeletedV1,
-                        occurredOnUtc: occurredOnUtc.UtcDateTime,
-                        payload: new CityDeletedV1(
-                            CityId: deleted.CityId.Value,
-                            DeletedAtUtc: deleted.DeletedAtUtc)),
                     CityEnvironmentChangedDomainEvent changed => OutboxMessage.Create(
                         type: IntegrationEventTypes.CityEnvironmentChangedV1,
                         occurredOnUtc: occurredOnUtc.UtcDateTime,
