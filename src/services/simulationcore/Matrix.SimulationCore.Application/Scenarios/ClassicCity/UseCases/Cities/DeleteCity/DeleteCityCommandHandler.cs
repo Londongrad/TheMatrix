@@ -3,7 +3,6 @@ using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using MediatR;
 
@@ -45,14 +44,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
-                    await outboxWriter.AddCityEventsAsync(
-                        domainEvents:
-                        [
-                            new CityDeletedDomainEvent(
-                                CityId: city.Id,
-                                DeletedAtUtc: deletedAtUtc)
-                        ],
-                        cancellationToken: ct);
                     await outboxWriter.AddSimulationEventsAsync(
                         domainEvents:
                         [
