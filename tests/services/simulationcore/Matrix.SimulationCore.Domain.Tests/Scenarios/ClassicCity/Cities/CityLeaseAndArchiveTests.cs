@@ -1,5 +1,4 @@
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Xunit;
 
 namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
@@ -183,7 +182,7 @@ namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
         }
 
         [Fact]
-        public void Archive_WhenCityIsNotArchived_ArchivesCity_ClearsLease_AndEmitsEvent()
+        public void Archive_WhenCityIsNotArchived_ArchivesCityAndClearsLease()
         {
             City city = CityTestData.CreateCity(
                 requiresPopulationBootstrap: true,
@@ -205,16 +204,7 @@ namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
                 actual: city.ArchivedAtUtc);
             Assert.Null(city.ProvisioningHeartbeatAtUtc);
             Assert.Null(city.ProvisioningLeaseExpiresAtUtc);
-
-            CityArchivedDomainEvent archivedEvent =
-                Assert.IsType<CityArchivedDomainEvent>(Assert.Single(city.DomainEvents));
-
-            Assert.Equal(
-                expected: city.Id,
-                actual: archivedEvent.CityId);
-            Assert.Equal(
-                expected: CityTestData.ArchivedAtUtc,
-                actual: archivedEvent.ArchivedAtUtc);
+            Assert.Empty(city.DomainEvents);
         }
 
         [Fact]

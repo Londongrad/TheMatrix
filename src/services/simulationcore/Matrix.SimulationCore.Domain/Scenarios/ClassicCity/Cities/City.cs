@@ -544,11 +544,6 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             Status = CityStatus.Archived;
             ArchivedAtUtc = archivedAtUtc;
             ClearProvisioningLease();
-
-            AddDomainEvent(
-                new CityArchivedDomainEvent(
-                    CityId: Id,
-                    ArchivedAtUtc: archivedAtUtc));
         }
 
         private void TryActivate()

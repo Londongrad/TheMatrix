@@ -4,7 +4,6 @@ using Matrix.SimulationCore.Application.Tests.TestSupport;
 using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
 using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
@@ -104,14 +103,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.A
             Assert.Equal(
                 expected: instance.Id,
                 actual: simulationArchivedEvent.SimulationId);
-            IDomainEvent domainEvent = Assert.Single(outboxWriter.CityEvents);
-            CityArchivedDomainEvent archivedEvent = Assert.IsType<CityArchivedDomainEvent>(domainEvent);
-            Assert.Equal(
-                expected: city.Id,
-                actual: archivedEvent.CityId);
-            Assert.Equal(
-                expected: archivedAtUtc,
-                actual: archivedEvent.ArchivedAtUtc);
+            Assert.Empty(outboxWriter.CityEvents);
         }
     }
 }

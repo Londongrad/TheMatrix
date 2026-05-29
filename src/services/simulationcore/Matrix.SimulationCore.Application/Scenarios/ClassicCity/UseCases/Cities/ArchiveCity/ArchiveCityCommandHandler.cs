@@ -60,10 +60,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                 source: instance,
                 publish: outboxWriter.AddSimulationEventsAsync,
                 cancellationToken: cancellationToken);
-            await DomainEventDispatchHelper.PublishAndClearAsync(
-                source: city,
-                publish: outboxWriter.AddCityEventsAsync,
-                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return true;
         }
