@@ -98,8 +98,11 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 mediator: mediator,
                 logger: logger);
             var messageId = Guid.Parse("db4ce599-fdee-451c-89ca-fdd5df6efb98");
-            CityDeletedV1 message = new(
-                CityId: Guid.Parse("8a93c44e-1548-4525-b20d-e2655525f215"),
+            SimulationDeletedV1 message = new(
+                SimulationId: Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                HostId: Guid.Parse("8a93c44e-1548-4525-b20d-e2655525f215"),
+                ScenarioKey: ClassicCityRuntimeKeys.ScenarioKey,
+                HostTypeKey: ClassicCityRuntimeKeys.HostTypeKey,
                 DeletedAtUtc: new DateTimeOffset(
                     year: 2048,
                     month: 5,
@@ -116,7 +119,7 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
 
             DeleteCityPopulationDataCommand command = Assert.Single(mediator.DeleteCommands);
             Assert.Equal(
-                expected: message.CityId,
+                expected: message.HostId,
                 actual: command.CityId);
             Assert.Equal(
                 expected: messageId,
@@ -128,6 +131,27 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
             Assert.Contains(
                 expectedSubstring: "Deleted population data",
                 actualString: entry.Message);
+        }
+
+        [Fact]
+        public async Task CityDeletedConsumer_WhenRuntimeDoesNotMatch_IgnoresMessageWithoutMessageId()
+        {
+            var mediator = new LifecycleMediator();
+            var consumer = new CityDeletedConsumer(
+                mediator,
+                new TestLogger<CityDeletedConsumer>());
+
+            await consumer.ConsumeAsync(
+                new SimulationDeletedV1(
+                    SimulationId: Guid.NewGuid(),
+                    HostId: Guid.NewGuid(),
+                    ScenarioKey: "metro",
+                    HostTypeKey: "network",
+                    DeletedAtUtc: DateTimeOffset.Parse("2048-05-06T10:30:00+00:00")),
+                messageId: null,
+                cancellationToken: CancellationToken.None);
+
+            Assert.Empty(mediator.DeleteCommands);
         }
 
         [Fact]

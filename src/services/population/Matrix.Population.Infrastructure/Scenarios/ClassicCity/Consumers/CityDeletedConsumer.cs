@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.DeleteCityPopulationData;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -8,9 +9,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityDeletedConsumer(
         IMediator mediator,
-        ILogger<CityDeletedConsumer> logger) : IConsumer<CityDeletedV1>
+        ILogger<CityDeletedConsumer> logger) : IConsumer<SimulationDeletedV1>
     {
-        public Task Consume(ConsumeContext<CityDeletedV1> context)
+        public Task Consume(ConsumeContext<SimulationDeletedV1> context)
         {
             return ConsumeAsync(
                 message: context.Message,
@@ -19,16 +20,19 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         }
 
         internal async Task ConsumeAsync(
-            CityDeletedV1 message,
+            SimulationDeletedV1 message,
             Guid? messageId,
             CancellationToken cancellationToken)
         {
+            if (!ClassicCityRuntimeKeys.IsMatch(message.ScenarioKey, message.HostTypeKey))
+                return;
+
             if (messageId is null)
-                throw new InvalidOperationException("CityDeleted message must have a MessageId.");
+                throw new InvalidOperationException("SimulationDeleted message must have a MessageId.");
 
             DeleteCityPopulationDataResult result = await mediator.Send(
                 request: new DeleteCityPopulationDataCommand(
-                    CityId: message.CityId,
+                    CityId: message.HostId,
                     IntegrationMessageId: messageId.Value,
                     ConsumerName: CityDeletedConsumerDefinition.EndpointNameValue,
                     DeletedAtUtc: message.DeletedAtUtc),
@@ -39,19 +43,19 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                 case DeleteCityPopulationDataStatus.Applied:
                     logger.LogInformation(
                         message: "Deleted population data for cityId={CityId}.",
-                        message.CityId);
+                        message.HostId);
                     break;
 
                 case DeleteCityPopulationDataStatus.Duplicate:
                     logger.LogDebug(
                         message: "Skipped duplicate city deletion cleanup for cityId={CityId}.",
-                        message.CityId);
+                        message.HostId);
                     break;
 
                 case DeleteCityPopulationDataStatus.Stale:
                     logger.LogWarning(
                         message: "Skipped stale city deletion cleanup for cityId={CityId}.",
-                        message.CityId);
+                        message.HostId);
                     break;
             }
         }
