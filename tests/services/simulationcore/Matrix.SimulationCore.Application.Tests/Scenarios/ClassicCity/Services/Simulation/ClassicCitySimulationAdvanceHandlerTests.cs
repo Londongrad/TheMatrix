@@ -114,8 +114,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 SimulationId: new SimulationId(Guid.NewGuid()),
                 HostId: new SimulationHostId(cityId.Value),
                 RuntimeKey: ClassicCityRuntime.Key,
-                HostKind: SimulationHostKind.City,
-                SimulationKind: SimulationKind.ClassicCity,
                 State: SimulationHostState.Active,
                 CreatedAtUtc: DateTimeOffset.Parse("2048-04-05T06:07:08+00:00"),
                 ArchivedAtUtc: null);

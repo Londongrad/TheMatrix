@@ -105,8 +105,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation
                 SimulationId: simulationId,
                 HostId: new SimulationHostId(simulationId.Value),
                 RuntimeKey: ClassicCityRuntime.Key,
-                HostKind: SimulationHostKind.City,
-                SimulationKind: SimulationKind.ClassicCity,
                 State: state,
                 CreatedAtUtc: new DateTimeOffset(
                     year: 2048,

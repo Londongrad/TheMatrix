@@ -6,8 +6,6 @@ namespace Matrix.SimulationCore.Domain.Simulation
         SimulationId SimulationId,
         SimulationHostId HostId,
         SimulationRuntimeKey RuntimeKey,
-        SimulationHostKind HostKind,
-        SimulationKind SimulationKind,
         SimulationHostState State,
         DateTimeOffset CreatedAtUtc,
         DateTimeOffset? ArchivedAtUtc)

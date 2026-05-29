@@ -29,8 +29,6 @@ public sealed class SimulationCoreOutboxWriterTickEventTests
             simulationId,
             hostId,
             runtimeKey,
-            SimulationHostKind.City,
-            SimulationKind.ClassicCity,
             SimulationHostState.Active,
             OutboxTestSupport.BaseUtc,
             null);

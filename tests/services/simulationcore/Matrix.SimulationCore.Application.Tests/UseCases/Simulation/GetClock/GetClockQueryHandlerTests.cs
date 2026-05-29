@@ -90,10 +90,10 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.GetClock
                 expected: hostId,
                 actual: result.HostId);
             Assert.Equal(
-                expected: "City",
+                expected: "city",
                 actual: result.HostKind);
             Assert.Equal(
-                expected: "ClassicCity",
+                expected: "classic-city",
                 actual: result.SimulationKind);
             Assert.Equal(
                 expected: SimulationTestSupport.SimStartTimeUtc,

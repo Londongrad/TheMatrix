@@ -33,8 +33,6 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories.Scenario
                     SimulationId: simulationId,
                     HostId: projection.HostId,
                     RuntimeKey: ClassicCityRuntime.Key,
-                    HostKind: SimulationHostKind.City,
-                    SimulationKind: SimulationKind.ClassicCity,
                     State: projection.State,
                     CreatedAtUtc: projection.CreatedAtUtc,
                     ArchivedAtUtc: projection.ArchivedAtUtc);

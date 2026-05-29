@@ -64,12 +64,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
                 expected: instance.RuntimeKey,
                 actual: result.RuntimeKey);
             Assert.Equal(
-                expected: SimulationHostKind.City,
-                actual: result.HostKind);
-            Assert.Equal(
-                expected: SimulationKind.ClassicCity,
-                actual: result.SimulationKind);
-            Assert.Equal(
                 expected: expectedState,
                 actual: result.State);
             Assert.Equal(

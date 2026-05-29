@@ -43,8 +43,6 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation
                 SimulationId: new SimulationId(id),
                 HostId: new SimulationHostId(id),
                 RuntimeKey: ClassicCityRuntime.Key,
-                HostKind: SimulationHostKind.City,
-                SimulationKind: SimulationKind.ClassicCity,
                 State: state,
                 CreatedAtUtc: SimStartTimeUtc.AddHours(-1),
                 ArchivedAtUtc: state == SimulationHostState.Archived
