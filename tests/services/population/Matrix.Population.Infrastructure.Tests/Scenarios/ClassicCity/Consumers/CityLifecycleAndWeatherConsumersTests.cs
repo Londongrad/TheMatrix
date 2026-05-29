@@ -5,6 +5,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Sy
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Population.Infrastructure.Tests.TestSupport;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -21,8 +22,11 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 logger: new TestLogger<CityArchivedConsumer>());
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => consumer.ConsumeAsync(
-                message: new CityArchivedV1(
-                    CityId: Guid.Parse("b94dd9e6-ec8b-4d57-9bc5-6551e8decb22"),
+                message: new SimulationArchivedV1(
+                    SimulationId: Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    HostId: Guid.Parse("b94dd9e6-ec8b-4d57-9bc5-6551e8decb22"),
+                    ScenarioKey: ClassicCityRuntimeKeys.ScenarioKey,
+                    HostTypeKey: ClassicCityRuntimeKeys.HostTypeKey,
                     ArchivedAtUtc: new DateTimeOffset(
                         year: 2048,
                         month: 5,
@@ -33,6 +37,53 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                         offset: TimeSpan.Zero)),
                 messageId: null,
                 cancellationToken: CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task CityArchivedConsumer_WhenRuntimeDoesNotMatch_IgnoresMessageWithoutMessageId()
+        {
+            var mediator = new LifecycleMediator();
+            var consumer = new CityArchivedConsumer(
+                mediator,
+                new TestLogger<CityArchivedConsumer>());
+
+            await consumer.ConsumeAsync(
+                message: new SimulationArchivedV1(
+                    SimulationId: Guid.NewGuid(),
+                    HostId: Guid.NewGuid(),
+                    ScenarioKey: "metro",
+                    HostTypeKey: "network",
+                    ArchivedAtUtc: DateTimeOffset.Parse("2048-05-06T10:00:00+00:00")),
+                messageId: null,
+                cancellationToken: CancellationToken.None);
+
+            Assert.Empty(mediator.ArchiveCommands);
+        }
+
+        [Fact]
+        public async Task CityArchivedConsumer_WhenApplied_MapsHostIdentity()
+        {
+            var mediator = new LifecycleMediator
+            {
+                ArchiveResult = new ArchiveCityPopulationDataResult(
+                    ArchiveCityPopulationDataStatus.Applied)
+            };
+            var consumer = new CityArchivedConsumer(
+                mediator,
+                new TestLogger<CityArchivedConsumer>());
+            var message = new SimulationArchivedV1(
+                SimulationId: Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                HostId: Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                ScenarioKey: ClassicCityRuntimeKeys.ScenarioKey,
+                HostTypeKey: ClassicCityRuntimeKeys.HostTypeKey,
+                ArchivedAtUtc: DateTimeOffset.Parse("2048-05-06T10:00:00+00:00"));
+
+            await consumer.ConsumeAsync(message, Guid.NewGuid(), CancellationToken.None);
+
+            ArchiveCityPopulationDataCommand command = Assert.Single(mediator.ArchiveCommands);
+            Assert.NotEqual(message.SimulationId, message.HostId);
+            Assert.Equal(message.HostId, command.CityId);
+            Assert.Equal(CityArchivedConsumerDefinition.EndpointNameValue, command.ConsumerName);
         }
 
         [Fact]
@@ -265,7 +316,7 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
             public List<ArchiveCityPopulationDataCommand> ArchiveCommands { get; } = [];
             public List<DeleteCityPopulationDataCommand> DeleteCommands { get; } = [];
 
-            public ArchiveCityPopulationDataResult ArchiveResult { get; } =
+            public ArchiveCityPopulationDataResult ArchiveResult { get; init; } =
                 new(ArchiveCityPopulationDataStatus.Duplicate);
 
             public DeleteCityPopulationDataResult DeleteResult { get; init; } =
