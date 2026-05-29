@@ -1,230 +1,72 @@
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Simulation.Primitives;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Contracts.Events;
-using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
+namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox;
+
+public sealed class SimulationCoreOutboxWriterTickEventTests
 {
-    public sealed class SimulationCoreOutboxWriterTickEventTests
+    [Fact]
+    public async Task AddSimulationTickPhaseReachedAsync_WritesRuntimeScopedPhase()
     {
-        [Fact]
-        public async Task AddCityTimeAdvancedAsync_WritesMessageWithTickContext()
-        {
-            using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
-                nameof(AddCityTimeAdvancedAsync_WritesMessageWithTickContext));
-            DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(35);
-            var writer = new SimulationCoreOutboxWriter(
-                dbContext: dbContext,
-                timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
-            var cityId = new CityId(Guid.Parse("66666666-6666-6666-6666-666666666666"));
-            var simulationId = new SimulationId(Guid.Parse("77777777-7777-7777-7777-777777777777"));
-            var from = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(2));
-            var to = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(3));
-            TickId tickId = new(42);
-            var speed = SimSpeed.From(60m);
+        using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
+            nameof(AddSimulationTickPhaseReachedAsync_WritesRuntimeScopedPhase));
+        DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(55);
+        var writer = new SimulationCoreOutboxWriter(
+            dbContext: dbContext,
+            timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
+        var simulationId = new SimulationId(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        var hostId = new SimulationHostId(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+        var runtimeKey = new SimulationRuntimeKey(
+            new SimulationScenarioKey("classic-city"),
+            new SimulationHostTypeKey("city"));
+        var host = new SimulationHost(
+            simulationId,
+            hostId,
+            runtimeKey,
+            SimulationHostKind.City,
+            SimulationKind.ClassicCity,
+            SimulationHostState.Active,
+            OutboxTestSupport.BaseUtc,
+            null);
+        var from = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(6));
+        var to = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(7));
+        TickId tickId = new(73);
+        var phaseKey = new SimulationPhaseKey("resource-settlement");
 
-            await writer.AddCityTimeAdvancedAsync(
-                cityId: cityId,
-                simulationId: simulationId,
-                simulationKind: SimulationKind.ClassicCity,
-                from: from,
-                to: to,
-                tickId: tickId,
-                speed: speed,
-                phase: CityTickPhase.DispatchExecution,
-                cancellationToken: CancellationToken.None);
-            await dbContext.SaveChangesAsync();
+        await writer.AddSimulationTickPhaseReachedAsync(
+            host,
+            from,
+            to,
+            tickId,
+            SimSpeed.From(30m),
+            phaseKey,
+            CancellationToken.None);
+        await dbContext.SaveChangesAsync();
 
-            OutboxMessage message = await dbContext.OutboxMessages.AsNoTracking()
-               .SingleAsync();
-            CityTimeAdvancedV1 payload = OutboxTestSupport.DeserializePayload<CityTimeAdvancedV1>(message);
+        OutboxMessage message = await dbContext.OutboxMessages.AsNoTracking().SingleAsync();
+        SimulationTickPhaseReachedV1 payload =
+            OutboxTestSupport.DeserializePayload<SimulationTickPhaseReachedV1>(message);
 
-            Assert.Equal(
-                expected: IntegrationEventTypes.CityTimeAdvancedV1,
-                actual: message.Type);
-            Assert.Equal(
-                expected: occurredOnUtc.UtcDateTime,
-                actual: message.OccurredOnUtc);
-            Assert.Equal(
-                expected: cityId.Value,
-                actual: payload.CityId);
-            Assert.Equal(
-                expected: from.ValueUtc,
-                actual: payload.FromSimTimeUtc);
-            Assert.Equal(
-                expected: to.ValueUtc,
-                actual: payload.ToSimTimeUtc);
-            Assert.Equal(
-                expected: tickId.Value,
-                actual: payload.TickId);
-            Assert.Equal(
-                expected: speed.Multiplier,
-                actual: payload.SpeedMultiplier);
-            Assert.Equal(
-                expected: occurredOnUtc.UtcDateTime,
-                actual: payload.OccurredOnUtc);
-            Assert.Equal(
-                expected: simulationId.Value,
-                actual: payload.TickContext.SimulationId);
-            Assert.Equal(
-                expected: cityId.Value,
-                actual: payload.TickContext.CityId);
-            Assert.Equal(
-                expected: SimulationKind.ClassicCity.ToString(),
-                actual: payload.TickContext.SimulationKind);
-            Assert.Equal(
-                expected: tickId.Value,
-                actual: payload.TickContext.TickId);
-            Assert.Equal(
-                expected: to.ValueUtc,
-                actual: payload.TickContext.EffectiveSimTimeUtc);
-            Assert.Equal(
-                expected: CityTickPhaseV1.DispatchExecution,
-                actual: payload.TickContext.Phase);
-            Assert.Equal(
-                expected: 1,
-                actual: payload.TickContext.ModelVersion);
-            Assert.Equal(
-                expected: $"simulation:{simulationId.Value:N}:city:{cityId.Value:N}:tick:{tickId.Value}",
-                actual: payload.TickContext.CorrelationId);
-            Assert.Equal(
-                expected: $"{payload.TickContext.CorrelationId}:phase:{CityTickPhase.DispatchExecution}",
-                actual: payload.TickContext.CausationId);
-        }
-
-        [Fact]
-        public async Task AddCityTickPhaseReachedAsync_WritesMessageWithMappedPhase()
-        {
-            using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
-                nameof(AddCityTickPhaseReachedAsync_WritesMessageWithMappedPhase));
-            DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(45);
-            var writer = new SimulationCoreOutboxWriter(
-                dbContext: dbContext,
-                timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
-            var cityId = new CityId(Guid.Parse("88888888-8888-8888-8888-888888888888"));
-            var simulationId = new SimulationId(Guid.Parse("99999999-9999-9999-9999-999999999999"));
-            var from = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(4));
-            var to = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(5));
-            TickId tickId = new(64);
-            var speed = SimSpeed.RealTime();
-
-            await writer.AddCityTickPhaseReachedAsync(
-                cityId: cityId,
-                simulationId: simulationId,
-                simulationKind: SimulationKind.ClassicCity,
-                from: from,
-                to: to,
-                tickId: tickId,
-                speed: speed,
-                phase: CityTickPhase.TickCompleted,
-                cancellationToken: CancellationToken.None);
-            await dbContext.SaveChangesAsync();
-
-            OutboxMessage message = await dbContext.OutboxMessages.AsNoTracking()
-               .SingleAsync();
-            CityTickPhaseReachedV1 payload = OutboxTestSupport.DeserializePayload<CityTickPhaseReachedV1>(message);
-
-            Assert.Equal(
-                expected: IntegrationEventTypes.CityTickPhaseReachedV1,
-                actual: message.Type);
-            Assert.Equal(
-                expected: occurredOnUtc.UtcDateTime,
-                actual: message.OccurredOnUtc);
-            Assert.Equal(
-                expected: cityId.Value,
-                actual: payload.CityId);
-            Assert.Equal(
-                expected: from.ValueUtc,
-                actual: payload.FromSimTimeUtc);
-            Assert.Equal(
-                expected: to.ValueUtc,
-                actual: payload.ToSimTimeUtc);
-            Assert.Equal(
-                expected: tickId.Value,
-                actual: payload.TickId);
-            Assert.Equal(
-                expected: speed.Multiplier,
-                actual: payload.SpeedMultiplier);
-            Assert.Equal(
-                expected: occurredOnUtc.UtcDateTime,
-                actual: payload.OccurredOnUtc);
-            Assert.Equal(
-                expected: CityTickPhaseV1.TickCompleted,
-                actual: payload.TickContext.Phase);
-            Assert.Equal(
-                expected: to.ValueUtc,
-                actual: payload.TickContext.EffectiveSimTimeUtc);
-            Assert.Equal(
-                expected: $"simulation:{simulationId.Value:N}:city:{cityId.Value:N}:tick:{tickId.Value}",
-                actual: payload.TickContext.CorrelationId);
-            Assert.Equal(
-                expected: $"{payload.TickContext.CorrelationId}:phase:{CityTickPhase.TickCompleted}",
-                actual: payload.TickContext.CausationId);
-        }
-
-        [Fact]
-        public async Task AddSimulationTickPhaseReachedAsync_WritesRuntimeScopedPhase()
-        {
-            using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
-                nameof(AddSimulationTickPhaseReachedAsync_WritesRuntimeScopedPhase));
-            DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(55);
-            var writer = new SimulationCoreOutboxWriter(
-                dbContext: dbContext,
-                timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
-            var simulationId = new SimulationId(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
-            var hostId = new SimulationHostId(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
-            var runtimeKey = new SimulationRuntimeKey(
-                new SimulationScenarioKey("classic-city"),
-                new SimulationHostTypeKey("city"));
-            var host = new SimulationHost(
-                simulationId,
-                hostId,
-                runtimeKey,
-                SimulationHostKind.City,
-                SimulationKind.ClassicCity,
-                SimulationHostState.Active,
-                OutboxTestSupport.BaseUtc,
-                null);
-            var from = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(6));
-            var to = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(7));
-            TickId tickId = new(73);
-            var phaseKey = new SimulationPhaseKey("resource-settlement");
-
-            await writer.AddSimulationTickPhaseReachedAsync(
-                host,
-                from,
-                to,
-                tickId,
-                SimSpeed.From(30m),
-                phaseKey,
-                CancellationToken.None);
-            await dbContext.SaveChangesAsync();
-
-            OutboxMessage message = await dbContext.OutboxMessages.AsNoTracking().SingleAsync();
-            SimulationTickPhaseReachedV1 payload =
-                OutboxTestSupport.DeserializePayload<SimulationTickPhaseReachedV1>(message);
-
-            Assert.Equal(IntegrationEventTypes.SimulationTickPhaseReachedV1, message.Type);
-            Assert.Equal(simulationId.Value, payload.SimulationId);
-            Assert.Equal(hostId.Value, payload.HostId);
-            Assert.Equal(runtimeKey.ScenarioKey.Value, payload.ScenarioKey);
-            Assert.Equal(runtimeKey.HostTypeKey.Value, payload.HostTypeKey);
-            Assert.Equal(phaseKey.Value, payload.PhaseKey);
-            Assert.Equal(from.ValueUtc, payload.FromSimTimeUtc);
-            Assert.Equal(to.ValueUtc, payload.ToSimTimeUtc);
-            Assert.Equal(tickId.Value, payload.TickId);
-            Assert.Equal(30m, payload.SpeedMultiplier);
-            Assert.Equal(
-                $"simulation:{simulationId.Value:N}:host:{hostId.Value:N}:tick:{tickId.Value}",
-                payload.CorrelationId);
-            Assert.Equal($"{payload.CorrelationId}:phase:{phaseKey.Value}", payload.CausationId);
-            Assert.Equal(occurredOnUtc.UtcDateTime, payload.OccurredOnUtc);
-        }
+        Assert.Equal(IntegrationEventTypes.SimulationTickPhaseReachedV1, message.Type);
+        Assert.Equal(simulationId.Value, payload.SimulationId);
+        Assert.Equal(hostId.Value, payload.HostId);
+        Assert.Equal(runtimeKey.ScenarioKey.Value, payload.ScenarioKey);
+        Assert.Equal(runtimeKey.HostTypeKey.Value, payload.HostTypeKey);
+        Assert.Equal(phaseKey.Value, payload.PhaseKey);
+        Assert.Equal(from.ValueUtc, payload.FromSimTimeUtc);
+        Assert.Equal(to.ValueUtc, payload.ToSimTimeUtc);
+        Assert.Equal(tickId.Value, payload.TickId);
+        Assert.Equal(30m, payload.SpeedMultiplier);
+        Assert.Equal(
+            $"simulation:{simulationId.Value:N}:host:{hostId.Value:N}:tick:{tickId.Value}",
+            payload.CorrelationId);
+        Assert.Equal($"{payload.CorrelationId}:phase:{phaseKey.Value}", payload.CausationId);
+        Assert.Equal(occurredOnUtc.UtcDateTime, payload.OccurredOnUtc);
     }
 }
