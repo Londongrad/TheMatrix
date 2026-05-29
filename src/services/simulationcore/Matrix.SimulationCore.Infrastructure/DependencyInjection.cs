@@ -73,6 +73,7 @@ namespace Matrix.SimulationCore.Infrastructure
 
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
             services.AddScoped<ISimulationInstanceRepository, SimulationInstanceRepository>();
+            services.AddScoped<ISimulationHostReadRepository, SimulationHostReadRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationCoreDbContext>>();
             services.AddSingleton<SimulationOperationGate>();
