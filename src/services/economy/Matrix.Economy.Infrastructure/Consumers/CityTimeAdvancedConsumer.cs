@@ -2,6 +2,8 @@ using MassTransit;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Simulation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -10,9 +12,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
     public sealed class CityTimeAdvancedConsumer(
         IMediator mediator,
         ICityEconomyDeletionRepository deletionRepository,
-        ILogger<CityTimeAdvancedConsumer> logger) : IConsumer<CityTickPhaseReachedV1>
+        ILogger<CityTimeAdvancedConsumer> logger) : IConsumer<SimulationTickPhaseReachedV1>
     {
-        public async Task Consume(ConsumeContext<CityTickPhaseReachedV1> context)
+        public async Task Consume(ConsumeContext<SimulationTickPhaseReachedV1> context)
         {
             await ConsumeAsync(
                 message: context.Message,
@@ -20,26 +22,30 @@ namespace Matrix.Economy.Infrastructure.Consumers
         }
 
         internal async Task ConsumeAsync(
-            CityTickPhaseReachedV1 message,
+            SimulationTickPhaseReachedV1 message,
             CancellationToken cancellationToken)
         {
-            if (message.TickContext.Phase != CityTickPhaseV1.BudgetSettlement)
+            if (!ClassicCityRuntimeKeys.IsMatch(message.ScenarioKey, message.HostTypeKey) ||
+                !string.Equals(
+                    message.PhaseKey,
+                    ClassicCityTickPhaseKeys.BudgetSettlement,
+                    StringComparison.Ordinal))
                 return;
 
             if (await deletionRepository.GetDeletedAtUtcAsync(
-                    cityId: message.CityId,
+                    cityId: message.HostId,
                     cancellationToken: cancellationToken) is not null)
             {
                 logger.LogDebug(
                     message: "Skipped city economy progression for deleted cityId={CityId}, tickId={TickId}.",
-                    message.CityId,
+                    message.HostId,
                     message.TickId);
                 return;
             }
 
             AdvanceCityEconomySimulationResult result = await mediator.Send(
                 request: new AdvanceCityEconomySimulationCommand(
-                    CityId: message.CityId,
+                    CityId: message.HostId,
                     FromSimTimeUtc: message.FromSimTimeUtc,
                     ToSimTimeUtc: message.ToSimTimeUtc,
                     TickId: message.TickId),
@@ -51,7 +57,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                     logger.LogInformation(
                         message:
                         "Applied city economy progression for cityId={CityId}, tickId={TickId}, processedDays={ProcessedDays}, chargedObligations={ChargedObligations}, remittedBusinesses={RemittedBusinesses}, municipalPayments={MunicipalPayments}.",
-                        message.CityId,
+                        message.HostId,
                         message.TickId,
                         result.ProcessedDays,
                         result.ChargedObligations,
@@ -62,14 +68,14 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 case AdvanceCityEconomySimulationStatus.Duplicate:
                     logger.LogDebug(
                         message: "Skipped duplicate city economy progression for cityId={CityId}, tickId={TickId}.",
-                        message.CityId,
+                        message.HostId,
                         message.TickId);
                     break;
 
                 case AdvanceCityEconomySimulationStatus.OutOfOrder:
                     logger.LogDebug(
                         message: "Skipped out-of-order city economy progression for cityId={CityId}, tickId={TickId}.",
-                        message.CityId,
+                        message.HostId,
                         message.TickId);
                     break;
             }

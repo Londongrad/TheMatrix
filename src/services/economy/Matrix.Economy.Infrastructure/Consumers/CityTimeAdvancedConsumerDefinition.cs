@@ -13,7 +13,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
 
         public CityTimeAdvancedConsumerDefinition()
         {
-            EndpointName = "economy-city-time-advanced";
+            EndpointName = "economy-classic-city-tick-phase-reached-v1";
             ConcurrentMessageLimit = 1;
         }
 
