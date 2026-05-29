@@ -6,7 +6,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
     {
         public CityDeletedConsumerDefinition()
         {
-            EndpointName = "economy-city-deleted";
+            EndpointName = "economy-classic-city-simulation-deleted-v1";
             ConcurrentMessageLimit = 1;
         }
     }
