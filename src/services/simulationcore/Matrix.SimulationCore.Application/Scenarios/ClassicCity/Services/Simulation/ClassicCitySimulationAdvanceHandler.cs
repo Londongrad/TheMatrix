@@ -38,16 +38,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                 tickId: advancedEvent.TickId.Value,
                 cancellationToken: cancellationToken);
 
-            await outboxWriter.AddCityTimeAdvancedAsync(
-                cityId: cityId,
-                simulationId: host.SimulationId,
-                simulationKind: host.SimulationKind,
-                from: advancedEvent.From,
-                to: advancedEvent.To,
-                tickId: advancedEvent.TickId,
-                speed: advancedEvent.Speed,
-                phase: CityTickPhase.AdvanceTime,
-                cancellationToken: cancellationToken);
             await AddSimulationPhaseAsync(
                 host: host,
                 advancedEvent: advancedEvent,
@@ -62,16 +52,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
 
             foreach (CityTickPhase phase in GetClassicCityPhaseWatermarks())
             {
-                await outboxWriter.AddCityTickPhaseReachedAsync(
-                    cityId: cityId,
-                    simulationId: host.SimulationId,
-                    simulationKind: host.SimulationKind,
-                    from: advancedEvent.From,
-                    to: advancedEvent.To,
-                    tickId: advancedEvent.TickId,
-                    speed: advancedEvent.Speed,
-                    phase: phase,
-                    cancellationToken: cancellationToken);
                 await AddSimulationPhaseAsync(
                     host: host,
                     advancedEvent: advancedEvent,

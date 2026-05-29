@@ -176,8 +176,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
             public IReadOnlyList<IDomainEvent> SimulationEvents { get; private set; } = Array.Empty<IDomainEvent>();
             public IReadOnlyList<IDomainEvent> CityEvents { get; private set; } = Array.Empty<IDomainEvent>();
             public IReadOnlyList<IDomainEvent> WeatherEvents { get; private set; } = Array.Empty<IDomainEvent>();
-            public List<CityTimeAdvancedCall> CityTimeAdvancedCalls { get; } = [];
-            public List<CityTickPhaseReachedCall> CityTickPhaseReachedCalls { get; } = [];
             public List<SimulationTickPhaseReachedCall> SimulationTickPhaseReachedCalls { get; } = [];
 
             public Task AddSimulationEventsAsync(
@@ -204,54 +202,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
                 return Task.CompletedTask;
             }
 
-            public Task AddCityTimeAdvancedAsync(
-                CityId cityId,
-                SimulationId simulationId,
-                SimulationKind simulationKind,
-                SimTime from,
-                SimTime to,
-                TickId tickId,
-                SimSpeed speed,
-                CityTickPhase phase,
-                CancellationToken cancellationToken)
-            {
-                CityTimeAdvancedCalls.Add(
-                    new CityTimeAdvancedCall(
-                        CityId: cityId,
-                        SimulationId: simulationId,
-                        SimulationKind: simulationKind,
-                        From: from,
-                        To: to,
-                        TickId: tickId,
-                        Speed: speed,
-                        Phase: phase));
-                return Task.CompletedTask;
-            }
-
-            public Task AddCityTickPhaseReachedAsync(
-                CityId cityId,
-                SimulationId simulationId,
-                SimulationKind simulationKind,
-                SimTime from,
-                SimTime to,
-                TickId tickId,
-                SimSpeed speed,
-                CityTickPhase phase,
-                CancellationToken cancellationToken)
-            {
-                CityTickPhaseReachedCalls.Add(
-                    new CityTickPhaseReachedCall(
-                        CityId: cityId,
-                        SimulationId: simulationId,
-                        SimulationKind: simulationKind,
-                        From: from,
-                        To: to,
-                        TickId: tickId,
-                        Speed: speed,
-                        Phase: phase));
-                return Task.CompletedTask;
-            }
-
             public Task AddSimulationTickPhaseReachedAsync(
                 SimulationHost host,
                 SimTime from,
@@ -271,26 +221,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
                         PhaseKey: phaseKey));
                 return Task.CompletedTask;
             }
-
-            public sealed record CityTimeAdvancedCall(
-                CityId CityId,
-                SimulationId SimulationId,
-                SimulationKind SimulationKind,
-                SimTime From,
-                SimTime To,
-                TickId TickId,
-                SimSpeed Speed,
-                CityTickPhase Phase);
-
-            public sealed record CityTickPhaseReachedCall(
-                CityId CityId,
-                SimulationId SimulationId,
-                SimulationKind SimulationKind,
-                SimTime From,
-                SimTime To,
-                TickId TickId,
-                SimSpeed Speed,
-                CityTickPhase Phase);
 
             public sealed record SimulationTickPhaseReachedCall(
                 SimulationHost Host,

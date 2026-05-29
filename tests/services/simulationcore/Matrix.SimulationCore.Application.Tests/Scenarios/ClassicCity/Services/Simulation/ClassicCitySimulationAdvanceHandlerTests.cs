@@ -53,48 +53,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 expected: advancedEvent.TickId.Value,
                 actual: activeTripAdvanceExecutor.RequestedTickId);
 
-            ClassicCityTestSupport.FakeSimulationCoreOutboxWriter.CityTimeAdvancedCall timeAdvancedCall =
-                Assert.Single(outboxWriter.CityTimeAdvancedCalls);
-            Assert.Equal(
-                expected: new CityId(host.HostId.Value),
-                actual: timeAdvancedCall.CityId);
-            Assert.Equal(
-                expected: host.SimulationId,
-                actual: timeAdvancedCall.SimulationId);
-            Assert.Equal(
-                expected: host.SimulationKind,
-                actual: timeAdvancedCall.SimulationKind);
-            Assert.Equal(
-                expected: advancedEvent.From,
-                actual: timeAdvancedCall.From);
-            Assert.Equal(
-                expected: advancedEvent.To,
-                actual: timeAdvancedCall.To);
-            Assert.Equal(
-                expected: advancedEvent.TickId,
-                actual: timeAdvancedCall.TickId);
-            Assert.Equal(
-                expected: advancedEvent.Speed,
-                actual: timeAdvancedCall.Speed);
-            Assert.Equal(
-                expected: CityTickPhase.AdvanceTime,
-                actual: timeAdvancedCall.Phase);
-
             Assert.Empty(outboxWriter.WeatherEvents);
-            Assert.Equal(
-                expected:
-                [
-                    CityTickPhase.SystemsDegradation,
-                    CityTickPhase.IncidentGeneration,
-                    CityTickPhase.DispatchExecution,
-                    CityTickPhase.ResourceSettlement,
-                    CityTickPhase.BudgetSettlement,
-                    CityTickPhase.PopulationReaction,
-                    CityTickPhase.Projection,
-                    CityTickPhase.TickCompleted
-                ],
-                actual: outboxWriter.CityTickPhaseReachedCalls.Select(static x => x.Phase)
-                   .ToArray());
             Assert.All(
                 outboxWriter.SimulationTickPhaseReachedCalls,
                 call => Assert.Same(host, call.Host));
