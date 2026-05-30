@@ -3,7 +3,9 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Simulation.Primitives;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Domain.Events.Simulation;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Weather;
@@ -85,6 +87,23 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             {
                 if (domainEvent is CityCreatedDomainEvent created)
                 {
+                    dbContext.OutboxMessages.Add(
+                        OutboxMessage.Create(
+                            type: IntegrationEventTypes.ClassicCityCreatedV1,
+                            occurredOnUtc: occurredOnUtc.UtcDateTime,
+                            payload: new ClassicCityCreatedV1(
+                                SimulationId: created.CityId.Value,
+                                HostId: created.CityId.Value,
+                                ScenarioKey: ClassicCityRuntime.ScenarioKey.Value,
+                                HostTypeKey: ClassicCityRuntime.HostTypeKey.Value,
+                                Name: created.Name.Value,
+                                CreatedAtUtc: created.CreatedAtUtc,
+                                DevelopmentLevel: created.GenerationProfile.DevelopmentLevel.ToString(),
+                                EconomyProfile: created.GenerationProfile.EconomyProfile.ToString(),
+                                RunId: created.RunId,
+                                SimulationSeed: created.GenerationSeed.Value,
+                                ScenarioModelSetVersion: created.ScenarioModelSetVersion.Value)));
+
                     dbContext.OutboxMessages.Add(
                         OutboxMessage.Create(
                             type: IntegrationEventTypes.CityCreatedV1,

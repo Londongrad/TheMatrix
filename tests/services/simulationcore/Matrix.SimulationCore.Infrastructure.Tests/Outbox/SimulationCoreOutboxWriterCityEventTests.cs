@@ -1,5 +1,7 @@
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence;
@@ -51,8 +53,32 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
                .ToListAsync();
 
             Assert.Equal(
-                expected: 2,
+                expected: 3,
                 actual: messages.Count);
+
+            OutboxMessage classicCityCreatedMessage = Assert.Single(
+                collection: messages,
+                predicate: x => x.Type == IntegrationEventTypes.ClassicCityCreatedV1);
+            ClassicCityCreatedV1 classicCityCreatedPayload =
+                OutboxTestSupport.DeserializePayload<ClassicCityCreatedV1>(classicCityCreatedMessage);
+            Assert.Equal(
+                expected: domainEvent.CityId.Value,
+                actual: classicCityCreatedPayload.SimulationId);
+            Assert.Equal(
+                expected: domainEvent.CityId.Value,
+                actual: classicCityCreatedPayload.HostId);
+            Assert.Equal(
+                expected: ClassicCityRuntimeKeys.ScenarioKey,
+                actual: classicCityCreatedPayload.ScenarioKey);
+            Assert.Equal(
+                expected: ClassicCityRuntimeKeys.HostTypeKey,
+                actual: classicCityCreatedPayload.HostTypeKey);
+            Assert.Equal(
+                expected: domainEvent.GenerationProfile.DevelopmentLevel.ToString(),
+                actual: classicCityCreatedPayload.DevelopmentLevel);
+            Assert.Equal(
+                expected: domainEvent.GenerationProfile.EconomyProfile.ToString(),
+                actual: classicCityCreatedPayload.EconomyProfile);
 
             OutboxMessage cityCreatedMessage = Assert.Single(
                 collection: messages,
