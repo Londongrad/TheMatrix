@@ -48,7 +48,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             return RestartCityPopulationBootstrapResult.Restarted(
                 populationOperationId: populationOperationId,
                 economyOperationId: economyOperationId,
-                simulationKind: city.SimulationKind.ToString());
+                simulationKind: SimulationKind.ClassicCity.ToString());
         }
     }
 }

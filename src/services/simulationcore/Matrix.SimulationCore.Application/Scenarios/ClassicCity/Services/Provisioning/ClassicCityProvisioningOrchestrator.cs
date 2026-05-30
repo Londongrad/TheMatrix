@@ -129,7 +129,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
         private CityProvisioningView BuildProvisioningViewFromState(City city)
         {
-            string simulationKind = city.SimulationKind.ToString();
+            string simulationKind = SimulationKind.ClassicCity.ToString();
             CityEconomyBootstrapView economyBootstrap = BuildEconomyBootstrapFromState(
                 city: city,
                 operationId: city.EconomyBootstrapOperationId);

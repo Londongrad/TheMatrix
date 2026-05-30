@@ -155,7 +155,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                 CityId: city.Id.Value,
                 PopulationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 EconomyBootstrapOperationId: city.EconomyBootstrapOperationId,
-                SimulationKind: city.SimulationKind.ToString());
+                SimulationKind: SimulationKind.ClassicCity.ToString());
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                 CityId: city.Id.Value,
                 SimulationId: city.Id.Value,
                 Name: city.Name.Value,
-                SimulationKind: city.SimulationKind.ToString(),
+                SimulationKind: Matrix.SimulationCore.Domain.Simulation.SimulationKind.ClassicCity.ToString(),
                 Status: city.Status.ToString(),
                 ClimateZone: city.Environment.ClimateZone.ToString(),
                 Hemisphere: city.Environment.Hemisphere.ToString(),
