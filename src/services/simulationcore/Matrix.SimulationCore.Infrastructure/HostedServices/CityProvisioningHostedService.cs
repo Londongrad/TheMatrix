@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Simulation;
 using Matrix.SimulationCore.Infrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -135,7 +136,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
             {
                 await orchestrator.ProvisionAsync(
                     cityId: city.Id.Value,
-                    simulationKind: city.SimulationKind.ToString(),
+                    simulationKind: SimulationKind.ClassicCity.ToString(),
                     populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                     economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                     plannedPeopleCountOverride: city.GenerationProfile.PlannedPeopleCount,
