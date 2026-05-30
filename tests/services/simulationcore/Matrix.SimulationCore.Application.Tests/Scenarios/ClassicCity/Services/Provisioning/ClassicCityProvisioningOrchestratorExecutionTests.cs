@@ -323,8 +323,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
                 },
-                simulationBootstrapStrategies:
-                [
+                simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
                         Descriptor = new SimulationKindDescriptor(
@@ -332,8 +331,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                             DisplayName: "Classic City",
                             Description: "Classic city simulation.",
                             SupportsAutomaticPopulationBootstrap: true)
-                    }
-                ],
+                    },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
                 logger: NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
@@ -415,8 +413,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                     Buildings = [building]
                 },
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
-                simulationBootstrapStrategies:
-                [
+                simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
                         Descriptor = new SimulationKindDescriptor(
@@ -424,8 +421,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                             DisplayName: "Classic City",
                             Description: "Classic city simulation.",
                             SupportsAutomaticPopulationBootstrap: true)
-                    }
-                ],
+                    },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
                 logger: NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
@@ -519,8 +515,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
                 },
-                simulationBootstrapStrategies:
-                [
+                simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
                         Descriptor = new SimulationKindDescriptor(
@@ -528,8 +523,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                             DisplayName: "Classic City",
                             Description: "Classic city simulation.",
                             SupportsAutomaticPopulationBootstrap: true)
-                    }
-                ],
+                    },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
                 logger: NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
@@ -639,8 +633,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = clock
                 },
-                simulationBootstrapStrategies:
-                [
+                simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
                         Descriptor = new SimulationKindDescriptor(
@@ -648,8 +641,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                             DisplayName: "Classic City",
                             Description: "Classic city simulation.",
                             SupportsAutomaticPopulationBootstrap: true)
-                    }
-                ],
+                    },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
                 logger: NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
@@ -769,8 +761,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
                 },
-                simulationBootstrapStrategies:
-                [
+                simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
                         Descriptor = new SimulationKindDescriptor(
@@ -778,8 +769,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                             DisplayName: "Classic City",
                             Description: "Classic city simulation.",
                             SupportsAutomaticPopulationBootstrap: true)
-                    }
-                ],
+                    },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
                 logger: NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
@@ -867,8 +857,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
                 },
-                simulationBootstrapStrategies:
-                [
+                simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
                         Descriptor = new SimulationKindDescriptor(
@@ -876,8 +865,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                             DisplayName: "Classic City",
                             Description: "Classic city simulation.",
                             SupportsAutomaticPopulationBootstrap: true)
-                    }
-                ],
+                    },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
                 logger: NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
@@ -1023,8 +1011,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 cityAnchorRepository: new TopologyTestSupport.FakeCityAnchorRepository(),
                 residentialBuildingRepository: new TopologyTestSupport.FakeResidentialBuildingRepository(),
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
-                simulationBootstrapStrategies:
-                [
+                simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
                         Descriptor = new SimulationKindDescriptor(
@@ -1032,8 +1019,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                             DisplayName: "Classic City",
                             Description: "Classic city simulation.",
                             SupportsAutomaticPopulationBootstrap: supportsAutomaticPopulationBootstrap)
-                    }
-                ],
+                    },
                 economyBootstrapClient: economyClient,
                 populationBootstrapClient: populationClient,
                 logger: NullLogger<ClassicCityProvisioningOrchestrator>.Instance);

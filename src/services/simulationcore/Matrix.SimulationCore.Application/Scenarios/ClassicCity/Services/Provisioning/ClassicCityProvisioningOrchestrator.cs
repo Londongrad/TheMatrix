@@ -32,7 +32,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
         ICityAnchorRepository cityAnchorRepository,
         IResidentialBuildingRepository residentialBuildingRepository,
         ISimulationClockRepository clockRepository,
-        IEnumerable<ICitySimulationBootstrapStrategy> simulationBootstrapStrategies,
+        ICitySimulationBootstrapStrategy simulationBootstrapStrategy,
         ICityEconomyBootstrapClient economyBootstrapClient,
         ICityPopulationBootstrapClient populationBootstrapClient,
         ILogger<ClassicCityProvisioningOrchestrator> logger) : IClassicCityProvisioningOrchestrator
@@ -98,7 +98,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                         plannedPeopleCountOverride: plannedPeopleCountOverride),
                     EconomyBootstrap: economyBootstrap);
 
-            if (!SupportsAutomaticPopulationBootstrap(simulationKind))
+            if (!SupportsAutomaticPopulationBootstrap())
                 return new CityProvisioningView(
                     CityId: cityId,
                     SimulationKind: simulationKind,
@@ -134,7 +134,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                 city: city,
                 operationId: city.EconomyBootstrapOperationId);
 
-            if (!SupportsAutomaticPopulationBootstrap(simulationKind))
+            if (!SupportsAutomaticPopulationBootstrap())
                 return new CityProvisioningView(
                     CityId: city.Id.Value,
                     SimulationKind: simulationKind,
@@ -441,23 +441,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
             }
         }
 
-        private bool SupportsAutomaticPopulationBootstrap(string simulationKind)
+        private bool SupportsAutomaticPopulationBootstrap()
         {
-            SimulationKind parsedKind = Enum.Parse<SimulationKind>(
-                value: simulationKind,
-                ignoreCase: true);
-            ICitySimulationBootstrapStrategy strategy = ResolveBootstrapStrategy(parsedKind);
-            return strategy.Descriptor.SupportsAutomaticPopulationBootstrap;
-        }
-
-        private ICitySimulationBootstrapStrategy ResolveBootstrapStrategy(SimulationKind simulationKind)
-        {
-            ICitySimulationBootstrapStrategy? strategy =
-                simulationBootstrapStrategies.SingleOrDefault(x => x.Kind == simulationKind);
-
-            return strategy ??
-                   throw new InvalidOperationException(
-                       $"City simulation bootstrap strategy is not registered for kind '{simulationKind}'.");
+            return simulationBootstrapStrategy.Descriptor.SupportsAutomaticPopulationBootstrap;
         }
 
         private async Task<City> GetCityOrThrowAsync(

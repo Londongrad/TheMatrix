@@ -196,8 +196,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 cityAnchorRepository: new TopologyTestSupport.FakeCityAnchorRepository(),
                 residentialBuildingRepository: new TopologyTestSupport.FakeResidentialBuildingRepository(),
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
-                simulationBootstrapStrategies:
-                [
+                simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
                         Descriptor = new SimulationKindDescriptor(
@@ -205,8 +204,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                             DisplayName: "Classic City",
                             Description: "Classic city simulation.",
                             SupportsAutomaticPopulationBootstrap: supportsAutomaticPopulationBootstrap)
-                    }
-                ],
+                    },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: new ProvisioningTestSupport.FakeCityPopulationBootstrapClient(),
                 logger: NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
