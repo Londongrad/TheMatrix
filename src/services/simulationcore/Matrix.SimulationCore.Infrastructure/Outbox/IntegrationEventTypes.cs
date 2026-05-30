@@ -9,7 +9,6 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
         public const string SimulationDeletedV1 = SimulationCoreEventTypes.SimulationDeletedV1;
         public const string SimulationTickPhaseReachedV1 = SimulationCoreEventTypes.SimulationTickPhaseReachedV1;
         public const string ClassicCityCreatedV1 = SimulationCoreEventTypes.ClassicCityCreatedV1;
-        public const string CityCreatedV1 = SimulationCoreEventTypes.CityCreatedV1;
         public const string CityEnvironmentChangedV1 = SimulationCoreEventTypes.CityEnvironmentChangedV1;
         public const string CityWeatherCreatedV1 = SimulationCoreEventTypes.CityWeatherCreatedV1;
         public const string CityWeatherChangedV1 = SimulationCoreEventTypes.CityWeatherChangedV1;

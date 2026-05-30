@@ -32,7 +32,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(()
                 => publisher.PublishAsync(
                     messageId: Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
-                    type: IntegrationEventTypes.CityCreatedV1,
+                    type: IntegrationEventTypes.ClassicCityCreatedV1,
                     payloadJson: "null",
                     cancellationToken: CancellationToken.None));
 
@@ -48,7 +48,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
 
             await Assert.ThrowsAsync<JsonException>(() => publisher.PublishAsync(
                 messageId: Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"),
-                type: IntegrationEventTypes.CityCreatedV1,
+                type: IntegrationEventTypes.ClassicCityCreatedV1,
                 payloadJson: "{",
                 cancellationToken: CancellationToken.None));
         }
