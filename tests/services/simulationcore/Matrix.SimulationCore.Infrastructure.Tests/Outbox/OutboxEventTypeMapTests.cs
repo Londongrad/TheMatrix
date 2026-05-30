@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Xunit;
 
@@ -12,7 +13,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             IReadOnlyDictionary<string, Type> map = OutboxEventTypeMap.Map;
 
             Assert.Equal(
-                expected: 12,
+                expected: 13,
                 actual: map.Count);
             Assert.Equal(
                 expected: typeof(SimulationCreatedV1),
@@ -26,6 +27,9 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             Assert.Equal(
                 expected: typeof(SimulationTickPhaseReachedV1),
                 actual: map[SimulationCoreEventTypes.SimulationTickPhaseReachedV1]);
+            Assert.Equal(
+                expected: typeof(ClassicCityCreatedV1),
+                actual: map[SimulationCoreEventTypes.ClassicCityCreatedV1]);
             Assert.Equal(
                 expected: typeof(CityCreatedV1),
                 actual: map[SimulationCoreEventTypes.CityCreatedV1]);
