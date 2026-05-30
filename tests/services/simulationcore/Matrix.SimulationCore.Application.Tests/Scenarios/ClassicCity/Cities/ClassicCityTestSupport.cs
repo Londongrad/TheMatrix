@@ -160,7 +160,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
         {
             public CreateCityCommand? RequestedCommand { get; private set; }
             public CitySimulationBootstrapPlan? Plan { get; init; }
-            public SimulationKind Kind => Descriptor.Kind;
             public required SimulationKindDescriptor Descriptor { get; init; }
 
             public CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request)

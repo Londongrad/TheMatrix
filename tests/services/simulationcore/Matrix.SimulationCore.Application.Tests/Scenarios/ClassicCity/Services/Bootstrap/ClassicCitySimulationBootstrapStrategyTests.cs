@@ -63,9 +63,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             Assert.Equal(
                 expected: SimulationKind.ClassicCity,
-                actual: strategy.Kind);
-            Assert.Equal(
-                expected: SimulationKind.ClassicCity,
                 actual: strategy.Descriptor.Kind);
             Assert.True(strategy.Descriptor.IsDefault);
             Assert.True(strategy.Descriptor.SupportsAutomaticPopulationBootstrap);

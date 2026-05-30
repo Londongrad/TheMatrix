@@ -28,7 +28,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
             SupportsAutomaticPopulationBootstrap: true,
             IsDefault: true);
 
-        public SimulationKind Kind => SimulationKind.ClassicCity;
         public SimulationKindDescriptor Descriptor => KindDescriptor;
 
         public CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request)
@@ -84,7 +83,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                     utcOffsetMinutes: request.UtcOffsetMinutes,
                     generationProfile: generationProfile,
                     initialWeatherProfile: initialWeatherProfile,
-                    simulationKind: Kind)
+                    simulationKind: SimulationKind.ClassicCity)
                 : request.GenerationSeed;
 
             var generationSeed = new CityGenerationSeed(effectiveSeed);
