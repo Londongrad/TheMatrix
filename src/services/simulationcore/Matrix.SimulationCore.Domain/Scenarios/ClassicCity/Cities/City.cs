@@ -212,7 +212,6 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
                 new CityCreatedDomainEvent(
                     CityId: city.Id,
                     Name: city.Name,
-                    SimulationKind: city.SimulationKind,
                     Environment: city.Environment,
                     GenerationSeed: city.GenerationSeed,
                     RunId: city.RunId,

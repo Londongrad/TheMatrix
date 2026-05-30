@@ -124,9 +124,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
                 expected: name,
                 actual: createdEvent.Name);
             Assert.Equal(
-                expected: SimulationKind.ClassicCity,
-                actual: createdEvent.SimulationKind);
-            Assert.Equal(
                 expected: environment,
                 actual: createdEvent.Environment);
             Assert.Equal(
