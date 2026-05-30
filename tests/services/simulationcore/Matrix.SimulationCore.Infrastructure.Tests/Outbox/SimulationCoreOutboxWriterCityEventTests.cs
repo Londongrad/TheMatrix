@@ -53,7 +53,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
                .ToListAsync();
 
             Assert.Equal(
-                expected: 3,
+                expected: 2,
                 actual: messages.Count);
 
             OutboxMessage classicCityCreatedMessage = Assert.Single(
@@ -79,41 +79,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             Assert.Equal(
                 expected: domainEvent.GenerationProfile.EconomyProfile.ToString(),
                 actual: classicCityCreatedPayload.EconomyProfile);
-
-            OutboxMessage cityCreatedMessage = Assert.Single(
-                collection: messages,
-                predicate: x => x.Type == IntegrationEventTypes.CityCreatedV1);
-            CityCreatedV1 cityCreatedPayload = OutboxTestSupport.DeserializePayload<CityCreatedV1>(cityCreatedMessage);
-            Assert.Equal(
-                expected: occurredOnUtc.UtcDateTime,
-                actual: cityCreatedMessage.OccurredOnUtc);
-            Assert.Equal(
-                expected: domainEvent.CityId.Value,
-                actual: cityCreatedPayload.CityId);
-            Assert.Equal(
-                expected: domainEvent.Name.Value,
-                actual: cityCreatedPayload.Name);
-            Assert.Equal(
-                expected: domainEvent.SimulationKind.ToString(),
-                actual: cityCreatedPayload.SimulationKind);
-            Assert.Equal(
-                expected: domainEvent.CreatedAtUtc,
-                actual: cityCreatedPayload.CreatedAtUtc);
-            Assert.Equal(
-                expected: domainEvent.GenerationProfile.DevelopmentLevel.ToString(),
-                actual: cityCreatedPayload.DevelopmentLevel);
-            Assert.Equal(
-                expected: domainEvent.GenerationProfile.EconomyProfile.ToString(),
-                actual: cityCreatedPayload.EconomyProfile);
-            Assert.Equal(
-                expected: domainEvent.RunId,
-                actual: cityCreatedPayload.RunId);
-            Assert.Equal(
-                expected: domainEvent.GenerationSeed.Value,
-                actual: cityCreatedPayload.SimulationSeed);
-            Assert.Equal(
-                expected: domainEvent.ScenarioModelSetVersion.Value,
-                actual: cityCreatedPayload.ScenarioModelSetVersion);
 
             OutboxMessage environmentChangedMessage = Assert.Single(
                 collection: messages,

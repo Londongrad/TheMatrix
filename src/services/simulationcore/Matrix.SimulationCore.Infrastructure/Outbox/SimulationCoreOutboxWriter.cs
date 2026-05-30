@@ -106,21 +106,6 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 
                     dbContext.OutboxMessages.Add(
                         OutboxMessage.Create(
-                            type: IntegrationEventTypes.CityCreatedV1,
-                            occurredOnUtc: occurredOnUtc.UtcDateTime,
-                            payload: new CityCreatedV1(
-                                CityId: created.CityId.Value,
-                                Name: created.Name.Value,
-                                SimulationKind: created.SimulationKind.ToString(),
-                                CreatedAtUtc: created.CreatedAtUtc,
-                                DevelopmentLevel: created.GenerationProfile.DevelopmentLevel.ToString(),
-                                EconomyProfile: created.GenerationProfile.EconomyProfile.ToString(),
-                                RunId: created.RunId,
-                                SimulationSeed: created.GenerationSeed.Value,
-                                ScenarioModelSetVersion: created.ScenarioModelSetVersion.Value)));
-
-                    dbContext.OutboxMessages.Add(
-                        OutboxMessage.Create(
                             type: IntegrationEventTypes.CityEnvironmentChangedV1,
                             occurredOnUtc: occurredOnUtc.UtcDateTime,
                             payload: new CityEnvironmentChangedV1(
