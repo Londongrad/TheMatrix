@@ -1,7 +1,8 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
-using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers
@@ -10,9 +11,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
         ICityEconomyBootstrapService cityEconomyBootstrapService,
         ICityEconomyDeletionRepository deletionRepository,
         ILogger<CityCreatedConsumer> logger)
-        : IConsumer<CityCreatedV1>
+        : IConsumer<ClassicCityCreatedV1>
     {
-        public async Task Consume(ConsumeContext<CityCreatedV1> context)
+        public async Task Consume(ConsumeContext<ClassicCityCreatedV1> context)
         {
             await ConsumeAsync(
                 message: context.Message,
@@ -20,22 +21,33 @@ namespace Matrix.Economy.Infrastructure.Consumers
         }
 
         internal async Task ConsumeAsync(
-            CityCreatedV1 message,
+            ClassicCityCreatedV1 message,
             CancellationToken cancellationToken)
         {
+            if (!ClassicCityRuntimeKeys.IsMatch(message.ScenarioKey, message.HostTypeKey))
+            {
+                logger.LogDebug(
+                    message:
+                    "Ignored classic-city-created event for simulationId={SimulationId}, scenarioKey={ScenarioKey}, hostTypeKey={HostTypeKey}.",
+                    message.SimulationId,
+                    message.ScenarioKey,
+                    message.HostTypeKey);
+                return;
+            }
+
             if (await deletionRepository.GetDeletedAtUtcAsync(
-                    cityId: message.CityId,
+                    cityId: message.HostId,
                     cancellationToken: cancellationToken) is not null)
             {
                 logger.LogWarning(
                     message: "Skipped city economy initialization for deleted cityId={CityId}.",
-                    message.CityId);
+                    message.HostId);
                 return;
             }
 
             CityEconomyBootstrapResultDto result = await cityEconomyBootstrapService.BootstrapAsync(
-                cityId: message.CityId,
-                simulationKind: message.SimulationKind,
+                cityId: message.HostId,
+                simulationKind: message.ScenarioKey,
                 economyProfile: message.EconomyProfile,
                 createdAtUtc: message.CreatedAtUtc,
                 cancellationToken: cancellationToken);
@@ -45,15 +57,15 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 logger.LogDebug(
                     message:
                     "Skipped city economy initialization for cityId={CityId}; budget, default allocations, and template businesses already exist.",
-                    message.CityId);
+                    message.HostId);
                 return;
             }
 
             logger.LogInformation(
                 message:
                 "Initialized economy context for cityId={CityId}, simulationKind={SimulationKind}, economyProfile={EconomyProfile}, budgetCreated={BudgetCreated}, createdAllocations={CreatedAllocations}, createdBusinesses={CreatedBusinesses}.",
-                message.CityId,
-                message.SimulationKind,
+                message.HostId,
+                message.ScenarioKey,
                 message.EconomyProfile,
                 result.BudgetCreated,
                 result.CreatedAllocations,

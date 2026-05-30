@@ -6,7 +6,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
     {
         public CityCreatedConsumerDefinition()
         {
-            EndpointName = "economy-city-created";
+            EndpointName = "economy-classic-city-created-v1";
             ConcurrentMessageLimit = 1;
         }
     }

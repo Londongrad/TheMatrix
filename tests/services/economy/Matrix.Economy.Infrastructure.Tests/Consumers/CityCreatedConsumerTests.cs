@@ -2,7 +2,8 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Tests.TestSupport;
-using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
@@ -13,24 +14,13 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
         [Fact]
         public async Task ConsumeAsync_WhenBootstrapCreatesNothing_LogsDebugAndPassesMessageValues()
         {
-            CityCreatedV1 message = new(
-                CityId: Guid.Parse("96f1def1-4d0a-4771-b7fc-f484f21f767d"),
-                Name: "Novy Mir",
-                SimulationKind: "classic-city",
-                CreatedAtUtc: new DateTimeOffset(
-                    year: 2048,
-                    month: 5,
-                    day: 6,
-                    hour: 8,
-                    minute: 15,
-                    second: 0,
-                    offset: TimeSpan.Zero),
-                DevelopmentLevel: "seed",
-                EconomyProfile: "balanced");
+            ClassicCityCreatedV1 message = CreateMessage(
+                hostId: Guid.Parse("96f1def1-4d0a-4771-b7fc-f484f21f767d"),
+                economyProfile: "balanced");
             var bootstrapService = new TestCityEconomyBootstrapService
             {
                 Result = new CityEconomyBootstrapResultDto(
-                    CityId: message.CityId,
+                    CityId: message.HostId,
                     BudgetCreated: false,
                     CreatedAllocations: 0,
                     CreatedBusinesses: 0,
@@ -50,10 +40,10 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
                 cancellationToken: CancellationToken.None);
 
             Assert.Equal(
-                expected: message.CityId,
+                expected: message.HostId,
                 actual: bootstrapService.CityId);
             Assert.Equal(
-                expected: message.SimulationKind,
+                expected: message.ScenarioKey,
                 actual: bootstrapService.SimulationKind);
             Assert.Equal(
                 expected: message.EconomyProfile,
@@ -73,24 +63,13 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
         [Fact]
         public async Task ConsumeAsync_WhenBootstrapCreatesResources_LogsInformation()
         {
-            CityCreatedV1 message = new(
-                CityId: Guid.Parse("f1bec638-b975-4e43-a8a6-a662c296c7bf"),
-                Name: "Aurora",
-                SimulationKind: "classic-city",
-                CreatedAtUtc: new DateTimeOffset(
-                    year: 2048,
-                    month: 5,
-                    day: 6,
-                    hour: 8,
-                    minute: 30,
-                    second: 0,
-                    offset: TimeSpan.Zero),
-                DevelopmentLevel: "seed",
-                EconomyProfile: "service-heavy");
+            ClassicCityCreatedV1 message = CreateMessage(
+                hostId: Guid.Parse("f1bec638-b975-4e43-a8a6-a662c296c7bf"),
+                economyProfile: "service-heavy");
             var bootstrapService = new TestCityEconomyBootstrapService
             {
                 Result = new CityEconomyBootstrapResultDto(
-                    CityId: message.CityId,
+                    CityId: message.HostId,
                     BudgetCreated: true,
                     CreatedAllocations: 4,
                     CreatedBusinesses: 7,
@@ -114,33 +93,22 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
                 expected: LogLevel.Information,
                 actual: entry.LogLevel);
             Assert.Contains(
-                expectedSubstring: message.CityId.ToString(),
+                expectedSubstring: message.HostId.ToString(),
                 actualString: entry.Message);
             Assert.Contains(
-                expectedSubstring: message.SimulationKind,
+                expectedSubstring: message.ScenarioKey,
                 actualString: entry.Message);
             Assert.Contains(
-                expectedSubstring: message.EconomyProfile ?? string.Empty,
+                expectedSubstring: message.EconomyProfile,
                 actualString: entry.Message);
         }
 
         [Fact]
         public async Task ConsumeAsync_WhenCityWasDeleted_DoesNotBootstrapEconomy()
         {
-            CityCreatedV1 message = new(
-                CityId: Guid.Parse("f1bec638-b975-4e43-a8a6-a662c296c7bf"),
-                Name: "Aurora",
-                SimulationKind: "classic-city",
-                CreatedAtUtc: new DateTimeOffset(
-                    year: 2048,
-                    month: 5,
-                    day: 6,
-                    hour: 8,
-                    minute: 30,
-                    second: 0,
-                    offset: TimeSpan.Zero),
-                DevelopmentLevel: "seed",
-                EconomyProfile: "service-heavy");
+            ClassicCityCreatedV1 message = CreateMessage(
+                hostId: Guid.Parse("f1bec638-b975-4e43-a8a6-a662c296c7bf"),
+                economyProfile: "service-heavy");
             var bootstrapService = new TestCityEconomyBootstrapService();
             var logger = new TestLogger<CityCreatedConsumer>();
             var consumer = new CityCreatedConsumer(
@@ -158,7 +126,59 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
             Assert.Equal(Guid.Empty, bootstrapService.CityId);
             TestLogEntry entry = Assert.Single(logger.Entries);
             Assert.Equal(LogLevel.Warning, entry.LogLevel);
-            Assert.Contains(message.CityId.ToString(), entry.Message);
+            Assert.Contains(message.HostId.ToString(), entry.Message);
+        }
+
+        [Fact]
+        public async Task ConsumeAsync_WhenRuntimeDoesNotMatch_DoesNotBootstrapEconomy()
+        {
+            ClassicCityCreatedV1 message = CreateMessage(
+                hostId: Guid.NewGuid(),
+                economyProfile: "balanced",
+                scenarioKey: "metro",
+                hostTypeKey: "network");
+            var bootstrapService = new TestCityEconomyBootstrapService();
+            var logger = new TestLogger<CityCreatedConsumer>();
+            var consumer = new CityCreatedConsumer(
+                cityEconomyBootstrapService: bootstrapService,
+                deletionRepository: new TestCityEconomyDeletionRepository(),
+                logger: logger);
+
+            await consumer.ConsumeAsync(
+                message: message,
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(Guid.Empty, bootstrapService.CityId);
+            TestLogEntry entry = Assert.Single(logger.Entries);
+            Assert.Equal(LogLevel.Debug, entry.LogLevel);
+            Assert.Contains("Ignored classic-city-created event", entry.Message);
+        }
+
+        private static ClassicCityCreatedV1 CreateMessage(
+            Guid hostId,
+            string economyProfile,
+            string scenarioKey = ClassicCityRuntimeKeys.ScenarioKey,
+            string hostTypeKey = ClassicCityRuntimeKeys.HostTypeKey)
+        {
+            return new ClassicCityCreatedV1(
+                SimulationId: Guid.Parse("94c5dc18-f29b-4055-8b79-fcd49ca62b76"),
+                HostId: hostId,
+                ScenarioKey: scenarioKey,
+                HostTypeKey: hostTypeKey,
+                Name: "Aurora",
+                CreatedAtUtc: new DateTimeOffset(
+                    year: 2048,
+                    month: 5,
+                    day: 6,
+                    hour: 8,
+                    minute: 30,
+                    second: 0,
+                    offset: TimeSpan.Zero),
+                DevelopmentLevel: "seed",
+                EconomyProfile: economyProfile,
+                RunId: Guid.Parse("df05950d-dedf-490c-93e8-c2579026bab8"),
+                SimulationSeed: "economy-seed",
+                ScenarioModelSetVersion: "classic-city-v3");
         }
 
         private sealed class TestCityEconomyBootstrapService : ICityEconomyBootstrapService
