@@ -19,7 +19,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
         {
             return City.Create(
                 name: new CityName("Recovery City"),
-                simulationKind: SimulationKind.ClassicCity,
                 environment: CityEnvironment.Create(
                     climateZone: ClimateZone.Temperate,
                     hemisphere: Hemisphere.Northern,

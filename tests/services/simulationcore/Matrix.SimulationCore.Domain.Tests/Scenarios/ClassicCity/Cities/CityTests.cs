@@ -43,7 +43,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
 
             var city = City.Create(
                 name: name,
-                simulationKind: SimulationKind.ClassicCity,
                 environment: environment,
                 generationSeed: generationSeed,
                 scenarioModelSetVersion: scenarioModelSetVersion,
@@ -57,9 +56,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
             Assert.Equal(
                 expected: name,
                 actual: city.Name);
-            Assert.Equal(
-                expected: SimulationKind.ClassicCity,
-                actual: city.SimulationKind);
             Assert.Equal(
                 expected: environment,
                 actual: city.Environment);
@@ -292,7 +288,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
         {
             return City.Create(
                 name: new CityName("Alpha City"),
-                simulationKind: SimulationKind.ClassicCity,
                 environment: CreateEnvironment(),
                 generationSeed: new CityGenerationSeed("alpha-seed"),
                 scenarioModelSetVersion: new ScenarioModelSetVersion("classic-city-v3"),

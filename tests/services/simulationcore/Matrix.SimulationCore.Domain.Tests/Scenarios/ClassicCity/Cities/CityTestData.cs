@@ -77,7 +77,6 @@ namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Cities
         {
             return City.Create(
                 name: new CityName("Alpha City"),
-                simulationKind: SimulationKind.ClassicCity,
                 environment: CreateEnvironment(),
                 generationSeed: new CityGenerationSeed("alpha-seed"),
                 scenarioModelSetVersion: new ScenarioModelSetVersion("classic-city-v3"),

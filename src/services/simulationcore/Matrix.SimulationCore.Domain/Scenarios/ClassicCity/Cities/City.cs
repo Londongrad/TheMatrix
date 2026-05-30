@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
-using Matrix.SimulationCore.Domain.Simulation;
 
 namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
 {
@@ -18,7 +17,6 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
         private City(
             CityId id,
             CityName name,
-            SimulationKind simulationKind,
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
             Guid runId,
@@ -63,9 +61,6 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
                 propertyName: nameof(runId));
 
             Name = name;
-            SimulationKind = GuardHelper.AgainstInvalidEnum(
-                value: simulationKind,
-                propertyName: nameof(simulationKind));
             Environment = environment;
             GenerationSeed = generationSeed;
             RunId = runId;
@@ -94,7 +89,6 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             : base(default(CityId))
         {
             Name = default(CityName);
-            SimulationKind = SimulationKind.ClassicCity;
             Environment = null!;
             GenerationSeed = default(CityGenerationSeed);
             ScenarioModelSetVersion = default(ScenarioModelSetVersion);
@@ -103,7 +97,6 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
         }
 
         public CityName Name { get; private set; }
-        public SimulationKind SimulationKind { get; }
         public CityEnvironment Environment { get; private set; }
         public CityGenerationSeed GenerationSeed { get; }
         public Guid RunId { get; }
@@ -139,7 +132,6 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
 
         public static City Create(
             CityName name,
-            SimulationKind simulationKind,
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
             ScenarioModelSetVersion scenarioModelSetVersion,
@@ -174,7 +166,6 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             var city = new City(
                 id: CityId.New(),
                 name: name,
-                simulationKind: simulationKind,
                 environment: environment,
                 generationSeed: generationSeed,
                 runId: Guid.NewGuid(),

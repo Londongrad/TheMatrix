@@ -34,7 +34,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
         {
             return City.Create(
                 name: new CityName(name),
-                simulationKind: SimulationKind.ClassicCity,
                 environment: CityEnvironment.Create(
                     climateZone: ClimateZone.Temperate,
                     hemisphere: Hemisphere.Northern,

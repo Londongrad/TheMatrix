@@ -77,7 +77,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 expected: existingCity.EconomyBootstrapOperationId,
                 actual: result.EconomyBootstrapOperationId);
             Assert.Equal(
-                expected: existingCity.SimulationKind.ToString(),
+                expected: SimulationKind.ClassicCity.ToString(),
                 actual: result.SimulationKind);
             Assert.Equal(
                 expected: provisioningCorrelationId,
@@ -337,7 +337,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 expected: existingCity.EconomyBootstrapOperationId,
                 actual: result.EconomyBootstrapOperationId);
             Assert.Equal(
-                expected: existingCity.SimulationKind.ToString(),
+                expected: SimulationKind.ClassicCity.ToString(),
                 actual: result.SimulationKind);
             Assert.Equal(
                 expected: 2,

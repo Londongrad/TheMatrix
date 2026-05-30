@@ -95,7 +95,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
 
             var city = City.Create(
                 name: new CityName(request.Name),
-                simulationKind: Kind,
                 environment: environment,
                 generationSeed: generationSeed,
                 scenarioModelSetVersion: scenarioModelSetVersion,

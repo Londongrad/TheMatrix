@@ -121,7 +121,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
         {
             return City.Create(
                 name: new CityName("Weather City"),
-                simulationKind: SimulationKind.ClassicCity,
                 environment: CityEnvironment.Create(
                     climateZone: climateZone,
                     hemisphere: Hemisphere.Northern,
