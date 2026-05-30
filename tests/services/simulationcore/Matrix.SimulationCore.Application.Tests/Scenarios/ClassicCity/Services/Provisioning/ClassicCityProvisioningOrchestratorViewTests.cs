@@ -97,7 +97,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 supportsAutomaticPopulationBootstrap: true);
             var command = new CreateCityCommand(
                 Name: "Provisioned Neo Tokyo",
-                SimulationKind: "ClassicCity",
                 ClimateZone: "Temperate",
                 Hemisphere: "Northern",
                 UtcOffsetMinutes: 180,
@@ -161,7 +160,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 supportsAutomaticPopulationBootstrap: true);
             var command = new CreateCityCommand(
                 Name: "Ghost City",
-                SimulationKind: "ClassicCity",
                 ClimateZone: "Temperate",
                 Hemisphere: "Northern",
                 UtcOffsetMinutes: 180,

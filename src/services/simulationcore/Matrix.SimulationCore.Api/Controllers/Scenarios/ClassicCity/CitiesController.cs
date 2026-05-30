@@ -47,7 +47,6 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
             CityCreatedDto created = await mediator.Send(
                 request: new CreateCityCommand(
                     Name: request.Name,
-                    SimulationKind: request.SimulationKind,
                     ClimateZone: request.ClimateZone,
                     Hemisphere: request.Hemisphere,
                     UtcOffsetMinutes: request.UtcOffsetMinutes,
@@ -86,7 +85,6 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 request: new CreateProvisionedCityCommand(
                     City: new CreateCityCommand(
                         Name: request.Name,
-                        SimulationKind: request.SimulationKind,
                         ClimateZone: request.ClimateZone,
                         Hemisphere: request.Hemisphere,
                         UtcOffsetMinutes: request.UtcOffsetMinutes,

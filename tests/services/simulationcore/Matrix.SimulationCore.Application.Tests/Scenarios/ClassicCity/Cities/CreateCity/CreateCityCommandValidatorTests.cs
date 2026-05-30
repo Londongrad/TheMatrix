@@ -22,7 +22,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
         {
             CreateCityCommand command = CreateCommand() with
             {
-                SimulationKind = "Arcology",
                 ClimateZone = "Temperate-ish",
                 Hemisphere = "Up",
                 UtcOffsetMinutes = 17,
@@ -39,9 +38,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             ValidationResult? result = _validator.Validate(command);
 
             Assert.False(result.IsValid);
-            Assert.Contains(
-                collection: result.Errors,
-                filter: error => error.PropertyName == "SimulationKind");
             Assert.Contains(
                 collection: result.Errors,
                 filter: error => error.PropertyName == "ClimateZone");
@@ -88,7 +84,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
         {
             return new CreateCityCommand(
                 Name: "Neo Tokyo",
-                SimulationKind: "ClassicCity",
                 ClimateZone: "Temperate",
                 Hemisphere: "Northern",
                 UtcOffsetMinutes: 180,

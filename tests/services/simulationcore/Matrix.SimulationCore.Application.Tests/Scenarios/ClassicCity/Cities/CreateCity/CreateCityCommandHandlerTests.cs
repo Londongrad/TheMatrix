@@ -354,7 +354,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
         {
             return new CreateCityCommand(
                 Name: "Neo Tokyo",
-                SimulationKind: "ClassicCity",
                 ClimateZone: "Temperate",
                 Hemisphere: "Northern",
                 UtcOffsetMinutes: 180,

@@ -63,9 +63,6 @@ namespace Matrix.SimulationCore.Api.Tests.Controllers.Scenarios.ClassicCity
                     expected: request.Name,
                     actual: command.City.Name);
                 Assert.Equal(
-                    expected: request.SimulationKind,
-                    actual: command.City.SimulationKind);
-                Assert.Equal(
                     expected: request.ProvisioningCorrelationId,
                     actual: command.City.ProvisioningCorrelationId);
                 return provisioning;

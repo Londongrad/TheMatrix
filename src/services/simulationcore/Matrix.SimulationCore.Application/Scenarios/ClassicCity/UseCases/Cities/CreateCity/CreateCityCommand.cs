@@ -6,7 +6,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 {
     public sealed record CreateCityCommand(
         string Name,
-        string? SimulationKind,
         string ClimateZone,
         string Hemisphere,
         int UtcOffsetMinutes,

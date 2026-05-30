@@ -40,7 +40,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 timeProvider: new ApplicationTestSupport.FixedTimeProvider(createdAtUtc));
             var command = new CreateCityCommand(
                 Name: "  Neo Tokyo  ",
-                SimulationKind: null,
                 ClimateZone: "Temperate",
                 Hemisphere: "Northern",
                 UtcOffsetMinutes: 180,
@@ -173,7 +172,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
             var provisioningCorrelationId = Guid.NewGuid();
             var command = new CreateCityCommand(
                 Name: "Andes City",
-                SimulationKind: "ClassicCity",
                 ClimateZone: "Mountain",
                 Hemisphere: "Southern",
                 UtcOffsetMinutes: -180,
