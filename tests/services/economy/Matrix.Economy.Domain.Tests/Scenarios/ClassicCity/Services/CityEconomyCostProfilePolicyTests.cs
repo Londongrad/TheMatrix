@@ -90,6 +90,21 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
         }
 
         [Fact]
+        public void CreateSeed_WhenCanonicalClassicCityKeyIsUsed_ReturnsRequestedPreset()
+        {
+            var policy = new CityEconomyCostProfilePolicy();
+
+            CityEconomyCostProfileSnapshot snapshot = policy.CreateSeed(
+                simulationKind: "classic-city",
+                economyProfile: "struggling",
+                asOfUtc: EconomyTestData.DefaultCreatedAtUtc);
+
+            Assert.Equal(
+                expected: 0.86m,
+                actual: snapshot.WageMultiplier);
+        }
+
+        [Fact]
         public void CreateSeed_WhenEconomyProfileIsAffluent_ReturnsAffluentPreset()
         {
             var policy = new CityEconomyCostProfilePolicy();

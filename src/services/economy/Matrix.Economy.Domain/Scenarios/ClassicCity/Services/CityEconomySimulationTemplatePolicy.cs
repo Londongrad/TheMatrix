@@ -14,7 +14,7 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
             return simulationKind?.Trim()
                    .ToUpperInvariant() switch
             {
-                "CLASSICCITY" => BuildClassicCityTemplate(economyProfile),
+                "CLASSICCITY" or "CLASSIC-CITY" => BuildClassicCityTemplate(economyProfile),
                 "METRO" => BuildMetroTemplate(),
                 _ => BuildFallbackTemplate()
             };

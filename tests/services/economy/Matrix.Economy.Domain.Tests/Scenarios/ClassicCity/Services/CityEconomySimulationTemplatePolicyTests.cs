@@ -40,6 +40,20 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
         }
 
         [Fact]
+        public void Resolve_WhenCanonicalClassicCityKeyIsUsed_ReturnsClassicCityTemplate()
+        {
+            var policy = new CityEconomySimulationTemplatePolicy();
+
+            CityEconomySimulationTemplate template = policy.Resolve(
+                simulationKind: "classic-city",
+                economyProfile: "balanced");
+
+            Assert.Equal(
+                expected: 75_000m,
+                actual: template.InitialReserve.Amount);
+        }
+
+        [Fact]
         public void Resolve_WhenMetroSimulationIsRequested_ReturnsMetroCommodityTemplate()
         {
             var policy = new CityEconomySimulationTemplatePolicy();

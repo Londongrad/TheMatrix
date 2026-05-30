@@ -12,10 +12,10 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
             string? economyProfile,
             DateTimeOffset asOfUtc)
         {
-            if (!string.Equals(
-                    a: simulationKind?.Trim(),
-                    b: "CLASSICCITY",
-                    comparisonType: StringComparison.OrdinalIgnoreCase))
+            string normalizedSimulationKind =
+                simulationKind?.Trim().ToUpperInvariant() ?? string.Empty;
+
+            if (normalizedSimulationKind is not "CLASSICCITY" and not "CLASSIC-CITY")
                 return CityEconomyCostProfileSnapshot.Neutral(asOfUtc);
 
             return NormalizeEconomyProfile(economyProfile) switch
