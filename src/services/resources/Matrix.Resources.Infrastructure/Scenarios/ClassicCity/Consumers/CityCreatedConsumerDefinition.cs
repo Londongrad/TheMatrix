@@ -6,7 +6,7 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
     {
         public CityCreatedConsumerDefinition()
         {
-            EndpointName = "resources-city-created";
+            EndpointName = "resources-classic-city-created-v1";
             ConcurrentMessageLimit = 1;
         }
     }

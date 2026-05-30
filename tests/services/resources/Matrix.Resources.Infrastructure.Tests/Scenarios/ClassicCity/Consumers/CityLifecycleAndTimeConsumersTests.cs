@@ -5,6 +5,7 @@ using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Resources.Infrastructure.Tests.TestSupport;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Simulation;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,9 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateCityCreatedMessage("Sandbox"),
+                message: CreateCityCreatedMessage(
+                    scenarioKey: "metro",
+                    hostTypeKey: "network"),
                 cancellationToken: CancellationToken.None);
 
             Assert.Empty(mediator.Commands);
@@ -40,19 +43,19 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 expected: LogLevel.Debug,
                 actual: entry.LogLevel);
             Assert.Contains(
-                expectedSubstring: "Ignored city-created event",
+                expectedSubstring: "Ignored classic-city-created event",
                 actualString: entry.Message);
         }
 
         [Fact]
         public async Task CityCreatedConsumeAsync_WhenSeedIsApplied_SendsCommandAndLogsInformation()
         {
-            CityCreatedV1 message = CreateCityCreatedMessage(ClassicCityScenario.Name);
+            ClassicCityCreatedV1 message = CreateCityCreatedMessage();
             var mediator = new TestSeedMediator
             {
                 Result = new SeedCityStockpilesResult(
                     Status: SeedCityStockpilesStatus.Applied,
-                    CityId: message.CityId,
+                    CityId: message.HostId,
                     SupplyStressIndex: 0.18m,
                     EmergencyRationingEnabled: false)
             };
@@ -67,13 +70,13 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
 
             SeedCityStockpilesCommand command = Assert.Single(mediator.Commands);
             Assert.Equal(
-                expected: message.CityId,
+                expected: message.HostId,
                 actual: command.CityId);
             Assert.Equal(
                 expected: message.CreatedAtUtc,
                 actual: command.CreatedAtUtc);
             Assert.Equal(
-                expected: message.SimulationKind,
+                expected: ClassicCityScenario.Name,
                 actual: command.SimulationKind);
             Assert.Equal(
                 expected: message.DevelopmentLevel,
@@ -104,7 +107,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 logger: logger);
 
             await consumer.ConsumeAsync(
-                message: CreateCityCreatedMessage(ClassicCityScenario.Name),
+                message: CreateCityCreatedMessage(),
                 cancellationToken: CancellationToken.None);
 
             TestLogEntry entry = Assert.Single(logger.Entries);
@@ -314,15 +317,22 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                 actualString: entry.Message);
         }
 
-        private static CityCreatedV1 CreateCityCreatedMessage(string simulationKind)
+        private static ClassicCityCreatedV1 CreateCityCreatedMessage(
+            string scenarioKey = ClassicCityRuntimeKeys.ScenarioKey,
+            string hostTypeKey = ClassicCityRuntimeKeys.HostTypeKey)
         {
-            return new CityCreatedV1(
-                CityId: ResourcesInfrastructureTestSupport.CityId,
+            return new ClassicCityCreatedV1(
+                SimulationId: Guid.Parse("94c5dc18-f29b-4055-8b79-fcd49ca62b76"),
+                HostId: ResourcesInfrastructureTestSupport.CityId,
+                ScenarioKey: scenarioKey,
+                HostTypeKey: hostTypeKey,
                 Name: "Northreach",
-                SimulationKind: simulationKind,
                 CreatedAtUtc: ResourcesInfrastructureTestSupport.CreatedAtUtc,
                 DevelopmentLevel: "advanced",
-                EconomyProfile: "balanced");
+                EconomyProfile: "balanced",
+                RunId: Guid.Parse("df05950d-dedf-490c-93e8-c2579026bab8"),
+                SimulationSeed: "resources-seed",
+                ScenarioModelSetVersion: "classic-city-v3");
         }
 
         private static SimulationTickPhaseReachedV1 CreateTickMessage(
