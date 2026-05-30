@@ -1,5 +1,6 @@
 using MassTransit;
-using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     SeedCityEnvironmentalConditions;
@@ -10,9 +11,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
 {
     public sealed class CityCreatedConsumer(
         IMediator mediator,
-        ILogger<CityCreatedConsumer> logger) : IConsumer<CityCreatedV1>
+        ILogger<CityCreatedConsumer> logger) : IConsumer<ClassicCityCreatedV1>
     {
-        public Task Consume(ConsumeContext<CityCreatedV1> context)
+        public Task Consume(ConsumeContext<ClassicCityCreatedV1> context)
         {
             return ConsumeAsync(
                 message: context.Message,
@@ -20,24 +21,25 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
         }
 
         internal async Task ConsumeAsync(
-            CityCreatedV1 message,
+            ClassicCityCreatedV1 message,
             CancellationToken cancellationToken)
         {
-            if (!ClassicCityScenario.IsMatch(message.SimulationKind))
+            if (!ClassicCityRuntimeKeys.IsMatch(message.ScenarioKey, message.HostTypeKey))
             {
                 logger.LogDebug(
                     message:
-                    "Ignored city-created event for cityId={CityId} because simulationKind={SimulationKind} does not match ClassicCity.",
-                    message.CityId,
-                    message.SimulationKind);
+                    "Ignored classic-city-created event for simulationId={SimulationId}, scenarioKey={ScenarioKey}, hostTypeKey={HostTypeKey}.",
+                    message.SimulationId,
+                    message.ScenarioKey,
+                    message.HostTypeKey);
                 return;
             }
 
             SeedCityEnvironmentalConditionsResult result = await mediator.Send(
                 request: new SeedCityEnvironmentalConditionsCommand(
-                    CityId: message.CityId,
+                    CityId: message.HostId,
                     CreatedAtUtc: message.CreatedAtUtc,
-                    SimulationKind: message.SimulationKind,
+                    SimulationKind: ClassicCityScenario.Name,
                     DevelopmentLevel: message.DevelopmentLevel),
                 cancellationToken: cancellationToken);
 
@@ -47,28 +49,28 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     logger.LogInformation(
                         message:
                         "Initialized classic city environmental state for cityId={CityId}, simulationKind={SimulationKind}.",
-                        message.CityId,
-                        message.SimulationKind);
+                        message.HostId,
+                        ClassicCityScenario.Name);
                     break;
 
                 case SeedCityEnvironmentalConditionsStatus.Duplicate:
                     logger.LogDebug(
                         message: "Skipped duplicate classic city environmental seed for cityId={CityId}.",
-                        message.CityId);
+                        message.HostId);
                     break;
 
                 case SeedCityEnvironmentalConditionsStatus.IgnoredSimulationKind:
                     logger.LogDebug(
                         message:
                         "Skipped classic city environmental seed for cityId={CityId} because simulationKind={SimulationKind} is not handled by this scenario.",
-                        message.CityId,
-                        message.SimulationKind);
+                        message.HostId,
+                        ClassicCityScenario.Name);
                     break;
 
                 case SeedCityEnvironmentalConditionsStatus.CityDeleted:
                     logger.LogWarning(
                         message: "Ignored environmental initialization for deleted cityId={CityId}.",
-                        message.CityId);
+                        message.HostId);
                     break;
             }
         }
