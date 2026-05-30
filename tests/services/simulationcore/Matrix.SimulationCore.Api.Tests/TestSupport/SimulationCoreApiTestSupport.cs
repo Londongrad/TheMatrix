@@ -34,8 +34,8 @@ namespace Matrix.SimulationCore.Api.Tests.TestSupport
             return new ClockDto(
                 SimulationId: simulationId ?? Guid.Parse("7a0962bb-d842-4e0a-9f4b-4f12c08c7efd"),
                 HostId: hostId ?? Guid.Parse("fd0f9006-a204-4ba1-a0de-42ff5dfb90bb"),
-                HostKind: "ClassicCity",
-                SimulationKind: "ClassicCity",
+                ScenarioKey: "classic-city",
+                HostTypeKey: "city",
                 SimTimeUtc: new DateTimeOffset(
                     year: 2048,
                     month: 6,

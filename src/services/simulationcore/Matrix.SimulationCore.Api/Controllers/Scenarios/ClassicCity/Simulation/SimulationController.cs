@@ -98,8 +98,8 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity.Simulation
             return new SimulationClockView(
                 SimulationId: clock.SimulationId,
                 HostId: clock.HostId,
-                HostKind: clock.HostKind,
-                SimulationKind: clock.SimulationKind,
+                HostKind: clock.HostTypeKey,
+                SimulationKind: clock.ScenarioKey,
                 SimTimeUtc: clock.SimTimeUtc,
                 TickId: clock.TickId,
                 Speed: clock.Speed,

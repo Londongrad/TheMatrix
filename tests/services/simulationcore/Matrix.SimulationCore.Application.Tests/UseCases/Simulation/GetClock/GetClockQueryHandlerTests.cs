@@ -91,10 +91,10 @@ namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation.GetClock
                 actual: result.HostId);
             Assert.Equal(
                 expected: "city",
-                actual: result.HostKind);
+                actual: result.HostTypeKey);
             Assert.Equal(
                 expected: "classic-city",
-                actual: result.SimulationKind);
+                actual: result.ScenarioKey);
             Assert.Equal(
                 expected: SimulationTestSupport.SimStartTimeUtc,
                 actual: result.SimTimeUtc);
