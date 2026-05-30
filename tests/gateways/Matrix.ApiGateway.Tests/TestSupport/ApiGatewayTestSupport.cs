@@ -513,8 +513,8 @@ namespace Matrix.ApiGateway.Tests.TestSupport
             return new SimulationClockView(
                 SimulationId: resolvedSimulationId,
                 HostId: resolvedSimulationId,
-                HostKind: "City",
-                SimulationKind: "ClassicCity",
+                ScenarioKey: "classic-city",
+                HostTypeKey: "city",
                 SimTimeUtc: simTimeUtc ??
                 new DateTimeOffset(
                     year: 2048,

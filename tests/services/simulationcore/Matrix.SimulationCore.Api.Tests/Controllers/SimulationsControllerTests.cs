@@ -40,6 +40,12 @@ namespace Matrix.SimulationCore.Api.Tests.Controllers
                 expected: simulationId,
                 actual: view.SimulationId);
             Assert.Equal(
+                expected: "classic-city",
+                actual: view.ScenarioKey);
+            Assert.Equal(
+                expected: "city",
+                actual: view.HostTypeKey);
+            Assert.Equal(
                 expected: "Running",
                 actual: view.State);
 

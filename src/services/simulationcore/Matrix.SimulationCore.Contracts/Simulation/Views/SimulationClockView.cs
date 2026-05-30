@@ -3,8 +3,8 @@ namespace Matrix.SimulationCore.Contracts.Simulation.Views
     public sealed record SimulationClockView(
         Guid SimulationId,
         Guid HostId,
-        string HostKind,
-        string SimulationKind,
+        string ScenarioKey,
+        string HostTypeKey,
         DateTimeOffset SimTimeUtc,
         long TickId,
         decimal Speed,
