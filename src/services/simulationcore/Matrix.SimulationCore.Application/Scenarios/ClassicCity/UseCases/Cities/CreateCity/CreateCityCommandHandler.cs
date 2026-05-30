@@ -21,7 +21,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         IRoadSegmentRepository roadSegmentRepository,
         ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
-        IEnumerable<ICitySimulationBootstrapStrategy> simulationBootstrapStrategies,
+        ICitySimulationBootstrapStrategy simulationBootstrapStrategy,
         ISimulationCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, CityCreatedDto>
     {
@@ -39,11 +39,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                     return existing;
             }
 
-            SimulationKind simulationKind = ParseSimulationKind(request.SimulationKind);
-            ICitySimulationBootstrapStrategy bootstrapStrategy = ResolveBootstrapStrategy(
-                simulationBootstrapStrategies: simulationBootstrapStrategies,
-                simulationKind: simulationKind);
-            CitySimulationBootstrapPlan bootstrapPlan = bootstrapStrategy.CreatePlan(request);
+            CitySimulationBootstrapPlan bootstrapPlan = simulationBootstrapStrategy.CreatePlan(request);
 
             City city = bootstrapPlan.City;
             SimulationInstance instance = bootstrapPlan.Instance;
@@ -113,27 +109,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             }
 
             return MapToCreatedDto(city);
-        }
-
-        private static SimulationKind ParseSimulationKind(string? value)
-        {
-            return string.IsNullOrWhiteSpace(value)
-                ? SimulationKind.ClassicCity
-                : Enum.Parse<SimulationKind>(
-                    value: value,
-                    ignoreCase: true);
-        }
-
-        private static ICitySimulationBootstrapStrategy ResolveBootstrapStrategy(
-            IEnumerable<ICitySimulationBootstrapStrategy> simulationBootstrapStrategies,
-            SimulationKind simulationKind)
-        {
-            ICitySimulationBootstrapStrategy? strategy =
-                simulationBootstrapStrategies.SingleOrDefault(x => x.Kind == simulationKind);
-
-            return strategy ??
-                   throw new InvalidOperationException(
-                       $"City simulation bootstrap strategy is not registered for kind '{simulationKind}'.");
         }
 
         private async Task<CityCreatedDto?> TryGetExistingByProvisioningCorrelationAsync(

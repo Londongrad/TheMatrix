@@ -59,7 +59,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 roadSegmentRepository: roadSegmentRepository,
                 cityWeatherRepository: cityWeatherRepository,
                 clockRepository: clockRepository,
-                simulationBootstrapStrategies: [strategy],
+                simulationBootstrapStrategy: strategy,
                 outboxWriter: outboxWriter,
                 unitOfWork: unitOfWork);
 
@@ -184,7 +184,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 roadSegmentRepository: roadSegmentRepository,
                 cityWeatherRepository: cityWeatherRepository,
                 clockRepository: clockRepository,
-                simulationBootstrapStrategies: [strategy],
+                simulationBootstrapStrategy: strategy,
                 outboxWriter: outboxWriter,
                 unitOfWork: unitOfWork);
             CreateCityCommand command = CreateCommand(provisioningCorrelationId);
@@ -319,7 +319,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 roadSegmentRepository: new TopologyTestSupport.FakeRoadSegmentRepository(),
                 cityWeatherRepository: new WeatherTestSupport.FakeCityWeatherRepository(),
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
-                simulationBootstrapStrategies: [strategy],
+                simulationBootstrapStrategy: strategy,
                 outboxWriter: new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter(),
                 unitOfWork: unitOfWork);
 
