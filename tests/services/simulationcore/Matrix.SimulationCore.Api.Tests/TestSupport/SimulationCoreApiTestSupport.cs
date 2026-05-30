@@ -53,7 +53,6 @@ namespace Matrix.SimulationCore.Api.Tests.TestSupport
         {
             return new CreateCityRequest(
                 Name: "Mega City",
-                SimulationKind: "ClassicCity",
                 ClimateZone: "Continental",
                 Hemisphere: "Northern",
                 UtcOffsetMinutes: 180,

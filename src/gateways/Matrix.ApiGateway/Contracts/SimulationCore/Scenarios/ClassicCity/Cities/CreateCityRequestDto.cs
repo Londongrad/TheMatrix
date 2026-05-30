@@ -4,7 +4,6 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Citie
         string Name,
         DateTimeOffset StartSimTimeUtc,
         decimal SpeedMultiplier = 1.0m,
-        string SimulationKind = "ClassicCity",
         string ClimateZone = "Temperate",
         string Hemisphere = "Northern",
         int UtcOffsetMinutes = 0,

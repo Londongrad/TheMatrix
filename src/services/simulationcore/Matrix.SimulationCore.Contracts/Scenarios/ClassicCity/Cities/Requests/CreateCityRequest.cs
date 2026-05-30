@@ -2,7 +2,6 @@ namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests
 {
     public sealed record CreateCityRequest(
         string Name,
-        string? SimulationKind,
         string ClimateZone,
         string Hemisphere,
         int UtcOffsetMinutes,

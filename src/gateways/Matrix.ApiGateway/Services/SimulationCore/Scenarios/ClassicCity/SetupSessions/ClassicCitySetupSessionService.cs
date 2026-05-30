@@ -611,7 +611,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 Name: draft.Name,
                 StartSimTimeUtc: draft.StartSimTimeUtc.Value,
                 SpeedMultiplier: speedMultiplier,
-                SimulationKind: "ClassicCity",
                 ClimateZone: draft.ClimateZone,
                 Hemisphere: draft.Hemisphere,
                 UtcOffsetMinutes: utcOffsetMinutes,
@@ -975,9 +974,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             string economyBootstrapStatus = DetermineEconomyBootstrapStatus(provisioningStatus);
             CityPopulationBootstrapView? existingBootstrap = session.Provisioning?.PopulationBootstrap;
             CityEconomyBootstrapView? existingEconomyBootstrap = session.Provisioning?.EconomyBootstrap;
-            string simulationKind = session.SimulationKind ??
-                                    session.LaunchRequest?.SimulationKind ??
-                                    "ClassicCity";
+            string simulationKind = session.SimulationKind ?? "ClassicCity";
 
             session.CityId = provisioningStatus.CityId;
             session.SimulationKind = simulationKind;

@@ -16,7 +16,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities
             return citiesApiClient.CreateProvisionedCityAsync(
                 request: new CreateCityRequest(
                     Name: request.Name,
-                    SimulationKind: request.SimulationKind,
                     ClimateZone: request.ClimateZone,
                     Hemisphere: request.Hemisphere,
                     UtcOffsetMinutes: request.UtcOffsetMinutes,

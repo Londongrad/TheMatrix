@@ -42,7 +42,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.ClassicCity
                     second: 0,
                     offset: TimeSpan.Zero),
                 SpeedMultiplier: 1.5m,
-                SimulationKind: "ClassicCity",
                 ClimateZone: "Temperate",
                 Hemisphere: "Northern",
                 UtcOffsetMinutes: 540,
