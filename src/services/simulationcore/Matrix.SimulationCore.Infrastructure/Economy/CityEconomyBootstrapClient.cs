@@ -21,7 +21,7 @@ namespace Matrix.SimulationCore.Infrastructure.Economy
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
                 requestUri: url,
                 value: new InitializeCityEconomyRequest(
-                    SimulationKind: ClassicCityRuntime.ScenarioKey.Value,
+                    ScenarioKey: ClassicCityRuntime.ScenarioKey.Value,
                     EconomyProfile: economyProfile,
                     CreatedAtUtc: createdAtUtc),
                 cancellationToken: cancellationToken);

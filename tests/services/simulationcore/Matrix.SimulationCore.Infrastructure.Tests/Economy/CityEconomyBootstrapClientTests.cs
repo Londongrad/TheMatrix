@@ -62,7 +62,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Economy
             using var json = JsonDocument.Parse(request.Body!);
             Assert.Equal(
                 expected: "classic-city",
-                actual: json.RootElement.GetProperty("simulationKind")
+                actual: json.RootElement.GetProperty("scenarioKey")
                    .GetString());
             Assert.Equal(
                 expected: "Balanced",

@@ -105,7 +105,7 @@ namespace Matrix.Economy.Api.Tests.Controllers
                     expected: cityId,
                     actual: command.CityId);
                 Assert.Equal(
-                    expected: "ClassicCity",
+                    expected: "classic-city",
                     actual: command.ScenarioKey);
                 return CreateBootstrapResultDto(cityId);
             });
@@ -197,7 +197,7 @@ namespace Matrix.Economy.Api.Tests.Controllers
             IActionResult bootstrap = await controller.InitializeCityEconomy(
                 cityId: cityId,
                 request: new InitializeCityEconomyRequest(
-                    SimulationKind: "ClassicCity",
+                    ScenarioKey: "classic-city",
                     EconomyProfile: "Balanced",
                     CreatedAtUtc: new DateTimeOffset(
                         year: 2048,

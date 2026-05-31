@@ -260,7 +260,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
             CityEconomyBootstrapResultView result = await client.InitializeCityEconomyAsync(
                 cityId: cityId,
                 request: new InitializeCityEconomyRequest(
-                    SimulationKind: "ClassicCity",
+                    ScenarioKey: "classic-city",
                     EconomyProfile: "Balanced",
                     CreatedAtUtc: new DateTimeOffset(
                         year: 2048,
@@ -285,6 +285,10 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                 comparisonType: StringComparison.Ordinal);
             Assert.Contains(
                 expectedSubstring: "\"economyProfile\":\"Balanced\"",
+                actualString: request.Body,
+                comparisonType: StringComparison.Ordinal);
+            Assert.Contains(
+                expectedSubstring: "\"scenarioKey\":\"classic-city\"",
                 actualString: request.Body,
                 comparisonType: StringComparison.Ordinal);
         }
