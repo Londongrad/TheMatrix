@@ -138,7 +138,7 @@ namespace Matrix.Economy.Api.Controllers
             CityEconomyBootstrapResultDto result = await _sender.Send(
                 request: new InitializeCityEconomyCommand(
                     CityId: cityId,
-                    SimulationKind: request.SimulationKind,
+                    ScenarioKey: request.SimulationKind,
                     EconomyProfile: request.EconomyProfile,
                     CreatedAtUtc: request.CreatedAtUtc),
                 cancellationToken: cancellationToken);

@@ -106,7 +106,7 @@ namespace Matrix.Economy.Api.Tests.Controllers
                     actual: command.CityId);
                 Assert.Equal(
                     expected: "ClassicCity",
-                    actual: command.SimulationKind);
+                    actual: command.ScenarioKey);
                 return CreateBootstrapResultDto(cityId);
             });
             sender.Handle<GetCityBudgetLedgerFeedQuery, CursorPagedResult<BudgetLedgerEntryDto>>(query =>

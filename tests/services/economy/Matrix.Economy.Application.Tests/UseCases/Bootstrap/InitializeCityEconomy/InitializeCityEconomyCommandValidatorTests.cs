@@ -24,7 +24,7 @@ namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEcon
                 CreateCommand() with
                 {
                     CityId = Guid.Empty,
-                    SimulationKind = new string(
+                    ScenarioKey = new string(
                         c: 'x',
                         count: 65),
                     CreatedAtUtc = new DateTimeOffset(
@@ -43,7 +43,7 @@ namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEcon
                 filter: x => x.PropertyName == "CityId");
             Assert.Contains(
                 collection: result.Errors,
-                filter: x => x.PropertyName == "SimulationKind");
+                filter: x => x.PropertyName == "ScenarioKey");
             Assert.Contains(
                 collection: result.Errors,
                 filter: x => x.PropertyName == "CreatedAtUtc");
@@ -53,7 +53,7 @@ namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEcon
         {
             return new InitializeCityEconomyCommand(
                 CityId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-                SimulationKind: "ClassicCity",
+                ScenarioKey: "classic-city",
                 EconomyProfile: "baseline",
                 CreatedAtUtc: new DateTimeOffset(
                     year: 2048,

@@ -20,7 +20,7 @@ namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
 
             return await cityEconomyBootstrapService.BootstrapAsync(
                 cityId: request.CityId,
-                scenarioKey: request.SimulationKind,
+                scenarioKey: request.ScenarioKey,
                 economyProfile: request.EconomyProfile,
                 createdAtUtc: request.CreatedAtUtc,
                 cancellationToken: cancellationToken);

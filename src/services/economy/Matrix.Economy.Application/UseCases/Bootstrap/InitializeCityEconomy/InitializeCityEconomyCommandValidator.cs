@@ -9,7 +9,7 @@ namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
         {
             RuleFor(x => x.CityId)
                .NotEmpty();
-            RuleFor(x => x.SimulationKind)
+            RuleFor(x => x.ScenarioKey)
                .NotEmpty()
                .MaximumLength(64);
             RuleFor(x => x.CreatedAtUtc)

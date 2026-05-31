@@ -17,7 +17,7 @@ namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEcon
                 deletionRepository);
             var command = new InitializeCityEconomyCommand(
                 CityId: Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-                SimulationKind: "ClassicCity",
+                ScenarioKey: "classic-city",
                 EconomyProfile: "baseline",
                 CreatedAtUtc: new DateTimeOffset(
                     year: 2048,
@@ -36,7 +36,7 @@ namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEcon
                 expected: bootstrapService.Result,
                 actual: result);
             Assert.Equal(
-                expected: (command.CityId, command.SimulationKind, command.EconomyProfile, command.CreatedAtUtc),
+                expected: (command.CityId, command.ScenarioKey, command.EconomyProfile, command.CreatedAtUtc),
                 actual: bootstrapService.Request);
         }
 
@@ -64,7 +64,7 @@ namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEcon
                 handler.Handle(
                     request: new InitializeCityEconomyCommand(
                         CityId: cityId,
-                        SimulationKind: "ClassicCity",
+                        ScenarioKey: "classic-city",
                         EconomyProfile: "baseline",
                         CreatedAtUtc: deletionRepository.DeletedAtUtc.Value.AddDays(-1)),
                     cancellationToken: CancellationToken.None));
