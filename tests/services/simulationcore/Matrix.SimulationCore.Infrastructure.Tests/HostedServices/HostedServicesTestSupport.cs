@@ -8,7 +8,6 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
-using Matrix.SimulationCore.Domain.Simulation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
@@ -160,7 +159,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
         internal sealed class FakeClassicCityProvisioningOrchestrator : IClassicCityProvisioningOrchestrator
         {
             public Guid? RequestedCityId { get; private set; }
-            public string? RequestedSimulationKind { get; private set; }
             public Guid? RequestedPopulationBootstrapOperationId { get; private set; }
             public Guid? RequestedEconomyBootstrapOperationId { get; private set; }
             public int? RequestedPlannedPeopleCountOverride { get; private set; }
@@ -186,7 +184,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
 
             public async Task<CityProvisioningModel> ProvisionAsync(
                 Guid cityId,
-                string simulationKind,
                 Guid populationBootstrapOperationId,
                 Guid economyBootstrapOperationId,
                 int? plannedPeopleCountOverride,
@@ -194,7 +191,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
                 CancellationToken cancellationToken)
             {
                 RequestedCityId = cityId;
-                RequestedSimulationKind = simulationKind;
                 RequestedPopulationBootstrapOperationId = populationBootstrapOperationId;
                 RequestedEconomyBootstrapOperationId = economyBootstrapOperationId;
                 RequestedPlannedPeopleCountOverride = plannedPeopleCountOverride;

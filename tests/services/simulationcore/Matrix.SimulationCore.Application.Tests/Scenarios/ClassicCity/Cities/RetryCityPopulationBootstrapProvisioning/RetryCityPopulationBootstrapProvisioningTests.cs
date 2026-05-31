@@ -241,7 +241,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.R
 
             public Task<CityProvisioningModel> ProvisionAsync(
                 Guid cityId,
-                string simulationKind,
                 Guid populationBootstrapOperationId,
                 Guid economyBootstrapOperationId,
                 int? plannedPeopleCountOverride,

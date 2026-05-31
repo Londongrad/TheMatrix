@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Domain.Simulation;
 using Matrix.SimulationCore.Infrastructure.HostedServices;
 using Matrix.SimulationCore.Infrastructure.Options;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -76,9 +75,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
             Assert.Equal(
                 expected: city.Id.Value,
                 actual: orchestrator.RequestedCityId);
-            Assert.Equal(
-                expected: SimulationKind.ClassicCity.ToString(),
-                actual: orchestrator.RequestedSimulationKind);
             Assert.Equal(
                 expected: city.GenerationProfile.PlannedPeopleCount,
                 actual: orchestrator.RequestedPlannedPeopleCountOverride);

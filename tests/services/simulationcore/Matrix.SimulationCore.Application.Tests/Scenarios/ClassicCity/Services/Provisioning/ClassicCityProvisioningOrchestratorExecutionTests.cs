@@ -32,7 +32,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 orchestrator.ProvisionAsync(
                     cityId: Guid.NewGuid(),
-                    simulationKind: "ClassicCity",
                     populationBootstrapOperationId: Guid.NewGuid(),
                     economyBootstrapOperationId: Guid.NewGuid(),
                     plannedPeopleCountOverride: 25_000,
@@ -76,7 +75,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 12_345,
@@ -154,7 +152,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 25_000,
@@ -208,7 +205,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: null,
@@ -263,7 +259,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 20_000,
@@ -330,7 +325,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 12_345,
@@ -416,7 +410,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: null,
@@ -514,7 +507,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 240,
@@ -628,7 +620,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 200,
@@ -752,7 +743,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 200,
@@ -844,7 +834,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 200,
@@ -895,7 +884,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 25_000,
@@ -949,7 +937,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CityProvisioningModel result = await orchestrator.ProvisionAsync(
                 cityId: city.Id.Value,
-                simulationKind: "ClassicCity",
                 populationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 economyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: 25_000,
