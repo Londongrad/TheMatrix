@@ -8,14 +8,14 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
     public sealed class CityEconomyCostProfilePolicy
     {
         public CityEconomyCostProfileSnapshot CreateSeed(
-            string? simulationKind,
+            string? scenarioKey,
             string? economyProfile,
             DateTimeOffset asOfUtc)
         {
-            string normalizedSimulationKind =
-                simulationKind?.Trim().ToUpperInvariant() ?? string.Empty;
+            string normalizedScenarioKey =
+                scenarioKey?.Trim().ToUpperInvariant() ?? string.Empty;
 
-            if (normalizedSimulationKind is not "CLASSICCITY" and not "CLASSIC-CITY")
+            if (normalizedScenarioKey is not "CLASSICCITY" and not "CLASSIC-CITY")
                 return CityEconomyCostProfileSnapshot.Neutral(asOfUtc);
 
             return NormalizeEconomyProfile(economyProfile) switch

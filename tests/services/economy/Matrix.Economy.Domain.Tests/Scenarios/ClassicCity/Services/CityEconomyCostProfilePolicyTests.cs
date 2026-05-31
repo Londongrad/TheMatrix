@@ -12,7 +12,7 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
     public sealed class CityEconomyCostProfilePolicyTests
     {
         [Fact]
-        public void CreateSeed_WhenSimulationKindIsNotClassicCity_ReturnsNeutralSnapshot()
+        public void CreateSeed_WhenScenarioKeyIsNotClassicCity_ReturnsNeutralSnapshot()
         {
             DateTimeOffset asOfUtc = new(
                 year: 2048,
@@ -25,7 +25,7 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
             var policy = new CityEconomyCostProfilePolicy();
 
             CityEconomyCostProfileSnapshot snapshot = policy.CreateSeed(
-                simulationKind: "metro",
+                scenarioKey: "metro",
                 economyProfile: "struggling",
                 asOfUtc: asOfUtc);
 
@@ -58,7 +58,7 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
             var policy = new CityEconomyCostProfilePolicy();
 
             CityEconomyCostProfileSnapshot snapshot = policy.CreateSeed(
-                simulationKind: " classiccity ",
+                scenarioKey: " classiccity ",
                 economyProfile: " struggling ",
                 asOfUtc: new DateTimeOffset(
                     year: 2048,
@@ -95,7 +95,7 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
             var policy = new CityEconomyCostProfilePolicy();
 
             CityEconomyCostProfileSnapshot snapshot = policy.CreateSeed(
-                simulationKind: "classic-city",
+                scenarioKey: "classic-city",
                 economyProfile: "struggling",
                 asOfUtc: EconomyTestData.DefaultCreatedAtUtc);
 
@@ -110,7 +110,7 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
             var policy = new CityEconomyCostProfilePolicy();
 
             CityEconomyCostProfileSnapshot snapshot = policy.CreateSeed(
-                simulationKind: "CLASSICCITY",
+                scenarioKey: "CLASSICCITY",
                 economyProfile: "AFFLUENT",
                 asOfUtc: new DateTimeOffset(
                     year: 2048,

@@ -8,10 +8,10 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
     public sealed class CityEconomySimulationTemplatePolicy
     {
         public CityEconomySimulationTemplate Resolve(
-            string? simulationKind,
+            string? scenarioKey,
             string? economyProfile)
         {
-            return simulationKind?.Trim()
+            return scenarioKey?.Trim()
                    .ToUpperInvariant() switch
             {
                 "CLASSICCITY" or "CLASSIC-CITY" => BuildClassicCityTemplate(economyProfile),

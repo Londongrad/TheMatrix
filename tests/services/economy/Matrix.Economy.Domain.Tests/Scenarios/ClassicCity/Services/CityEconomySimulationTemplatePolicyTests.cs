@@ -13,7 +13,7 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
             var policy = new CityEconomySimulationTemplatePolicy();
 
             CityEconomySimulationTemplate template = policy.Resolve(
-                simulationKind: " classiccity ",
+                scenarioKey: " classiccity ",
                 economyProfile: " struggling ");
 
             Assert.Equal(
@@ -45,7 +45,7 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
             var policy = new CityEconomySimulationTemplatePolicy();
 
             CityEconomySimulationTemplate template = policy.Resolve(
-                simulationKind: "classic-city",
+                scenarioKey: "classic-city",
                 economyProfile: "balanced");
 
             Assert.Equal(
@@ -59,7 +59,7 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
             var policy = new CityEconomySimulationTemplatePolicy();
 
             CityEconomySimulationTemplate template = policy.Resolve(
-                simulationKind: "metro",
+                scenarioKey: "metro",
                 economyProfile: "ignored");
 
             Assert.Equal(
@@ -92,12 +92,12 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
         }
 
         [Fact]
-        public void Resolve_WhenSimulationKindIsUnknown_ReturnsFallbackTemplate()
+        public void Resolve_WhenScenarioKeyIsUnknown_ReturnsFallbackTemplate()
         {
             var policy = new CityEconomySimulationTemplatePolicy();
 
             CityEconomySimulationTemplate template = policy.Resolve(
-                simulationKind: "unknown",
+                scenarioKey: "unknown",
                 economyProfile: "affluent");
 
             Assert.Equal(

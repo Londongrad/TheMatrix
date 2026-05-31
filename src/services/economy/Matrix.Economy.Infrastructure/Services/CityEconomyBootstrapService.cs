@@ -40,7 +40,7 @@ namespace Matrix.Economy.Infrastructure.Services
             CancellationToken cancellationToken = default)
         {
             CityEconomySimulationTemplate template = simulationTemplatePolicy.Resolve(
-                simulationKind: simulationKind,
+                scenarioKey: simulationKind,
                 economyProfile: economyProfile);
 
             (CityBudget budget, bool budgetCreated) = await EnsureBudgetAsync(
@@ -110,7 +110,7 @@ namespace Matrix.Economy.Infrastructure.Services
                 return;
 
             CityEconomyCostProfileSnapshot seed = costProfilePolicy.CreateSeed(
-                simulationKind: simulationKind,
+                scenarioKey: simulationKind,
                 economyProfile: economyProfile,
                 asOfUtc: createdAtUtc);
 
