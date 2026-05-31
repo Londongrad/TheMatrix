@@ -1414,12 +1414,6 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 throw new NotSupportedException();
             }
 
-            public Task<IReadOnlyList<SimulationKindCatalogItemView>> GetSimulationKindsAsync(
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
             public Task<IReadOnlyList<CityListItemView>> ListCitiesAsync(
                 bool includeArchived,
                 CancellationToken cancellationToken = default)

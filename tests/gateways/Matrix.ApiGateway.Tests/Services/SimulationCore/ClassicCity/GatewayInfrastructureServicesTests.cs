@@ -253,12 +253,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.ClassicCity
                 return Task.FromResult(CreateProvisionedCityResult);
             }
 
-            public Task<IReadOnlyList<SimulationKindCatalogItemView>> GetSimulationKindsAsync(
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
             public Task<IReadOnlyList<CityListItemView>> ListCitiesAsync(
                 bool includeArchived,
                 CancellationToken cancellationToken = default)
