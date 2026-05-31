@@ -21,7 +21,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         IRoadSegmentRepository roadSegmentRepository,
         ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
-        IClassicCityBootstrapFactory simulationBootstrapStrategy,
+        IClassicCityBootstrapFactory bootstrapFactory,
         ISimulationCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, CityCreatedDto>
     {
@@ -39,7 +39,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                     return existing;
             }
 
-            ClassicCityBootstrapPlan bootstrapPlan = simulationBootstrapStrategy.CreatePlan(request);
+            ClassicCityBootstrapPlan bootstrapPlan = bootstrapFactory.CreatePlan(request);
 
             City city = bootstrapPlan.City;
             SimulationInstance instance = bootstrapPlan.Instance;

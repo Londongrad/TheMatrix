@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services.Bootstrap
 {
-    public sealed class ClassicCitySimulationBootstrapStrategyTests
+    public sealed class ClassicCityBootstrapFactoryTests
     {
         [Fact]
         public void CreatePlan_WithDefaultOptionalValues_UsesDefaultsGeneratedSeedAndFactories()
@@ -33,7 +33,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                     city,
                     _) => WeatherTestSupport.CreateCityWeather(city.Id)
             };
-            var strategy = new ClassicCitySimulationBootstrapStrategy(
+            var factory = new ClassicCityBootstrapFactory(
                 cityTopologyBootstrapFactory: topologyFactory,
                 cityWeatherBootstrapFactory: weatherFactory,
                 timeProvider: new ApplicationTestSupport.FixedTimeProvider(createdAtUtc));
@@ -58,9 +58,9 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 ProvisioningCorrelationId: null,
                 ScenarioModelSetVersion: null);
 
-            ClassicCityBootstrapPlan plan = strategy.CreatePlan(command);
+            ClassicCityBootstrapPlan plan = factory.CreatePlan(command);
 
-            Assert.True(strategy.SupportsAutomaticPopulationBootstrap);
+            Assert.True(factory.SupportsAutomaticPopulationBootstrap);
             Assert.Same(
                 expected: plan.City,
                 actual: topologyFactory.RequestedCity);
@@ -157,7 +157,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                     city,
                     _) => WeatherTestSupport.CreateCityWeather(city.Id)
             };
-            var strategy = new ClassicCitySimulationBootstrapStrategy(
+            var factory = new ClassicCityBootstrapFactory(
                 cityTopologyBootstrapFactory: topologyFactory,
                 cityWeatherBootstrapFactory: weatherFactory,
                 timeProvider: new ApplicationTestSupport.FixedTimeProvider(createdAtUtc));
@@ -183,7 +183,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 ProvisioningCorrelationId: provisioningCorrelationId,
                 ScenarioModelSetVersion: "classic-city-v9");
 
-            ClassicCityBootstrapPlan plan = strategy.CreatePlan(command);
+            ClassicCityBootstrapPlan plan = factory.CreatePlan(command);
 
             Assert.Same(
                 expected: plan.City,

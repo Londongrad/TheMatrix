@@ -25,7 +25,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity
             services.AddScoped<IWeatherAdvanceExecutor, WeatherAdvanceExecutor>();
             services.AddSingleton<ICityGenerationContentCatalog, CityGenerationContentCatalog>();
             services.AddSingleton<ICityNameSuggestionService, CityNameSuggestionService>();
-            services.AddSingleton<IClassicCityBootstrapFactory, ClassicCitySimulationBootstrapStrategy>();
+            services.AddSingleton<IClassicCityBootstrapFactory, ClassicCityBootstrapFactory>();
             services.AddSingleton<ICityTopologyBootstrapFactory, CityTopologyBootstrapFactory>();
             services.AddSingleton<IClassicCityRoutePlanner, ClassicCityRoutePlanner>();
             services.AddSingleton<IWeatherStatePlanner, WeatherStatePlanner>();

@@ -14,7 +14,7 @@ using Matrix.SimulationCore.Domain.Simulation;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap
 {
-    public sealed class ClassicCitySimulationBootstrapStrategy(
+    public sealed class ClassicCityBootstrapFactory(
         ICityTopologyBootstrapFactory cityTopologyBootstrapFactory,
         ICityWeatherBootstrapFactory cityWeatherBootstrapFactory,
         TimeProvider timeProvider) : IClassicCityBootstrapFactory

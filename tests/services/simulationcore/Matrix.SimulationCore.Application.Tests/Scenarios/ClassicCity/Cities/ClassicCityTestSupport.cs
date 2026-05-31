@@ -156,7 +156,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
             public IReadOnlyList<string> StreetNamePresets { get; init; } = Array.Empty<string>();
         }
 
-        internal sealed class FakeCitySimulationBootstrapStrategy : IClassicCityBootstrapFactory
+        internal sealed class FakeClassicCityBootstrapFactory : IClassicCityBootstrapFactory
         {
             public CreateCityCommand? RequestedCommand { get; private set; }
             public ClassicCityBootstrapPlan? Plan { get; init; }

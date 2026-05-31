@@ -38,7 +38,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             var roadSegmentRepository = new TopologyTestSupport.FakeRoadSegmentRepository();
             var cityWeatherRepository = new WeatherTestSupport.FakeCityWeatherRepository();
             var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
-            var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+            var factory = new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
             {
                 SupportsAutomaticPopulationBootstrap = true
             };
@@ -55,7 +55,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 roadSegmentRepository: roadSegmentRepository,
                 cityWeatherRepository: cityWeatherRepository,
                 clockRepository: clockRepository,
-                simulationBootstrapStrategy: strategy,
+                bootstrapFactory: factory,
                 outboxWriter: outboxWriter,
                 unitOfWork: unitOfWork);
 
@@ -87,7 +87,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             Assert.Empty(roadSegmentRepository.AddedRoadSegments);
             Assert.Null(cityWeatherRepository.AddedWeather);
             Assert.Null(clockRepository.AddedClock);
-            Assert.Null(strategy.RequestedCommand);
+            Assert.Null(factory.RequestedCommand);
             Assert.Empty(outboxWriter.CityEvents);
             Assert.Empty(outboxWriter.WeatherEvents);
             Assert.Equal(
@@ -152,7 +152,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             var roadSegmentRepository = new TopologyTestSupport.FakeRoadSegmentRepository();
             var cityWeatherRepository = new WeatherTestSupport.FakeCityWeatherRepository();
             var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
-            var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+            var factory = new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
             {
                 SupportsAutomaticPopulationBootstrap = true,
                 Plan = new ClassicCityBootstrapPlan(
@@ -176,7 +176,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 roadSegmentRepository: roadSegmentRepository,
                 cityWeatherRepository: cityWeatherRepository,
                 clockRepository: clockRepository,
-                simulationBootstrapStrategy: strategy,
+                bootstrapFactory: factory,
                 outboxWriter: outboxWriter,
                 unitOfWork: unitOfWork);
             CreateCityCommand command = CreateCommand(provisioningCorrelationId);
@@ -187,7 +187,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
 
             Assert.Same(
                 expected: command,
-                actual: strategy.RequestedCommand);
+                actual: factory.RequestedCommand);
             Assert.Equal(
                 expected: provisioningCorrelationId,
                 actual: cityRepository.RequestedProvisioningCorrelationId);
@@ -195,7 +195,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 expected: city,
                 actual: cityRepository.AddedCity);
             Assert.Same(
-                expected: strategy.Plan.Instance,
+                expected: factory.Plan.Instance,
                 actual: simulationInstanceRepository.AddedInstance);
             Assert.Same(
                 expected: weather,
@@ -235,7 +235,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             SimulationCreatedDomainEvent simulationCreatedEvent =
                 Assert.IsType<SimulationCreatedDomainEvent>(simulationEvent);
             Assert.Equal(
-                expected: strategy.Plan.Instance.Id,
+                expected: factory.Plan.Instance.Id,
                 actual: simulationCreatedEvent.SimulationId);
             IDomainEvent cityEvent = Assert.Single(outboxWriter.CityEvents);
             CityCreatedDomainEvent createdEvent = Assert.IsType<CityCreatedDomainEvent>(cityEvent);
@@ -282,7 +282,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
             cityRepository.CityByProvisioningCorrelationSequence.Enqueue(null);
             cityRepository.CityByProvisioningCorrelationSequence.Enqueue(existingCity);
-            var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+            var factory = new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
             {
                 SupportsAutomaticPopulationBootstrap = true,
                 Plan = new ClassicCityBootstrapPlan(
@@ -307,7 +307,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 roadSegmentRepository: new TopologyTestSupport.FakeRoadSegmentRepository(),
                 cityWeatherRepository: new WeatherTestSupport.FakeCityWeatherRepository(),
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
-                simulationBootstrapStrategy: strategy,
+                bootstrapFactory: factory,
                 outboxWriter: new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter(),
                 unitOfWork: unitOfWork);
 

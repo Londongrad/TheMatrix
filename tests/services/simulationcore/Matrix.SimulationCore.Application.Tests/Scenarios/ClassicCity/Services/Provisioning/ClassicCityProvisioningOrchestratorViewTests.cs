@@ -195,8 +195,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 cityAnchorRepository: new TopologyTestSupport.FakeCityAnchorRepository(),
                 residentialBuildingRepository: new TopologyTestSupport.FakeResidentialBuildingRepository(),
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
-                simulationBootstrapStrategy:
-                    new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                bootstrapFactory:
+                    new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
                     {
                         SupportsAutomaticPopulationBootstrap = supportsAutomaticPopulationBootstrap
                     },

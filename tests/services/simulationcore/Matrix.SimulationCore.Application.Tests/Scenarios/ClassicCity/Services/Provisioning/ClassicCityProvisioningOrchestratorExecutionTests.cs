@@ -322,8 +322,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
                 },
-                simulationBootstrapStrategy:
-                    new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                bootstrapFactory:
+                    new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
                     {
                         SupportsAutomaticPopulationBootstrap = true
                     },
@@ -408,8 +408,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                     Buildings = [building]
                 },
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
-                simulationBootstrapStrategy:
-                    new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                bootstrapFactory:
+                    new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
                     {
                         SupportsAutomaticPopulationBootstrap = true
                     },
@@ -506,8 +506,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
                 },
-                simulationBootstrapStrategy:
-                    new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                bootstrapFactory:
+                    new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
                     {
                         SupportsAutomaticPopulationBootstrap = true
                     },
@@ -620,8 +620,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = clock
                 },
-                simulationBootstrapStrategy:
-                    new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                bootstrapFactory:
+                    new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
                     {
                         SupportsAutomaticPopulationBootstrap = true
                     },
@@ -744,8 +744,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
                 },
-                simulationBootstrapStrategy:
-                    new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                bootstrapFactory:
+                    new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
                     {
                         SupportsAutomaticPopulationBootstrap = true
                     },
@@ -836,8 +836,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 {
                     ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
                 },
-                simulationBootstrapStrategy:
-                    new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                bootstrapFactory:
+                    new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
                     {
                         SupportsAutomaticPopulationBootstrap = true
                     },
@@ -986,8 +986,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 cityAnchorRepository: new TopologyTestSupport.FakeCityAnchorRepository(),
                 residentialBuildingRepository: new TopologyTestSupport.FakeResidentialBuildingRepository(),
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
-                simulationBootstrapStrategy:
-                    new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                bootstrapFactory:
+                    new ClassicCityTestSupport.FakeClassicCityBootstrapFactory
                     {
                         SupportsAutomaticPopulationBootstrap = supportsAutomaticPopulationBootstrap
                     },

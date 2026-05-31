@@ -32,7 +32,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
         ICityAnchorRepository cityAnchorRepository,
         IResidentialBuildingRepository residentialBuildingRepository,
         ISimulationClockRepository clockRepository,
-        IClassicCityBootstrapFactory simulationBootstrapStrategy,
+        IClassicCityBootstrapFactory bootstrapFactory,
         ICityEconomyBootstrapClient economyBootstrapClient,
         ICityPopulationBootstrapClient populationBootstrapClient,
         ILogger<ClassicCityProvisioningOrchestrator> logger) : IClassicCityProvisioningOrchestrator
@@ -443,7 +443,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
         private bool SupportsAutomaticPopulationBootstrap()
         {
-            return simulationBootstrapStrategy.SupportsAutomaticPopulationBootstrap;
+            return bootstrapFactory.SupportsAutomaticPopulationBootstrap;
         }
 
         private async Task<City> GetCityOrThrowAsync(
