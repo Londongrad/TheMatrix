@@ -25,45 +25,10 @@ namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stoc
                         minute: 0,
                         second: 0,
                         offset: TimeSpan.FromHours(9)),
-                    SimulationKind: string.Empty,
                     DevelopmentLevel: "advanced"));
 
             Assert.False(result.IsValid);
-            Assert.True(result.Errors.Count >= 3);
-        }
-
-        [Fact]
-        public async Task Handler_IgnoresNonClassicCitySimulationKind()
-        {
-            var repository = new FakeCityStockpileRepository();
-            var unitOfWork = new FakeUnitOfWork();
-            var outboxWriter = new FakeCityStockpileSnapshotOutboxWriter();
-            var handler = new SeedCityStockpilesCommandHandler(
-                repository: repository,
-                deletionStateRepository: new FakeCityResourceDeletionStateRepository(),
-                unitOfWork: unitOfWork,
-                outboxWriter: outboxWriter,
-                policy: new CityStockpilePolicy(),
-                timeProvider: CreateTimeProvider());
-
-            SeedCityStockpilesResult result = await handler.Handle(
-                request: new SeedCityStockpilesCommand(
-                    CityId: CityId,
-                    CreatedAtUtc: CreatedAtUtc,
-                    SimulationKind: "Sandbox",
-                    DevelopmentLevel: "advanced"),
-                cancellationToken: CancellationToken.None);
-
-            Assert.Equal(
-                expected: SeedCityStockpilesStatus.IgnoredSimulationKind,
-                actual: result.Status);
-            Assert.Equal(
-                expected: 0,
-                actual: repository.AddCallCount);
-            Assert.Empty(outboxWriter.Snapshots);
-            Assert.Equal(
-                expected: 0,
-                actual: unitOfWork.SaveChangesCallCount);
+            Assert.True(result.Errors.Count >= 2);
         }
 
         [Fact]
@@ -85,7 +50,6 @@ namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stoc
                 request: new SeedCityStockpilesCommand(
                     CityId: CityId,
                     CreatedAtUtc: CreatedAtUtc,
-                    SimulationKind: "ClassicCity",
                     DevelopmentLevel: "advanced"),
                 cancellationToken: CancellationToken.None);
 
@@ -119,7 +83,6 @@ namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stoc
                 request: new SeedCityStockpilesCommand(
                     CityId: CityId,
                     CreatedAtUtc: CreatedAtUtc,
-                    SimulationKind: "ClassicCity",
                     DevelopmentLevel: "advanced"),
                 cancellationToken: CancellationToken.None);
 
@@ -154,7 +117,6 @@ namespace Matrix.Resources.Application.Tests.Scenarios.ClassicCity.UseCases.Stoc
                 request: new SeedCityStockpilesCommand(
                     CityId: CityId,
                     CreatedAtUtc: CreatedAtUtc,
-                    SimulationKind: "ClassicCity",
                     DevelopmentLevel: "struggling"),
                 cancellationToken: CancellationToken.None);
 

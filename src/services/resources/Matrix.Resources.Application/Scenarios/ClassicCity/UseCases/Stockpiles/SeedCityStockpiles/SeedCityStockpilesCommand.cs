@@ -5,6 +5,5 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed record SeedCityStockpilesCommand(
         Guid CityId,
         DateTimeOffset CreatedAtUtc,
-        string SimulationKind,
         string DevelopmentLevel) : IRequest<SeedCityStockpilesResult>;
 }

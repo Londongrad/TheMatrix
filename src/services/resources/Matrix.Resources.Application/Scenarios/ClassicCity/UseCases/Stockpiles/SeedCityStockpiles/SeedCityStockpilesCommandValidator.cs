@@ -9,9 +9,6 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             RuleFor(x => x.CityId)
                .NotEmpty();
 
-            RuleFor(x => x.SimulationKind)
-               .NotEmpty();
-
             RuleFor(x => x.CreatedAtUtc)
                .Must(x => x.Offset == TimeSpan.Zero)
                .WithMessage("CreatedAtUtc must be provided in UTC.");

@@ -23,13 +23,6 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             SeedCityStockpilesCommand request,
             CancellationToken cancellationToken)
         {
-            if (!ClassicCityScenario.IsMatch(request.SimulationKind))
-                return new SeedCityStockpilesResult(
-                    Status: SeedCityStockpilesStatus.IgnoredSimulationKind,
-                    CityId: request.CityId,
-                    SupplyStressIndex: 0m,
-                    EmergencyRationingEnabled: false);
-
             SimulationHostId simulationHostId = new(request.CityId);
 
             DateTimeOffset? deletedAtUtc = await deletionStateRepository.GetDeletedAtUtcAsync(

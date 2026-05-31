@@ -1,4 +1,3 @@
-using Matrix.Resources.Application.Scenarios.ClassicCity;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.AdvanceCityStockpiles;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.SeedCityStockpiles;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers;
@@ -16,7 +15,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
     public sealed class CityLifecycleAndTimeConsumersTests
     {
         [Fact]
-        public async Task CityCreatedConsumeAsync_WhenSimulationKindDoesNotMatch_DoesNothingAndLogsDebug()
+        public async Task CityCreatedConsumeAsync_WhenRuntimeKeysDoNotMatch_DoesNothingAndLogsDebug()
         {
             var mediator = new TestSeedMediator
             {
@@ -75,9 +74,6 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
             Assert.Equal(
                 expected: message.CreatedAtUtc,
                 actual: command.CreatedAtUtc);
-            Assert.Equal(
-                expected: ClassicCityScenario.Name,
-                actual: command.SimulationKind);
             Assert.Equal(
                 expected: message.DevelopmentLevel,
                 actual: command.DevelopmentLevel);

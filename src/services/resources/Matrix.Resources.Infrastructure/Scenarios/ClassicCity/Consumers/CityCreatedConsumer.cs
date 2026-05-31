@@ -1,5 +1,4 @@
 using MassTransit;
-using Matrix.Resources.Application.Scenarios.ClassicCity;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.SeedCityStockpiles;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
@@ -38,7 +37,6 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                 request: new SeedCityStockpilesCommand(
                     CityId: message.HostId,
                     CreatedAtUtc: message.CreatedAtUtc,
-                    SimulationKind: ClassicCityScenario.Name,
                     DevelopmentLevel: message.DevelopmentLevel),
                 cancellationToken: cancellationToken);
 
@@ -56,14 +54,6 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                     logger.LogDebug(
                         message: "Skipped duplicate classic city stockpile seed for cityId={CityId}.",
                         message.HostId);
-                    break;
-
-                case SeedCityStockpilesStatus.IgnoredSimulationKind:
-                    logger.LogDebug(
-                        message:
-                        "Skipped classic city stockpile seed for cityId={CityId} because simulationKind={SimulationKind} is not handled by this scenario.",
-                        message.HostId,
-                        ClassicCityScenario.Name);
                     break;
 
                 case SeedCityStockpilesStatus.CityDeleted:

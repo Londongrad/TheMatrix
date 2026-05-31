@@ -4,7 +4,6 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     {
         Applied = 1,
         Duplicate = 2,
-        IgnoredSimulationKind = 3,
         CityDeleted = 4
     }
 }
