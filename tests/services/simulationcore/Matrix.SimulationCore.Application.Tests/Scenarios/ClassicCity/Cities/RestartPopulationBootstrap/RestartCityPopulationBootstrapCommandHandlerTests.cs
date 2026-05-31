@@ -102,9 +102,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.R
                 expected: previousEconomyOperationId,
                 actual: result.EconomyBootstrapOperationId!.Value);
             Assert.Equal(
-                expected: "ClassicCity",
-                actual: result.SimulationKind);
-            Assert.Equal(
                 expected: 32000,
                 actual: city.GenerationProfile.PlannedPeopleCount);
             Assert.Equal(

@@ -330,8 +330,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                     new CityPopulationBootstrapRestartedView(
                         CityId: cityId,
                         PopulationBootstrapOperationId: result.PopulationBootstrapOperationId!.Value,
-                        EconomyBootstrapOperationId: result.EconomyBootstrapOperationId!.Value,
-                        SimulationKind: result.SimulationKind!)),
+                        EconomyBootstrapOperationId: result.EconomyBootstrapOperationId!.Value)),
                 RestartCityPopulationBootstrapStatus.NotFound => Results.NotFound(),
                 RestartCityPopulationBootstrapStatus.NotAllowed => Results.Conflict(
                     new

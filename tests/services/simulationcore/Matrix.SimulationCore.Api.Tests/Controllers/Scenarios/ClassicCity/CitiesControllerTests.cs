@@ -295,8 +295,7 @@ namespace Matrix.SimulationCore.Api.Tests.Controllers.Scenarios.ClassicCity
             sender.Handle<RestartCityPopulationBootstrapCommand, RestartCityPopulationBootstrapResult>(_ =>
                 RestartCityPopulationBootstrapResult.Restarted(
                     populationOperationId: populationOperationId,
-                    economyOperationId: economyOperationId,
-                    simulationKind: "ClassicCity"));
+                    economyOperationId: economyOperationId));
             sender
                .Handle<RetryCityPopulationBootstrapProvisioningCommand,
                     RetryCityPopulationBootstrapProvisioningResult>(command =>

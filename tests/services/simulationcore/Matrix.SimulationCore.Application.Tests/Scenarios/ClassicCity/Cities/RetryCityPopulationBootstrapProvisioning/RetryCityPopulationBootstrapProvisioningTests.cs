@@ -126,8 +126,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.R
             {
                 Result = RestartCityPopulationBootstrapResult.Restarted(
                     populationOperationId: Guid.NewGuid(),
-                    economyOperationId: Guid.NewGuid(),
-                    simulationKind: "ClassicCity")
+                    economyOperationId: Guid.NewGuid())
             };
             var orchestrator = new FakeClassicCityProvisioningOrchestrator
             {

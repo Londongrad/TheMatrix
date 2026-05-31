@@ -10,19 +10,16 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
     public sealed record RestartCityPopulationBootstrapResult(
         RestartCityPopulationBootstrapStatus Status,
         Guid? PopulationBootstrapOperationId,
-        Guid? EconomyBootstrapOperationId,
-        string? SimulationKind)
+        Guid? EconomyBootstrapOperationId)
     {
         public static RestartCityPopulationBootstrapResult Restarted(
             Guid populationOperationId,
-            Guid economyOperationId,
-            string simulationKind)
+            Guid economyOperationId)
         {
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.Restarted,
                 PopulationBootstrapOperationId: populationOperationId,
-                EconomyBootstrapOperationId: economyOperationId,
-                SimulationKind: simulationKind);
+                EconomyBootstrapOperationId: economyOperationId);
         }
 
         public static RestartCityPopulationBootstrapResult NotFound()
@@ -30,8 +27,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.NotFound,
                 PopulationBootstrapOperationId: null,
-                EconomyBootstrapOperationId: null,
-                SimulationKind: null);
+                EconomyBootstrapOperationId: null);
         }
 
         public static RestartCityPopulationBootstrapResult NotAllowed()
@@ -39,8 +35,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.NotAllowed,
                 PopulationBootstrapOperationId: null,
-                EconomyBootstrapOperationId: null,
-                SimulationKind: null);
+                EconomyBootstrapOperationId: null);
         }
     }
 }
