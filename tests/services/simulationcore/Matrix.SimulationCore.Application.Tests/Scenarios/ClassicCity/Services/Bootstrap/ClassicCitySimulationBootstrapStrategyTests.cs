@@ -61,11 +61,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             CitySimulationBootstrapPlan plan = strategy.CreatePlan(command);
 
-            Assert.Equal(
-                expected: SimulationKind.ClassicCity,
-                actual: strategy.Descriptor.Kind);
-            Assert.True(strategy.Descriptor.IsDefault);
-            Assert.True(strategy.Descriptor.SupportsAutomaticPopulationBootstrap);
+            Assert.True(strategy.SupportsAutomaticPopulationBootstrap);
             Assert.Same(
                 expected: plan.City,
                 actual: topologyFactory.RequestedCity);

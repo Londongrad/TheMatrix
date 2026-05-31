@@ -20,15 +20,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
         ICityWeatherBootstrapFactory cityWeatherBootstrapFactory,
         TimeProvider timeProvider) : ICitySimulationBootstrapStrategy
     {
-        private static readonly SimulationKindDescriptor KindDescriptor = new(
-            Kind: SimulationKind.ClassicCity,
-            DisplayName: "Classic City",
-            Description:
-            "District-based city simulation with topology, weather, clock control, and automatic population bootstrap.",
-            SupportsAutomaticPopulationBootstrap: true,
-            IsDefault: true);
-
-        public SimulationKindDescriptor Descriptor => KindDescriptor;
+        public bool SupportsAutomaticPopulationBootstrap => true;
 
         public CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request)
         {
@@ -136,7 +128,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                 Clock: clock,
                 Topology: topology,
                 Weather: weather,
-                SupportsAutomaticPopulationBootstrap: Descriptor.SupportsAutomaticPopulationBootstrap);
+                SupportsAutomaticPopulationBootstrap: SupportsAutomaticPopulationBootstrap);
         }
 
         private static TEnum ParseOrDefault<TEnum>(

@@ -443,7 +443,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
         private bool SupportsAutomaticPopulationBootstrap()
         {
-            return simulationBootstrapStrategy.Descriptor.SupportsAutomaticPopulationBootstrap;
+            return simulationBootstrapStrategy.SupportsAutomaticPopulationBootstrap;
         }
 
         private async Task<City> GetCityOrThrowAsync(

@@ -40,11 +40,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
             var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
             {
-                Descriptor = new SimulationKindDescriptor(
-                    Kind: SimulationKind.ClassicCity,
-                    DisplayName: "Classic City",
-                    Description: "Classic city simulation.",
-                    SupportsAutomaticPopulationBootstrap: true)
+                SupportsAutomaticPopulationBootstrap = true
             };
             var outboxWriter = new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter();
             var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork();
@@ -158,11 +154,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             var clockRepository = new SimulationTestSupport.FakeSimulationClockRepository();
             var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
             {
-                Descriptor = new SimulationKindDescriptor(
-                    Kind: SimulationKind.ClassicCity,
-                    DisplayName: "Classic City",
-                    Description: "Classic city simulation.",
-                    SupportsAutomaticPopulationBootstrap: true),
+                SupportsAutomaticPopulationBootstrap = true,
                 Plan = new CitySimulationBootstrapPlan(
                     Instance: SimulationTestSupport.CreateInstance(city),
                     City: city,
@@ -292,11 +284,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             cityRepository.CityByProvisioningCorrelationSequence.Enqueue(existingCity);
             var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
             {
-                Descriptor = new SimulationKindDescriptor(
-                    Kind: SimulationKind.ClassicCity,
-                    DisplayName: "Classic City",
-                    Description: "Classic city simulation.",
-                    SupportsAutomaticPopulationBootstrap: true),
+                SupportsAutomaticPopulationBootstrap = true,
                 Plan = new CitySimulationBootstrapPlan(
                     Instance: SimulationTestSupport.CreateInstance(createdCity),
                     City: createdCity,

@@ -4,7 +4,7 @@ namespace Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions
 {
     public interface ICitySimulationBootstrapStrategy
     {
-        SimulationKindDescriptor Descriptor { get; }
+        bool SupportsAutomaticPopulationBootstrap { get; }
 
         CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request);
     }

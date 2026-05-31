@@ -1,7 +1,6 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
-using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
@@ -199,11 +198,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
-                        Descriptor = new SimulationKindDescriptor(
-                            Kind: SimulationKind.ClassicCity,
-                            DisplayName: "Classic City",
-                            Description: "Classic city simulation.",
-                            SupportsAutomaticPopulationBootstrap: supportsAutomaticPopulationBootstrap)
+                        SupportsAutomaticPopulationBootstrap = supportsAutomaticPopulationBootstrap
                     },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: new ProvisioningTestSupport.FakeCityPopulationBootstrapClient(),

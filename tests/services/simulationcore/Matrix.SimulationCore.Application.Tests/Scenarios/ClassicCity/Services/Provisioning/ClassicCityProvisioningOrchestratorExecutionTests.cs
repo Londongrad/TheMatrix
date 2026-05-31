@@ -6,7 +6,6 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Co
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompletePopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
-using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
@@ -326,11 +325,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
-                        Descriptor = new SimulationKindDescriptor(
-                            Kind: SimulationKind.ClassicCity,
-                            DisplayName: "Classic City",
-                            Description: "Classic city simulation.",
-                            SupportsAutomaticPopulationBootstrap: true)
+                        SupportsAutomaticPopulationBootstrap = true
                     },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
@@ -416,11 +411,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
-                        Descriptor = new SimulationKindDescriptor(
-                            Kind: SimulationKind.ClassicCity,
-                            DisplayName: "Classic City",
-                            Description: "Classic city simulation.",
-                            SupportsAutomaticPopulationBootstrap: true)
+                        SupportsAutomaticPopulationBootstrap = true
                     },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
@@ -518,11 +509,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
-                        Descriptor = new SimulationKindDescriptor(
-                            Kind: SimulationKind.ClassicCity,
-                            DisplayName: "Classic City",
-                            Description: "Classic city simulation.",
-                            SupportsAutomaticPopulationBootstrap: true)
+                        SupportsAutomaticPopulationBootstrap = true
                     },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
@@ -636,11 +623,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
-                        Descriptor = new SimulationKindDescriptor(
-                            Kind: SimulationKind.ClassicCity,
-                            DisplayName: "Classic City",
-                            Description: "Classic city simulation.",
-                            SupportsAutomaticPopulationBootstrap: true)
+                        SupportsAutomaticPopulationBootstrap = true
                     },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
@@ -764,11 +747,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
-                        Descriptor = new SimulationKindDescriptor(
-                            Kind: SimulationKind.ClassicCity,
-                            DisplayName: "Classic City",
-                            Description: "Classic city simulation.",
-                            SupportsAutomaticPopulationBootstrap: true)
+                        SupportsAutomaticPopulationBootstrap = true
                     },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
@@ -860,11 +839,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
-                        Descriptor = new SimulationKindDescriptor(
-                            Kind: SimulationKind.ClassicCity,
-                            DisplayName: "Classic City",
-                            Description: "Classic city simulation.",
-                            SupportsAutomaticPopulationBootstrap: true)
+                        SupportsAutomaticPopulationBootstrap = true
                     },
                 economyBootstrapClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
                 populationBootstrapClient: populationClient,
@@ -1014,11 +989,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 simulationBootstrapStrategy:
                     new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
                     {
-                        Descriptor = new SimulationKindDescriptor(
-                            Kind: SimulationKind.ClassicCity,
-                            DisplayName: "Classic City",
-                            Description: "Classic city simulation.",
-                            SupportsAutomaticPopulationBootstrap: supportsAutomaticPopulationBootstrap)
+                        SupportsAutomaticPopulationBootstrap = supportsAutomaticPopulationBootstrap
                     },
                 economyBootstrapClient: economyClient,
                 populationBootstrapClient: populationClient,
