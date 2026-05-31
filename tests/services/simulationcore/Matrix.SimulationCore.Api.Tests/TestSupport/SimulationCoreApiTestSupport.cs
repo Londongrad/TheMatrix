@@ -106,7 +106,6 @@ namespace Matrix.SimulationCore.Api.Tests.TestSupport
                 CityId: effectiveCityId,
                 SimulationId: effectiveCityId,
                 Name: name,
-                SimulationKind: "ClassicCity",
                 Status: status,
                 ClimateZone: "Continental",
                 Hemisphere: "Northern",

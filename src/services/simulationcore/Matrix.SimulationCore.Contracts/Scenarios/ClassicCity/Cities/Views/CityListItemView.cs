@@ -4,7 +4,6 @@ namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views
         Guid CityId,
         Guid SimulationId,
         string Name,
-        string SimulationKind,
         string Status,
         DateTimeOffset CreatedAtUtc,
         DateTimeOffset? PopulationBootstrapCompletedAtUtc,

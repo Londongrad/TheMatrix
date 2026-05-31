@@ -1,7 +1,6 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Common;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
 
 namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.GetCity
@@ -45,9 +44,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.G
             Assert.Equal(
                 expected: city.Name.Value,
                 actual: result.Name);
-            Assert.Equal(
-                expected: SimulationKind.ClassicCity.ToString(),
-                actual: result.SimulationKind);
             Assert.Equal(
                 expected: city.Status.ToString(),
                 actual: result.Status);

@@ -190,7 +190,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
                 CityId: Guid.NewGuid(),
                 SimulationId: Guid.NewGuid(),
                 Name: name,
-                SimulationKind: "ClassicCity",
                 Status: "Active",
                 CreatedAtUtc: createdAtUtc,
                 PopulationBootstrapCompletedAtUtc: createdAtUtc.AddMinutes(5),

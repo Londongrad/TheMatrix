@@ -121,7 +121,6 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.SimulationCore
                     CityId: Guid.Parse("8a3894d0-6989-4259-bbb4-9cfbd8c8b95c"),
                     SimulationId: Guid.Parse("52df4d3c-3aa6-43ba-94f1-3c51350b7f9b"),
                     Name: "Novy Mir",
-                    SimulationKind: "ClassicCity",
                     Status: "Active",
                     CreatedAtUtc: new DateTimeOffset(
                         year: 2048,

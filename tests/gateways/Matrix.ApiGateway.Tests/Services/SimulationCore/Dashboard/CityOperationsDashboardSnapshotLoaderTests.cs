@@ -97,12 +97,9 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
         }
 
         [Fact]
-        public async Task LoadReadyClassicCitySnapshotsAsync_WhenCitiesAreNotReadyClassicCity_SkipsPanelLoads()
+        public async Task LoadReadyClassicCitySnapshotsAsync_WhenCitiesAreNotReady_SkipsPanelLoads()
         {
             CityListItemView readyClassicCity = CreateCity(name: "Ready Classic");
-            CityListItemView otherSimulationKind = CreateCity(
-                name: "Different Kind",
-                simulationKind: "OtherSimulation");
             CityListItemView archivedClassicCity = CreateCity(
                 name: "Archived Classic",
                 archivedAtUtc: new DateTimeOffset(
@@ -133,7 +130,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
                     allCities:
                     [
                         readyClassicCity,
-                        otherSimulationKind,
                         archivedClassicCity,
                         provisioningClassicCity
                     ],
@@ -251,7 +247,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
 
         private static CityListItemView CreateCity(
             string name = "Neo City",
-            string simulationKind = "ClassicCity",
             string status = "Active",
             DateTimeOffset? archivedAtUtc = null)
         {
@@ -268,7 +263,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
                 CityId: Guid.NewGuid(),
                 SimulationId: Guid.NewGuid(),
                 Name: name,
-                SimulationKind: simulationKind,
                 Status: status,
                 CreatedAtUtc: createdAtUtc,
                 PopulationBootstrapCompletedAtUtc: status.Equals(

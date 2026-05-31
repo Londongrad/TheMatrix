@@ -45,7 +45,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CancellationToken cancellationToken)
         {
             CityListItemView[] readyClassicCities = allCities
-               .Where(city => IsReady(city) && IsClassicCity(city))
+               .Where(IsReady)
                .ToArray();
 
             if (readyClassicCities.Length == 0)
@@ -398,11 +398,5 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                        comparisonType: StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool IsClassicCity(CityListItemView city)
-        {
-            return city.SimulationKind.Equals(
-                value: "ClassicCity",
-                comparisonType: StringComparison.OrdinalIgnoreCase);
-        }
     }
 }
