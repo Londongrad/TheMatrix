@@ -43,7 +43,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Economy
             var cityId = Guid.Parse("11111111-1111-1111-1111-111111111111");
             CityEconomyBootstrapResult result = await client.InitializeAsync(
                 cityId: cityId,
-                simulationKind: "ClassicCity",
                 economyProfile: "Balanced",
                 createdAtUtc: CreatedAtUtc,
                 cancellationToken: CancellationToken.None);
@@ -62,7 +61,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Economy
 
             using var json = JsonDocument.Parse(request.Body!);
             Assert.Equal(
-                expected: "ClassicCity",
+                expected: "classic-city",
                 actual: json.RootElement.GetProperty("simulationKind")
                    .GetString());
             Assert.Equal(
@@ -103,7 +102,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Economy
             HttpRequestException exception = await Assert.ThrowsAsync<HttpRequestException>(()
                 => client.InitializeAsync(
                     cityId: Guid.NewGuid(),
-                    simulationKind: "ClassicCity",
                     economyProfile: "Balanced",
                     createdAtUtc: CreatedAtUtc,
                     cancellationToken: CancellationToken.None));
@@ -131,7 +129,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Economy
             InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(()
                 => client.InitializeAsync(
                     cityId: Guid.NewGuid(),
-                    simulationKind: "ClassicCity",
                     economyProfile: "Balanced",
                     createdAtUtc: CreatedAtUtc,
                     cancellationToken: CancellationToken.None));
@@ -158,7 +155,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Economy
 
             await Assert.ThrowsAsync<JsonException>(() => client.InitializeAsync(
                 cityId: Guid.NewGuid(),
-                simulationKind: "ClassicCity",
                 economyProfile: "Balanced",
                 createdAtUtc: CreatedAtUtc,
                 cancellationToken: CancellationToken.None));

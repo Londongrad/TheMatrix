@@ -94,9 +94,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 expected: city.Id.Value,
                 actual: economyClient.RequestedCityId);
             Assert.Equal(
-                expected: "ClassicCity",
-                actual: economyClient.RequestedSimulationKind);
-            Assert.Equal(
                 expected: city.GenerationProfile.EconomyProfile.ToString(),
                 actual: economyClient.RequestedEconomyProfile);
             object sentCommand = Assert.Single(mediator.SentRequests);

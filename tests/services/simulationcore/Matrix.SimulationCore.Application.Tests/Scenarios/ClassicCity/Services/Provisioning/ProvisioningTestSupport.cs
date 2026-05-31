@@ -74,7 +74,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
         internal sealed class FakeCityEconomyBootstrapClient : ICityEconomyBootstrapClient
         {
             public Guid? RequestedCityId { get; private set; }
-            public string? RequestedSimulationKind { get; private set; }
             public string? RequestedEconomyProfile { get; private set; }
             public DateTimeOffset? RequestedCreatedAtUtc { get; private set; }
             public CityEconomyBootstrapResult? Result { get; init; }
@@ -82,13 +81,11 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 
             public Task<CityEconomyBootstrapResult> InitializeAsync(
                 Guid cityId,
-                string simulationKind,
                 string economyProfile,
                 DateTimeOffset createdAtUtc,
                 CancellationToken cancellationToken)
             {
                 RequestedCityId = cityId;
-                RequestedSimulationKind = simulationKind;
                 RequestedEconomyProfile = economyProfile;
                 RequestedCreatedAtUtc = createdAtUtc;
 

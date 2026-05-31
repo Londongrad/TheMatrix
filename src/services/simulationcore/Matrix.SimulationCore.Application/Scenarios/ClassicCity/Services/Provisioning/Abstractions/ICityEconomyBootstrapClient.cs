@@ -4,7 +4,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
     {
         Task<CityEconomyBootstrapResult> InitializeAsync(
             Guid cityId,
-            string simulationKind,
             string economyProfile,
             DateTimeOffset createdAtUtc,
             CancellationToken cancellationToken);

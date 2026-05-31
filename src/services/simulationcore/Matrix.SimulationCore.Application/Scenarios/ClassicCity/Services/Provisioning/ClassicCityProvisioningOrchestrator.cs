@@ -81,7 +81,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
             CityEconomyBootstrapView economyBootstrap = await EnsureEconomyBootstrapAsync(
                 city: city,
-                simulationKind: simulationKind,
                 operationId: economyBootstrapOperationId,
                 cancellationToken: cancellationToken);
 
@@ -153,7 +152,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
         private async Task<CityEconomyBootstrapView> EnsureEconomyBootstrapAsync(
             City city,
-            string simulationKind,
             Guid operationId,
             CancellationToken cancellationToken)
         {
@@ -169,7 +167,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
             CityEconomyBootstrapView bootstrap = await BootstrapEconomyAsync(
                 city: city,
-                simulationKind: simulationKind,
                 operationId: operationId,
                 cancellationToken: cancellationToken);
 
@@ -240,7 +237,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
         private async Task<CityEconomyBootstrapView> BootstrapEconomyAsync(
             City city,
-            string simulationKind,
             Guid operationId,
             CancellationToken cancellationToken)
         {
@@ -248,7 +244,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
             {
                 CityEconomyBootstrapResult result = await economyBootstrapClient.InitializeAsync(
                     cityId: city.Id.Value,
-                    simulationKind: simulationKind,
                     economyProfile: city.GenerationProfile.EconomyProfile.ToString(),
                     createdAtUtc: city.CreatedAtUtc,
                     cancellationToken: cancellationToken);

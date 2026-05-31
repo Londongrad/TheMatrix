@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 
 namespace Matrix.SimulationCore.Infrastructure.Economy
 {
@@ -11,7 +12,6 @@ namespace Matrix.SimulationCore.Infrastructure.Economy
 
         public async Task<CityEconomyBootstrapResult> InitializeAsync(
             Guid cityId,
-            string simulationKind,
             string economyProfile,
             DateTimeOffset createdAtUtc,
             CancellationToken cancellationToken)
@@ -21,7 +21,7 @@ namespace Matrix.SimulationCore.Infrastructure.Economy
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
                 requestUri: url,
                 value: new InitializeCityEconomyRequest(
-                    SimulationKind: simulationKind,
+                    SimulationKind: ClassicCityRuntime.ScenarioKey.Value,
                     EconomyProfile: economyProfile,
                     CreatedAtUtc: createdAtUtc),
                 cancellationToken: cancellationToken);
