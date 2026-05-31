@@ -1,7 +1,7 @@
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 
-namespace Matrix.SimulationCore.Application.Abstractions.Persistence
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence
 {
     public interface ICityWeatherRepository
     {

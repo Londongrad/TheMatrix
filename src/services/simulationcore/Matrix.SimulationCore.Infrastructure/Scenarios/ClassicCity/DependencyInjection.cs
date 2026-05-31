@@ -1,5 +1,6 @@
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.DependencyInjection;

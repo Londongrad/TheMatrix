@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Events;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
