@@ -2,8 +2,8 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Events;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
-using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
@@ -39,7 +39,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                     return existing;
             }
 
-            CitySimulationBootstrapPlan bootstrapPlan = simulationBootstrapStrategy.CreatePlan(request);
+            ClassicCityBootstrapPlan bootstrapPlan = simulationBootstrapStrategy.CreatePlan(request);
 
             City city = bootstrapPlan.City;
             SimulationInstance instance = bootstrapPlan.Instance;

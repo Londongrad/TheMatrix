@@ -1,3 +1,4 @@
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 
 namespace Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions
@@ -6,6 +7,6 @@ namespace Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions
     {
         bool SupportsAutomaticPopulationBootstrap { get; }
 
-        CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request);
+        ClassicCityBootstrapPlan CreatePlan(CreateCityCommand request);
     }
 }

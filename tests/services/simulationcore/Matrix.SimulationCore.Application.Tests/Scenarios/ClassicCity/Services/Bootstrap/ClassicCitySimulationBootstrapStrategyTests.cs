@@ -1,7 +1,6 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
-using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Application.Tests.TestSupport;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
@@ -59,7 +58,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 ProvisioningCorrelationId: null,
                 ScenarioModelSetVersion: null);
 
-            CitySimulationBootstrapPlan plan = strategy.CreatePlan(command);
+            ClassicCityBootstrapPlan plan = strategy.CreatePlan(command);
 
             Assert.True(strategy.SupportsAutomaticPopulationBootstrap);
             Assert.Same(
@@ -184,7 +183,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 ProvisioningCorrelationId: provisioningCorrelationId,
                 ScenarioModelSetVersion: "classic-city-v9");
 
-            CitySimulationBootstrapPlan plan = strategy.CreatePlan(command);
+            ClassicCityBootstrapPlan plan = strategy.CreatePlan(command);
 
             Assert.Same(
                 expected: plan.City,

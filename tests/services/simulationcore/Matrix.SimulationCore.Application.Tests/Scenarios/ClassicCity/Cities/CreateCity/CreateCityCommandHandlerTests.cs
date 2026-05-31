@@ -2,7 +2,7 @@ using System.Data;
 using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
-using Matrix.SimulationCore.Application.Services.Bootstrap;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Application.Tests.TestSupport;
@@ -155,7 +155,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
             {
                 SupportsAutomaticPopulationBootstrap = true,
-                Plan = new CitySimulationBootstrapPlan(
+                Plan = new ClassicCityBootstrapPlan(
                     Instance: SimulationTestSupport.CreateInstance(city),
                     City: city,
                     Clock: clock,
@@ -285,7 +285,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
             {
                 SupportsAutomaticPopulationBootstrap = true,
-                Plan = new CitySimulationBootstrapPlan(
+                Plan = new ClassicCityBootstrapPlan(
                     Instance: SimulationTestSupport.CreateInstance(createdCity),
                     City: createdCity,
                     Clock: clock,

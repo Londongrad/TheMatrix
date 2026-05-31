@@ -3,7 +3,6 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
-using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
@@ -22,7 +21,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
     {
         public bool SupportsAutomaticPopulationBootstrap => true;
 
-        public CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request)
+        public ClassicCityBootstrapPlan CreatePlan(CreateCityCommand request)
         {
             ClimateZone climateZone = Enum.Parse<ClimateZone>(
                 value: request.ClimateZone,
@@ -122,7 +121,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                 startTime: startSimTime,
                 speed: speed);
 
-            return new CitySimulationBootstrapPlan(
+            return new ClassicCityBootstrapPlan(
                 Instance: instance,
                 City: city,
                 Clock: clock,

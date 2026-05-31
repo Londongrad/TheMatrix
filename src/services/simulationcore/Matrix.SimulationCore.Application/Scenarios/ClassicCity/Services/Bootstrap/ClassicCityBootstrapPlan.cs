@@ -3,9 +3,9 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Domain.Simulation;
 
-namespace Matrix.SimulationCore.Application.Services.Bootstrap
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap
 {
-    public sealed record CitySimulationBootstrapPlan(
+    public sealed record ClassicCityBootstrapPlan(
         SimulationInstance Instance,
         City City,
         SimulationClock Clock,

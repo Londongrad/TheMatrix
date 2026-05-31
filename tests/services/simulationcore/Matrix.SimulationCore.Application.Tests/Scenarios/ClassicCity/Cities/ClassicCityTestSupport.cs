@@ -4,7 +4,7 @@ using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
-using Matrix.SimulationCore.Application.Services.Bootstrap;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
@@ -159,10 +159,10 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
         internal sealed class FakeCitySimulationBootstrapStrategy : ICitySimulationBootstrapStrategy
         {
             public CreateCityCommand? RequestedCommand { get; private set; }
-            public CitySimulationBootstrapPlan? Plan { get; init; }
+            public ClassicCityBootstrapPlan? Plan { get; init; }
             public bool SupportsAutomaticPopulationBootstrap { get; init; } = true;
 
-            public CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request)
+            public ClassicCityBootstrapPlan CreatePlan(CreateCityCommand request)
             {
                 RequestedCommand = request;
                 return Plan ?? throw new NotSupportedException();
