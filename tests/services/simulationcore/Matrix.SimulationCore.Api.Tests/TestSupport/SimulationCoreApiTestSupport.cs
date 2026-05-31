@@ -142,7 +142,6 @@ namespace Matrix.SimulationCore.Api.Tests.TestSupport
 
             return new CityProvisioningModel(
                 CityId: effectiveCityId,
-                SimulationKind: "ClassicCity",
                 PopulationBootstrap: new CityPopulationBootstrapModel(
                     OperationId: Guid.Parse("f91e16fd-ee76-4330-8dda-3fb5b8749d52"),
                     Status: "Completed",

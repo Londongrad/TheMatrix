@@ -2,7 +2,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisi
 {
     public sealed record CityProvisioningModel(
         Guid CityId,
-        string SimulationKind,
         CityPopulationBootstrapModel PopulationBootstrap,
         CityEconomyBootstrapModel EconomyBootstrap);
 }

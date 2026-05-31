@@ -209,7 +209,6 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
 
                 return new CityProvisioningModel(
                     CityId: cityId,
-                    SimulationKind: simulationKind,
                     PopulationBootstrap: new CityPopulationBootstrapModel(
                         OperationId: populationBootstrapOperationId,
                         Status: "Running",

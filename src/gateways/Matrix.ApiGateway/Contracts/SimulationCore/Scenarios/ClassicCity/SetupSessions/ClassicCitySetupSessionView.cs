@@ -9,7 +9,6 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Setup
         string CurrentStepId,
         ClassicCitySetupDraftDto Draft,
         Guid? CityId,
-        string? SimulationKind,
         CityProvisioningView? Provisioning,
         string? FailureCode,
         string? FailureMessage,

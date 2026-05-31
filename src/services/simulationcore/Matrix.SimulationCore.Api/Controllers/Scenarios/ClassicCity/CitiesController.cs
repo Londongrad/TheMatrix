@@ -561,7 +561,6 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
         {
             return new CityProvisioningView(
                 CityId: model.CityId,
-                SimulationKind: model.SimulationKind,
                 PopulationBootstrap: MapToPopulationBootstrapView(model.PopulationBootstrap),
                 EconomyBootstrap: MapToEconomyBootstrapView(model.EconomyBootstrap));
         }

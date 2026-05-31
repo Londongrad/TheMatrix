@@ -267,9 +267,6 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 CurrentStepId: currentStepId,
                 Draft: draft ?? CreateClassicCitySetupDraft(),
                 CityId: cityId,
-                SimulationKind: cityId is null
-                    ? null
-                    : "ClassicCity",
                 Provisioning: provisioning,
                 FailureCode: failureCode,
                 FailureMessage: failureMessage,
@@ -349,7 +346,6 @@ namespace Matrix.ApiGateway.Tests.TestSupport
         {
             return new CityProvisioningView(
                 CityId: cityId,
-                SimulationKind: "ClassicCity",
                 PopulationBootstrap: new CityPopulationBootstrapView(
                     OperationId: Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                     Status: populationStatus,

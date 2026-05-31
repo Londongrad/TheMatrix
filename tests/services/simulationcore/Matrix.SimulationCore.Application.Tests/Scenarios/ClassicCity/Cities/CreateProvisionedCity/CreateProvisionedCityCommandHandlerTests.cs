@@ -25,7 +25,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             CreateCityCommand cityCommand = CreateCityCommand();
             var expected = new CityProvisioningModel(
                 CityId: Guid.NewGuid(),
-                SimulationKind: "ClassicCity",
                 PopulationBootstrap: new CityPopulationBootstrapModel(
                     OperationId: Guid.NewGuid(),
                     Status: "Provisioning",

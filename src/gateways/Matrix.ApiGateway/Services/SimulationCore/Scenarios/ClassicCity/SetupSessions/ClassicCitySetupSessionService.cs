@@ -344,7 +344,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                     session.FailureCode = null;
                     session.FailureMessage = null;
                     session.CityId = null;
-                    session.SimulationKind = null;
                     session.Provisioning = null;
                     session.LaunchQueuedAtUtc = now;
                     session.StartedAtUtc = null;
@@ -974,13 +973,10 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             string economyBootstrapStatus = DetermineEconomyBootstrapStatus(provisioningStatus);
             CityPopulationBootstrapView? existingBootstrap = session.Provisioning?.PopulationBootstrap;
             CityEconomyBootstrapView? existingEconomyBootstrap = session.Provisioning?.EconomyBootstrap;
-            string simulationKind = session.SimulationKind ?? "ClassicCity";
 
             session.CityId = provisioningStatus.CityId;
-            session.SimulationKind = simulationKind;
             session.Provisioning = new CityProvisioningView(
                 CityId: provisioningStatus.CityId,
-                SimulationKind: simulationKind,
                 PopulationBootstrap: new CityPopulationBootstrapView(
                     OperationId: provisioningStatus.PopulationBootstrapOperationId,
                     Status: populationBootstrapStatus,
@@ -1170,7 +1166,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             string economyBootstrapStatus = provisioning.EconomyBootstrap.Status.Trim();
 
             session.CityId = provisioning.CityId;
-            session.SimulationKind = provisioning.SimulationKind;
             session.Provisioning = provisioning;
             bool economyFailed = economyBootstrapStatus.Equals(
                 value: EconomyBootstrapStatusFailed,
@@ -1402,7 +1397,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 CurrentStepId: session.CurrentStepId,
                 Draft: session.Draft,
                 CityId: session.CityId,
-                SimulationKind: session.SimulationKind,
                 Provisioning: session.Provisioning,
                 FailureCode: session.FailureCode,
                 FailureMessage: session.FailureMessage,

@@ -91,7 +91,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                     comparisonType: StringComparison.Ordinal))
                 return new CityProvisioningView(
                     CityId: cityId,
-                    SimulationKind: simulationKind,
                     PopulationBootstrap: BuildPopulationBootstrapFromState(
                         city: city,
                         operationId: populationBootstrapOperationId,
@@ -101,7 +100,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
             if (!SupportsAutomaticPopulationBootstrap())
                 return new CityProvisioningView(
                     CityId: cityId,
-                    SimulationKind: simulationKind,
                     PopulationBootstrap: new CityPopulationBootstrapView(
                         OperationId: populationBootstrapOperationId,
                         Status: PopulationBootstrapStatuses.Skipped,
@@ -122,14 +120,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
             return new CityProvisioningView(
                 CityId: cityId,
-                SimulationKind: simulationKind,
                 PopulationBootstrap: populationBootstrap,
                 EconomyBootstrap: economyBootstrap);
         }
 
         private CityProvisioningView BuildProvisioningViewFromState(City city)
         {
-            string simulationKind = SimulationKind.ClassicCity.ToString();
             CityEconomyBootstrapView economyBootstrap = BuildEconomyBootstrapFromState(
                 city: city,
                 operationId: city.EconomyBootstrapOperationId);
@@ -137,7 +133,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
             if (!SupportsAutomaticPopulationBootstrap())
                 return new CityProvisioningView(
                     CityId: city.Id.Value,
-                    SimulationKind: simulationKind,
                     PopulationBootstrap: new CityPopulationBootstrapView(
                         OperationId: city.PopulationBootstrapOperationId,
                         Status: PopulationBootstrapStatuses.Skipped,
@@ -149,7 +144,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
             return new CityProvisioningView(
                 CityId: city.Id.Value,
-                SimulationKind: simulationKind,
                 PopulationBootstrap: BuildPopulationBootstrapFromState(
                     city: city,
                     operationId: city.PopulationBootstrapOperationId,

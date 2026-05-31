@@ -221,7 +221,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.ClassicCity.SetupSessi
                 ownerUserId: ownerUserId,
                 status: "BootstrappingPopulation");
             session.CityId = cityId;
-            session.SimulationKind = "ClassicCity";
             session.LaunchRequest = CreateCityLaunchRequest(provisioningCorrelationId: sessionId);
             session.LaunchAuthContext = CreateLaunchAuthSnapshot(
                 userId: ownerUserId,

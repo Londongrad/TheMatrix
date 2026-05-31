@@ -107,7 +107,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.R
             var cityId = Guid.NewGuid();
             var provisioning = new CityProvisioningModel(
                 CityId: cityId,
-                SimulationKind: "ClassicCity",
                 PopulationBootstrap: new CityPopulationBootstrapModel(
                     OperationId: Guid.NewGuid(),
                     Status: "Provisioning",

@@ -15,7 +15,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
         public CreateCityRequestDto? LaunchRequest { get; set; }
         public ClassicCitySetupSessionLaunchAuthSnapshot? LaunchAuthContext { get; set; }
         public Guid? CityId { get; set; }
-        public string? SimulationKind { get; set; }
         public CityProvisioningView? Provisioning { get; set; }
         public string? FailureCode { get; set; }
         public string? FailureMessage { get; set; }

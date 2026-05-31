@@ -26,7 +26,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.ClassicCity
             {
                 CreateProvisionedCityResult = new CityProvisioningView(
                     CityId: Guid.Parse("bfcd3260-b9a7-445b-9474-f8ff8ad5691c"),
-                    SimulationKind: "ClassicCity",
                     PopulationBootstrap: CreatePopulationBootstrapView(),
                     EconomyBootstrap: CreateEconomyBootstrapView())
             };
@@ -92,7 +91,6 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.ClassicCity
             {
                 RetryProvisioningResult = new CityProvisioningView(
                     CityId: cityId,
-                    SimulationKind: "ClassicCity",
                     PopulationBootstrap: CreatePopulationBootstrapView(),
                     EconomyBootstrap: CreateEconomyBootstrapView())
             };
@@ -228,13 +226,11 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.ClassicCity
 
             public CityProvisioningView CreateProvisionedCityResult { get; set; } = new(
                 CityId: Guid.NewGuid(),
-                SimulationKind: "ClassicCity",
                 PopulationBootstrap: CreatePopulationBootstrapView(),
                 EconomyBootstrap: CreateEconomyBootstrapView());
 
             public CityProvisioningView RetryProvisioningResult { get; set; } = new(
                 CityId: Guid.NewGuid(),
-                SimulationKind: "ClassicCity",
                 PopulationBootstrap: CreatePopulationBootstrapView(),
                 EconomyBootstrap: CreateEconomyBootstrapView());
 

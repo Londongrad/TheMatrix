@@ -49,9 +49,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 expected: city.Id.Value,
                 actual: result.CityId);
             Assert.Equal(
-                expected: "ClassicCity",
-                actual: result.SimulationKind);
-            Assert.Equal(
                 expected: "Skipped",
                 actual: result.PopulationBootstrap.Status);
             Assert.Equal(
