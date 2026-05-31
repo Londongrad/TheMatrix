@@ -44,7 +44,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
                 actual: bootstrapService.CityId);
             Assert.Equal(
                 expected: message.ScenarioKey,
-                actual: bootstrapService.SimulationKind);
+                actual: bootstrapService.ScenarioKey);
             Assert.Equal(
                 expected: message.EconomyProfile,
                 actual: bootstrapService.EconomyProfile);
@@ -194,19 +194,19 @@ namespace Matrix.Economy.Infrastructure.Tests.Consumers
                 UnitSymbol: "$");
 
             public Guid CityId { get; private set; }
-            public string SimulationKind { get; private set; } = string.Empty;
+            public string ScenarioKey { get; private set; } = string.Empty;
             public string? EconomyProfile { get; private set; }
             public DateTimeOffset CreatedAtUtc { get; private set; }
 
             public Task<CityEconomyBootstrapResultDto> BootstrapAsync(
                 Guid cityId,
-                string simulationKind,
+                string scenarioKey,
                 string? economyProfile,
                 DateTimeOffset createdAtUtc,
                 CancellationToken cancellationToken = default)
             {
                 CityId = cityId;
-                SimulationKind = simulationKind;
+                ScenarioKey = scenarioKey;
                 EconomyProfile = economyProfile;
                 CreatedAtUtc = createdAtUtc;
                 return Task.FromResult(Result);

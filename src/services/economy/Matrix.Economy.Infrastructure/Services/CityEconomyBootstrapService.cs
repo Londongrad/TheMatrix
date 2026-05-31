@@ -34,13 +34,13 @@ namespace Matrix.Economy.Infrastructure.Services
 
         public async Task<CityEconomyBootstrapResultDto> BootstrapAsync(
             Guid cityId,
-            string simulationKind,
+            string scenarioKey,
             string? economyProfile,
             DateTimeOffset createdAtUtc,
             CancellationToken cancellationToken = default)
         {
             CityEconomySimulationTemplate template = simulationTemplatePolicy.Resolve(
-                scenarioKey: simulationKind,
+                scenarioKey: scenarioKey,
                 economyProfile: economyProfile);
 
             (CityBudget budget, bool budgetCreated) = await EnsureBudgetAsync(
@@ -79,7 +79,7 @@ namespace Matrix.Economy.Infrastructure.Services
 
             await EnsureCostProfileStateAsync(
                 cityId: cityId,
-                simulationKind: simulationKind,
+                scenarioKey: scenarioKey,
                 economyProfile: economyProfile,
                 createdAtUtc: createdAtUtc,
                 cancellationToken: cancellationToken);
@@ -97,7 +97,7 @@ namespace Matrix.Economy.Infrastructure.Services
 
         private async Task EnsureCostProfileStateAsync(
             Guid cityId,
-            string simulationKind,
+            string scenarioKey,
             string? economyProfile,
             DateTimeOffset createdAtUtc,
             CancellationToken cancellationToken)
@@ -110,7 +110,7 @@ namespace Matrix.Economy.Infrastructure.Services
                 return;
 
             CityEconomyCostProfileSnapshot seed = costProfilePolicy.CreateSeed(
-                scenarioKey: simulationKind,
+                scenarioKey: scenarioKey,
                 economyProfile: economyProfile,
                 asOfUtc: createdAtUtc);
 

@@ -47,7 +47,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
 
             CityEconomyBootstrapResultDto result = await cityEconomyBootstrapService.BootstrapAsync(
                 cityId: message.HostId,
-                simulationKind: message.ScenarioKey,
+                scenarioKey: message.ScenarioKey,
                 economyProfile: message.EconomyProfile,
                 createdAtUtc: message.CreatedAtUtc,
                 cancellationToken: cancellationToken);
@@ -63,7 +63,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
 
             logger.LogInformation(
                 message:
-                "Initialized economy context for cityId={CityId}, simulationKind={SimulationKind}, economyProfile={EconomyProfile}, budgetCreated={BudgetCreated}, createdAllocations={CreatedAllocations}, createdBusinesses={CreatedBusinesses}.",
+                "Initialized economy context for cityId={CityId}, scenarioKey={ScenarioKey}, economyProfile={EconomyProfile}, budgetCreated={BudgetCreated}, createdAllocations={CreatedAllocations}, createdBusinesses={CreatedBusinesses}.",
                 message.HostId,
                 message.ScenarioKey,
                 message.EconomyProfile,

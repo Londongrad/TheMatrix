@@ -6,7 +6,7 @@ namespace Matrix.Economy.Application.Abstractions
     {
         Task<CityEconomyBootstrapResultDto> BootstrapAsync(
             Guid cityId,
-            string simulationKind,
+            string scenarioKey,
             string? economyProfile,
             DateTimeOffset createdAtUtc,
             CancellationToken cancellationToken = default);

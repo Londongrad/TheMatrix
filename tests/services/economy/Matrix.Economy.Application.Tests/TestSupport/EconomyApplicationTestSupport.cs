@@ -176,7 +176,7 @@ namespace Matrix.Economy.Application.Tests.TestSupport
 
         internal sealed class FakeCityEconomyBootstrapService : ICityEconomyBootstrapService
         {
-            public (Guid CityId, string SimulationKind, string? EconomyProfile, DateTimeOffset CreatedAtUtc)? Request
+            public (Guid CityId, string ScenarioKey, string? EconomyProfile, DateTimeOffset CreatedAtUtc)? Request
             {
                 get;
                 private set;
@@ -194,12 +194,12 @@ namespace Matrix.Economy.Application.Tests.TestSupport
 
             public Task<CityEconomyBootstrapResultDto> BootstrapAsync(
                 Guid cityId,
-                string simulationKind,
+                string scenarioKey,
                 string? economyProfile,
                 DateTimeOffset createdAtUtc,
                 CancellationToken cancellationToken = default)
             {
-                Request = (cityId, simulationKind, economyProfile, createdAtUtc);
+                Request = (cityId, scenarioKey, economyProfile, createdAtUtc);
                 return Task.FromResult(Result);
             }
         }
