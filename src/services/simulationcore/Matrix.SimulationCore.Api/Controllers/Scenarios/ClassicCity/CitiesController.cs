@@ -71,8 +71,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 value: new CityCreatedView(
                     CityId: created.CityId,
                     PopulationBootstrapOperationId: created.PopulationBootstrapOperationId,
-                    EconomyBootstrapOperationId: created.EconomyBootstrapOperationId,
-                    SimulationKind: created.SimulationKind));
+                    EconomyBootstrapOperationId: created.EconomyBootstrapOperationId));
         }
 
         [HttpPost("provisioning")]

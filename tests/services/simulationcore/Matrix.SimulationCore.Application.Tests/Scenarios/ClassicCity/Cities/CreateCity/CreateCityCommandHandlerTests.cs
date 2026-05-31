@@ -73,9 +73,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 expected: existingCity.EconomyBootstrapOperationId,
                 actual: result.EconomyBootstrapOperationId);
             Assert.Equal(
-                expected: SimulationKind.ClassicCity.ToString(),
-                actual: result.SimulationKind);
-            Assert.Equal(
                 expected: provisioningCorrelationId,
                 actual: cityRepository.RequestedProvisioningCorrelationId);
             Assert.Null(cityRepository.AddedCity);
@@ -257,9 +254,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             Assert.Equal(
                 expected: city.EconomyBootstrapOperationId,
                 actual: result.EconomyBootstrapOperationId);
-            Assert.Equal(
-                expected: "ClassicCity",
-                actual: result.SimulationKind);
         }
 
         [Fact]
@@ -324,9 +318,6 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             Assert.Equal(
                 expected: existingCity.EconomyBootstrapOperationId,
                 actual: result.EconomyBootstrapOperationId);
-            Assert.Equal(
-                expected: SimulationKind.ClassicCity.ToString(),
-                actual: result.SimulationKind);
             Assert.Equal(
                 expected: 2,
                 actual: cityRepository.GetByProvisioningCorrelationCallCount);

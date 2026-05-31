@@ -82,8 +82,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                     ? new CityCreatedDto(
                         CityId: city.Id.Value,
                         PopulationBootstrapOperationId: city.PopulationBootstrapOperationId,
-                        EconomyBootstrapOperationId: city.EconomyBootstrapOperationId,
-                        SimulationKind: "ClassicCity")
+                        EconomyBootstrapOperationId: city.EconomyBootstrapOperationId)
                     : null
             };
             var cityRepository = new ClassicCityTestSupport.FakeCityRepository
@@ -149,8 +148,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                     ? new CityCreatedDto(
                         CityId: Guid.NewGuid(),
                         PopulationBootstrapOperationId: Guid.NewGuid(),
-                        EconomyBootstrapOperationId: Guid.NewGuid(),
-                        SimulationKind: "ClassicCity")
+                        EconomyBootstrapOperationId: Guid.NewGuid())
                     : null
             };
             ClassicCityProvisioningOrchestrator orchestrator = CreateOrchestrator(

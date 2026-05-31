@@ -84,8 +84,7 @@ namespace Matrix.SimulationCore.Api.Tests.TestSupport
             return new CityCreatedDto(
                 CityId: cityId ?? Guid.Parse("71b8b30b-d43c-4111-b1da-02c4d258cb18"),
                 PopulationBootstrapOperationId: Guid.Parse("f91e16fd-ee76-4330-8dda-3fb5b8749d52"),
-                EconomyBootstrapOperationId: Guid.Parse("2c03f709-08b6-4d6c-8789-f45f5ecdd3a3"),
-                SimulationKind: "ClassicCity");
+                EconomyBootstrapOperationId: Guid.Parse("2c03f709-08b6-4d6c-8789-f45f5ecdd3a3"));
         }
 
         public static CityDto CreateCityDto(

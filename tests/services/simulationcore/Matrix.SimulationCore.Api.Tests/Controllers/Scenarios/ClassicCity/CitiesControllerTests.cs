@@ -81,10 +81,6 @@ namespace Matrix.SimulationCore.Api.Tests.Controllers.Scenarios.ClassicCity
             Assert.Equal(
                 expected: created.CityId,
                 actual: createdView.CityId);
-            Assert.Equal(
-                expected: created.SimulationKind,
-                actual: createdView.SimulationKind);
-
             CityProvisioningView provisioningView = AssertResult<CityProvisioningView>(
                 result: createProvisioned,
                 expectedStatusCode: StatusCodes.Status201Created);
