@@ -74,7 +74,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                     utcOffsetMinutes: request.UtcOffsetMinutes,
                     generationProfile: generationProfile,
                     initialWeatherProfile: initialWeatherProfile,
-                    simulationKind: SimulationKind.ClassicCity)
+                    scenarioKey: ClassicCityRuntime.ScenarioKey.Value)
                 : request.GenerationSeed;
 
             var generationSeed = new CityGenerationSeed(effectiveSeed);
@@ -149,10 +149,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
             int utcOffsetMinutes,
             CityGenerationProfile generationProfile,
             CityInitialWeatherProfile initialWeatherProfile,
-            SimulationKind simulationKind)
+            string scenarioKey)
         {
             return string.Concat(
-                simulationKind,
+                scenarioKey,
                 "|",
                 name.Trim(),
                 "|",

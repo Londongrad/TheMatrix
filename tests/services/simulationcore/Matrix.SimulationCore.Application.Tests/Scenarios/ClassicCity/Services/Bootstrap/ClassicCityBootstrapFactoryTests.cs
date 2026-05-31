@@ -112,7 +112,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
                 actual: plan.City.ScenarioModelSetVersion.Value);
             Assert.Equal(
                 expected:
-                "ClassicCity|Neo Tokyo|Temperate|Northern|180|Medium|Balanced|Balanced|Balanced|Balanced|auto|Random|auto|auto|auto",
+                "classic-city|Neo Tokyo|Temperate|Northern|180|Medium|Balanced|Balanced|Balanced|Balanced|auto|Random|auto|auto|auto",
                 actual: plan.City.GenerationSeed.Value);
             Assert.Equal(
                 expected: command.StartSimTimeUtc,
