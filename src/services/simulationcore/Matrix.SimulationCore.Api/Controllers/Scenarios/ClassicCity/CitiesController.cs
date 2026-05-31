@@ -10,7 +10,6 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Fa
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetGenerationCatalog;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSimulationKinds;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSuggestedCityNames;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.ListCities;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.ListProvisioningCities;
@@ -122,25 +121,6 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                     CityNamePresets: catalog.CityNamePresets.ToArray(),
                     DistrictNamePresets: catalog.DistrictNamePresets.ToArray(),
                     StreetNamePresets: catalog.StreetNamePresets.ToArray()));
-        }
-
-        [HttpGet("simulation-kinds")]
-        public async Task<IResult> GetSimulationKinds(CancellationToken cancellationToken)
-        {
-            IReadOnlyList<SimulationKindCatalogItemDto> kinds = await mediator.Send(
-                request: new GetSimulationKindsQuery(),
-                cancellationToken: cancellationToken);
-
-            SimulationKindCatalogItemView[] views = kinds
-               .Select(kind => new SimulationKindCatalogItemView(
-                    Kind: kind.Kind,
-                    DisplayName: kind.DisplayName,
-                    Description: kind.Description,
-                    SupportsAutomaticPopulationBootstrap: kind.SupportsAutomaticPopulationBootstrap,
-                    IsDefault: kind.IsDefault))
-               .ToArray();
-
-            return Results.Ok(views);
         }
 
         [HttpGet("generation/city-name-suggestions")]

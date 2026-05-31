@@ -11,7 +11,6 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Fa
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetGenerationCatalog;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSimulationKinds;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSuggestedCityNames;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.ListCities;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.ListProvisioningCities;
@@ -110,8 +109,6 @@ namespace Matrix.SimulationCore.Api.Tests.Controllers.Scenarios.ClassicCity
             CityWeatherDto weather = CreateWeatherDto(cityId);
             var sender = new FakeSender();
             sender.Handle<GetGenerationCatalogQuery, CityGenerationCatalogDto>(_ => CreateGenerationCatalogDto());
-            sender.Handle<GetSimulationKindsQuery, IReadOnlyList<SimulationKindCatalogItemDto>>(_
-                => CreateSimulationKinds());
             sender.Handle<GetSuggestedCityNamesQuery, SuggestedCityNamesDto>(query =>
             {
                 Assert.Equal(
@@ -133,7 +130,6 @@ namespace Matrix.SimulationCore.Api.Tests.Controllers.Scenarios.ClassicCity
             var controller = new CitiesController(sender);
 
             IResult generationCatalog = await controller.GetGenerationCatalog(CancellationToken.None);
-            IResult simulationKinds = await controller.GetSimulationKinds(CancellationToken.None);
             IResult suggestions = await controller.GetSuggestedCityNames(
                 seed: "alpha",
                 count: 5,
@@ -162,12 +158,6 @@ namespace Matrix.SimulationCore.Api.Tests.Controllers.Scenarios.ClassicCity
                     "Neo Harbor"
                 ],
                 actualArray: catalogView.CityNamePresets);
-
-            SimulationKindCatalogItemView[] kindsView = AssertResult<SimulationKindCatalogItemView[]>(
-                result: simulationKinds,
-                expectedStatusCode: StatusCodes.Status200OK);
-            Assert.Single(kindsView);
-            Assert.True(kindsView[0].IsDefault);
 
             SuggestedCityNamesView suggestionsView = AssertResult<SuggestedCityNamesView>(
                 result: suggestions,

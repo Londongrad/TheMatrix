@@ -2,7 +2,6 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisionin
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Common;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetGenerationCatalog;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSimulationKinds;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSuggestedCityNames;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityAnchors;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
@@ -189,19 +188,6 @@ namespace Matrix.SimulationCore.Api.Tests.TestSupport
                     "Central Avenue",
                     "Orbital Road"
                 ]);
-        }
-
-        public static IReadOnlyList<SimulationKindCatalogItemDto> CreateSimulationKinds()
-        {
-            return
-            [
-                new SimulationKindCatalogItemDto(
-                    Kind: "ClassicCity",
-                    DisplayName: "Classic City",
-                    Description: "Baseline urban simulation",
-                    SupportsAutomaticPopulationBootstrap: true,
-                    IsDefault: true)
-            ];
         }
 
         public static SuggestedCityNamesDto CreateSuggestedCityNamesDto(string? seed = "seed-42")
