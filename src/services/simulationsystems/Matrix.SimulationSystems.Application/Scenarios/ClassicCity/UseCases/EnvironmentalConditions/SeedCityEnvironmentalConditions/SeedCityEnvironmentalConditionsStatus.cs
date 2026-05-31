@@ -5,7 +5,6 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
     {
         Applied = 0,
         Duplicate = 1,
-        IgnoredSimulationKind = 2,
         CityDeleted = 3
     }
 }

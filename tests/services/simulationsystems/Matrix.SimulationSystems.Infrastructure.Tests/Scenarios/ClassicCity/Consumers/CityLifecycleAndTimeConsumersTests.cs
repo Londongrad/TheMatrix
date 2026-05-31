@@ -2,7 +2,6 @@ using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Simulation;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     AdvanceCityEnvironmentalConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
@@ -19,7 +18,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Co
     public sealed class CityLifecycleAndTimeConsumersTests
     {
         [Fact]
-        public async Task CityCreatedConsumeAsync_WhenSimulationKindDoesNotMatch_DoesNothingAndLogsDebug()
+        public async Task CityCreatedConsumeAsync_WhenRuntimeKeysDoNotMatch_DoesNothingAndLogsDebug()
         {
             var mediator = new TestSeedMediator
             {
@@ -74,9 +73,6 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Co
             Assert.Equal(
                 expected: message.CreatedAtUtc,
                 actual: command.CreatedAtUtc);
-            Assert.Equal(
-                expected: ClassicCityScenario.Name,
-                actual: command.SimulationKind);
             Assert.Equal(
                 expected: message.DevelopmentLevel,
                 actual: command.DevelopmentLevel);

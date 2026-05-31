@@ -24,11 +24,6 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
             SeedCityEnvironmentalConditionsCommand request,
             CancellationToken cancellationToken)
         {
-            if (!ClassicCityScenario.IsMatch(request.SimulationKind))
-                return new SeedCityEnvironmentalConditionsResult(
-                    Status: SeedCityEnvironmentalConditionsStatus.IgnoredSimulationKind,
-                    LastEvaluatedAtUtc: request.CreatedAtUtc);
-
             var simulationHostId = new SimulationHostId(request.CityId);
 
             DateTimeOffset? deletedAtUtc = await deletionStateRepository.GetDeletedAtUtcAsync(

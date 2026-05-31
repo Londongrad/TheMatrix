@@ -10,34 +10,6 @@ namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCa
     public sealed class SeedCityEnvironmentalConditionsCommandHandlerTests
     {
         [Fact]
-        public async Task Handle_WhenSimulationKindDoesNotMatch_ReturnsIgnored()
-        {
-            var repository = new FakeCityEnvironmentalConditionRepository();
-            var unitOfWork = new FakeUnitOfWork();
-            var outbox = new FakeCityPopulationLivingConditionsOutboxWriter();
-            SeedCityEnvironmentalConditionsCommandHandler handler = CreateHandler(
-                repository: repository,
-                unitOfWork: unitOfWork,
-                outbox: outbox);
-
-            SeedCityEnvironmentalConditionsResult result = await handler.Handle(
-                request: new SeedCityEnvironmentalConditionsCommand(
-                    CityId: SimulationSystemsApplicationTestSupport.CityId,
-                    CreatedAtUtc: SimulationSystemsApplicationTestSupport.CreatedAtUtc,
-                    SimulationKind: "Sandbox",
-                    DevelopmentLevel: "standard"),
-                cancellationToken: CancellationToken.None);
-
-            Assert.Equal(
-                expected: SeedCityEnvironmentalConditionsStatus.IgnoredSimulationKind,
-                actual: result.Status);
-            Assert.Equal(
-                expected: 0,
-                actual: unitOfWork.SaveChangesCallCount);
-            Assert.Empty(outbox.Snapshots);
-        }
-
-        [Fact]
         public async Task Handle_WhenStateAlreadyExists_ReturnsDuplicate()
         {
             var repository = new FakeCityEnvironmentalConditionRepository
@@ -53,7 +25,6 @@ namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCa
                 request: new SeedCityEnvironmentalConditionsCommand(
                     CityId: SimulationSystemsApplicationTestSupport.CityId,
                     CreatedAtUtc: SimulationSystemsApplicationTestSupport.CreatedAtUtc,
-                    SimulationKind: "ClassicCity",
                     DevelopmentLevel: "standard"),
                 cancellationToken: CancellationToken.None);
 
@@ -84,7 +55,6 @@ namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCa
                 request: new SeedCityEnvironmentalConditionsCommand(
                     CityId: SimulationSystemsApplicationTestSupport.CityId,
                     CreatedAtUtc: SimulationSystemsApplicationTestSupport.CreatedAtUtc,
-                    SimulationKind: "ClassicCity",
                     DevelopmentLevel: "advanced"),
                 cancellationToken: CancellationToken.None);
 
@@ -111,7 +81,6 @@ namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCa
                 request: new SeedCityEnvironmentalConditionsCommand(
                     CityId: SimulationSystemsApplicationTestSupport.CityId,
                     CreatedAtUtc: SimulationSystemsApplicationTestSupport.CreatedAtUtc,
-                    SimulationKind: "ClassicCity",
                     DevelopmentLevel: "advanced"),
                 cancellationToken: CancellationToken.None);
 

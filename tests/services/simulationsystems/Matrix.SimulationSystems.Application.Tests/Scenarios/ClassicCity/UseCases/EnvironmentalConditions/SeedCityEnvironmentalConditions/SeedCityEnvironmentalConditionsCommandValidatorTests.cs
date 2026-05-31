@@ -24,7 +24,6 @@ namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCa
                         minute: 0,
                         second: 0,
                         offset: TimeSpan.Zero),
-                    SimulationKind: "ClassicCity",
                     DevelopmentLevel: "standard"));
 
             Assert.True(result.IsValid);
@@ -46,7 +45,6 @@ namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCa
                         minute: 0,
                         second: 0,
                         offset: TimeSpan.FromHours(3)),
-                    SimulationKind: "ClassicCity",
                     DevelopmentLevel: "standard"));
 
             Assert.False(result.IsValid);

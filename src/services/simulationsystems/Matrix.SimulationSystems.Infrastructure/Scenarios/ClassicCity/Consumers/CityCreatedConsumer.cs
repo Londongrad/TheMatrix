@@ -1,7 +1,6 @@
 using MassTransit;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
-using Matrix.SimulationSystems.Application.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     SeedCityEnvironmentalConditions;
 using MediatR;
@@ -39,7 +38,6 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                 request: new SeedCityEnvironmentalConditionsCommand(
                     CityId: message.HostId,
                     CreatedAtUtc: message.CreatedAtUtc,
-                    SimulationKind: ClassicCityScenario.Name,
                     DevelopmentLevel: message.DevelopmentLevel),
                 cancellationToken: cancellationToken);
 
@@ -47,24 +45,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
             {
                 case SeedCityEnvironmentalConditionsStatus.Applied:
                     logger.LogInformation(
-                        message:
-                        "Initialized classic city environmental state for cityId={CityId}, simulationKind={SimulationKind}.",
-                        message.HostId,
-                        ClassicCityScenario.Name);
+                        message: "Initialized classic city environmental state for cityId={CityId}.",
+                        message.HostId);
                     break;
 
                 case SeedCityEnvironmentalConditionsStatus.Duplicate:
                     logger.LogDebug(
                         message: "Skipped duplicate classic city environmental seed for cityId={CityId}.",
                         message.HostId);
-                    break;
-
-                case SeedCityEnvironmentalConditionsStatus.IgnoredSimulationKind:
-                    logger.LogDebug(
-                        message:
-                        "Skipped classic city environmental seed for cityId={CityId} because simulationKind={SimulationKind} is not handled by this scenario.",
-                        message.HostId,
-                        ClassicCityScenario.Name);
                     break;
 
                 case SeedCityEnvironmentalConditionsStatus.CityDeleted:
