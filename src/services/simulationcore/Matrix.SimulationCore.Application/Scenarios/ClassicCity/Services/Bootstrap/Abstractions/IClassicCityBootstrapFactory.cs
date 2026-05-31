@@ -1,9 +1,8 @@
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 
-namespace Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions
 {
-    public interface ICitySimulationBootstrapStrategy
+    public interface IClassicCityBootstrapFactory
     {
         bool SupportsAutomaticPopulationBootstrap { get; }
 

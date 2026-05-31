@@ -3,13 +3,13 @@ using System.Security.Cryptography;
 using System.Text;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompletePopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
-using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Domain.Simulation;
@@ -32,7 +32,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
         ICityAnchorRepository cityAnchorRepository,
         IResidentialBuildingRepository residentialBuildingRepository,
         ISimulationClockRepository clockRepository,
-        ICitySimulationBootstrapStrategy simulationBootstrapStrategy,
+        IClassicCityBootstrapFactory simulationBootstrapStrategy,
         ICityEconomyBootstrapClient economyBootstrapClient,
         ICityPopulationBootstrapClient populationBootstrapClient,
         ILogger<ClassicCityProvisioningOrchestrator> logger) : IClassicCityProvisioningOrchestrator

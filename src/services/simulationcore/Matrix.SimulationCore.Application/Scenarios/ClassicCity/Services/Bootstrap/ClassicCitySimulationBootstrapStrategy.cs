@@ -1,9 +1,9 @@
 using System.Globalization;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
-using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
@@ -17,7 +17,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
     public sealed class ClassicCitySimulationBootstrapStrategy(
         ICityTopologyBootstrapFactory cityTopologyBootstrapFactory,
         ICityWeatherBootstrapFactory cityWeatherBootstrapFactory,
-        TimeProvider timeProvider) : ICitySimulationBootstrapStrategy
+        TimeProvider timeProvider) : IClassicCityBootstrapFactory
     {
         public bool SupportsAutomaticPopulationBootstrap => true;
 

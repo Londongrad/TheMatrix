@@ -3,8 +3,8 @@ using Matrix.BuildingBlocks.Application.Events;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
-using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 using MediatR;
@@ -21,7 +21,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         IRoadSegmentRepository roadSegmentRepository,
         ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
-        ICitySimulationBootstrapStrategy simulationBootstrapStrategy,
+        IClassicCityBootstrapFactory simulationBootstrapStrategy,
         ISimulationCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, CityCreatedDto>
     {

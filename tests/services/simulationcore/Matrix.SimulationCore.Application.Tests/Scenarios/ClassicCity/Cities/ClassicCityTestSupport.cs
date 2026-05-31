@@ -5,7 +5,7 @@ using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
-using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
@@ -156,7 +156,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
             public IReadOnlyList<string> StreetNamePresets { get; init; } = Array.Empty<string>();
         }
 
-        internal sealed class FakeCitySimulationBootstrapStrategy : ICitySimulationBootstrapStrategy
+        internal sealed class FakeCitySimulationBootstrapStrategy : IClassicCityBootstrapFactory
         {
             public CreateCityCommand? RequestedCommand { get; private set; }
             public ClassicCityBootstrapPlan? Plan { get; init; }
