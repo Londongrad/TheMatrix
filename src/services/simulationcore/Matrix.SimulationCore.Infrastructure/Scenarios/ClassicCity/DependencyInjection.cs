@@ -4,6 +4,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persi
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
+using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity

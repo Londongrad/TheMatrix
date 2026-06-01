@@ -1,8 +1,9 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityRepository(SimulationCoreDbContext dbContext) : ICityRepository
     {

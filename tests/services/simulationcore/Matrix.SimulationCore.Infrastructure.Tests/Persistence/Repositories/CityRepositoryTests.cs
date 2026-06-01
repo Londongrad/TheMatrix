@@ -2,7 +2,7 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Simulation;
 using Matrix.SimulationCore.Infrastructure.Persistence;
-using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
+using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation;
 using Xunit;
 
