@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Events;
-using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
@@ -23,7 +23,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
         IClassicCityBootstrapFactory bootstrapFactory,
-        ISimulationCoreOutboxWriter outboxWriter,
+        IClassicCityOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, CityCreatedDto>
     {
         public async Task<CityCreatedDto> Handle(

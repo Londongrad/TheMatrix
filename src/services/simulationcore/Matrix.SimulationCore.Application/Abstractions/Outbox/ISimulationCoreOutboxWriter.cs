@@ -10,10 +10,6 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
             IReadOnlyCollection<IDomainEvent> domainEvents,
             CancellationToken cancellationToken);
 
-        Task AddCityEventsAsync(
-            IReadOnlyCollection<IDomainEvent> domainEvents,
-            CancellationToken cancellationToken);
-
         Task AddSimulationTickPhaseReachedAsync(
             SimulationHost host,
             SimTime from,
@@ -23,8 +19,5 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
             SimulationPhaseKey phaseKey,
             CancellationToken cancellationToken);
 
-        Task AddWeatherEventsAsync(
-            IReadOnlyCollection<IDomainEvent> domainEvents,
-            CancellationToken cancellationToken);
     }
 }

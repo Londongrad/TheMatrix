@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Events;
 using Matrix.Simulation.Primitives;
-using Matrix.SimulationCore.Application.Abstractions.Outbox;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
@@ -15,7 +15,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
     public sealed class ClassicCitySimulationAdvanceHandler(
         IWeatherAdvanceExecutor weatherAdvanceExecutor,
         ICityActiveTripAdvanceExecutor activeTripAdvanceExecutor,
-        ISimulationCoreOutboxWriter outboxWriter) : ISimulationScenarioAdvanceHandler
+        IClassicCityOutboxWriter outboxWriter) : ISimulationScenarioAdvanceHandler
     {
         public SimulationRuntimeKey RuntimeKey => ClassicCityRuntime.Key;
 

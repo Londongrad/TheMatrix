@@ -6,6 +6,7 @@ using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
@@ -13,6 +14,7 @@ using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Infrastructure.Economy;
 using Matrix.SimulationCore.Infrastructure.HostedServices;
 using Matrix.SimulationCore.Infrastructure.Options;
+using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
@@ -74,6 +76,9 @@ namespace Matrix.SimulationCore.Infrastructure
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
             services.AddScoped<ISimulationInstanceRepository, SimulationInstanceRepository>();
             services.AddScoped<ISimulationHostReadRepository, SimulationHostReadRepository>();
+            services.AddScoped<SimulationCoreOutboxWriter>();
+            services.AddScoped<ISimulationCoreOutboxWriter>(sp =>
+                sp.GetRequiredService<SimulationCoreOutboxWriter>());
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationCoreDbContext>>();
             services.AddSingleton<SimulationOperationGate>();

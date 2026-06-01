@@ -1,7 +1,9 @@
 using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationCore.Api.Configurations;
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
@@ -73,6 +75,9 @@ namespace Matrix.SimulationCore.Api.Tests.Configurations
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityPopulationBootstrapClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityEconomyBootstrapClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityRoadSegmentConditionsClient>());
+            Assert.Same(
+                expected: scope.ServiceProvider.GetRequiredService<ISimulationCoreOutboxWriter>(),
+                actual: scope.ServiceProvider.GetRequiredService<IClassicCityOutboxWriter>());
             Assert.Same(
                 expected: TimeProvider.System,
                 actual: provider.GetRequiredService<TimeProvider>());

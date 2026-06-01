@@ -1,5 +1,5 @@
-using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
@@ -19,7 +19,8 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<IRoadSegmentRepository, RoadSegmentRepository>();
             services.AddScoped<ICityActiveTripRepository, CityActiveTripRepository>();
             services.AddScoped<ICityWeatherRepository, CityWeatherRepository>();
-            services.AddScoped<ISimulationCoreOutboxWriter, SimulationCoreOutboxWriter>();
+            services.AddScoped<IClassicCityOutboxWriter>(sp =>
+                sp.GetRequiredService<SimulationCoreOutboxWriter>());
 
             return services;
         }

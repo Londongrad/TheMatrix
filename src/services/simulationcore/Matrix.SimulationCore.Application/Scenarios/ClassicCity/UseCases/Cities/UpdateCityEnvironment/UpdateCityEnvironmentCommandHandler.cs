@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Events;
-using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
@@ -11,7 +11,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 {
     public sealed class UpdateCityEnvironmentCommandHandler(
         ICityRepository cityRepository,
-        ISimulationCoreOutboxWriter outboxWriter,
+        IClassicCityOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<UpdateCityEnvironmentCommand, bool>
     {
         public async Task<bool> Handle(
