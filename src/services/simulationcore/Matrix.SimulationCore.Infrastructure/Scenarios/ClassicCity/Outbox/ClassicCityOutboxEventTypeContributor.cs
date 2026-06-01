@@ -1,17 +1,14 @@
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
+using Matrix.SimulationCore.Infrastructure.Outbox;
 
-namespace Matrix.SimulationCore.Infrastructure.Outbox
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
 {
-    public static class OutboxEventTypeMap
+    public sealed class ClassicCityOutboxEventTypeContributor : IOutboxEventTypeContributor
     {
-        public static readonly IReadOnlyDictionary<string, Type> Map =
+        public IReadOnlyDictionary<string, Type> EventTypes { get; } =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
-                [SimulationCoreEventTypes.SimulationCreatedV1] = typeof(SimulationCreatedV1),
-                [SimulationCoreEventTypes.SimulationArchivedV1] = typeof(SimulationArchivedV1),
-                [SimulationCoreEventTypes.SimulationDeletedV1] = typeof(SimulationDeletedV1),
-                [SimulationCoreEventTypes.SimulationTickPhaseReachedV1] = typeof(SimulationTickPhaseReachedV1),
                 [SimulationCoreEventTypes.ClassicCityCreatedV1] = typeof(ClassicCityCreatedV1),
                 [SimulationCoreEventTypes.CityEnvironmentChangedV1] = typeof(CityEnvironmentChangedV1),
                 [SimulationCoreEventTypes.CityWeatherCreatedV1] = typeof(CityWeatherCreatedV1),

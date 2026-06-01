@@ -79,6 +79,8 @@ namespace Matrix.SimulationCore.Infrastructure
             services.AddScoped<SimulationCoreOutboxWriter>();
             services.AddScoped<ISimulationCoreOutboxWriter>(sp =>
                 sp.GetRequiredService<SimulationCoreOutboxWriter>());
+            services.AddSingleton<IOutboxEventTypeContributor, SimulationCoreOutboxEventTypeContributor>();
+            services.AddSingleton<OutboxEventTypeRegistry>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationCoreDbContext>>();
             services.AddSingleton<SimulationOperationGate>();

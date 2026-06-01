@@ -1,6 +1,7 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
+using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityActiveTripRepository, CityActiveTripRepository>();
             services.AddScoped<ICityWeatherRepository, CityWeatherRepository>();
             services.AddScoped<IClassicCityOutboxWriter, ClassicCityOutboxWriter>();
+            services.AddSingleton<IOutboxEventTypeContributor, ClassicCityOutboxEventTypeContributor>();
 
             return services;
         }
