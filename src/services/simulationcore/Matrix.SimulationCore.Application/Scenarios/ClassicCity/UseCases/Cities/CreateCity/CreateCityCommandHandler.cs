@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Events;
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
@@ -23,7 +24,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
         IClassicCityBootstrapFactory bootstrapFactory,
-        IClassicCityOutboxWriter outboxWriter,
+        ISimulationCoreOutboxWriter simulationOutboxWriter,
+        IClassicCityOutboxWriter classicCityOutboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, CityCreatedDto>
     {
         public async Task<CityCreatedDto> Handle(
@@ -82,16 +84,16 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                             cancellationToken: ct);
                         await DomainEventDispatchHelper.PublishAndClearAsync(
                             source: instance,
-                            publish: outboxWriter.AddSimulationEventsAsync,
+                            publish: simulationOutboxWriter.AddSimulationEventsAsync,
                             cancellationToken: ct);
                         await DomainEventDispatchHelper.PublishAndClearAsync(
                             source: city,
-                            publish: outboxWriter.AddCityEventsAsync,
+                            publish: classicCityOutboxWriter.AddCityEventsAsync,
                             cancellationToken: ct);
                         if (bootstrapPlan.Weather is not null)
                             await DomainEventDispatchHelper.PublishAndClearAsync(
                                 source: bootstrapPlan.Weather,
-                                publish: outboxWriter.AddWeatherEventsAsync,
+                                publish: classicCityOutboxWriter.AddWeatherEventsAsync,
                                 cancellationToken: ct);
                         await unitOfWork.SaveChangesAsync(ct);
                     },

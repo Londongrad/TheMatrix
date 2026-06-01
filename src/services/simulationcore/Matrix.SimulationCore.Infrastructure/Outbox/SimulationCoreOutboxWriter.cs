@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Simulation.Primitives;
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
@@ -17,7 +18,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 {
     public sealed class SimulationCoreOutboxWriter(
         SimulationCoreDbContext dbContext,
-        TimeProvider timeProvider) : IClassicCityOutboxWriter
+        TimeProvider timeProvider) : ISimulationCoreOutboxWriter, IClassicCityOutboxWriter
     {
         public Task AddSimulationEventsAsync(
             IReadOnlyCollection<IDomainEvent> domainEvents,

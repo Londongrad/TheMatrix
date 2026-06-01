@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Events;
 using Matrix.Simulation.Primitives;
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
@@ -15,7 +16,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
     public sealed class ClassicCitySimulationAdvanceHandler(
         IWeatherAdvanceExecutor weatherAdvanceExecutor,
         ICityActiveTripAdvanceExecutor activeTripAdvanceExecutor,
-        IClassicCityOutboxWriter outboxWriter) : ISimulationScenarioAdvanceHandler
+        ISimulationCoreOutboxWriter simulationOutboxWriter,
+        IClassicCityOutboxWriter classicCityOutboxWriter) : ISimulationScenarioAdvanceHandler
     {
         public SimulationRuntimeKey RuntimeKey => ClassicCityRuntime.Key;
 
@@ -47,7 +49,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
             if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
                 await DomainEventDispatchHelper.PublishAndClearAsync(
                     source: cityWeather,
-                    publish: outboxWriter.AddWeatherEventsAsync,
+                    publish: classicCityOutboxWriter.AddWeatherEventsAsync,
                     cancellationToken: cancellationToken);
 
             foreach (CityTickPhase phase in GetClassicCityPhaseWatermarks())
@@ -66,7 +68,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
             CityTickPhase phase,
             CancellationToken cancellationToken)
         {
-            return outboxWriter.AddSimulationTickPhaseReachedAsync(
+            return simulationOutboxWriter.AddSimulationTickPhaseReachedAsync(
                 host: host,
                 from: advancedEvent.From,
                 to: advancedEvent.To,

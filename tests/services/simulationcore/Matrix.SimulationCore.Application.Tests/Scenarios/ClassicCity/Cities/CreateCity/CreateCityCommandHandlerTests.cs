@@ -56,7 +56,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 cityWeatherRepository: cityWeatherRepository,
                 clockRepository: clockRepository,
                 bootstrapFactory: factory,
-                outboxWriter: outboxWriter,
+                simulationOutboxWriter: outboxWriter,
+                classicCityOutboxWriter: outboxWriter,
                 unitOfWork: unitOfWork);
 
             CityCreatedDto result = await handler.Handle(
@@ -174,7 +175,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 cityWeatherRepository: cityWeatherRepository,
                 clockRepository: clockRepository,
                 bootstrapFactory: factory,
-                outboxWriter: outboxWriter,
+                simulationOutboxWriter: outboxWriter,
+                classicCityOutboxWriter: outboxWriter,
                 unitOfWork: unitOfWork);
             CreateCityCommand command = CreateCommand(provisioningCorrelationId);
 
@@ -291,6 +293,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             {
                 ExceptionToThrowAfterAction = new InvalidOperationException("duplicate provisioning race")
             };
+            var outboxWriter = new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter();
             var handler = new CreateCityCommandHandler(
                 simulationInstanceRepository: new SimulationTestSupport.FakeSimulationInstanceRepository(),
                 cityRepository: cityRepository,
@@ -302,7 +305,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 cityWeatherRepository: new WeatherTestSupport.FakeCityWeatherRepository(),
                 clockRepository: new SimulationTestSupport.FakeSimulationClockRepository(),
                 bootstrapFactory: factory,
-                outboxWriter: new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter(),
+                simulationOutboxWriter: outboxWriter,
+                classicCityOutboxWriter: outboxWriter,
                 unitOfWork: unitOfWork);
 
             CityCreatedDto result = await handler.Handle(

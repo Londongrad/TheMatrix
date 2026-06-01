@@ -27,7 +27,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
             var handler = new ClassicCitySimulationAdvanceHandler(
                 weatherAdvanceExecutor: weatherAdvanceExecutor,
                 activeTripAdvanceExecutor: activeTripAdvanceExecutor,
-                outboxWriter: outboxWriter);
+                simulationOutboxWriter: outboxWriter,
+                classicCityOutboxWriter: outboxWriter);
 
             await handler.HandleAdvancedAsync(
                 host: host,
@@ -90,7 +91,8 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
             var handler = new ClassicCitySimulationAdvanceHandler(
                 weatherAdvanceExecutor: weatherAdvanceExecutor,
                 activeTripAdvanceExecutor: activeTripAdvanceExecutor,
-                outboxWriter: outboxWriter);
+                simulationOutboxWriter: outboxWriter,
+                classicCityOutboxWriter: outboxWriter);
 
             await handler.HandleAdvancedAsync(
                 host: host,

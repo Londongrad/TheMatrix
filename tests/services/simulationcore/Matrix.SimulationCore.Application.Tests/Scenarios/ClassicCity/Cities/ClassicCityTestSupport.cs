@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.Simulation.Primitives;
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
@@ -170,7 +171,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
             }
         }
 
-        internal sealed class FakeSimulationCoreOutboxWriter : IClassicCityOutboxWriter
+        internal sealed class FakeSimulationCoreOutboxWriter : ISimulationCoreOutboxWriter, IClassicCityOutboxWriter
         {
             public IReadOnlyList<IDomainEvent> SimulationEvents { get; private set; } = Array.Empty<IDomainEvent>();
             public IReadOnlyList<IDomainEvent> CityEvents { get; private set; } = Array.Empty<IDomainEvent>();
