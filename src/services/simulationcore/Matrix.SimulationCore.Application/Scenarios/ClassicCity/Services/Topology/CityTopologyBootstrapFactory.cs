@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology.Abstractions;
-using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;

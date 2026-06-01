@@ -1,5 +1,7 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing;

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
 
 namespace Matrix.SimulationCore.Application.Services.Generation

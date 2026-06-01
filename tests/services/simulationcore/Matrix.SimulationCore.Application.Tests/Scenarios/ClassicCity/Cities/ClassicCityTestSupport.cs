@@ -7,6 +7,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulatio
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;

@@ -1,6 +1,6 @@
-using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation.Abstractions;
 
-namespace Matrix.SimulationCore.Application.Services.Generation
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation
 {
     /// <summary>
     ///     Provides reusable in-memory content pools for deterministic city generation.

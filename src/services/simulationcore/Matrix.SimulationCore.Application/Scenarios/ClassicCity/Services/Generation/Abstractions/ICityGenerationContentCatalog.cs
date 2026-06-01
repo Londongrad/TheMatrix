@@ -1,4 +1,4 @@
-namespace Matrix.SimulationCore.Application.Services.Generation.Abstractions
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation.Abstractions
 {
     public interface ICityGenerationContentCatalog
     {
