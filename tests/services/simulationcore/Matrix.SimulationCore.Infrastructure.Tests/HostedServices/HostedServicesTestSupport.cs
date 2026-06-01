@@ -1,6 +1,7 @@
 using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;

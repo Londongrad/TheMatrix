@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
