@@ -1,4 +1,4 @@
-using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World.Enums;
