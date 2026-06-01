@@ -2,9 +2,10 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persi
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World.Enums;
+using Matrix.SimulationCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityActiveTripRepository(SimulationCoreDbContext dbContext) : ICityActiveTripRepository
     {
