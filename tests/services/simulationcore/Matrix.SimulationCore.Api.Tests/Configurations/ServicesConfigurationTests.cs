@@ -7,6 +7,8 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbo
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.SimulationCore.Infrastructure.Outbox;
+using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -75,9 +77,10 @@ namespace Matrix.SimulationCore.Api.Tests.Configurations
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityPopulationBootstrapClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityEconomyBootstrapClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityRoadSegmentConditionsClient>());
-            Assert.Same(
-                expected: scope.ServiceProvider.GetRequiredService<ISimulationCoreOutboxWriter>(),
-                actual: scope.ServiceProvider.GetRequiredService<IClassicCityOutboxWriter>());
+            Assert.IsType<SimulationCoreOutboxWriter>(
+                scope.ServiceProvider.GetRequiredService<ISimulationCoreOutboxWriter>());
+            Assert.IsType<ClassicCityOutboxWriter>(
+                scope.ServiceProvider.GetRequiredService<IClassicCityOutboxWriter>());
             Assert.Same(
                 expected: TimeProvider.System,
                 actual: provider.GetRequiredService<TimeProvider>());

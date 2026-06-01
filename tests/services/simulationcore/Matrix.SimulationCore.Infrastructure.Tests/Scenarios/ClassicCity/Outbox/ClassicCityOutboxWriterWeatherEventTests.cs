@@ -9,21 +9,23 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Profiles;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.SimulationCore.Domain.Simulation;
+using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.SimulationCore.Infrastructure.Outbox;
+using Matrix.SimulationCore.Infrastructure.Tests.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
+namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbox
 {
-    public sealed class SimulationCoreOutboxWriterWeatherEventTests
+    public sealed class ClassicCityOutboxWriterWeatherEventTests
     {
         [Fact]
         public async Task AddWeatherEventsAsync_WhenDomainEventsAreEmpty_DoesNotAddMessages()
         {
             using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
                 nameof(AddWeatherEventsAsync_WhenDomainEventsAreEmpty_DoesNotAddMessages));
-            var writer = new SimulationCoreOutboxWriter(
+            var writer = new ClassicCityOutboxWriter(
                 dbContext: dbContext,
                 timeProvider: OutboxTestSupport.CreateTimeProvider(OutboxTestSupport.BaseUtc));
 
@@ -43,7 +45,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
                 nameof(AddWeatherEventsAsync_WhenCreatedAndChangedEventsAreAdded_WritesMatchingMessages));
             DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(55);
-            var writer = new SimulationCoreOutboxWriter(
+            var writer = new ClassicCityOutboxWriter(
                 dbContext: dbContext,
                 timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
             var cityId = new CityId(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
@@ -172,7 +174,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
                 nameof(AddWeatherEventsAsync_WhenOverrideAndClimateEventsAreAdded_WritesMatchingMessages));
             DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(65);
-            var writer = new SimulationCoreOutboxWriter(
+            var writer = new ClassicCityOutboxWriter(
                 dbContext: dbContext,
                 timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
             var cityId = new CityId(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
@@ -337,7 +339,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
         {
             using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
                 nameof(AddWeatherEventsAsync_WhenWeatherDomainEventIsUnsupported_ThrowsInvalidOperationException));
-            var writer = new SimulationCoreOutboxWriter(
+            var writer = new ClassicCityOutboxWriter(
                 dbContext: dbContext,
                 timeProvider: OutboxTestSupport.CreateTimeProvider(OutboxTestSupport.BaseUtc));
 

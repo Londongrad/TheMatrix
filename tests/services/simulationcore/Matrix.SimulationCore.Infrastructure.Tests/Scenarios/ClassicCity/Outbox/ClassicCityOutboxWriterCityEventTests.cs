@@ -3,21 +3,23 @@ using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
+using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.SimulationCore.Infrastructure.Outbox;
+using Matrix.SimulationCore.Infrastructure.Tests.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
+namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbox
 {
-    public sealed class SimulationCoreOutboxWriterCityEventTests
+    public sealed class ClassicCityOutboxWriterCityEventTests
     {
         [Fact]
         public async Task AddCityEventsAsync_WhenDomainEventsAreEmpty_DoesNotAddMessages()
         {
             using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
                 nameof(AddCityEventsAsync_WhenDomainEventsAreEmpty_DoesNotAddMessages));
-            var writer = new SimulationCoreOutboxWriter(
+            var writer = new ClassicCityOutboxWriter(
                 dbContext: dbContext,
                 timeProvider: OutboxTestSupport.CreateTimeProvider(OutboxTestSupport.BaseUtc));
 
@@ -37,7 +39,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
                 nameof(AddCityEventsAsync_WhenCityCreatedEventIsAdded_WritesCreatedAndEnvironmentChangedMessages));
             DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(15);
-            var writer = new SimulationCoreOutboxWriter(
+            var writer = new ClassicCityOutboxWriter(
                 dbContext: dbContext,
                 timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
             CityCreatedDomainEvent domainEvent = OutboxTestSupport.CreateCityCreatedDomainEvent();
@@ -113,7 +115,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             using SimulationCoreDbContext dbContext = OutboxTestSupport.CreateDbContext(
                 nameof(AddCityEventsAsync_WhenEnvironmentChanges_WritesMatchingMessage));
             DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(25);
-            var writer = new SimulationCoreOutboxWriter(
+            var writer = new ClassicCityOutboxWriter(
                 dbContext: dbContext,
                 timeProvider: OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
             var cityId = Guid.Parse("55555555-5555-5555-5555-555555555555");
