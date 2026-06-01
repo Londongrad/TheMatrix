@@ -10,7 +10,6 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Profiles;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.SimulationCore.Domain.Simulation;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
-using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Tests.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -97,7 +96,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
 
             OutboxMessage createdMessage = Assert.Single(
                 collection: messages,
-                predicate: x => x.Type == IntegrationEventTypes.CityWeatherCreatedV1);
+                predicate: x => x.Type == SimulationCoreEventTypes.CityWeatherCreatedV1);
             CityWeatherCreatedV1 createdPayload =
                 OutboxTestSupport.DeserializePayload<CityWeatherCreatedV1>(createdMessage);
             Assert.Equal(
@@ -133,7 +132,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
 
             OutboxMessage changedMessage = Assert.Single(
                 collection: messages,
-                predicate: x => x.Type == IntegrationEventTypes.CityWeatherChangedV1);
+                predicate: x => x.Type == SimulationCoreEventTypes.CityWeatherChangedV1);
             CityWeatherChangedV1 changedPayload =
                 OutboxTestSupport.DeserializePayload<CityWeatherChangedV1>(changedMessage);
             Assert.Equal(
@@ -245,7 +244,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
             WeatherOverrideStartedV1 startedPayload = OutboxTestSupport.DeserializePayload<WeatherOverrideStartedV1>(
                 Assert.Single(
                     collection: messages,
-                    predicate: x => x.Type == IntegrationEventTypes.WeatherOverrideStartedV1));
+                    predicate: x => x.Type == SimulationCoreEventTypes.WeatherOverrideStartedV1));
             Assert.Equal(
                 expected: cityId.Value,
                 actual: startedPayload.CityId);
@@ -272,7 +271,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
                 OutboxTestSupport.DeserializePayload<WeatherOverrideCancelledV1>(
                     Assert.Single(
                         collection: messages,
-                        predicate: x => x.Type == IntegrationEventTypes.WeatherOverrideCancelledV1));
+                        predicate: x => x.Type == SimulationCoreEventTypes.WeatherOverrideCancelledV1));
             Assert.Equal(
                 expected: cityId.Value,
                 actual: cancelledPayload.CityId);
@@ -289,7 +288,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
             WeatherOverrideExpiredV1 expiredPayload = OutboxTestSupport.DeserializePayload<WeatherOverrideExpiredV1>(
                 Assert.Single(
                     collection: messages,
-                    predicate: x => x.Type == IntegrationEventTypes.WeatherOverrideExpiredV1));
+                    predicate: x => x.Type == SimulationCoreEventTypes.WeatherOverrideExpiredV1));
             Assert.Equal(
                 expected: cityId.Value,
                 actual: expiredPayload.CityId);
@@ -307,7 +306,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
                 OutboxTestSupport.DeserializePayload<ClimateProfileChangedV1>(
                     Assert.Single(
                         collection: messages,
-                        predicate: x => x.Type == IntegrationEventTypes.ClimateProfileChangedV1));
+                        predicate: x => x.Type == SimulationCoreEventTypes.ClimateProfileChangedV1));
             Assert.Equal(
                 expected: cityId.Value,
                 actual: profileChangedPayload.CityId);

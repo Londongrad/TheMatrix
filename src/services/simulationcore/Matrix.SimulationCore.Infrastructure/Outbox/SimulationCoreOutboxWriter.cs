@@ -27,7 +27,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                 OutboxMessage? message = domainEvent switch
                 {
                     SimulationCreatedDomainEvent created => OutboxMessage.Create(
-                        type: IntegrationEventTypes.SimulationCreatedV1,
+                        type: SimulationCoreEventTypes.SimulationCreatedV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new SimulationCreatedV1(
                             SimulationId: created.SimulationId.Value,
@@ -41,7 +41,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                             State: created.State.ToString(),
                             CreatedAtUtc: created.CreatedAtUtc)),
                     SimulationArchivedDomainEvent archived => OutboxMessage.Create(
-                        type: IntegrationEventTypes.SimulationArchivedV1,
+                        type: SimulationCoreEventTypes.SimulationArchivedV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new SimulationArchivedV1(
                             SimulationId: archived.SimulationId.Value,
@@ -50,7 +50,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                             HostTypeKey: archived.RuntimeKey.HostTypeKey.Value,
                             ArchivedAtUtc: archived.ArchivedAtUtc)),
                     SimulationDeletedDomainEvent deleted => OutboxMessage.Create(
-                        type: IntegrationEventTypes.SimulationDeletedV1,
+                        type: SimulationCoreEventTypes.SimulationDeletedV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new SimulationDeletedV1(
                             SimulationId: deleted.SimulationId.Value,
@@ -99,7 +99,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 
             dbContext.OutboxMessages.Add(
                 OutboxMessage.Create(
-                    type: IntegrationEventTypes.SimulationTickPhaseReachedV1,
+                    type: SimulationCoreEventTypes.SimulationTickPhaseReachedV1,
                     occurredOnUtc: occurredOnUtc,
                     payload: integrationEvent));
 

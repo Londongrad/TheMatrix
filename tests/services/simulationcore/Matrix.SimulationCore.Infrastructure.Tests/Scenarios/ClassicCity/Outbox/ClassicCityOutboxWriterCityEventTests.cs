@@ -4,7 +4,6 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
-using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Tests.Outbox;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -60,7 +59,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
 
             OutboxMessage classicCityCreatedMessage = Assert.Single(
                 collection: messages,
-                predicate: x => x.Type == IntegrationEventTypes.ClassicCityCreatedV1);
+                predicate: x => x.Type == SimulationCoreEventTypes.ClassicCityCreatedV1);
             ClassicCityCreatedV1 classicCityCreatedPayload =
                 OutboxTestSupport.DeserializePayload<ClassicCityCreatedV1>(classicCityCreatedMessage);
             Assert.Equal(
@@ -84,7 +83,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
 
             OutboxMessage environmentChangedMessage = Assert.Single(
                 collection: messages,
-                predicate: x => x.Type == IntegrationEventTypes.CityEnvironmentChangedV1);
+                predicate: x => x.Type == SimulationCoreEventTypes.CityEnvironmentChangedV1);
             CityEnvironmentChangedV1 environmentChangedPayload =
                 OutboxTestSupport.DeserializePayload<CityEnvironmentChangedV1>(environmentChangedMessage);
             Assert.Equal(

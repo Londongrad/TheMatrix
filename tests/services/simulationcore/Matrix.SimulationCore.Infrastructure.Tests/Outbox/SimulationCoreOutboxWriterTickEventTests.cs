@@ -51,7 +51,7 @@ public sealed class SimulationCoreOutboxWriterTickEventTests
         SimulationTickPhaseReachedV1 payload =
             OutboxTestSupport.DeserializePayload<SimulationTickPhaseReachedV1>(message);
 
-        Assert.Equal(IntegrationEventTypes.SimulationTickPhaseReachedV1, message.Type);
+        Assert.Equal(SimulationCoreEventTypes.SimulationTickPhaseReachedV1, message.Type);
         Assert.Equal(simulationId.Value, payload.SimulationId);
         Assert.Equal(hostId.Value, payload.HostId);
         Assert.Equal(runtimeKey.ScenarioKey.Value, payload.ScenarioKey);

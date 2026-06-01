@@ -57,7 +57,7 @@ public sealed class SimulationCoreOutboxWriterSimulationEventTests
         Assert.Equal(3, messages.Count);
         SimulationCreatedV1 created = Deserialize<SimulationCreatedV1>(
             messages,
-            IntegrationEventTypes.SimulationCreatedV1);
+            SimulationCoreEventTypes.SimulationCreatedV1);
         Assert.Equal(SimulationId.Value, created.SimulationId);
         Assert.Equal(HostId.Value, created.HostId);
         Assert.Equal(RuntimeKey.ScenarioKey.Value, created.ScenarioKey);
@@ -67,12 +67,12 @@ public sealed class SimulationCoreOutboxWriterSimulationEventTests
 
         SimulationArchivedV1 archived = Deserialize<SimulationArchivedV1>(
             messages,
-            IntegrationEventTypes.SimulationArchivedV1);
+            SimulationCoreEventTypes.SimulationArchivedV1);
         Assert.Equal(archivedAtUtc, archived.ArchivedAtUtc);
 
         SimulationDeletedV1 deleted = Deserialize<SimulationDeletedV1>(
             messages,
-            IntegrationEventTypes.SimulationDeletedV1);
+            SimulationCoreEventTypes.SimulationDeletedV1);
         Assert.Equal(deletedAtUtc, deleted.DeletedAtUtc);
     }
 
