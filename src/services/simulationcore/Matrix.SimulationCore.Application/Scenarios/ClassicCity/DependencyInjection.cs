@@ -13,8 +13,6 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
-using Matrix.SimulationCore.Application.Services.Generation;
-using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 

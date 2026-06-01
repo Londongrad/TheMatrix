@@ -1,8 +1,8 @@
-using Matrix.SimulationCore.Application.Services.Generation;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities;
 using Xunit;
 
-namespace Matrix.SimulationCore.Application.Tests.Services.Generation
+namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services.Generation
 {
     public sealed class CityNameSuggestionServiceTests
     {

@@ -1,4 +1,4 @@
-using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation.Abstractions;
 using MediatR;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSuggestedCityNames
