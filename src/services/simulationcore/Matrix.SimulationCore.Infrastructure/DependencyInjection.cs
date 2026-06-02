@@ -8,8 +8,6 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Infrastructure.HostedServices;
 using Matrix.SimulationCore.Infrastructure.Options;
@@ -18,9 +16,6 @@ using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity;
-using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.Economy;
-using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.Population;
-using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Provisioning;
 using Matrix.SimulationCore.Infrastructure.Services.Simulation;
 using Microsoft.EntityFrameworkCore;
@@ -28,8 +23,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
-using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationCore.Infrastructure
 {
@@ -70,8 +63,6 @@ namespace Matrix.SimulationCore.Infrastructure
             services.TryAddSingleton(TimeProvider.System);
 
             services.AddRabbitMqOptions(configuration);
-            services.AddOptions<DownstreamServicesOptions>()
-               .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
@@ -82,7 +73,7 @@ namespace Matrix.SimulationCore.Infrastructure
                 sp.GetRequiredService<SimulationCoreOutboxWriter>());
             services.AddSingleton<IOutboxEventTypeContributor, SimulationCoreOutboxEventTypeContributor>();
             services.AddSingleton<OutboxEventTypeRegistry>();
-            services.AddClassicCityScenarioInfrastructure();
+            services.AddClassicCityScenarioInfrastructure(configuration);
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationCoreDbContext>>();
             services.AddSingleton<SimulationOperationGate>();
             services.AddScoped<ISimulationBatchAdvanceExecutor, SimulationBatchAdvanceExecutor>();
@@ -92,58 +83,6 @@ namespace Matrix.SimulationCore.Infrastructure
 
             services.AddOutbox<SimulationCoreDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
-
-            services.AddHttpClient<ICityEconomyBootstrapClient, CityEconomyBootstrapClient>((
-                    sp,
-                    client) =>
-                {
-                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
-                       .Value;
-
-                    if (string.IsNullOrWhiteSpace(options.Economy))
-                        throw new InvalidOperationException("DownstreamServices:Economy is not configured.");
-
-                    client.BaseAddress = new Uri(
-                        uriString: options.Economy,
-                        uriKind: UriKind.Absolute);
-                })
-               .AddInternalServiceAuthentication(
-                    identity: InternalServicePrincipals.SimulationCore,
-                    EconomyPermissionKeys.EconomyBudgetBootstrap);
-
-            services.AddHttpClient<ICityPopulationBootstrapClient, CityPopulationBootstrapClient>((
-                    sp,
-                    client) =>
-                {
-                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
-                       .Value;
-
-                    if (string.IsNullOrWhiteSpace(options.Population))
-                        throw new InvalidOperationException("DownstreamServices:Population is not configured.");
-
-                    client.BaseAddress = new Uri(
-                        uriString: options.Population,
-                        uriKind: UriKind.Absolute);
-                })
-               .AddInternalServiceAuthentication(
-                    identity: InternalServicePrincipals.SimulationCore,
-                    PopulationPermissionKeys.PopulationPeopleInitialize);
-
-            services.AddHttpClient<ICityRoadSegmentConditionsClient, CityRoadSegmentConditionsClient>((
-                    sp,
-                    client) =>
-                {
-                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
-                       .Value;
-
-                    if (string.IsNullOrWhiteSpace(options.SimulationSystems))
-                        throw new InvalidOperationException("DownstreamServices:SimulationSystems is not configured.");
-
-                    client.BaseAddress = new Uri(
-                        uriString: options.SimulationSystems,
-                        uriKind: UriKind.Absolute);
-                })
-               .AddInternalServiceAuthentication(identity: InternalServicePrincipals.SimulationCore);
 
             services.AddHostedService<SimulationTickHostedService>();
             services.AddHostedService<CityProvisioningHostedService>();
