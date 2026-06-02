@@ -3,7 +3,7 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Configurations
 {
     public sealed class CityConfiguration : IEntityTypeConfiguration<City>
     {
