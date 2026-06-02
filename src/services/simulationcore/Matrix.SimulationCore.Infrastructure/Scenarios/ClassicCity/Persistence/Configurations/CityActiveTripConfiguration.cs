@@ -4,7 +4,7 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Configurations
 {
     public sealed class CityActiveTripConfiguration : IEntityTypeConfiguration<CityActiveTrip>
     {
