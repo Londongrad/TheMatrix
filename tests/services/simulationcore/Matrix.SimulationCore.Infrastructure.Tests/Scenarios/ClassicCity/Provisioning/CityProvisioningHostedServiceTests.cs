@@ -3,12 +3,12 @@ using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Infrastructure.HostedServices;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Provisioning;
+using Matrix.SimulationCore.Infrastructure.Tests.HostedServices;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.HostedServices
+namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Provisioning
 {
     public sealed class CityProvisioningHostedServiceTests
     {
