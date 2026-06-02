@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 
-namespace Matrix.SimulationCore.Infrastructure.Population
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.Population
 {
     internal sealed class CityPopulationBootstrapClient(HttpClient client) : ICityPopulationBootstrapClient
     {

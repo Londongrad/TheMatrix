@@ -55,7 +55,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Http
         internal static ICityPopulationBootstrapClient CreatePopulationBootstrapClient(HttpClient httpClient)
         {
             return CreateInternalClient<ICityPopulationBootstrapClient>(
-                typeName: "Matrix.SimulationCore.Infrastructure.Population.CityPopulationBootstrapClient",
+                typeName: "Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.Population.CityPopulationBootstrapClient",
                 httpClient: httpClient);
         }
 

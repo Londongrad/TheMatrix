@@ -5,7 +5,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provision
 using Matrix.SimulationCore.Infrastructure.Tests.Http;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.Population
+namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Integrations.Population
 {
     public sealed class CityPopulationBootstrapClientTests
     {
