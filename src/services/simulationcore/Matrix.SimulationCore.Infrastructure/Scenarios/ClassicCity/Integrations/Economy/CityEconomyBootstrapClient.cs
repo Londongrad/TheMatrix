@@ -4,7 +4,7 @@ using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity;
 
-namespace Matrix.SimulationCore.Infrastructure.Economy
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.Economy
 {
     internal sealed class CityEconomyBootstrapClient(HttpClient client) : ICityEconomyBootstrapClient
     {

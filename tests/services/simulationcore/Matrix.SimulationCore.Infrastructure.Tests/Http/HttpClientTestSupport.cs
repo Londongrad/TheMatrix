@@ -48,7 +48,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Http
         internal static ICityEconomyBootstrapClient CreateEconomyBootstrapClient(HttpClient httpClient)
         {
             return CreateInternalClient<ICityEconomyBootstrapClient>(
-                typeName: "Matrix.SimulationCore.Infrastructure.Economy.CityEconomyBootstrapClient",
+                typeName: "Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.Economy.CityEconomyBootstrapClient",
                 httpClient: httpClient);
         }
 
