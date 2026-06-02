@@ -1,4 +1,4 @@
-namespace Matrix.SimulationCore.Infrastructure.Options
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Provisioning
 {
     public sealed class ProvisioningRecoveryOptions
     {

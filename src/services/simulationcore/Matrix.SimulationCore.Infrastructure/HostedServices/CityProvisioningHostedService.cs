@@ -3,7 +3,7 @@ using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Infrastructure.Options;
+using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Provisioning;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

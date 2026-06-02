@@ -4,7 +4,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persi
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Infrastructure.HostedServices;
-using Matrix.SimulationCore.Infrastructure.Options;
+using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Provisioning;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
