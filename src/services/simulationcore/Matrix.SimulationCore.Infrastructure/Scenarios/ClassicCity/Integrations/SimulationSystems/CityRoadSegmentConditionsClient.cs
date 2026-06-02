@@ -3,7 +3,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Views;
 
-namespace Matrix.SimulationCore.Infrastructure.SimulationSystems
+namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems
 {
     internal sealed class CityRoadSegmentConditionsClient(HttpClient client) : ICityRoadSegmentConditionsClient
     {

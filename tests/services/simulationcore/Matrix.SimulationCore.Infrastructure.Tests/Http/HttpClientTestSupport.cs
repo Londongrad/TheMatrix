@@ -62,7 +62,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Http
         internal static ICityRoadSegmentConditionsClient CreateRoadSegmentConditionsClient(HttpClient httpClient)
         {
             return CreateInternalClient<ICityRoadSegmentConditionsClient>(
-                typeName: "Matrix.SimulationCore.Infrastructure.SimulationSystems.CityRoadSegmentConditionsClient",
+                typeName: "Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems.CityRoadSegmentConditionsClient",
                 httpClient: httpClient);
         }
 

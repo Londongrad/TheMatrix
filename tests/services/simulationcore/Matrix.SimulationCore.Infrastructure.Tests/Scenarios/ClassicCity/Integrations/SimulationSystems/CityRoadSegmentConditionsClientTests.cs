@@ -6,7 +6,7 @@ using Matrix.SimulationCore.Infrastructure.Tests.Http;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Views;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.SimulationSystems
+namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Integrations.SimulationSystems
 {
     public sealed class CityRoadSegmentConditionsClientTests
     {
