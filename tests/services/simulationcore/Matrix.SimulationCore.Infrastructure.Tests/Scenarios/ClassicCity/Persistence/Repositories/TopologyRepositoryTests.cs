@@ -2,10 +2,11 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
+using Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories;
 using Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
+namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class TopologyRepositoryTests
     {

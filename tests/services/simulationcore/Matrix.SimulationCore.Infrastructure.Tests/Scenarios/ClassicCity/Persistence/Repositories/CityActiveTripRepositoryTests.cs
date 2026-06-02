@@ -3,11 +3,12 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
+using Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories;
 using Matrix.SimulationCore.Infrastructure.Tests.Services.Simulation;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace Matrix.SimulationCore.Infrastructure.Tests.Persistence.Repositories
+namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityActiveTripRepositoryTests
     {
