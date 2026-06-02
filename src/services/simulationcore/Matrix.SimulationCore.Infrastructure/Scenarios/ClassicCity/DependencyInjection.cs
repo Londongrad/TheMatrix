@@ -12,6 +12,7 @@ using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.Po
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
+using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Provisioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -36,6 +37,10 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityWeatherRepository, CityWeatherRepository>();
             services.AddScoped<IClassicCityOutboxWriter, ClassicCityOutboxWriter>();
             services.AddSingleton<IOutboxEventTypeContributor, ClassicCityOutboxEventTypeContributor>();
+
+            services.AddOptions<ProvisioningRecoveryOptions>()
+               .Bind(configuration.GetSection(ProvisioningRecoveryOptions.SectionName));
+            services.AddHostedService<CityProvisioningHostedService>();
 
             services.AddOptions<DownstreamServicesOptions>()
                .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));

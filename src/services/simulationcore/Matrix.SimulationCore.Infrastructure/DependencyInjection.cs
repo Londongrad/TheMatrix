@@ -16,7 +16,6 @@ using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity;
-using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Provisioning;
 using Matrix.SimulationCore.Infrastructure.Services.Simulation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -58,8 +57,6 @@ namespace Matrix.SimulationCore.Infrastructure
                .Bind(configuration.GetSection(SimulationTickOptions.SectionName));
             services.Replace(
                 ServiceDescriptor.Singleton<ISimulationFixedStepSettings, SimulationTickFixedStepSettings>());
-            services.AddOptions<ProvisioningRecoveryOptions>()
-               .Bind(configuration.GetSection(ProvisioningRecoveryOptions.SectionName));
             services.TryAddSingleton(TimeProvider.System);
 
             services.AddRabbitMqOptions(configuration);
@@ -85,7 +82,6 @@ namespace Matrix.SimulationCore.Infrastructure
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
             services.AddHostedService<SimulationTickHostedService>();
-            services.AddHostedService<CityProvisioningHostedService>();
 
             services.AddMassTransit(x =>
             {
