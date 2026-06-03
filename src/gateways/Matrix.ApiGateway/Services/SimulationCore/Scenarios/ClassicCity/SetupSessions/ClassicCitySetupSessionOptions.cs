@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.Configurations.Options
+namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions
 {
     public sealed class ClassicCitySetupSessionOptions
     {

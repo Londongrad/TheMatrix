@@ -1,4 +1,3 @@
-using Matrix.ApiGateway.Configurations.Options;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions

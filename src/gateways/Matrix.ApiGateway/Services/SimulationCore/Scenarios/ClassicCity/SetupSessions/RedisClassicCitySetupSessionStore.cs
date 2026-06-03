@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Matrix.ApiGateway.Configurations.Options;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
