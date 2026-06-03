@@ -130,7 +130,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
-                x.AddConsumer<ClassicCitySetupLaunchRequestedConsumer>();
+                x.AddClassicCitySetupSessionConsumers();
                 x.AddConsumer<UserSecurityStateChangedConsumer>();
                 x.AddConsumer<DefaultUserAccessPolicyChangedConsumer>();
 

@@ -1,7 +1,14 @@
+using MassTransit;
+
 namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions
 {
     public static class ClassicCitySetupSessionServiceCollectionExtensions
     {
+        public static void AddClassicCitySetupSessionConsumers(this IBusRegistrationConfigurator configurator)
+        {
+            configurator.AddConsumer<ClassicCitySetupLaunchRequestedConsumer>();
+        }
+
         public static IServiceCollection AddClassicCitySetupSessionServices(this IServiceCollection services)
         {
             services
