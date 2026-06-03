@@ -15,6 +15,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             IHostEnvironment environment)
         {
             services.AddClassicCityDashboard(configuration);
+            services.AddClassicCitySetupSessionServices();
 
             services.AddOptions<FrontendSecurityOptions>()
                .Bind(configuration.GetSection(FrontendSecurityOptions.SectionName))
@@ -33,9 +34,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
             services
                .AddScoped<ICityProvisioningService, CityProvisioningService>()
-               .AddScoped<IClassicCitySetupSessionStore, RedisClassicCitySetupSessionStore>()
-               .AddScoped<IClassicCitySetupSessionService, ClassicCitySetupSessionService>()
-               .AddHostedService<ClassicCitySetupSessionRecoveryHostedService>()
                .AddGatewayControllers()
                .AddGatewayCors(
                     configuration: configuration,

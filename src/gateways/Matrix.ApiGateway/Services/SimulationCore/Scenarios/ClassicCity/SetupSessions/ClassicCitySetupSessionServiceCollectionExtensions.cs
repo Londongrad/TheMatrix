@@ -2,6 +2,16 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
 {
     public static class ClassicCitySetupSessionServiceCollectionExtensions
     {
+        public static IServiceCollection AddClassicCitySetupSessionServices(this IServiceCollection services)
+        {
+            services
+               .AddScoped<IClassicCitySetupSessionStore, RedisClassicCitySetupSessionStore>()
+               .AddScoped<IClassicCitySetupSessionService, ClassicCitySetupSessionService>()
+               .AddHostedService<ClassicCitySetupSessionRecoveryHostedService>();
+
+            return services;
+        }
+
         public static IServiceCollection AddClassicCitySetupSessionOptions(
             this IServiceCollection services,
             IConfiguration configuration)
