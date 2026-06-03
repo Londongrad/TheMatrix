@@ -1,5 +1,4 @@
 using Matrix.ApiGateway.Configurations.Options;
-using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
@@ -11,7 +10,7 @@ using Microsoft.Extensions.Options;
 using Xunit;
 using static Matrix.ApiGateway.Tests.TestSupport.ApiGatewayTestSupport;
 
-namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     public sealed class CityOperationsDashboardSnapshotLoaderTests
     {

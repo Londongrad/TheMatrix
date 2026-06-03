@@ -1,5 +1,4 @@
 using Matrix.ApiGateway.Configurations.Options;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
@@ -19,7 +18,7 @@ using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
 using Microsoft.Extensions.Options;
 
-namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     internal sealed class CityOperationsDashboardSnapshotLoader(
         IEconomyApiClient economyClient,
