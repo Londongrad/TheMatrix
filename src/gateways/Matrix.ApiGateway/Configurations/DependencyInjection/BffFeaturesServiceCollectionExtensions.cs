@@ -26,7 +26,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddDownstreamReadResilience(configuration);
             services.AddRabbitMqOptions(configuration);
             services.AddMassTransitEndpointHygieneOptions(configuration);
-            services.AddClassicCitySetupSessionOptions(configuration);
             services.AddGatewayRedisCache(configuration);
             services.AddIdentityInternalUsersClient();
             services.AddGatewayMessaging();

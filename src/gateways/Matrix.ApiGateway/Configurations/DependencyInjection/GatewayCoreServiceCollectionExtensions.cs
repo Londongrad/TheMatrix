@@ -1,8 +1,6 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Configurations.Security;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity;
 using Matrix.BuildingBlocks.Api.Errors;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
@@ -14,9 +12,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             IConfiguration configuration,
             IHostEnvironment environment)
         {
-            services.AddClassicCityDashboard(configuration);
-            services.AddClassicCityCities();
-            services.AddClassicCitySetupSessionServices();
+            services.AddClassicCityGateway(configuration);
 
             services.AddOptions<FrontendSecurityOptions>()
                .Bind(configuration.GetSection(FrontendSecurityOptions.SectionName))
