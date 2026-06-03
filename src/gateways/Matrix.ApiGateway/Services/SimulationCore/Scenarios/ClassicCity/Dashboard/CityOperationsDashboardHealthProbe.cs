@@ -1,10 +1,9 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
-namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     public sealed class CityOperationsDashboardHealthProbe(
         HealthCheckService healthCheckService,
