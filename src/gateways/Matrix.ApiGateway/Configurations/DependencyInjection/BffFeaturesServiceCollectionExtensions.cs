@@ -8,7 +8,7 @@ using Matrix.ApiGateway.Consumers;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Identity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity;
 using Matrix.BuildingBlocks.Api.OptionsValidation;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Microsoft.Extensions.Options;
@@ -129,7 +129,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
-                x.AddClassicCitySetupSessionConsumers();
+                x.AddClassicCityGatewayConsumers();
                 x.AddConsumer<UserSecurityStateChangedConsumer>();
                 x.AddConsumer<DefaultUserAccessPolicyChangedConsumer>();
 
