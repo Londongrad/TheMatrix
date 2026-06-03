@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 
 namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 {

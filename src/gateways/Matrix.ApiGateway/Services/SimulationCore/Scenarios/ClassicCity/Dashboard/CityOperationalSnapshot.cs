@@ -10,7 +10,7 @@ using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
 
-namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     internal sealed record CityOperationalSnapshot(
         CityListItemView City,
