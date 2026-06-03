@@ -1,7 +1,6 @@
 using MassTransit;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 
-namespace Matrix.ApiGateway.Consumers
+namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions
 {
     public sealed class ClassicCitySetupLaunchRequestedConsumer(IClassicCitySetupSessionService setupSessionService)
         : IConsumer<ClassicCitySetupLaunchRequested>
