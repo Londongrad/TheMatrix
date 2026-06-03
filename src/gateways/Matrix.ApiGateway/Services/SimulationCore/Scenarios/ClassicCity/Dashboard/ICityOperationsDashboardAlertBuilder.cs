@@ -1,6 +1,4 @@
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
-
-namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     internal interface ICityOperationsDashboardAlertBuilder
     {

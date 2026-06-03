@@ -1,12 +1,11 @@
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
-using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using Xunit;
 
-namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     public sealed class CityOperationsDashboardAlertBuilderTests
     {
