@@ -15,6 +15,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             IHostEnvironment environment)
         {
             services.AddClassicCityDashboard(configuration);
+            services.AddClassicCityCities();
             services.AddClassicCitySetupSessionServices();
 
             services.AddOptions<FrontendSecurityOptions>()
@@ -33,7 +34,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .ValidateOnStart();
 
             services
-               .AddScoped<ICityProvisioningService, CityProvisioningService>()
                .AddGatewayControllers()
                .AddGatewayCors(
                     configuration: configuration,
