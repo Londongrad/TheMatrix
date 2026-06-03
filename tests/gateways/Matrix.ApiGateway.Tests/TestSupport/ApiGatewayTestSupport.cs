@@ -27,7 +27,7 @@ using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.C
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
-using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;

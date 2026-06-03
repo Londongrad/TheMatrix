@@ -1,9 +1,8 @@
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 
-namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     internal sealed class CityOperationsDashboardService(
         ICitiesApiClient citiesClient,
