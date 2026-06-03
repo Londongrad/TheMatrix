@@ -1,5 +1,4 @@
 using Matrix.ApiGateway.Contracts.SimulationCore.Simulation.Requests;
-using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Simulation;
 using Matrix.ApiGateway.Controllers.SimulationCore.Simulation;
 using Matrix.SimulationCore.Contracts.Simulation.Views;
 using Microsoft.AspNetCore.Mvc;
@@ -92,62 +91,5 @@ namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore
                 actual: simulationClient.LastJumpRequest!.NewSimTimeUtc);
         }
 
-        [Fact]
-        public async Task CitySimulationGetClock_WhenCalled_ReturnsOkClock()
-        {
-            var cityId = Guid.Parse("dba47d3f-9b60-4603-82f6-e240f75263b2");
-            SimulationClockView clock = CreateSimulationClockView(simulationId: cityId);
-            var simulationClient = new RecordingSimulationApiClient
-            {
-                ClockResult = clock
-            };
-            SimulationController controller = CreateCitySimulationController(simulationClient);
-
-            ActionResult<SimulationClockView?> actionResult = await controller.GetClock(
-                cityId: cityId,
-                cancellationToken: CancellationToken.None);
-
-            OkObjectResult ok = Assert.IsType<OkObjectResult>(actionResult.Result);
-            Assert.Same(
-                expected: clock,
-                actual: Assert.IsType<SimulationClockView>(ok.Value));
-            Assert.Equal(
-                expected: cityId,
-                actual: simulationClient.LastClockSimulationId);
-        }
-
-        [Fact]
-        public async Task CitySimulationPauseClock_WhenCalled_ReturnsNoContent()
-        {
-            var cityId = Guid.Parse("af5d6360-8730-4c8f-a1ac-a3f11eebbc0f");
-            var simulationClient = new RecordingSimulationApiClient();
-            SimulationController controller = CreateCitySimulationController(simulationClient);
-
-            IActionResult result = await controller.PauseClock(
-                cityId: cityId,
-                cancellationToken: CancellationToken.None);
-
-            Assert.IsType<NoContentResult>(result);
-            Assert.Equal(
-                expected: cityId,
-                actual: simulationClient.LastPausedSimulationId);
-        }
-
-        [Fact]
-        public async Task CitySimulationResumeClock_WhenCalled_ReturnsNoContent()
-        {
-            var cityId = Guid.Parse("25226df5-d0c5-4535-a666-9bf6c15fdce2");
-            var simulationClient = new RecordingSimulationApiClient();
-            SimulationController controller = CreateCitySimulationController(simulationClient);
-
-            IActionResult result = await controller.ResumeClock(
-                cityId: cityId,
-                cancellationToken: CancellationToken.None);
-
-            Assert.IsType<NoContentResult>(result);
-            Assert.Equal(
-                expected: cityId,
-                actual: simulationClient.LastResumedSimulationId);
-        }
     }
 }

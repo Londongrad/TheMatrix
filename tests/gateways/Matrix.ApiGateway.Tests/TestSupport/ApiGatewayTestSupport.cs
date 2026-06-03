@@ -17,7 +17,6 @@ using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.SetupSess
 using Matrix.ApiGateway.Controllers.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.SetupSessions;
-using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Simulation;
 using Matrix.ApiGateway.Controllers.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
@@ -453,12 +452,6 @@ namespace Matrix.ApiGateway.Tests.TestSupport
             RecordingSimulationApiClient? simulationClient = null)
         {
             return new SimulationsController(simulationClient ?? new RecordingSimulationApiClient());
-        }
-
-        public static SimulationController
-            CreateCitySimulationController(RecordingSimulationApiClient? simulationClient = null)
-        {
-            return new SimulationController(simulationClient ?? new RecordingSimulationApiClient());
         }
 
         public static CityOperationsDashboardController CreateCityOperationsDashboardController(
