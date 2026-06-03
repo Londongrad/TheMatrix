@@ -10,6 +10,7 @@ using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.BuildingBlocks.Api.Forwarding;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Microsoft.AspNetCore.Authentication;

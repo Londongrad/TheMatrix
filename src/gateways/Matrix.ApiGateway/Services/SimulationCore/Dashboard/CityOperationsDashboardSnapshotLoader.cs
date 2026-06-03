@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.Configurations.Options;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
