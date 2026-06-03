@@ -1,4 +1,4 @@
-using Matrix.ApiGateway.Contracts.SimulationCore.Dashboard;
+using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

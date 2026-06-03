@@ -5,7 +5,7 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 
-namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     public sealed record CityOperationsDashboardView(
         DateTimeOffset GeneratedAtUtc,

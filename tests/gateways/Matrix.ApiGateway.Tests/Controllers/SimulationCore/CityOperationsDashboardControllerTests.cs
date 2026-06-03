@@ -1,4 +1,4 @@
-using Matrix.ApiGateway.Contracts.SimulationCore.Dashboard;
+using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.Controllers.SimulationCore.Dashboard;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;

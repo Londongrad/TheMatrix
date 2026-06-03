@@ -1,6 +1,6 @@
 using System.Net;
 using Matrix.ApiGateway.Configurations.Options;
-using Matrix.ApiGateway.Contracts.SimulationCore.Dashboard;
+using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
