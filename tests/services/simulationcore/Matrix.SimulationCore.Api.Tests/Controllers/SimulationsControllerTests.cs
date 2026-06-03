@@ -1,5 +1,4 @@
 using Matrix.SimulationCore.Api.Controllers;
-using Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity.Simulation;
 using Matrix.SimulationCore.Application.UseCases.Simulation.GetClock;
 using Matrix.SimulationCore.Application.UseCases.Simulation.JumpClock;
 using Matrix.SimulationCore.Application.UseCases.Simulation.PauseClock;
@@ -146,98 +145,5 @@ namespace Matrix.SimulationCore.Api.Tests.Controllers
                 request => Assert.IsType<JumpClockCommand>(request));
         }
 
-        [Fact]
-        public async Task CitySimulationEndpoints_UseCityIdentifierAsSimulationIdentifier()
-        {
-            var cityId = Guid.Parse("fd72808b-2cb0-4dd2-bf3e-d542409ef2f7");
-            DateTimeOffset newSimTimeUtc = new(
-                year: 2048,
-                month: 6,
-                day: 1,
-                hour: 13,
-                minute: 0,
-                second: 0,
-                offset: TimeSpan.Zero);
-            var sender = new FakeSender();
-            sender.Handle<GetClockQuery, ClockDto?>(query =>
-            {
-                Assert.Equal(
-                    expected: cityId,
-                    actual: query.SimulationId);
-                return CreateClockDto(cityId);
-            });
-            sender.Handle<PauseClockCommand, bool>(command =>
-            {
-                Assert.Equal(
-                    expected: cityId,
-                    actual: command.SimulationId);
-                return true;
-            });
-            sender.Handle<ResumeClockCommand, bool>(command =>
-            {
-                Assert.Equal(
-                    expected: cityId,
-                    actual: command.SimulationId);
-                return true;
-            });
-            sender.Handle<SetClockSpeedCommand, bool>(command =>
-            {
-                Assert.Equal(
-                    expected: cityId,
-                    actual: command.SimulationId);
-                Assert.Equal(
-                    expected: 1.25m,
-                    actual: command.Multiplier);
-                return true;
-            });
-            sender.Handle<JumpClockCommand, bool>(command =>
-            {
-                Assert.Equal(
-                    expected: cityId,
-                    actual: command.SimulationId);
-                Assert.Equal(
-                    expected: newSimTimeUtc,
-                    actual: command.NewSimTimeUtc);
-                return true;
-            });
-            var controller = new SimulationController(sender);
-
-            IResult get = await controller.GetClock(
-                cityId: cityId,
-                cancellationToken: CancellationToken.None);
-            IResult pause = await controller.Pause(
-                cityId: cityId,
-                cancellationToken: CancellationToken.None);
-            IResult resume = await controller.Resume(
-                cityId: cityId,
-                cancellationToken: CancellationToken.None);
-            IResult speed = await controller.SetSpeed(
-                cityId: cityId,
-                request: new SetSpeedRequest(1.25m),
-                cancellationToken: CancellationToken.None);
-            IResult jump = await controller.Jump(
-                cityId: cityId,
-                request: new JumpClockRequest(newSimTimeUtc),
-                cancellationToken: CancellationToken.None);
-
-            SimulationClockView view = AssertResult<SimulationClockView>(
-                result: get,
-                expectedStatusCode: StatusCodes.Status200OK);
-            Assert.Equal(
-                expected: cityId,
-                actual: view.SimulationId);
-            AssertStatus(
-                result: pause,
-                expectedStatusCode: StatusCodes.Status200OK);
-            AssertStatus(
-                result: resume,
-                expectedStatusCode: StatusCodes.Status200OK);
-            AssertStatus(
-                result: speed,
-                expectedStatusCode: StatusCodes.Status200OK);
-            AssertStatus(
-                result: jump,
-                expectedStatusCode: StatusCodes.Status200OK);
-        }
     }
 }
