@@ -1,13 +1,27 @@
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
-using Matrix.ApiGateway.Controllers.SimulationCore.Dashboard;
+using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using static Matrix.ApiGateway.Tests.TestSupport.ApiGatewayTestSupport;
 
-namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore
+namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     public sealed class CityOperationsDashboardControllerTests
     {
+        [Fact]
+        public void Route_IsScopedToClassicCityScenario()
+        {
+            RouteAttribute route = Assert.Single(
+                typeof(CityOperationsDashboardController).GetCustomAttributes(
+                    attributeType: typeof(RouteAttribute),
+                    inherit: true)
+                   .Cast<RouteAttribute>());
+
+            Assert.Equal(
+                expected: "api/scenarios/classic-city/dashboard",
+                actual: route.Template);
+        }
+
         [Fact]
         public async Task Get_WhenCalled_ReturnsOkDashboard()
         {

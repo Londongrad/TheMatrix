@@ -14,7 +14,7 @@ using Matrix.ApiGateway.Contracts.Economy;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.SetupSessions;
-using Matrix.ApiGateway.Controllers.SimulationCore.Dashboard;
+using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.ApiGateway.Controllers.SimulationCore.Simulation;

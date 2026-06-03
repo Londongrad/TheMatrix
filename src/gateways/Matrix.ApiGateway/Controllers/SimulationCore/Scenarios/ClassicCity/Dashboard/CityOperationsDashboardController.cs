@@ -3,11 +3,11 @@ using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers.SimulationCore.Dashboard
+namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Dashboard
 {
     [Authorize]
     [ApiController]
-    [Route("api/dashboard/simulationcore")]
+    [Route("api/scenarios/classic-city/dashboard")]
     public sealed class CityOperationsDashboardController(ICityOperationsDashboardService dashboardService)
         : ControllerBase
     {
