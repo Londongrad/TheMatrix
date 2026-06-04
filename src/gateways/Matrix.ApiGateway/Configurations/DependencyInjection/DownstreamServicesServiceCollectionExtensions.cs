@@ -88,16 +88,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddEconomyClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IEconomyApiClient, EconomyApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Economy))
-               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
-               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Economy)
-               .ConfigureHttpClient(ConfigureTimeout);
+            services.AddInternalDownstreamClient<IEconomyApiClient, EconomyApiClient>(
+                DownstreamServiceNames.Economy);
 
             return services;
         }
