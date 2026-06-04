@@ -96,16 +96,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddResourcesClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IStockpilesApiClient, StockpilesApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Resources))
-               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
-               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Resources)
-               .ConfigureHttpClient(ConfigureTimeout);
+            services.AddInternalDownstreamClient<IStockpilesApiClient, StockpilesApiClient>(
+                DownstreamServiceNames.Resources);
 
             services.AddHttpClient<ITripsApiClient, TripsApiClient>((
                         sp,
