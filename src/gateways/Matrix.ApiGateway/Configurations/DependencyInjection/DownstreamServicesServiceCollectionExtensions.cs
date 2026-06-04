@@ -115,27 +115,10 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddPopulationClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IPersonApiClient, PersonApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Population))
-               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
-               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Population)
-               .ConfigureHttpClient(ConfigureTimeout);
-
-            services.AddHttpClient<IPopulationApiClient, PopulationApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Population))
-               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
-               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Population)
-               .ConfigureHttpClient(ConfigureTimeout);
+            services.AddInternalDownstreamClient<IPersonApiClient, PersonApiClient>(
+                DownstreamServiceNames.Population);
+            services.AddInternalDownstreamClient<IPopulationApiClient, PopulationApiClient>(
+                DownstreamServiceNames.Population);
 
             return services;
         }
