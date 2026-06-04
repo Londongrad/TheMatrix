@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
 using Matrix.BuildingBlocks.Application.Models;
@@ -162,7 +163,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                         statusCode: HttpStatusCode.OK,
                         payload: summary))
             };
-            IEconomyApiClient client = CreateEconomyApiClient(CreateHttpClient(handler));
+            IClassicCityEconomyApiClient client = CreateClassicCityEconomyApiClient(CreateHttpClient(handler));
 
             EconomySummaryView? result = await client.GetCitySummaryAsync(
                 cityId: cityId,
@@ -222,7 +223,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                         statusCode: HttpStatusCode.OK,
                         payload: pressure))
             };
-            IEconomyApiClient client = CreateEconomyApiClient(CreateHttpClient(handler));
+            IClassicCityEconomyApiClient client = CreateClassicCityEconomyApiClient(CreateHttpClient(handler));
 
             CityOperationalBudgetPressureView? result = await client.GetCityOperationalBudgetPressureAsync(
                 cityId: cityId,
@@ -255,7 +256,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                         statusCode: HttpStatusCode.OK,
                         payload: bootstrap))
             };
-            IEconomyApiClient client = CreateEconomyApiClient(CreateHttpClient(handler));
+            IClassicCityEconomyApiClient client = CreateClassicCityEconomyApiClient(CreateHttpClient(handler));
 
             CityEconomyBootstrapResultView result = await client.InitializeCityEconomyAsync(
                 cityId: cityId,

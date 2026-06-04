@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using Matrix.ApiGateway.Controllers.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
@@ -148,6 +149,17 @@ namespace Matrix.ApiGateway.Tests.Http
 
         internal static IEconomyApiClient CreateEconomyApiClient(HttpClient httpClient)
         {
+            return Assert.IsAssignableFrom<IEconomyApiClient>(CreateEconomyApiClientInstance(httpClient));
+        }
+
+        internal static IClassicCityEconomyApiClient CreateClassicCityEconomyApiClient(HttpClient httpClient)
+        {
+            return Assert.IsAssignableFrom<IClassicCityEconomyApiClient>(
+                CreateEconomyApiClientInstance(httpClient));
+        }
+
+        private static object CreateEconomyApiClientInstance(HttpClient httpClient)
+        {
             Type type = GetGatewayAssembly()
                            .GetType("Matrix.ApiGateway.DownstreamClients.Economy.EconomyApiClient") ??
                         throw new InvalidOperationException("EconomyApiClient type was not found.");
@@ -175,7 +187,7 @@ namespace Matrix.ApiGateway.Tests.Http
                 ],
                 culture: null);
 
-            return Assert.IsAssignableFrom<IEconomyApiClient>(instance);
+            return Assert.IsAssignableFrom<object>(instance);
         }
 
         internal static IStockpilesApiClient CreateStockpilesApiClient(HttpClient httpClient)
