@@ -12,11 +12,8 @@ using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
-using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
-using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity;
 using static Matrix.ApiGateway.Configurations.DependencyInjection.DownstreamHttpClientDefaults;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
@@ -58,11 +55,10 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddTransient<InternalJwtExchangeHandler>();
 
             services.AddSimulationCoreClients();
-            services.AddSimulationSystemsClients();
             services.AddEconomyClients();
-            services.AddResourcesClients();
             services.AddPopulationClients();
             services.AddIdentityClients();
+            services.AddClassicCityDownstreamClients();
 
             return services;
         }
@@ -72,20 +68,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddInternalDownstreamClient<ISimulationApiClient, SimulationApiClient>(
                 DownstreamServiceNames.SimulationCore);
 
-            services.AddHttpClient<ICitiesApiClient, CitiesApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.SimulationCore))
-               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
-               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationCore)
-               .ConfigureHttpClient(ConfigureTimeout);
-
-            services.AddInternalDownstreamClient<ITripsApiClient, TripsApiClient>(
-                DownstreamServiceNames.SimulationCore);
-
             return services;
         }
 
@@ -93,22 +75,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         {
             services.AddInternalDownstreamClient<IEconomyApiClient, EconomyApiClient>(
                 DownstreamServiceNames.Economy);
-
-            return services;
-        }
-
-        private static IServiceCollection AddResourcesClients(this IServiceCollection services)
-        {
-            services.AddInternalDownstreamClient<IStockpilesApiClient, StockpilesApiClient>(
-                DownstreamServiceNames.Resources);
-
-            return services;
-        }
-
-        private static IServiceCollection AddSimulationSystemsClients(this IServiceCollection services)
-        {
-            services.AddInternalDownstreamClient<IEnvironmentalConditionsApiClient, EnvironmentalConditionsApiClient>(
-                DownstreamServiceNames.SimulationSystems);
 
             return services;
         }
