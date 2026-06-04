@@ -1,6 +1,7 @@
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
@@ -9,7 +10,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
 {
     internal sealed class EconomyApiClient(
         HttpClient client,
-        ILogger<EconomyApiClient> logger) : IEconomyApiClient
+        ILogger<EconomyApiClient> logger) : IEconomyApiClient, IClassicCityEconomyApiClient
     {
         private const string SummaryEndpoint = "/api/economy/Budget/summary";
         private const string CitySummaryEndpointTemplate = "/api/economy/Budget/cities/{0}/summary";

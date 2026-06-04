@@ -1,6 +1,8 @@
 using MassTransit;
 using Matrix.ApiGateway.Configurations.DependencyInjection;
 using Matrix.ApiGateway.DownstreamClients.Common;
+using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
@@ -20,6 +22,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity
 
         private static IServiceCollection AddClassicCityDownstreamClients(this IServiceCollection services)
         {
+            services.AddInternalDownstreamClient<IClassicCityEconomyApiClient, EconomyApiClient>(
+                DownstreamServiceNames.Economy);
             services.AddInternalDownstreamClient<ICitiesApiClient, CitiesApiClient>(
                 DownstreamServiceNames.SimulationCore);
             services.AddInternalDownstreamClient<ITripsApiClient, TripsApiClient>(
