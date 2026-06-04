@@ -1,7 +1,9 @@
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.Controllers.Economy;
 using Matrix.ApiGateway.Controllers.Population;
+using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
 using Matrix.BuildingBlocks.Application.Models;
@@ -45,7 +47,7 @@ namespace Matrix.ApiGateway.Tests.Controllers
                     pageSize: 20,
                     nextCursor: "next-cursor")
             };
-            var controller = new EconomyController(economyClient);
+            var controller = new ClassicCityEconomyController(economyClient);
 
             ActionResult<CursorPagedResult<BudgetLedgerEntryView>> actionResult = await controller.GetBudgetLedgerFeed(
                 cityId: cityId,
@@ -209,7 +211,7 @@ namespace Matrix.ApiGateway.Tests.Controllers
             return Assert.IsType<T>(value);
         }
 
-        private sealed class RecordingGatewayEconomyClient : IEconomyApiClient
+        private sealed class RecordingGatewayEconomyClient : IEconomyApiClient, IClassicCityEconomyApiClient
         {
             public EconomySummaryView? SummaryResult { get; set; } = CreateEconomySummaryView();
             public bool HealthResult { get; set; } = true;
