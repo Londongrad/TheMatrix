@@ -15,7 +15,9 @@ import AdminLayout from "./layouts/admin/AdminLayout";
 import UserSettingsLayout from "./layouts/user-settings/UserSettingsLayout";
 import ClassicCityLayout from "./layouts/classic-city/ClassicCityLayout";
 
-const DashboardPage = lazy(() => import("@services/simulationcore/dashboard/pages/DashboardPage"));
+const DashboardPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/dashboard/pages/DashboardPage"),
+);
 const ForbiddenPage = lazy(() => import("@pages/forbidden-page/ForbiddenPage"));
 const NotFoundPage = lazy(() => import("@pages/not-found-page/NotFoundPage"));
 

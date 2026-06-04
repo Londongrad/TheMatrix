@@ -35,7 +35,7 @@ import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/simulationcore/scenarios/classic-city/styles/cities.css";
-import "@services/simulationcore/dashboard/styles/dashboard.css";
+import "@services/simulationcore/scenarios/classic-city/dashboard/styles/dashboard.css";
 
 const DASHBOARD_AUTO_REFRESH_MS = 30000;
 
