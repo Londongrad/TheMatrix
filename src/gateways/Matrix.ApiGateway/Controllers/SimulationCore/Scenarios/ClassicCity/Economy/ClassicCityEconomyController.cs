@@ -9,7 +9,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Eco
 {
     [Authorize]
     [ApiController]
-    [Route("api/economy")]
+    [Route("api/scenarios/classic-city/economy")]
     public sealed class ClassicCityEconomyController(IClassicCityEconomyApiClient economyClient) : ControllerBase
     {
         private readonly IClassicCityEconomyApiClient _economyClient = economyClient;
