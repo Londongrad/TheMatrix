@@ -13,7 +13,6 @@ using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
-using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity;
 using static Matrix.ApiGateway.Configurations.DependencyInjection.DownstreamHttpClientDefaults;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
@@ -58,7 +57,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddEconomyClients();
             services.AddPopulationClients();
             services.AddIdentityClients();
-            services.AddClassicCityDownstreamClients();
 
             return services;
         }

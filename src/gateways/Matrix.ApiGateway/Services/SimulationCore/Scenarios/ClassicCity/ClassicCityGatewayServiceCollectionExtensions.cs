@@ -18,7 +18,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity
             configurator.AddClassicCitySetupSessionConsumers();
         }
 
-        public static IServiceCollection AddClassicCityDownstreamClients(this IServiceCollection services)
+        private static IServiceCollection AddClassicCityDownstreamClients(this IServiceCollection services)
         {
             services.AddInternalDownstreamClient<ICitiesApiClient, CitiesApiClient>(
                 DownstreamServiceNames.SimulationCore);
@@ -40,6 +40,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity
             services.AddClassicCityCities();
             services.AddClassicCitySetupSessionOptions(configuration);
             services.AddClassicCitySetupSessionServices();
+            services.AddClassicCityDownstreamClients();
 
             return services;
         }
