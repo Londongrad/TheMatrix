@@ -10,7 +10,7 @@ using Matrix.ApiGateway.Authorization.InternalJwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
-using Matrix.ApiGateway.Contracts.Economy;
+using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Dashboard;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.SetupSessions;

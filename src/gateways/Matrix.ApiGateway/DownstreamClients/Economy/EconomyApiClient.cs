@@ -1,4 +1,4 @@
-using Matrix.ApiGateway.Contracts.Economy;
+using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;

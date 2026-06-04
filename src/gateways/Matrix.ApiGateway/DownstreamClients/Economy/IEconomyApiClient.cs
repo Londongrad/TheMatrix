@@ -1,4 +1,4 @@
-using Matrix.ApiGateway.Contracts.Economy;
+using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;

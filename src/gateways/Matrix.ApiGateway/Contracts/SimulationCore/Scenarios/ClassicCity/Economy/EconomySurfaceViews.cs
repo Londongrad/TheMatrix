@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.Contracts.Economy
+namespace Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy
 {
     public sealed record CityBusinessView(
         Guid BusinessId,
