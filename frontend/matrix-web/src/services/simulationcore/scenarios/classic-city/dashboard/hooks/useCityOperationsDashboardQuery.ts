@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {getCityOperationsDashboard} from "@services/simulationcore/dashboard/api/dashboardApi";
-import type {CityOperationsDashboardView} from "@services/simulationcore/dashboard/api/dashboardTypes";
+import {getCityOperationsDashboard} from "@services/simulationcore/scenarios/classic-city/dashboard/api/dashboardApi";
+import type {CityOperationsDashboardView} from "@services/simulationcore/scenarios/classic-city/dashboard/api/dashboardTypes";
 
 let dashboardCache: CityOperationsDashboardView | null = null;
 

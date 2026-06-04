@@ -13,10 +13,10 @@ import type {
     DashboardRecentEventView,
     DashboardServiceHealthView,
     DashboardTickFreshnessView,
-} from "@services/simulationcore/dashboard/api/dashboardTypes";
+} from "@services/simulationcore/scenarios/classic-city/dashboard/api/dashboardTypes";
 import {
     useCityOperationsDashboardQuery
-} from "@services/simulationcore/dashboard/hooks/useCityOperationsDashboardQuery";
+} from "@services/simulationcore/scenarios/classic-city/dashboard/hooks/useCityOperationsDashboardQuery";
 import type {CityListItemView} from "@services/simulationcore/scenarios/classic-city/contracts/citiesContracts";
 import {
     describeCityLifecycle,
