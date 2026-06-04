@@ -107,16 +107,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddSimulationSystemsClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IEnvironmentalConditionsApiClient, EnvironmentalConditionsApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.SimulationSystems))
-               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
-               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationSystems)
-               .ConfigureHttpClient(ConfigureTimeout);
+            services.AddInternalDownstreamClient<IEnvironmentalConditionsApiClient, EnvironmentalConditionsApiClient>(
+                DownstreamServiceNames.SimulationSystems);
 
             return services;
         }
