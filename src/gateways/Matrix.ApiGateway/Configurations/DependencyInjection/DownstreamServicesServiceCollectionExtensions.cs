@@ -69,16 +69,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddSimulationCoreClients(this IServiceCollection services)
         {
-            services.AddHttpClient<ISimulationApiClient, SimulationApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.SimulationCore))
-               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
-               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationCore)
-               .ConfigureHttpClient(ConfigureTimeout);
+            services.AddInternalDownstreamClient<ISimulationApiClient, SimulationApiClient>(
+                DownstreamServiceNames.SimulationCore);
 
             services.AddHttpClient<ICitiesApiClient, CitiesApiClient>((
                         sp,
