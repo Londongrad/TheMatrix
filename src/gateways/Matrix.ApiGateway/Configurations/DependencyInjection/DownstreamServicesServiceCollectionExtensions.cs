@@ -83,6 +83,9 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationCore)
                .ConfigureHttpClient(ConfigureTimeout);
 
+            services.AddInternalDownstreamClient<ITripsApiClient, TripsApiClient>(
+                DownstreamServiceNames.SimulationCore);
+
             return services;
         }
 
@@ -98,17 +101,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         {
             services.AddInternalDownstreamClient<IStockpilesApiClient, StockpilesApiClient>(
                 DownstreamServiceNames.Resources);
-
-            services.AddHttpClient<ITripsApiClient, TripsApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.SimulationCore))
-               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
-               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationCore)
-               .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
         }
