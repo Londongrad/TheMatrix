@@ -17,7 +17,7 @@ using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.C
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
-using Microsoft.Extensions.Options;
+using static Matrix.ApiGateway.Configurations.DependencyInjection.DownstreamHttpClientDefaults;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
 {
@@ -265,41 +265,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
-        }
-
-        private static void ConfigureServiceBaseAddress(
-            IServiceProvider sp,
-            HttpClient client,
-            string serviceName)
-        {
-            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
-               .Value;
-
-            string baseAddress = serviceName switch
-            {
-                DownstreamServiceNames.SimulationCore => options.SimulationCore,
-                DownstreamServiceNames.SimulationSystems => options.SimulationSystems,
-                DownstreamServiceNames.Economy => options.Economy,
-                DownstreamServiceNames.Resources => options.Resources,
-                DownstreamServiceNames.Population => options.Population,
-                DownstreamServiceNames.Identity => options.Identity,
-                _ => throw new InvalidOperationException($"Unsupported downstream service '{serviceName}'.")
-            };
-
-            client.BaseAddress = new Uri(
-                uriString: baseAddress,
-                uriKind: UriKind.Absolute);
-        }
-
-        private static void ConfigureTimeout(
-            IServiceProvider sp,
-            HttpClient client)
-        {
-            IHostEnvironment env = sp.GetRequiredService<IHostEnvironment>();
-
-            client.Timeout = env.IsDevelopment()
-                ? TimeSpan.FromMinutes(10)
-                : TimeSpan.FromSeconds(20);
         }
 
         private static bool IsAbsoluteUri(string value)
