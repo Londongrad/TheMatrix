@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
-using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
@@ -40,7 +40,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         ICitiesApiClient citiesClient,
         ITripsApiClient tripsClient,
         ISimulationApiClient simulationClient,
-        IEconomyApiClient economyClient,
+        IClassicCityEconomyApiClient economyClient,
         IPopulationApiClient populationClient,
         IStockpilesApiClient stockpilesClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
@@ -50,7 +50,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
-        private readonly IEconomyApiClient _economyClient = economyClient;
+        private readonly IClassicCityEconomyApiClient _economyClient = economyClient;
 
         private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient =
             environmentalConditionsClient;
