@@ -15,6 +15,7 @@ using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
+using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
@@ -100,6 +101,14 @@ namespace Matrix.ApiGateway.Tests.Http
         internal static IPopulationApiClient CreatePopulationApiClient(HttpClient httpClient)
         {
             return new PopulationApiClient(httpClient);
+        }
+
+        internal static IClassicCityPopulationApiClient CreateClassicCityPopulationApiClient(HttpClient httpClient)
+        {
+            return CreateInternalClient<IClassicCityPopulationApiClient>(
+                typeName:
+                "Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity.ClassicCityPopulationApiClient",
+                args: [httpClient]);
         }
 
         internal static IPersonApiClient CreatePersonApiClient(HttpClient httpClient)

@@ -5,6 +5,7 @@ using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
+using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
@@ -18,7 +19,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
     public sealed class PopulationAndEconomyApiClientTests
     {
         [Fact]
-        public async Task PopulationApiClientGetCityResidentsPageAsync_WhenCalled_UsesDateAndPaginationQuery()
+        public async Task ClassicCityPopulationApiClientGetCityResidentsPageAsync_WhenCalled_UsesDateAndPaginationQuery()
         {
             var cityId = Guid.Parse("18f5a5d3-cb51-4626-a98e-56450b5657fc");
             DateOnly currentDate = new(
@@ -35,7 +36,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                         statusCode: HttpStatusCode.OK,
                         payload: page))
             };
-            IPopulationApiClient client = CreatePopulationApiClient(CreateHttpClient(handler));
+            IClassicCityPopulationApiClient client = CreateClassicCityPopulationApiClient(CreateHttpClient(handler));
 
             PagedResult<PersonDto> result = await client.GetCityResidentsPageAsync(
                 cityId: cityId,
@@ -80,7 +81,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
 
         [Fact]
         public async Task
-            PopulationApiClientGetCityResidentDetailsAsync_WhenJsonIsMalformed_ThrowsDownstreamServiceException()
+            ClassicCityPopulationApiClientGetCityResidentDetailsAsync_WhenJsonIsMalformed_ThrowsDownstreamServiceException()
         {
             var cityId = Guid.Parse("2d6fd248-dcda-40bb-b402-ea0bcae2d69f");
             var personId = Guid.Parse("a07d5b2e-fde8-45c5-af40-9d484fe60c47");
@@ -93,7 +94,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                         statusCode: HttpStatusCode.OK,
                         payload: "{bad-json"))
             };
-            IPopulationApiClient client = CreatePopulationApiClient(CreateHttpClient(handler));
+            IClassicCityPopulationApiClient client = CreateClassicCityPopulationApiClient(CreateHttpClient(handler));
 
             DownstreamServiceException exception = await Assert.ThrowsAsync<DownstreamServiceException>(()
                 => client.GetCityResidentDetailsAsync(
