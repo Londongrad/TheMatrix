@@ -9,7 +9,7 @@ import type {
     BudgetLedgerEntryDto,
     CityBusinessLedgerEntryDto,
     CityHouseholdAccountLedgerEntryDto,
-} from "@services/economy/ledger/api/ledgerContracts";
+} from "@services/simulationcore/scenarios/classic-city/economy/api/ledgerContracts";
 
 function buildFeedUrl(
     baseUrl: string,

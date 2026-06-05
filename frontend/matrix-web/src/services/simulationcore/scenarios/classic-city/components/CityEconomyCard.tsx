@@ -13,12 +13,12 @@ import type {
     BudgetLedgerEntryDto,
     CityBusinessLedgerEntryDto,
     CityHouseholdAccountLedgerEntryDto,
-} from "@services/economy/ledger/api/ledgerContracts";
+} from "@services/simulationcore/scenarios/classic-city/economy/api/ledgerContracts";
 import {
     useBudgetLedgerFeed,
     useBusinessLedgerFeed,
     useHouseholdAccountLedgerFeed,
-} from "@services/economy/ledger/hooks/useEconomyLedgerFeed";
+} from "@services/simulationcore/scenarios/classic-city/economy/hooks/useEconomyLedgerFeed";
 import "@services/simulationcore/scenarios/classic-city/styles/city-economy.css";
 
 type Props = {

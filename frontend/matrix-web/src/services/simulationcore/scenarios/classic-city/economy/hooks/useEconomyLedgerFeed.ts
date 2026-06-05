@@ -3,7 +3,7 @@ import {
     getBudgetLedgerFeed,
     getBusinessLedgerFeed,
     getHouseholdAccountLedgerFeed,
-} from "@services/economy/ledger/api/ledgerApi";
+} from "@services/simulationcore/scenarios/classic-city/economy/api/ledgerApi";
 
 interface UseLedgerFeedOptions {
     enabled?: boolean;
