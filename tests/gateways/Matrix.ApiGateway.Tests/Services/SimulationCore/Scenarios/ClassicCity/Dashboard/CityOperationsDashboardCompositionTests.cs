@@ -1,7 +1,7 @@
 using System.Reflection;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
-using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
@@ -20,7 +20,7 @@ namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Scenarios.ClassicCity.
             Type[] forbiddenTypes =
             [
                 typeof(IClassicCityEconomyApiClient),
-                typeof(IPopulationApiClient),
+                typeof(IClassicCityPopulationApiClient),
                 typeof(IStockpilesApiClient),
                 typeof(ITripsApiClient),
                 typeof(IEnvironmentalConditionsApiClient),

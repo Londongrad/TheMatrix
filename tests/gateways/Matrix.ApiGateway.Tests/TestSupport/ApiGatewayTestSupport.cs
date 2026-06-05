@@ -23,6 +23,7 @@ using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
@@ -1851,7 +1852,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
             }
         }
 
-        public sealed class RecordingPopulationApiClient : IPopulationApiClient
+        public sealed class RecordingPopulationApiClient : IPopulationApiClient, IClassicCityPopulationApiClient
         {
             public CityPopulationDashboardDto? DashboardResult { get; set; }
             public CityPopulationDistrictPressureDto? DistrictPressureResult { get; set; }

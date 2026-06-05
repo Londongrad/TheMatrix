@@ -1,7 +1,7 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
-using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
@@ -22,7 +22,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashbo
 {
     internal sealed class CityOperationsDashboardSnapshotLoader(
         IClassicCityEconomyApiClient economyClient,
-        IPopulationApiClient populationClient,
+        IClassicCityPopulationApiClient populationClient,
         IStockpilesApiClient stockpilesClient,
         ITripsApiClient tripsClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
@@ -36,7 +36,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashbo
             environmentalConditionsClient;
 
         private readonly ILogger<CityOperationsDashboardSnapshotLoader> _logger = logger;
-        private readonly IPopulationApiClient _populationClient = populationClient;
+        private readonly IClassicCityPopulationApiClient _populationClient = populationClient;
         private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
         private readonly ITripsApiClient _tripsClient = tripsClient;
 
