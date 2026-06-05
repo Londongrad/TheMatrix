@@ -4,8 +4,11 @@ import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import {usePermissions} from "@shared/permissions/usePermissions";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
-import {useCityEconomyWorkspace} from "@services/economy/city/hooks/useCityEconomyWorkspace";
-import type {CityBusinessDto, CityHouseholdAccountDto,} from "@services/economy/city/api/cityEconomyContracts";
+import {useCityEconomyWorkspace} from "@services/simulationcore/scenarios/classic-city/economy/hooks/useCityEconomyWorkspace";
+import type {
+    CityBusinessDto,
+    CityHouseholdAccountDto,
+} from "@services/simulationcore/scenarios/classic-city/economy/api/cityEconomyContracts";
 import type {
     BudgetLedgerEntryDto,
     CityBusinessLedgerEntryDto,

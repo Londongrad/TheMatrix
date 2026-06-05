@@ -9,7 +9,7 @@ import type {
     CityHouseholdAccountDto,
     CityOperationalBudgetPressureDto,
     EconomySummaryDto,
-} from "@services/economy/city/api/cityEconomyContracts";
+} from "@services/simulationcore/scenarios/classic-city/economy/api/cityEconomyContracts";
 
 export function getCityBudgetSummary(cityId: string, signal?: AbortSignal) {
     return apiRequest<EconomySummaryDto>(

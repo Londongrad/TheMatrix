@@ -4,13 +4,13 @@ import {
     getCityBusinesses,
     getCityHouseholdAccounts,
     getCityOperationalBudgetPressure,
-} from "@services/economy/city/api/cityEconomyApi";
+} from "@services/simulationcore/scenarios/classic-city/economy/api/cityEconomyApi";
 import type {
     CityBusinessDto,
     CityHouseholdAccountDto,
     CityOperationalBudgetPressureDto,
     EconomySummaryDto,
-} from "@services/economy/city/api/cityEconomyContracts";
+} from "@services/simulationcore/scenarios/classic-city/economy/api/cityEconomyContracts";
 import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 interface UseCityEconomyWorkspaceOptions {
