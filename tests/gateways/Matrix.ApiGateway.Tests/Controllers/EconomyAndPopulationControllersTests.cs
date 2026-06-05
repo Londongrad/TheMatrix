@@ -2,9 +2,11 @@ using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.Controllers.Economy;
 using Matrix.ApiGateway.Controllers.Population;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Economy;
+using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Population;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Requests;
@@ -104,7 +106,7 @@ namespace Matrix.ApiGateway.Tests.Controllers
         }
 
         [Fact]
-        public async Task PopulationControllerInitializePopulation_ReturnsOk()
+        public async Task ClassicCityPopulationControllerInitializePopulation_ReturnsOk()
         {
             CityPopulationBootstrapSummaryDto bootstrap = new(
                 CityId: Guid.Parse("49e37e71-2572-47b3-a253-b3e348fd79fd"),
@@ -119,7 +121,7 @@ namespace Matrix.ApiGateway.Tests.Controllers
             {
                 BootstrapResult = bootstrap
             };
-            var controller = new PopulationController(populationClient);
+            var controller = new ClassicCityPopulationController(populationClient);
             InitializeCityPopulationRequest request = new(
                 CityId: bootstrap.CityId,
                 CurrentDate: new DateOnly(
@@ -323,7 +325,7 @@ namespace Matrix.ApiGateway.Tests.Controllers
             }
         }
 
-        private sealed class RecordingGatewayPopulationClient : IPopulationApiClient
+        private sealed class RecordingGatewayPopulationClient : IPopulationApiClient, IClassicCityPopulationApiClient
         {
             public CityPopulationBootstrapSummaryDto? BootstrapResult { get; set; }
             public PagedResult<PersonDto>? CitizensPageResult { get; set; }
