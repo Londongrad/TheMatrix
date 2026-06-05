@@ -17,7 +17,7 @@ export const API_SIMULATION_URL = API_BASE_URL + "/api/simulations";
 export const API_CLASSIC_CITY_SETUP_SESSIONS_URL = API_BASE_URL + "/api/scenarios/classic-city/setup-sessions";
 export const API_CLASSIC_CITY_DASHBOARD_URL = API_BASE_URL + "/api/scenarios/classic-city/dashboard";
 const API_CLASSIC_CITY_ECONOMY_URL = API_BASE_URL + "/api/scenarios/classic-city/economy";
-export const API_ECONOMY_BUDGET_URL = API_CLASSIC_CITY_ECONOMY_URL + "/budget";
-export const API_ECONOMY_BUSINESS_URL = API_CLASSIC_CITY_ECONOMY_URL + "/business";
-export const API_ECONOMY_HOUSEHOLD_ACCOUNTS_URL =
+export const API_CLASSIC_CITY_ECONOMY_BUDGET_URL = API_CLASSIC_CITY_ECONOMY_URL + "/budget";
+export const API_CLASSIC_CITY_ECONOMY_BUSINESS_URL = API_CLASSIC_CITY_ECONOMY_URL + "/business";
+export const API_CLASSIC_CITY_ECONOMY_HOUSEHOLD_ACCOUNTS_URL =
     API_CLASSIC_CITY_ECONOMY_URL + "/householdaccounts";

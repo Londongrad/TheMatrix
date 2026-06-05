@@ -1,9 +1,9 @@
 import {apiRequest} from "@shared/api/http";
 import type {CursorPagedResult} from "@shared/lib/paging/cursorPagingTypes";
 import {
-    API_ECONOMY_BUDGET_URL,
-    API_ECONOMY_BUSINESS_URL,
-    API_ECONOMY_HOUSEHOLD_ACCOUNTS_URL,
+    API_CLASSIC_CITY_ECONOMY_BUDGET_URL,
+    API_CLASSIC_CITY_ECONOMY_BUSINESS_URL,
+    API_CLASSIC_CITY_ECONOMY_HOUSEHOLD_ACCOUNTS_URL,
 } from "@shared/api/config";
 import type {
     BudgetLedgerEntryDto,
@@ -34,7 +34,7 @@ export function getBudgetLedgerFeed(
     signal?: AbortSignal,
 ) {
     return apiRequest<CursorPagedResult<BudgetLedgerEntryDto>>(
-        buildFeedUrl(`${API_ECONOMY_BUDGET_URL}/cities`, cityId, cursor, pageSize),
+        buildFeedUrl(`${API_CLASSIC_CITY_ECONOMY_BUDGET_URL}/cities`, cityId, cursor, pageSize),
         {method: "GET", signal},
     );
 }
@@ -46,7 +46,7 @@ export function getBusinessLedgerFeed(
     signal?: AbortSignal,
 ) {
     return apiRequest<CursorPagedResult<CityBusinessLedgerEntryDto>>(
-        buildFeedUrl(API_ECONOMY_BUSINESS_URL, businessId, cursor, pageSize),
+        buildFeedUrl(API_CLASSIC_CITY_ECONOMY_BUSINESS_URL, businessId, cursor, pageSize),
         {method: "GET", signal},
     );
 }
@@ -58,7 +58,12 @@ export function getHouseholdAccountLedgerFeed(
     signal?: AbortSignal,
 ) {
     return apiRequest<CursorPagedResult<CityHouseholdAccountLedgerEntryDto>>(
-        buildFeedUrl(API_ECONOMY_HOUSEHOLD_ACCOUNTS_URL, householdAccountId, cursor, pageSize),
+        buildFeedUrl(
+            API_CLASSIC_CITY_ECONOMY_HOUSEHOLD_ACCOUNTS_URL,
+            householdAccountId,
+            cursor,
+            pageSize,
+        ),
         {method: "GET", signal},
     );
 }
