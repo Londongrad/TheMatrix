@@ -154,8 +154,10 @@ namespace Matrix.ApiGateway.Tests.Http
 
         internal static IClassicCityEconomyApiClient CreateClassicCityEconomyApiClient(HttpClient httpClient)
         {
-            return Assert.IsAssignableFrom<IClassicCityEconomyApiClient>(
-                CreateEconomyApiClientInstance(httpClient));
+            return CreateInternalClient<IClassicCityEconomyApiClient>(
+                typeName:
+                "Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity.ClassicCityEconomyApiClient",
+                args: [httpClient]);
         }
 
         private static object CreateEconomyApiClientInstance(HttpClient httpClient)
