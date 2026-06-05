@@ -3,7 +3,7 @@ using System.Text.Json;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
-using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
@@ -41,7 +41,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         ITripsApiClient tripsClient,
         ISimulationApiClient simulationClient,
         IClassicCityEconomyApiClient economyClient,
-        IPopulationApiClient populationClient,
+        IClassicCityPopulationApiClient populationClient,
         IStockpilesApiClient stockpilesClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
         ICityProvisioningService cityProvisioningService,
@@ -56,7 +56,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
             environmentalConditionsClient;
 
         private readonly ILogger<CitiesController> _logger = logger;
-        private readonly IPopulationApiClient _populationClient = populationClient;
+        private readonly IClassicCityPopulationApiClient _populationClient = populationClient;
         private readonly ISimulationApiClient _simulationClient = simulationClient;
         private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
         private readonly TimeProvider _timeProvider = timeProvider;
