@@ -1,6 +1,7 @@
 using System.Globalization;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -8,7 +9,7 @@ using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 namespace Matrix.ApiGateway.DownstreamClients.Population.People
 {
     public sealed class PopulationApiClient(HttpClient client)
-        : IPopulationApiClient
+        : IPopulationApiClient, IClassicCityPopulationApiClient
     {
         #region [ Fields ]
 
