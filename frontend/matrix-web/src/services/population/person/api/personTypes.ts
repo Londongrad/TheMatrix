@@ -87,17 +87,6 @@ export interface CityResidentDetailsDto extends PersonDto {
     currentActiveTrip?: CityResidentActiveTripDto | null;
 }
 
-export interface CityEmploymentCatalogDto {
-    jobTitles: string[];
-    currentWorkplaces: CityEmploymentWorkplaceDto[];
-}
-
-export interface CityEmploymentWorkplaceDto {
-    workplaceId: string;
-    jobTitle: string;
-    residentCount: number;
-}
-
 export interface CityEducationCatalogDto {
     currentInstitutions: CityEducationInstitutionDto[];
 }
@@ -113,12 +102,6 @@ export interface CityCivilRegistryOperationResultDto {
     recordedAtUtc: string;
     firstResident: CityResidentDetailsDto;
     secondResident: CityResidentDetailsDto;
-}
-
-export interface CityEmploymentOperationResultDto {
-    action: string;
-    recordedAtUtc: string;
-    resident: CityResidentDetailsDto;
 }
 
 export interface CityEducationOperationResultDto {
