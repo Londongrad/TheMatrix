@@ -37,6 +37,21 @@ namespace Matrix.ApiGateway.Tests.Controllers
         }
 
         [Fact]
+        public void ClassicCityPopulationController_UsesScenarioRoute()
+        {
+            RouteAttribute route = Assert.Single(
+                typeof(ClassicCityPopulationController)
+                   .GetCustomAttributes(
+                        attributeType: typeof(RouteAttribute),
+                        inherit: true)
+                   .Cast<RouteAttribute>());
+
+            Assert.Equal(
+                expected: "api/scenarios/classic-city/population",
+                actual: route.Template);
+        }
+
+        [Fact]
         public async Task EconomyControllerGetSummary_WhenDownstreamReturnsNull_MapsBadGateway()
         {
             var controller = new EconomyController(
