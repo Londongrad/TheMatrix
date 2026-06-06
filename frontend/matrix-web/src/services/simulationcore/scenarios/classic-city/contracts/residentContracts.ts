@@ -1,7 +1,7 @@
 import type {
     PersonDto,
     PersonReferenceDto,
-} from "@services/population/person/api/personTypes";
+} from "@services/population/person/contracts/personContracts";
 
 export interface CityResidentHousingDto {
     householdId: string;

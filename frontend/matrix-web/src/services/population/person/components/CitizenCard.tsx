@@ -1,6 +1,6 @@
 import React from "react";
 import {PencilLine} from "lucide-react";
-import type {PersonDto} from "@services/population/person/api/personTypes";
+import type {PersonDto} from "@services/population/person/contracts/personContracts";
 import IconButton from "@shared/ui/controls/IconButton/IconButton";
 import "@services/population/person/styles/citizen-card.css";
 

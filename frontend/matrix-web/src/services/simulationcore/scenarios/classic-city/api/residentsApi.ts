@@ -1,7 +1,7 @@
 import {API_CITY_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
 import type {PagedResult} from "@shared/lib/paging/pagingTypes";
-import type {PersonDto} from "@services/population/person/api/personTypes";
+import type {PersonDto} from "@services/population/person/contracts/personContracts";
 import type {CityCivilRegistryOperationResultDto} from "@services/simulationcore/scenarios/classic-city/contracts/civilRegistryContracts";
 import type {
     CityEducationCatalogDto,

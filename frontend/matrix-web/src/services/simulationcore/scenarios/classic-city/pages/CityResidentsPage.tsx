@@ -7,7 +7,7 @@ import {
     getClassicCityResidentDossierPath,
 } from "@services/simulationcore/scenarios/registry";
 import {getCityStatusTone, isArchivedCity,} from "@services/simulationcore/scenarios/classic-city/utils/presentation";
-import type {PersonDto} from "@services/population/person/api/personTypes";
+import type {PersonDto} from "@services/population/person/contracts/personContracts";
 import CitizenCard from "@services/population/person/components/CitizenCard";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
 import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
