@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getCityResidentDetails} from "@services/simulationcore/scenarios/classic-city/api/residentsApi";
-import type {CityResidentDetailsDto} from "@services/population/person/api/personTypes";
+import type {CityResidentDetailsDto} from "@services/simulationcore/scenarios/classic-city/contracts/residentContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0

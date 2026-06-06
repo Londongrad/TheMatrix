@@ -1,15 +1,17 @@
 import {API_CITY_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
 import type {PagedResult} from "@shared/lib/paging/pagingTypes";
+import type {PersonDto} from "@services/population/person/api/personTypes";
+import type {CityCivilRegistryOperationResultDto} from "@services/simulationcore/scenarios/classic-city/contracts/civilRegistryContracts";
 import type {
-    CityCivilRegistryOperationResultDto,
     CityEducationCatalogDto,
     CityEducationOperationResultDto,
+} from "@services/simulationcore/scenarios/classic-city/contracts/educationContracts";
+import type {
     CityEmploymentCatalogDto,
     CityEmploymentOperationResultDto,
-    CityResidentDetailsDto,
-    PersonDto,
-} from "@services/population/person/api/personTypes";
+} from "@services/simulationcore/scenarios/classic-city/contracts/employmentContracts";
+import type {CityResidentDetailsDto} from "@services/simulationcore/scenarios/classic-city/contracts/residentContracts";
 
 export function getCityResidentsPage(
     cityId: string,
