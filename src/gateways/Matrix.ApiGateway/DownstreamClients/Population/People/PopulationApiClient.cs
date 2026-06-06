@@ -8,13 +8,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
     public sealed class PopulationApiClient(HttpClient client)
         : IPopulationApiClient
     {
-        #region [ Fields ]
-
+        private const string GetPagedEndpoint = "/api/population/citizens";
+        private const string ServiceName = DownstreamServiceNames.Population;
         private readonly HttpClient _client = client;
-
-        #endregion [ Fields ]
-
-        #region [ Methods ]
 
         public async Task<PagedResult<PersonDto>> GetCitizensPageAsync(
             int pageNumber,
@@ -24,10 +20,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
             string query = $"?pageNumber={pageNumber}&pageSize={pageSize}";
             string url = GetPagedEndpoint + query;
 
-            using HttpResponseMessage response =
-                await _client.GetAsync(
-                    requestUri: url,
-                    cancellationToken: cancellationToken);
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
 
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
@@ -38,17 +33,5 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
 
             return result ?? throw new InvalidOperationException("Empty response from Population API.");
         }
-
-        #endregion [ Methods ]
-
-        #region [ Constants ]
-
-        private const string ServiceName = DownstreamServiceNames.Population;
-
-        private const string PopulationBaseEndpoint = "/api/population";
-
-        private const string GetPagedEndpoint = PopulationBaseEndpoint + "/citizens";
-
-        #endregion [ Constants ]
     }
 }
