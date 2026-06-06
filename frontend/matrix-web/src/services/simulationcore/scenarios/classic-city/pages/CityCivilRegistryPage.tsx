@@ -13,7 +13,8 @@ import {
     getClassicCityResidentDossierPath,
 } from "@services/simulationcore/scenarios/registry";
 import {getCityStatusTone, isArchivedCity,} from "@services/simulationcore/scenarios/classic-city/utils/presentation";
-import type {CityCivilRegistryOperationResultDto, PersonDto} from "@services/population/person/api/personTypes";
+import type {PersonDto} from "@services/population/person/api/personTypes";
+import type {CityCivilRegistryOperationResultDto} from "@services/simulationcore/scenarios/classic-city/contracts/civilRegistryContracts";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
 import Button from "@shared/ui/controls/Button/Button";
 import {getPageRange} from "@shared/lib/paging/pageRange";
