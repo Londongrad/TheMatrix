@@ -151,7 +151,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
         }
 
         [Fact]
-        public async Task EconomyApiClientGetCitySummaryAsync_WhenResponseIsSuccessful_ReturnsSummary()
+        public async Task ClassicCityEconomyApiClientGetCitySummaryAsync_WhenResponseIsSuccessful_ReturnsSummary()
         {
             var cityId = Guid.Parse("e0d3d66c-654f-4af5-aa7e-32c78d5580be");
             EconomySummaryView summary = CreateEconomySummaryView();
@@ -181,7 +181,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
         }
 
         [Fact]
-        public async Task EconomyApiClientGetCityOperationalBudgetPressureAsync_WhenCalled_ReturnsPressure()
+        public async Task ClassicCityEconomyApiClientGetCityOperationalBudgetPressureAsync_WhenCalled_ReturnsPressure()
         {
             var cityId = Guid.Parse("bbfd2c43-cbe4-43d7-b414-c780427d847d");
             CityOperationalBudgetPressureView pressure = new(
@@ -236,7 +236,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
         }
 
         [Fact]
-        public async Task EconomyApiClientInitializeCityEconomyAsync_WhenCalled_PostsRequestBody()
+        public async Task ClassicCityEconomyApiClientInitializeCityEconomyAsync_WhenCalled_PostsRequestBody()
         {
             var cityId = Guid.Parse("0f37db85-8d2d-4227-b0e3-d65188cca754");
             CityEconomyBootstrapResultView bootstrap = new(
