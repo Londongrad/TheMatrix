@@ -86,10 +86,3 @@ export interface CityResidentDetailsDto extends PersonDto {
     primaryHealthcareProvider?: CityResidentHealthcareProviderDto | null;
     currentActiveTrip?: CityResidentActiveTripDto | null;
 }
-
-export interface CityCivilRegistryOperationResultDto {
-    action: string;
-    recordedAtUtc: string;
-    firstResident: CityResidentDetailsDto;
-    secondResident: CityResidentDetailsDto;
-}
