@@ -2,7 +2,10 @@ import {useCallback, useEffect, useMemo} from "react";
 import {Link, Navigate, useParams, useSearchParams} from "react-router";
 import {useCityDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityResidentDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityResidentDetails";
-import type {CityResidentActiveTripDto, CityResidentRouteAccessDto,} from "@services/population/person/api/personTypes";
+import type {
+    CityResidentActiveTripDto,
+    CityResidentRouteAccessDto,
+} from "@services/simulationcore/scenarios/classic-city/contracts/residentContracts";
 import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityDetailsPath,
