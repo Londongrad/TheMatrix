@@ -15,13 +15,13 @@ import {
     getClassicCityResidentDossierPath,
 } from "@services/simulationcore/scenarios/registry";
 import {getCityStatusTone, isArchivedCity,} from "@services/simulationcore/scenarios/classic-city/utils/presentation";
+import type {PersonDto} from "@services/population/person/api/personTypes";
 import type {
     CityEducationCatalogDto,
     CityEducationInstitutionDto,
     CityEducationOperationResultDto,
-    CityResidentDetailsDto,
-    PersonDto,
-} from "@services/population/person/api/personTypes";
+} from "@services/simulationcore/scenarios/classic-city/contracts/educationContracts";
+import type {CityResidentDetailsDto} from "@services/simulationcore/scenarios/classic-city/contracts/residentContracts";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
 import Button from "@shared/ui/controls/Button/Button";
 import {getPageRange} from "@shared/lib/paging/pageRange";
