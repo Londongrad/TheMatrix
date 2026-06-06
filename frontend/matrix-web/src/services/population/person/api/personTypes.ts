@@ -87,25 +87,9 @@ export interface CityResidentDetailsDto extends PersonDto {
     currentActiveTrip?: CityResidentActiveTripDto | null;
 }
 
-export interface CityEducationCatalogDto {
-    currentInstitutions: CityEducationInstitutionDto[];
-}
-
-export interface CityEducationInstitutionDto {
-    institutionId: string;
-    educationLevel: string;
-    residentCount: number;
-}
-
 export interface CityCivilRegistryOperationResultDto {
     action: string;
     recordedAtUtc: string;
     firstResident: CityResidentDetailsDto;
     secondResident: CityResidentDetailsDto;
-}
-
-export interface CityEducationOperationResultDto {
-    action: string;
-    recordedAtUtc: string;
-    resident: CityResidentDetailsDto;
 }
