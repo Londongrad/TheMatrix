@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;
 using Matrix.SimulationSystems.Infrastructure.Tests.Http;
@@ -47,7 +48,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.SimulationCore
                     expected: HttpMethod.Get,
                     actual: request.Method);
                 Assert.Equal(
-                    expected: $"/api/cities/{CityId}/road-graph",
+                    expected: $"{ClassicCityApiRoutes.CitiesPath}/{CityId}/road-graph",
                     actual: request.RequestUri!.PathAndQuery);
                 return Task.FromResult(HttpClientTestSupport.CreateJsonResponse(payload));
             });

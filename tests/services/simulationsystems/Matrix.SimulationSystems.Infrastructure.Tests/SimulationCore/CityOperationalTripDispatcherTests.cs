@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;
 using Matrix.SimulationSystems.Infrastructure.Tests.Http;
@@ -33,7 +34,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.SimulationCore
                 expected: HttpMethod.Get,
                 actual: request.Method);
             Assert.Equal(
-                expected: $"/api/cities/{CityId}/map",
+                expected: $"{ClassicCityApiRoutes.CitiesPath}/{CityId}/map",
                 actual: request.RequestUri!.PathAndQuery);
         }
 
@@ -60,7 +61,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.SimulationCore
                     expected: HttpMethod.Post,
                     actual: request.Method);
                 Assert.Equal(
-                    expected: $"/api/cities/{CityId}/trips",
+                    expected: $"{ClassicCityApiRoutes.CitiesPath}/{CityId}/trips",
                     actual: request.RequestUri!.PathAndQuery);
                 postedJson = await request.Content!.ReadAsStringAsync();
                 return new HttpResponseMessage(HttpStatusCode.Accepted);
