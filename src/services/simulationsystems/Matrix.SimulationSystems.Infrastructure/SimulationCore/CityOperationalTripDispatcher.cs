@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
@@ -26,7 +27,7 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
             try
             {
                 CityMapTopologyView? topology = await _client.GetFromJsonAsync<CityMapTopologyView>(
-                    requestUri: $"/api/cities/{cityId}/map",
+                    requestUri: $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/map",
                     cancellationToken: cancellationToken);
 
                 if (topology is null)
@@ -42,7 +43,7 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
                     return false;
 
                 using HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    requestUri: $"/api/cities/{cityId}/trips",
+                    requestUri: $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/trips",
                     value: new DispatchCityTripRequest(
                         From: new CityRoutePointRequest(
                             Kind: RoadNodePointKind,

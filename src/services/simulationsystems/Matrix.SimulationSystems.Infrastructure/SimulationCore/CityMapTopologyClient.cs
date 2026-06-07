@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
@@ -14,7 +15,7 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
             CancellationToken cancellationToken)
         {
             CityRoadGraphView? payload = await _client.GetFromJsonAsync<CityRoadGraphView>(
-                requestUri: $"/api/cities/{cityId}/road-graph",
+                requestUri: $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/road-graph",
                 cancellationToken: cancellationToken);
 
             if (payload is null)
