@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
@@ -16,7 +17,7 @@ namespace Matrix.Population.Infrastructure.SimulationCore
             CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await _client.GetAsync(
-                requestUri: $"/api/cities/{cityId}/trips/active",
+                requestUri: $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/trips/active",
                 cancellationToken: cancellationToken);
             if (!response.IsSuccessStatusCode)
                 return [];
@@ -56,7 +57,7 @@ namespace Matrix.Population.Infrastructure.SimulationCore
             CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
-                requestUri: $"/api/cities/{request.CityId}/trips",
+                requestUri: $"{ClassicCityApiRoutes.CitiesPath}/{request.CityId}/trips",
                 value: new DispatchCityTripRequest(
                     From: new CityRoutePointRequest(
                         Kind: request.FromKind,

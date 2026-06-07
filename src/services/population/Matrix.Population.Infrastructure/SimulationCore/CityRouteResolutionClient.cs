@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Views;
 
@@ -18,7 +19,7 @@ namespace Matrix.Population.Infrastructure.SimulationCore
             string profile,
             CancellationToken cancellationToken)
         {
-            string url = $"/api/cities/{cityId}/routes/resolve";
+            string url = $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/routes/resolve";
 
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
                 requestUri: url,
@@ -61,7 +62,7 @@ namespace Matrix.Population.Infrastructure.SimulationCore
             Dictionary<CityRouteResolutionBatchRequestItem, CityPopulationCommuteContext?> results = uniqueRequests.ToDictionary(
                 keySelector: x => x,
                 elementSelector: _ => (CityPopulationCommuteContext?)null);
-            string url = $"/api/cities/{cityId}/routes/resolve-batch";
+            string url = $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/routes/resolve-batch";
 
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
                 requestUri: url,
