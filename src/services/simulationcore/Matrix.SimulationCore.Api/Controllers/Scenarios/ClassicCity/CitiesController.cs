@@ -23,6 +23,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityRoadGraph;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weather.GetWeather;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
@@ -35,7 +36,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/cities")]
+    [Route(ClassicCityApiRoutes.CitiesRoute)]
     public sealed class CitiesController(IMediator mediator) : ControllerBase
     {
         [HttpPost]
@@ -67,7 +68,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 cancellationToken: cancellationToken);
 
             return Results.Created(
-                uri: $"/api/cities/{created.CityId}",
+                uri: $"{ClassicCityApiRoutes.CitiesPath}/{created.CityId}",
                 value: new CityCreatedView(
                     CityId: created.CityId,
                     PopulationBootstrapOperationId: created.PopulationBootstrapOperationId,
@@ -104,7 +105,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 cancellationToken: cancellationToken);
 
             return Results.Created(
-                uri: $"/api/cities/{provisioning.CityId}",
+                uri: $"{ClassicCityApiRoutes.CitiesPath}/{provisioning.CityId}",
                 value: MapToProvisioningView(provisioning));
         }
 

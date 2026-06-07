@@ -1,6 +1,7 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World.Common;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World.DispatchCityTrip;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World.GetCityActiveTrips;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using MediatR;
@@ -11,7 +12,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/cities/{cityId:guid}/trips")]
+    [Route(ClassicCityApiRoutes.TripsRoute)]
     public sealed class TripsController(IMediator mediator) : ControllerBase
     {
         [HttpPost]

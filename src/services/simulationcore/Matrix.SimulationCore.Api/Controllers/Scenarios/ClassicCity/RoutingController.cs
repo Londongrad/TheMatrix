@@ -1,5 +1,6 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.ResolveCityRoute;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.ResolveCityRoutesBatch;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Views;
 using MediatR;
@@ -10,7 +11,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/cities/{cityId:guid}/routes")]
+    [Route(ClassicCityApiRoutes.RoutingRoute)]
     public sealed class RoutingController(IMediator mediator) : ControllerBase
     {
         [HttpPost("resolve")]
