@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Matrix.Resources.Infrastructure.SimulationCore;
 using Matrix.Resources.Infrastructure.Tests.Http;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
 using Xunit;
@@ -100,7 +101,7 @@ namespace Matrix.Resources.Infrastructure.Tests.SimulationCore
                 expected: HttpMethod.Post,
                 actual: tripRequestMessage.Method);
             Assert.Equal(
-                expected: $"/api/cities/{CityId}/trips",
+                expected: $"{ClassicCityApiRoutes.CitiesPath}/{CityId}/trips",
                 actual: tripRequestMessage.RequestUri!.PathAndQuery);
 
             DispatchCityTripRequest? tripRequest =
