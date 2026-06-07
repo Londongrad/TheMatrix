@@ -3,6 +3,7 @@ using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
@@ -158,7 +159,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.SimulationCore
                 expected: HttpMethod.Get,
                 actual: request.Method);
             Assert.EndsWith(
-                expectedEndString: "/api/cities?includeArchived=true",
+                expectedEndString: $"{ClassicCityApiRoutes.CitiesPath}?includeArchived=true",
                 actualString: request.RequestUri,
                 comparisonType: StringComparison.Ordinal);
         }
@@ -210,7 +211,8 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.SimulationCore
                 actual: result);
             RecordedRequest request = Assert.Single(handler.Requests);
             Assert.EndsWith(
-                expectedEndString: $"/api/cities/{cityId}/residential-buildings?districtId={districtId}",
+                expectedEndString:
+                $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/residential-buildings?districtId={districtId}",
                 actualString: request.RequestUri,
                 comparisonType: StringComparison.Ordinal);
         }
@@ -362,7 +364,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.SimulationCore
                 actual: result);
             RecordedRequest request = Assert.Single(handler.Requests);
             Assert.EndsWith(
-                expectedEndString: $"/api/cities/{cityId}/trips/active",
+                expectedEndString: $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/trips/active",
                 actualString: request.RequestUri,
                 comparisonType: StringComparison.Ordinal);
         }
