@@ -72,7 +72,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
                 cancellationToken: cancellationToken);
 
             return Created(
-                uri: $"/api/cities/{created.CityId}",
+                uri: $"/api/scenarios/classic-city/cities/{created.CityId}",
                 value: created);
         }
 

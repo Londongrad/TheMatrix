@@ -6,6 +6,7 @@ using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
@@ -32,6 +33,22 @@ namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore.Scenarios.ClassicCi
             Assert.Equal(
                 expected: "api/scenarios/classic-city/cities",
                 actual: route.Template);
+        }
+
+        [Fact]
+        public async Task Create_ReturnsScenarioScopedLocation()
+        {
+            CitiesController controller = CreateCitiesController();
+
+            ActionResult<CityProvisioningView> actionResult = await controller.Create(
+                request: CreateCityLaunchRequest(),
+                cancellationToken: CancellationToken.None);
+
+            CreatedResult created = Assert.IsType<CreatedResult>(actionResult.Result);
+            CityProvisioningView view = Assert.IsType<CityProvisioningView>(created.Value);
+            Assert.Equal(
+                expected: $"/api/scenarios/classic-city/cities/{view.CityId}",
+                actual: created.Location);
         }
 
         [Fact]
