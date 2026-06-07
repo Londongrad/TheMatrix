@@ -1,4 +1,4 @@
-import {API_CITY_URL} from "@shared/api/config";
+import {API_CLASSIC_CITY_CITIES_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
 import type {PagedResult} from "@shared/lib/paging/pagingTypes";
 import type {PersonDto} from "@services/population/person/contracts/personContracts";
@@ -19,7 +19,7 @@ export function getCityResidentsPage(
     pageSize: number,
 ) {
     return apiRequest<PagedResult<PersonDto>>(
-        `${API_CITY_URL}/${cityId}/residents?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/residents?pageNumber=${pageNumber}&pageSize=${pageSize}`,
         {
             method: "GET",
         },
@@ -32,7 +32,7 @@ export function getCityResidentDetails(
     signal?: AbortSignal,
 ) {
     return apiRequest<CityResidentDetailsDto>(
-        `${API_CITY_URL}/${cityId}/residents/${residentId}`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/residents/${residentId}`,
         {
             method: "GET",
             signal,
@@ -62,7 +62,7 @@ export function getCityEmploymentCatalog(
     signal?: AbortSignal,
 ) {
     return apiRequest<CityEmploymentCatalogDto>(
-        `${API_CITY_URL}/${cityId}/employment/catalog`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/employment/catalog`,
         {
             method: "GET",
             signal,
@@ -75,7 +75,7 @@ export function getCityEducationCatalog(
     signal?: AbortSignal,
 ) {
     return apiRequest<CityEducationCatalogDto>(
-        `${API_CITY_URL}/${cityId}/education/catalog`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/catalog`,
         {
             method: "GET",
             signal,
@@ -88,7 +88,7 @@ export function hireCityResident(
     payload: CityEmploymentOperationPayload,
 ) {
     return apiRequest<CityEmploymentOperationResultDto>(
-        `${API_CITY_URL}/${cityId}/employment/hire`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/employment/hire`,
         {
             method: "POST",
             body: JSON.stringify(payload),
@@ -101,7 +101,7 @@ export function fireCityResident(
     payload: CityEmploymentOperationPayload,
 ) {
     return apiRequest<CityEmploymentOperationResultDto>(
-        `${API_CITY_URL}/${cityId}/employment/fire`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/employment/fire`,
         {
             method: "POST",
             body: JSON.stringify(payload),
@@ -114,7 +114,7 @@ export function retireCityResident(
     payload: CityEmploymentOperationPayload,
 ) {
     return apiRequest<CityEmploymentOperationResultDto>(
-        `${API_CITY_URL}/${cityId}/employment/retire`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/employment/retire`,
         {
             method: "POST",
             body: JSON.stringify(payload),
@@ -127,7 +127,7 @@ export function enrollCityResident(
     payload: CityEducationOperationPayload,
 ) {
     return apiRequest<CityEducationOperationResultDto>(
-        `${API_CITY_URL}/${cityId}/education/enroll`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/enroll`,
         {
             method: "POST",
             body: JSON.stringify(payload),
@@ -140,7 +140,7 @@ export function graduateCityResident(
     payload: CityEducationOperationPayload,
 ) {
     return apiRequest<CityEducationOperationResultDto>(
-        `${API_CITY_URL}/${cityId}/education/graduate`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/graduate`,
         {
             method: "POST",
             body: JSON.stringify(payload),
@@ -153,7 +153,7 @@ export function withdrawCityResidentFromStudy(
     payload: CityEducationOperationPayload,
 ) {
     return apiRequest<CityEducationOperationResultDto>(
-        `${API_CITY_URL}/${cityId}/education/withdraw`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/withdraw`,
         {
             method: "POST",
             body: JSON.stringify(payload),
@@ -166,7 +166,7 @@ export function registerCityMarriage(
     payload: CityCivilRegistryOperationPayload,
 ) {
     return apiRequest<CityCivilRegistryOperationResultDto>(
-        `${API_CITY_URL}/${cityId}/civil-registry/marriages`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/civil-registry/marriages`,
         {
             method: "POST",
             body: JSON.stringify(payload),
@@ -179,7 +179,7 @@ export function registerCityDivorce(
     payload: CityCivilRegistryOperationPayload,
 ) {
     return apiRequest<CityCivilRegistryOperationResultDto>(
-        `${API_CITY_URL}/${cityId}/civil-registry/divorces`,
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/civil-registry/divorces`,
         {
             method: "POST",
             body: JSON.stringify(payload),
