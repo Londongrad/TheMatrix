@@ -21,6 +21,20 @@ namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore.Scenarios.ClassicCi
     public sealed class CitiesControllerTests
     {
         [Fact]
+        public void Route_IsScopedToClassicCityScenario()
+        {
+            RouteAttribute route = Assert.Single(
+                typeof(CitiesController).GetCustomAttributes(
+                    attributeType: typeof(RouteAttribute),
+                    inherit: true)
+                   .Cast<RouteAttribute>());
+
+            Assert.Equal(
+                expected: "api/scenarios/classic-city/cities",
+                actual: route.Template);
+        }
+
+        [Fact]
         public async Task GetDashboard_WhenEconomySummaryIsAvailable_AppendsEconomyMetrics()
         {
             var cityId = Guid.Parse("1a87a441-fdb8-4224-9d27-7f48d4f41516");

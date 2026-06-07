@@ -35,7 +35,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
 {
     [Authorize]
     [ApiController]
-    [Route("api/cities")]
+    [Route("api/scenarios/classic-city/cities")]
     public sealed class CitiesController(
         ICitiesApiClient citiesClient,
         ITripsApiClient tripsClient,
