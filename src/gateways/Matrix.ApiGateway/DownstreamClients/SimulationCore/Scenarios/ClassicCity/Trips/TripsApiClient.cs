@@ -1,12 +1,13 @@
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips
 {
     internal sealed class TripsApiClient(HttpClient client) : ITripsApiClient
     {
-        private const string CitiesEndpoint = "/api/cities";
+        private const string CitiesEndpoint = ClassicCityApiRoutes.CitiesPath;
         private readonly HttpClient _client = client;
 
         public async Task<IReadOnlyList<CityActiveTripView>> GetActiveTripsAsync(

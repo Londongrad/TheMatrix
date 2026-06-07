@@ -1,5 +1,6 @@
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
@@ -9,7 +10,7 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCi
 {
     internal sealed class CitiesApiClient(HttpClient client) : ICitiesApiClient
     {
-        private const string CitiesEndpoint = "/api/cities";
+        private const string CitiesEndpoint = ClassicCityApiRoutes.CitiesPath;
         private readonly HttpClient _client = client;
 
         public async Task<CityCreatedView> CreateCityAsync(
