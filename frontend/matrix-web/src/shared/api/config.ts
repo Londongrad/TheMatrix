@@ -12,7 +12,6 @@ export const API_PERSON_URL = API_BASE_URL + "/api/person";
 export const API_ADMIN_URL = API_BASE_URL + "/api/admin";
 export const API_ADMIN_USERS_URL = API_ADMIN_URL + "/users";
 export const API_CLASSIC_CITY_CITIES_URL = API_BASE_URL + "/api/scenarios/classic-city/cities";
-export const API_CITY_URL = API_CLASSIC_CITY_CITIES_URL;
 export const API_SIMULATION_URL = API_BASE_URL + "/api/simulations";
 export const API_CLASSIC_CITY_SETUP_SESSIONS_URL = API_BASE_URL + "/api/scenarios/classic-city/setup-sessions";
 export const API_CLASSIC_CITY_DASHBOARD_URL = API_BASE_URL + "/api/scenarios/classic-city/dashboard";
