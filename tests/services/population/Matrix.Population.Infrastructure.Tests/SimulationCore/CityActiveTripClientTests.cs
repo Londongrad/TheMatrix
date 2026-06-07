@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.SimulationCore;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using Xunit;
@@ -94,7 +95,7 @@ namespace Matrix.Population.Infrastructure.Tests.SimulationCore
                     expected: HttpMethod.Get,
                     actual: request.Method);
                 Assert.Equal(
-                    expected: $"/api/cities/{cityId}/trips/active",
+                    expected: $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/trips/active",
                     actual: request.RequestUri!.PathAndQuery);
                 return Task.FromResult(JsonResponse(JsonSerializer.Serialize(payload)));
             });
@@ -165,7 +166,7 @@ namespace Matrix.Population.Infrastructure.Tests.SimulationCore
                     expected: HttpMethod.Post,
                     actual: request.Method);
                 Assert.Equal(
-                    expected: $"/api/cities/{cityId}/trips",
+                    expected: $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/trips",
                     actual: request.RequestUri!.PathAndQuery);
                 requestJson = await request.Content!.ReadAsStringAsync();
                 return new HttpResponseMessage(HttpStatusCode.Accepted);

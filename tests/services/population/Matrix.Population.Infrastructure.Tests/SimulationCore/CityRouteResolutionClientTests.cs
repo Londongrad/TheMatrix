@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.SimulationCore;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Xunit;
@@ -26,7 +27,7 @@ namespace Matrix.Population.Infrastructure.Tests.SimulationCore
                     expected: HttpMethod.Post,
                     actual: request.Method);
                 Assert.Equal(
-                    expected: $"/api/cities/{cityId}/routes/resolve",
+                    expected: $"{ClassicCityApiRoutes.CitiesPath}/{cityId}/routes/resolve",
                     actual: request.RequestUri!.PathAndQuery);
                 return Task.FromResult(
                     JsonResponse(
@@ -188,7 +189,8 @@ namespace Matrix.Population.Infrastructure.Tests.SimulationCore
                     expected: HttpMethod.Post,
                     actual: httpRequest.Method);
                 Assert.Equal(
-                    expected: $"/api/cities/{Guid.Parse("59af9851-18f6-46ab-bd3c-0f0b4d5ca69c")}/routes/resolve-batch",
+                    expected:
+                    $"{ClassicCityApiRoutes.CitiesPath}/{Guid.Parse("59af9851-18f6-46ab-bd3c-0f0b4d5ca69c")}/routes/resolve-batch",
                     actual: httpRequest.RequestUri!.PathAndQuery);
                 return Task.FromResult(JsonResponse(CreateBatchResponseJson(accessible: true)));
             });
