@@ -11,6 +11,7 @@ using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Population.Contracts;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity;
 using Xunit;
 using static Matrix.ApiGateway.Tests.Http.HttpClientTestSupport;
 using static Matrix.ApiGateway.Tests.TestSupport.ApiGatewayTestSupport;
@@ -52,7 +53,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
             RecordedRequest request = Assert.Single(handler.Requests);
             Assert.EndsWith(
                 expectedEndString:
-                $"/api/population/cities/{cityId}/residents?currentDate=2048-06-08&pageNumber=3&pageSize=40",
+                $"{ClassicCityPopulationApiRoutes.CitiesPath}/{cityId}/residents?currentDate=2048-06-08&pageNumber=3&pageSize=40",
                 actualString: request.RequestUri,
                 comparisonType: StringComparison.Ordinal);
         }
