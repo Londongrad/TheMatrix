@@ -1,6 +1,7 @@
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Contracts;
 using Matrix.Population.Contracts.Models;
 
 namespace Matrix.ApiGateway.DownstreamClients.Population.People
@@ -8,7 +9,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
     public sealed class PopulationApiClient(HttpClient client)
         : IPopulationApiClient
     {
-        private const string GetPagedEndpoint = "/api/population/citizens";
+        private const string GetPagedEndpoint = PopulationApiRoutes.PeoplePath;
         private const string ServiceName = DownstreamServiceNames.Population;
         private readonly HttpClient _client = client;
 

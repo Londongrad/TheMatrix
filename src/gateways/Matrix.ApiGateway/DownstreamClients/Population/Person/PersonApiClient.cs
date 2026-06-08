@@ -1,5 +1,6 @@
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.Population.Contracts;
 using Matrix.Population.Contracts.Models;
 
 namespace Matrix.ApiGateway.DownstreamClients.Population.Person
@@ -16,7 +17,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.Person
 
         private const string ServiceName = DownstreamServiceNames.Population;
 
-        private const string Base = "/api/person";
+        private const string Base = PopulationApiRoutes.PersonPath;
 
         private const string KillSegment = "/kill";
         private const string ResurrectSegment = "/resurrect";
