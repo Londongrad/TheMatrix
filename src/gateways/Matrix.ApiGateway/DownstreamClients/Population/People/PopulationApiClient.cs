@@ -13,7 +13,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
         private const string ServiceName = DownstreamServiceNames.Population;
         private readonly HttpClient _client = client;
 
-        public async Task<PagedResult<PersonDto>> GetCitizensPageAsync(
+        public async Task<PagedResult<PersonDto>> GetPeoplePageAsync(
             int pageNumber,
             int pageSize,
             CancellationToken cancellationToken = default)

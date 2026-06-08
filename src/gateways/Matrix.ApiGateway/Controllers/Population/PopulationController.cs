@@ -15,12 +15,12 @@ namespace Matrix.ApiGateway.Controllers.Population
         private readonly IPopulationApiClient _populationClient = populationClient;
 
         [HttpGet]
-        public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
+        public async Task<ActionResult<PagedResult<PersonDto>>> GetPeoplePage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 100,
             CancellationToken cancellationToken = default)
         {
-            PagedResult<PersonDto> result = await _populationClient.GetCitizensPageAsync(
+            PagedResult<PersonDto> result = await _populationClient.GetPeoplePageAsync(
                 pageNumber: pageNumber,
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);

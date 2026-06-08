@@ -5,7 +5,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
 {
     public interface IPopulationApiClient
     {
-        Task<PagedResult<PersonDto>> GetCitizensPageAsync(
+        Task<PagedResult<PersonDto>> GetPeoplePageAsync(
             int pageNumber,
             int pageSize,
             CancellationToken cancellationToken = default);
