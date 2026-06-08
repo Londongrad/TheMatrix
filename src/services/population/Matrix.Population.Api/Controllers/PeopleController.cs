@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
+using Matrix.Population.Application.UseCases.Population.GetPeoplePage;
 using Matrix.Population.Contracts;
 using Matrix.Population.Contracts.Models;
 using MediatR;
@@ -16,7 +16,7 @@ public sealed class PeopleController(ISender sender) : ControllerBase
     private readonly ISender _sender = sender;
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
+    public async Task<ActionResult<PagedResult<PersonDto>>> GetPeoplePage(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 100,
         CancellationToken cancellationToken = default)
@@ -26,7 +26,7 @@ public sealed class PeopleController(ISender sender) : ControllerBase
             pageSize: pageSize);
 
         PagedResult<PersonDto> result = await _sender.Send(
-            request: new GetCitizensPageQuery(pagination),
+            request: new GetPeoplePageQuery(pagination),
             cancellationToken: cancellationToken);
 
         return Ok(result);
