@@ -18,6 +18,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Ge
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/[controller]")]
+    [Route(ClassicCityPopulationApiRoutes.PopulationRoute)]
     public class PopulationController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
