@@ -17,7 +17,6 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Ge
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment;
-using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using MediatR;
@@ -361,23 +360,5 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
             return Ok(result);
         }
 
-        [HttpGet("citizens")]
-        public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 100,
-            CancellationToken cancellationToken = default)
-        {
-            var pagination = new Pagination(
-                pageNumber: pageNumber,
-                pageSize: pageSize);
-
-            var query = new GetCitizensPageQuery(pagination);
-
-            PagedResult<PersonDto> result = await _sender.Send(
-                request: query,
-                cancellationToken: cancellationToken);
-
-            return Ok(result);
-        }
     }
 }
