@@ -2011,7 +2011,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 throw new NotSupportedException();
             }
 
-            public Task<PagedResult<PersonDto>> GetCitizensPageAsync(
+            public Task<PagedResult<PersonDto>> GetPeoplePageAsync(
                 int pageNumber,
                 int pageSize,
                 CancellationToken cancellationToken = default)

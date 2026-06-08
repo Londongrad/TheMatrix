@@ -20,10 +20,10 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                .ToArray();
 
             Assert.Equal(
-                expected: [nameof(IPopulationApiClient.GetCitizensPageAsync)],
+                expected: [nameof(IPopulationApiClient.GetPeoplePageAsync)],
                 actual: sharedMethods);
             Assert.DoesNotContain(
-                expected: nameof(IPopulationApiClient.GetCitizensPageAsync),
+                expected: nameof(IPopulationApiClient.GetPeoplePageAsync),
                 collection: scenarioMethods);
             Assert.Contains(
                 expected: nameof(IClassicCityPopulationApiClient.GetCityResidentsPageAsync),

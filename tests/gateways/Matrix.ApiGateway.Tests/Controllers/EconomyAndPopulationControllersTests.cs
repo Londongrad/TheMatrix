@@ -180,15 +180,15 @@ namespace Matrix.ApiGateway.Tests.Controllers
         }
 
         [Fact]
-        public async Task PopulationControllerGetCitizensPage_ReturnsOk()
+        public async Task PopulationControllerGetPeoplePage_ReturnsOk()
         {
             var populationClient = new RecordingGatewayPopulationClient
             {
-                CitizensPageResult = CreateResidentsPageResult()
+                PeoplePageResult = CreateResidentsPageResult()
             };
             var controller = new PopulationController(populationClient);
 
-            ActionResult<PagedResult<PersonDto>> actionResult = await controller.GetCitizensPage(
+            ActionResult<PagedResult<PersonDto>> actionResult = await controller.GetPeoplePage(
                 pageNumber: 3,
                 pageSize: 40,
                 cancellationToken: CancellationToken.None);
@@ -200,10 +200,10 @@ namespace Matrix.ApiGateway.Tests.Controllers
                 actual: page.PageNumber);
             Assert.Equal(
                 expected: 3,
-                actual: populationClient.LastCitizensPageNumber);
+                actual: populationClient.LastPeoplePageNumber);
             Assert.Equal(
                 expected: 40,
-                actual: populationClient.LastCitizensPageSize);
+                actual: populationClient.LastPeoplePageSize);
         }
 
         [Fact]
@@ -220,7 +220,7 @@ namespace Matrix.ApiGateway.Tests.Controllers
             var controller = new PersonController(personClient);
 
             IActionResult actionResult = await controller.KillPerson(
-                id: personId,
+                personId: personId,
                 cancellationToken: CancellationToken.None);
 
             OkObjectResult ok = Assert.IsType<OkObjectResult>(actionResult);
@@ -343,10 +343,10 @@ namespace Matrix.ApiGateway.Tests.Controllers
         private sealed class RecordingGatewayPopulationClient : IPopulationApiClient, IClassicCityPopulationApiClient
         {
             public CityPopulationBootstrapSummaryDto? BootstrapResult { get; set; }
-            public PagedResult<PersonDto>? CitizensPageResult { get; set; }
+            public PagedResult<PersonDto>? PeoplePageResult { get; set; }
             public InitializeCityPopulationRequest? LastBootstrapRequest { get; private set; }
-            public int? LastCitizensPageNumber { get; private set; }
-            public int? LastCitizensPageSize { get; private set; }
+            public int? LastPeoplePageNumber { get; private set; }
+            public int? LastPeoplePageSize { get; private set; }
 
             public Task<CityPopulationBootstrapSummaryDto> InitializeCityPopulationAsync(
                 InitializeCityPopulationRequest request,
@@ -475,15 +475,15 @@ namespace Matrix.ApiGateway.Tests.Controllers
                 throw new NotSupportedException();
             }
 
-            public Task<PagedResult<PersonDto>> GetCitizensPageAsync(
+            public Task<PagedResult<PersonDto>> GetPeoplePageAsync(
                 int pageNumber,
                 int pageSize,
                 CancellationToken cancellationToken = default)
             {
-                LastCitizensPageNumber = pageNumber;
-                LastCitizensPageSize = pageSize;
+                LastPeoplePageNumber = pageNumber;
+                LastPeoplePageSize = pageSize;
                 return Task.FromResult(
-                    CitizensPageResult ??
+                    PeoplePageResult ??
                     new PagedResult<PersonDto>(
                         items: [],
                         totalCount: 0,

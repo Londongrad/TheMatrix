@@ -57,7 +57,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
         }
 
         [Fact]
-        public async Task PopulationApiClientGetCitizensPageAsync_WhenBodyIsEmpty_ThrowsJsonException()
+        public async Task PopulationApiClientGetPeoplePageAsync_WhenBodyIsEmpty_ThrowsJsonException()
         {
             var handler = new RecordingHttpMessageHandler
             {
@@ -68,7 +68,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
             IPopulationApiClient client = CreatePopulationApiClient(CreateHttpClient(handler));
 
             JsonException exception = await Assert.ThrowsAsync<JsonException>(()
-                => client.GetCitizensPageAsync(
+                => client.GetPeoplePageAsync(
                     pageNumber: 2,
                     pageSize: 15,
                     cancellationToken: CancellationToken.None));
