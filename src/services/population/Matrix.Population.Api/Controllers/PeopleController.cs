@@ -10,12 +10,12 @@ namespace Matrix.Population.Api.Controllers;
 
 [ApiController]
 [Authorize]
-[Route(PopulationApiRoutes.PopulationRoute)]
+[Route(PopulationApiRoutes.PeopleRoute)]
 public sealed class PeopleController(ISender sender) : ControllerBase
 {
     private readonly ISender _sender = sender;
 
-    [HttpGet("citizens")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 100,
