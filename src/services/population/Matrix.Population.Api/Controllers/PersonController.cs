@@ -1,5 +1,6 @@
 using Matrix.Population.Application.UseCases.Person.KillPerson;
 using Matrix.Population.Application.UseCases.Person.ResurrectPerson;
+using Matrix.Population.Contracts;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ namespace Matrix.Population.Api.Controllers
 {
     [ApiController]
     [Authorize]
-    [Route("api/[controller]/{personId:guid}")]
+    [Route(PopulationApiRoutes.PersonRoute)]
     public class PersonController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
