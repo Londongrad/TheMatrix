@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Api.Controllers;
-using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
+using Matrix.Population.Application.UseCases.Population.GetPeoplePage;
 using Matrix.Population.Contracts.Models;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
@@ -11,11 +11,11 @@ namespace Matrix.Population.Api.Tests.Controllers;
 public sealed class PeopleControllerTests
 {
     [Fact]
-    public async Task GetCitizensPage_ForwardsPaginationAndReturnsPage()
+    public async Task GetPeoplePage_ForwardsPaginationAndReturnsPage()
     {
         var personId = Guid.Parse("76fefad3-fb16-437a-bd7e-63bca5ca4a8e");
         var sender = new FakeSender();
-        sender.Handle<GetCitizensPageQuery, PagedResult<PersonDto>>(query =>
+        sender.Handle<GetPeoplePageQuery, PagedResult<PersonDto>>(query =>
         {
             Assert.Equal(
                 expected: 3,
@@ -37,7 +37,7 @@ public sealed class PeopleControllerTests
         });
         var controller = new PeopleController(sender);
 
-        ActionResult<PagedResult<PersonDto>> actionResult = await controller.GetCitizensPage(
+        ActionResult<PagedResult<PersonDto>> actionResult = await controller.GetPeoplePage(
             pageNumber: 3,
             pageSize: 15,
             cancellationToken: CancellationToken.None);
