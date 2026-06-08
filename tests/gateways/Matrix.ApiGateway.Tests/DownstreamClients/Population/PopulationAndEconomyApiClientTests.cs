@@ -9,6 +9,7 @@ using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Population.Contracts;
 using Matrix.Population.Contracts.Models;
 using Xunit;
 using static Matrix.ApiGateway.Tests.Http.HttpClientTestSupport;
@@ -77,6 +78,11 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                 expectedSubstring: "JSON",
                 actualString: exception.Message,
                 comparisonType: StringComparison.OrdinalIgnoreCase);
+            RecordedRequest request = Assert.Single(handler.Requests);
+            Assert.EndsWith(
+                expectedEndString: PopulationApiRoutes.PeoplePath + "?pageNumber=2&pageSize=15",
+                actualString: request.RequestUri,
+                comparisonType: StringComparison.Ordinal);
         }
 
         [Fact]
@@ -145,7 +151,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                 expected: HttpMethod.Post,
                 actual: request.Method);
             Assert.EndsWith(
-                expectedEndString: $"/api/person/{personId}/kill",
+                expectedEndString: $"{PopulationApiRoutes.PersonPath}/{personId}/kill",
                 actualString: request.RequestUri,
                 comparisonType: StringComparison.Ordinal);
         }
