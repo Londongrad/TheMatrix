@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Matrix.Population.Contracts.Scenarios.ClassicCity;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 
@@ -6,7 +7,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integration
 {
     internal sealed class CityPopulationBootstrapClient(HttpClient client) : ICityPopulationBootstrapClient
     {
-        private const string InitializeEndpoint = "/api/population/init";
+        private const string InitializeEndpoint = ClassicCityPopulationApiRoutes.InitializePath;
         private readonly HttpClient _client = client;
 
         public async Task<CityPopulationBootstrapSummary> InitializeAsync(

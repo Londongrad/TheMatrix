@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Matrix.Population.Contracts.Scenarios.ClassicCity;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Infrastructure.Tests.Http;
@@ -42,7 +43,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Integ
                 expected: HttpMethod.Post,
                 actual: recordedRequest.Method);
             Assert.Equal(
-                expected: "https://localhost:7155/api/population/init",
+                expected: "https://localhost:7155" + ClassicCityPopulationApiRoutes.InitializePath,
                 actual: recordedRequest.RequestUri);
             Assert.Equal(
                 expected: "application/json",
