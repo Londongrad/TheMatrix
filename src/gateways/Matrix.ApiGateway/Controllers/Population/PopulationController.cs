@@ -1,5 +1,6 @@
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Contracts;
 using Matrix.Population.Contracts.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,12 +9,12 @@ namespace Matrix.ApiGateway.Controllers.Population
 {
     [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route(PopulationApiRoutes.PeopleRoute)]
     public class PopulationController(IPopulationApiClient populationClient) : ControllerBase
     {
         private readonly IPopulationApiClient _populationClient = populationClient;
 
-        [HttpGet("citizens")]
+        [HttpGet]
         public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 100,
