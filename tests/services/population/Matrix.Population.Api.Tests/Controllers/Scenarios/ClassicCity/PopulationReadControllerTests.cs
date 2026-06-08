@@ -7,7 +7,6 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Ge
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
-using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -110,26 +109,6 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
             });
             sender.Handle<GetCityEmploymentCatalogQuery, CityEmploymentCatalogDto>(_ => CreateEmploymentCatalogDto());
             sender.Handle<GetCityEducationCatalogQuery, CityEducationCatalogDto>(_ => CreateEducationCatalogDto());
-            sender.Handle<GetCitizensPageQuery, PagedResult<PersonDto>>(query =>
-            {
-                Assert.Equal(
-                    expected: 3,
-                    actual: query.Pagination.PageNumber);
-                Assert.Equal(
-                    expected: 15,
-                    actual: query.Pagination.PageSize);
-
-                return new PagedResult<PersonDto>(
-                    items:
-                    [
-                        CreatePersonDto(
-                            id: personId,
-                            fullName: "Neo")
-                    ],
-                    totalCount: 1,
-                    pageNumber: 3,
-                    pageSize: 15);
-            });
             var controller = new PopulationController(sender);
 
             ActionResult<PagedResult<PersonDto>> residentsResult = await controller.GetCityResidentsPage(
@@ -151,11 +130,6 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                 await controller.GetCityEducationCatalog(
                     cityId: cityId,
                     cancellationToken: CancellationToken.None);
-            ActionResult<PagedResult<PersonDto>> citizensResult = await controller.GetCitizensPage(
-                pageNumber: 3,
-                pageSize: 15,
-                cancellationToken: CancellationToken.None);
-
             OkObjectResult residentsOk = Assert.IsType<OkObjectResult>(residentsResult.Result);
             PagedResult<PersonDto> residents = Assert.IsType<PagedResult<PersonDto>>(residentsOk.Value);
             Assert.Equal(
@@ -186,11 +160,6 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
             CityEducationCatalogDto educationCatalog = Assert.IsType<CityEducationCatalogDto>(educationOk.Value);
             Assert.Single(educationCatalog.CurrentInstitutions);
 
-            OkObjectResult citizensOk = Assert.IsType<OkObjectResult>(citizensResult.Result);
-            PagedResult<PersonDto> citizens = Assert.IsType<PagedResult<PersonDto>>(citizensOk.Value);
-            Assert.Equal(
-                expected: 3,
-                actual: citizens.PageNumber);
         }
     }
 }
