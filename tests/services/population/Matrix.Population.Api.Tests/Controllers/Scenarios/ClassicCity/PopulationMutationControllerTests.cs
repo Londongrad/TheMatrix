@@ -258,8 +258,9 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
             sender.Handle<RegisterCityDivorceCommand, CityCivilRegistryOperationResultDto>(_
                 => CreateCivilRegistryOperationResultDto("Divorce"));
             var controller = new PopulationController(sender);
+            var educationController = new ClassicCityEducationController(sender);
 
-            await controller.EnrollResident(
+            await educationController.EnrollResident(
                 cityId: cityId,
                 request: new CityEducationOperationRequest(
                     ResidentId: residentId,
@@ -270,7 +271,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                         month: 6,
                         day: 1)),
                 cancellationToken: CancellationToken.None);
-            await controller.GraduateResident(
+            await educationController.GraduateResident(
                 cityId: cityId,
                 request: new CityEducationOperationRequest(
                     ResidentId: residentId,
@@ -281,7 +282,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                         month: 6,
                         day: 2)),
                 cancellationToken: CancellationToken.None);
-            await controller.WithdrawResident(
+            await educationController.WithdrawResident(
                 cityId: cityId,
                 request: new CityEducationOperationRequest(
                     ResidentId: residentId,

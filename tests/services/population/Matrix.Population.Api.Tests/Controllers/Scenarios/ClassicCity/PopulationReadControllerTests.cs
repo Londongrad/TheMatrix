@@ -110,6 +110,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
             sender.Handle<GetCityEmploymentCatalogQuery, CityEmploymentCatalogDto>(_ => CreateEmploymentCatalogDto());
             sender.Handle<GetCityEducationCatalogQuery, CityEducationCatalogDto>(_ => CreateEducationCatalogDto());
             var controller = new PopulationController(sender);
+            var educationController = new ClassicCityEducationController(sender);
             var employmentController = new ClassicCityEmploymentController(sender);
             var residentsController = new ClassicCityResidentsController(sender);
 
@@ -129,7 +130,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                     cityId: cityId,
                     cancellationToken: CancellationToken.None);
             ActionResult<CityEducationCatalogDto> educationCatalogResult =
-                await controller.GetCityEducationCatalog(
+                await educationController.GetCityEducationCatalog(
                     cityId: cityId,
                     cancellationToken: CancellationToken.None);
             OkObjectResult residentsOk = Assert.IsType<OkObjectResult>(residentsResult.Result);
