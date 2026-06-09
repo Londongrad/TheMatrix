@@ -7,21 +7,17 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Options;
 using Matrix.Population.Infrastructure.Outbox.RabbitMq;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
-using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
-using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Population.Infrastructure
 {
@@ -65,7 +61,6 @@ namespace Matrix.Population.Infrastructure
 
             services.AddScoped<IPersonReadRepository, PersonReadRepository>();
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
-            services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IProcessedIntegrationMessageRepository, ProcessedIntegrationMessageRepository>();
             services.AddScoped<ProcessedIntegrationMessageCleaner>();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<PopulationDbContext>>();

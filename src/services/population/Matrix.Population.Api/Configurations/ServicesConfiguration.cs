@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Api.Defaults;
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Matrix.Population.Application;
 using Matrix.Population.Infrastructure;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 
 namespace Matrix.Population.Api.Configurations
 {
@@ -18,6 +19,7 @@ namespace Matrix.Population.Api.Configurations
 
             services.AddApplication();
             services.AddInfrastructure(configuration);
+            services.AddClassicCityScenarioInfrastructure();
         }
     }
 }
