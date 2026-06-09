@@ -82,7 +82,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
 
                 return CreateBootstrapSummaryDto(cityId);
             });
-            var controller = new PopulationController(sender);
+            var controller = new ClassicCityPopulationBootstrapController(sender);
 
             ActionResult<CityPopulationBootstrapSummaryDto> actionResult = await controller.InitializeCityPopulation(
                 request: new InitializeCityPopulationRequest(
