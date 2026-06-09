@@ -9,12 +9,8 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Fi
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.GetEmploymentCatalog;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.HireResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.RetireResident;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDistrictPressure;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -30,67 +26,6 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
     public class PopulationController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
-
-        [HttpPut("cities/{cityId:guid}/environment")]
-        public async Task<IActionResult> SyncCityEnvironment(
-            [FromRoute] Guid cityId,
-            [FromBody] SyncCityEnvironmentRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            ArgumentNullException.ThrowIfNull(request);
-
-            await _sender.Send(
-                request: new SyncCityEnvironmentCommand(
-                    CityId: cityId,
-                    ClimateZone: request.ClimateZone,
-                    Hemisphere: request.Hemisphere,
-                    UtcOffsetMinutes: request.UtcOffsetMinutes),
-                cancellationToken: cancellationToken);
-
-            return NoContent();
-        }
-
-        [HttpGet("cities/{cityId:guid}/summary")]
-        public async Task<ActionResult<CityPopulationSummaryDto>> GetCitySummary(
-            [FromRoute] Guid cityId,
-            CancellationToken cancellationToken = default)
-        {
-            CityPopulationSummaryDto? result = await _sender.Send(
-                request: new GetCityPopulationSummaryQuery(cityId),
-                cancellationToken: cancellationToken);
-
-            return result is null
-                ? NotFound()
-                : Ok(result);
-        }
-
-        [HttpGet("cities/{cityId:guid}/dashboard")]
-        public async Task<ActionResult<CityPopulationDashboardDto>> GetCityDashboard(
-            [FromRoute] Guid cityId,
-            CancellationToken cancellationToken = default)
-        {
-            CityPopulationDashboardDto? result = await _sender.Send(
-                request: new GetCityDashboardQuery(cityId),
-                cancellationToken: cancellationToken);
-
-            return result is null
-                ? NotFound()
-                : Ok(result);
-        }
-
-        [HttpGet("cities/{cityId:guid}/district-pressure")]
-        public async Task<ActionResult<CityPopulationDistrictPressureDto>> GetCityDistrictPressure(
-            [FromRoute] Guid cityId,
-            CancellationToken cancellationToken = default)
-        {
-            CityPopulationDistrictPressureDto? result = await _sender.Send(
-                request: new GetCityDistrictPressureQuery(cityId),
-                cancellationToken: cancellationToken);
-
-            return result is null
-                ? NotFound()
-                : Ok(result);
-        }
 
         [HttpGet("cities/{cityId:guid}/residents")]
         public async Task<ActionResult<PagedResult<PersonDto>>> GetCityResidentsPage(

@@ -26,7 +26,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
             sender.Handle<GetCityDashboardQuery, CityPopulationDashboardDto?>(_ => CreateDashboardDto(cityId));
             sender.Handle<GetCityDistrictPressureQuery, CityPopulationDistrictPressureDto?>(_
                 => CreateDistrictPressureDto(cityId));
-            var controller = new PopulationController(sender);
+            var controller = new ClassicCityPopulationStateController(sender);
 
             ActionResult<CityPopulationSummaryDto> summaryResult = await controller.GetCitySummary(
                 cityId: cityId,
