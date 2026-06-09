@@ -1,11 +1,11 @@
 using System.Net;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Infrastructure.SimulationSystems;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems;
 using Xunit;
 using static Matrix.Population.Infrastructure.Tests.Http.HttpClientTestSupport;
 
-namespace Matrix.Population.Infrastructure.Tests.SimulationSystems
+namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Integrations.SimulationSystems
 {
     public sealed class CityDistrictUtilityConditionsClientTests
     {

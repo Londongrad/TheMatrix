@@ -4,7 +4,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
-namespace Matrix.Population.Infrastructure.SimulationSystems
+namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems
 {
     internal sealed class CityDistrictUtilityConditionsClient(HttpClient client)
         : ICityDistrictUtilityConditionsClient
