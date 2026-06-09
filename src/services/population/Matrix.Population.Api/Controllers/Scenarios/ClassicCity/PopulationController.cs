@@ -1,4 +1,3 @@
-using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterDivorce;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterMarriage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.EnrollResident;
@@ -9,9 +8,6 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Fi
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.GetEmploymentCatalog;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.HireResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.RetireResident;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
-using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using MediatR;
@@ -26,45 +22,6 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
     public class PopulationController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
-
-        [HttpGet("cities/{cityId:guid}/residents")]
-        public async Task<ActionResult<PagedResult<PersonDto>>> GetCityResidentsPage(
-            [FromRoute] Guid cityId,
-            [FromQuery] DateOnly currentDate,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 100,
-            CancellationToken cancellationToken = default)
-        {
-            var pagination = new Pagination(
-                pageNumber: pageNumber,
-                pageSize: pageSize);
-
-            PagedResult<PersonDto> result = await _sender.Send(
-                request: new GetCityResidentsPageQuery(
-                    CityId: cityId,
-                    CurrentDate: currentDate,
-                    Pagination: pagination),
-                cancellationToken: cancellationToken);
-
-            return Ok(result);
-        }
-
-        [HttpGet("cities/{cityId:guid}/residents/{personId:guid}")]
-        public async Task<ActionResult<CityResidentDetailsDto>> GetCityResidentDetails(
-            [FromRoute] Guid cityId,
-            [FromRoute] Guid personId,
-            [FromQuery] DateOnly currentDate,
-            CancellationToken cancellationToken = default)
-        {
-            CityResidentDetailsDto result = await _sender.Send(
-                request: new GetCityResidentDetailsQuery(
-                    CityId: cityId,
-                    PersonId: personId,
-                    CurrentDate: currentDate),
-                cancellationToken: cancellationToken);
-
-            return Ok(result);
-        }
 
         [HttpGet("cities/{cityId:guid}/employment/catalog")]
         public async Task<ActionResult<CityEmploymentCatalogDto>> GetCityEmploymentCatalog(

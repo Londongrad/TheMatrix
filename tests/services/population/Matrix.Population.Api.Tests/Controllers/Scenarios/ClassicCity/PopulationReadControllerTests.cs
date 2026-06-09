@@ -110,14 +110,15 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
             sender.Handle<GetCityEmploymentCatalogQuery, CityEmploymentCatalogDto>(_ => CreateEmploymentCatalogDto());
             sender.Handle<GetCityEducationCatalogQuery, CityEducationCatalogDto>(_ => CreateEducationCatalogDto());
             var controller = new PopulationController(sender);
+            var residentsController = new ClassicCityResidentsController(sender);
 
-            ActionResult<PagedResult<PersonDto>> residentsResult = await controller.GetCityResidentsPage(
+            ActionResult<PagedResult<PersonDto>> residentsResult = await residentsController.GetCityResidentsPage(
                 cityId: cityId,
                 currentDate: currentDate,
                 pageNumber: 2,
                 pageSize: 25,
                 cancellationToken: CancellationToken.None);
-            ActionResult<CityResidentDetailsDto> residentDetailsResult = await controller.GetCityResidentDetails(
+            ActionResult<CityResidentDetailsDto> residentDetailsResult = await residentsController.GetCityResidentDetails(
                 cityId: cityId,
                 personId: personId,
                 currentDate: currentDate,
