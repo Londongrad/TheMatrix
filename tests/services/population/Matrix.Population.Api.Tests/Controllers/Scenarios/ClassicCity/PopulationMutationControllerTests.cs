@@ -164,7 +164,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                 => CreateEmploymentOperationResultDto("Fire"));
             sender.Handle<RetireCityResidentCommand, CityEmploymentOperationResultDto>(_
                 => CreateEmploymentOperationResultDto("Retire"));
-            var controller = new PopulationController(sender);
+            var controller = new ClassicCityEmploymentController(sender);
             var stateController = new ClassicCityPopulationStateController(sender);
 
             IActionResult syncResult = await stateController.SyncCityEnvironment(
