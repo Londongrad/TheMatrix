@@ -18,7 +18,6 @@ using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems;
-using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,7 +76,6 @@ namespace Matrix.Population.Infrastructure
             services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
             services.AddOutbox<PopulationDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
-            services.AddScoped<ICityEconomySettlementOutboxWriter, CityEconomySettlementOutboxWriter>();
             services.AddHttpClient<ICityRouteResolutionClient, CityRouteResolutionClient>((
                     sp,
                     client) =>

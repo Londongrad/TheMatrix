@@ -2,6 +2,7 @@ using MassTransit;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
         public static IServiceCollection AddClassicCityScenarioInfrastructure(this IServiceCollection services)
         {
             services.AddScoped<ICityPopulationPersonReadRepository, CityPopulationPersonReadRepository>();
+            services.AddScoped<ICityEconomySettlementOutboxWriter, CityEconomySettlementOutboxWriter>();
             services.AddScoped<IHouseholdWriteRepository, HouseholdWriteRepository>();
             services.AddScoped<ICityPopulationArchiveStateRepository, CityPopulationArchiveStateRepository>();
             services.AddScoped<ICityPopulationActivityJournalService, CityPopulationActivityJournalService>();
