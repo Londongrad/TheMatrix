@@ -3,11 +3,12 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Population.Infrastructure.Outbox;
 using Matrix.Population.Infrastructure.Persistence;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.Population.Infrastructure.Tests.TestSupport;
 using Xunit;
 using static Matrix.Population.Infrastructure.Tests.TestSupport.PopulationInfrastructureTestSupport;
 
-namespace Matrix.Population.Infrastructure.Tests.Outbox
+namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Outbox
 {
     public sealed class CityEconomySettlementOutboxWriterTests
     {
