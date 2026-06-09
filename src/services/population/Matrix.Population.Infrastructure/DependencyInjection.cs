@@ -12,7 +12,6 @@ using Matrix.Population.Infrastructure.Options;
 using Matrix.Population.Infrastructure.Outbox.RabbitMq;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
-using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +24,8 @@ namespace Matrix.Population.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(
             this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            Action<IBusRegistrationConfigurator>? configureConsumers = null)
         {
             string? connectionString = configuration.GetConnectionString("PopulationDb");
 
@@ -73,7 +73,7 @@ namespace Matrix.Population.Infrastructure
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
-                x.AddClassicCityScenarioConsumers();
+                configureConsumers?.Invoke(x);
 
                 x.UsingRabbitMq((
                     context,

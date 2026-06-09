@@ -18,7 +18,9 @@ namespace Matrix.Population.Api.Configurations
             services.AddMatrixInternalApi(configuration);
 
             services.AddApplication();
-            services.AddInfrastructure(configuration);
+            services.AddInfrastructure(
+                configuration: configuration,
+                configureConsumers: consumers => consumers.AddClassicCityScenarioConsumers());
             services.AddClassicCityScenarioInfrastructure();
         }
     }
