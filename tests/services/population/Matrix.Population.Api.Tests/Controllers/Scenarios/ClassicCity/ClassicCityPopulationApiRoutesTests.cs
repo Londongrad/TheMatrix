@@ -21,7 +21,7 @@ public sealed class ClassicCityPopulationApiRoutesTests
             actual: ClassicCityPopulationApiRoutes.CitiesPath);
 
         RouteAttribute route = Assert.Single(
-            typeof(PopulationController)
+            typeof(ClassicCityPopulationBootstrapController)
                .GetCustomAttributes(
                     attributeType: typeof(RouteAttribute),
                     inherit: true)

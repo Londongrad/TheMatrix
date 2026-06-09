@@ -257,7 +257,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                 => CreateCivilRegistryOperationResultDto());
             sender.Handle<RegisterCityDivorceCommand, CityCivilRegistryOperationResultDto>(_
                 => CreateCivilRegistryOperationResultDto("Divorce"));
-            var controller = new PopulationController(sender);
+            var controller = new ClassicCityCivilRegistryController(sender);
             var educationController = new ClassicCityEducationController(sender);
 
             await educationController.EnrollResident(
