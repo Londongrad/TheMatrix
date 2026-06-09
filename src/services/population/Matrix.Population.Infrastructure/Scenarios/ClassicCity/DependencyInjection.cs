@@ -2,6 +2,7 @@ using MassTransit;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Infrastructure.Options;
 using Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
@@ -37,6 +38,24 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
                .AddInternalServiceAuthentication(
                     identity: InternalServicePrincipals.Population,
                     SimulationCorePermissionKeys.SimulationCoreClassicCityRead);
+            services.AddHttpClient<ICityPopulationActiveTripClient, CityActiveTripClient>((
+                    sp,
+                    client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
+                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationCore,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddInternalServiceAuthentication(
+                    identity: InternalServicePrincipals.Population,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate);
             services.AddScoped<IHouseholdWriteRepository, HouseholdWriteRepository>();
             services.AddScoped<ICityPopulationArchiveStateRepository, CityPopulationArchiveStateRepository>();
             services.AddScoped<ICityPopulationActivityJournalService, CityPopulationActivityJournalService>();
