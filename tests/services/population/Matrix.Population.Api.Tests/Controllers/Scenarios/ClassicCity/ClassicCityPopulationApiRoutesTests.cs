@@ -19,16 +19,37 @@ public sealed class ClassicCityPopulationApiRoutesTests
         Assert.Equal(
             expected: "/api/scenarios/classic-city/population/cities",
             actual: ClassicCityPopulationApiRoutes.CitiesPath);
-
-        RouteAttribute route = Assert.Single(
-            typeof(ClassicCityPopulationBootstrapController)
-               .GetCustomAttributes(
-                    attributeType: typeof(RouteAttribute),
-                    inherit: true)
-               .Cast<RouteAttribute>());
-
         Assert.Equal(
             expected: ClassicCityPopulationApiRoutes.PopulationRoute,
-            actual: route.Template);
+            actual: GetRouteTemplate<ClassicCityPopulationBootstrapController>());
+        Assert.Equal(
+            expected: "api/scenarios/classic-city/population/cities/{cityId:guid}",
+            actual: ClassicCityPopulationApiRoutes.CityRoute);
+        Assert.Equal(
+            expected: ClassicCityPopulationApiRoutes.CityRoute,
+            actual: GetRouteTemplate<ClassicCityPopulationStateController>());
+        Assert.Equal(
+            expected: ClassicCityPopulationApiRoutes.ResidentsRoute,
+            actual: GetRouteTemplate<ClassicCityResidentsController>());
+        Assert.Equal(
+            expected: ClassicCityPopulationApiRoutes.EmploymentRoute,
+            actual: GetRouteTemplate<ClassicCityEmploymentController>());
+        Assert.Equal(
+            expected: ClassicCityPopulationApiRoutes.EducationRoute,
+            actual: GetRouteTemplate<ClassicCityEducationController>());
+        Assert.Equal(
+            expected: ClassicCityPopulationApiRoutes.CivilRegistryRoute,
+            actual: GetRouteTemplate<ClassicCityCivilRegistryController>());
+    }
+
+    private static string? GetRouteTemplate<TController>()
+    {
+        return Assert.Single(
+                typeof(TController)
+                   .GetCustomAttributes(
+                        attributeType: typeof(RouteAttribute),
+                        inherit: true)
+                   .Cast<RouteAttribute>())
+           .Template;
     }
 }
