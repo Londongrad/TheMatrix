@@ -8,7 +8,6 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Options;
@@ -76,23 +75,6 @@ namespace Matrix.Population.Infrastructure
             services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
             services.AddOutbox<PopulationDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
-            services.AddHttpClient<ICityRouteResolutionClient, CityRouteResolutionClient>((
-                    sp,
-                    client) =>
-                {
-                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
-                       .Value;
-
-                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
-                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
-
-                    client.BaseAddress = new Uri(
-                        uriString: options.SimulationCore,
-                        uriKind: UriKind.Absolute);
-                })
-               .AddInternalServiceAuthentication(
-                    identity: InternalServicePrincipals.Population,
-                    SimulationCorePermissionKeys.SimulationCoreClassicCityRead);
             services.AddHttpClient<ICityPopulationActiveTripClient, CityActiveTripClient>((
                     sp,
                     client) =>
