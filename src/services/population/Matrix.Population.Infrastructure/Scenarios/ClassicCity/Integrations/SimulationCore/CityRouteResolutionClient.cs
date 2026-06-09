@@ -6,7 +6,7 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Views;
 
-namespace Matrix.Population.Infrastructure.SimulationCore
+namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore
 {
     internal sealed class CityRouteResolutionClient(HttpClient client) : ICityRouteResolutionClient
     {

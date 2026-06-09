@@ -4,12 +4,12 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstr
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
-using Matrix.Population.Infrastructure.SimulationCore;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Xunit;
 using static Matrix.Population.Infrastructure.Tests.Http.HttpClientTestSupport;
 
-namespace Matrix.Population.Infrastructure.Tests.SimulationCore
+namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Integrations.SimulationCore
 {
     public sealed class CityRouteResolutionClientTests
     {
