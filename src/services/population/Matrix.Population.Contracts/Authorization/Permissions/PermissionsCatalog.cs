@@ -19,7 +19,7 @@ namespace Matrix.Population.Contracts.Authorization.Permissions
                     Key: PermissionKeys.PopulationPeopleRead,
                     Service: PopulationService,
                     Group: PeopleGroup,
-                    Description: "Read citizens page."),
+                    Description: "Read people page."),
                 new(
                     Key: PermissionKeys.PopulationPeopleInitialize,
                     Service: PopulationService,
