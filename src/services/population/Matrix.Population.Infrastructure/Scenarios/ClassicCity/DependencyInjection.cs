@@ -7,6 +7,7 @@ using Matrix.Population.Infrastructure.Options;
 using Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,6 +57,21 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
                     identity: InternalServicePrincipals.Population,
                     SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
                     SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate);
+            services.AddHttpClient<ICityDistrictUtilityConditionsClient, CityDistrictUtilityConditionsClient>((
+                    sp,
+                    client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationSystems))
+                        throw new InvalidOperationException("DownstreamServices:SimulationSystems is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationSystems,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddInternalServiceAuthentication(identity: InternalServicePrincipals.Population);
             services.AddScoped<IHouseholdWriteRepository, HouseholdWriteRepository>();
             services.AddScoped<ICityPopulationArchiveStateRepository, CityPopulationArchiveStateRepository>();
             services.AddScoped<ICityPopulationActivityJournalService, CityPopulationActivityJournalService>();

@@ -74,22 +74,6 @@ namespace Matrix.Population.Infrastructure
             services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
             services.AddOutbox<PopulationDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
-            services.AddHttpClient<ICityDistrictUtilityConditionsClient, CityDistrictUtilityConditionsClient>((
-                    sp,
-                    client) =>
-                {
-                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
-                       .Value;
-
-                    if (string.IsNullOrWhiteSpace(options.SimulationSystems))
-                        throw new InvalidOperationException("DownstreamServices:SimulationSystems is not configured.");
-
-                    client.BaseAddress = new Uri(
-                        uriString: options.SimulationSystems,
-                        uriKind: UriKind.Absolute);
-                })
-               .AddInternalServiceAuthentication(identity: InternalServicePrincipals.Population);
-
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
