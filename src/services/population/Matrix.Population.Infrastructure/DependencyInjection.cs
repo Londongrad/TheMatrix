@@ -18,7 +18,6 @@ using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
-using Matrix.Population.Infrastructure.SimulationCore;
 using Matrix.Population.Infrastructure.SimulationSystems;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

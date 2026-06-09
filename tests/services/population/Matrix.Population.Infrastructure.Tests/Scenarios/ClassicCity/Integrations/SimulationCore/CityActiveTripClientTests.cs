@@ -2,12 +2,12 @@ using System.Net;
 using System.Text.Json;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
-using Matrix.Population.Infrastructure.SimulationCore;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using Xunit;
 using static Matrix.Population.Infrastructure.Tests.Http.HttpClientTestSupport;
 
-namespace Matrix.Population.Infrastructure.Tests.SimulationCore
+namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Integrations.SimulationCore
 {
     public sealed class CityActiveTripClientTests
     {
