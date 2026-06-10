@@ -7,9 +7,11 @@ using Matrix.SimulationSystems.Infrastructure.Options;
 using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumers;
+using Matrix.SimulationSystems.Infrastructure.SimulationCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
+using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity
 {
@@ -40,6 +42,41 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity
                .AddInternalServiceAuthentication(
                     identity: InternalServicePrincipals.SimulationSystems,
                     EconomyPermissionKeys.EconomyBudgetAuthorize);
+            services.AddHttpClient<ICityMapTopologyClient, CityMapTopologyClient>((
+                    sp,
+                    client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
+                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationCore,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddInternalServiceAuthentication(
+                    identity: InternalServicePrincipals.SimulationSystems,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityRead);
+            services.AddHttpClient<ICityOperationalTripDispatcher, CityOperationalTripDispatcher>((
+                    sp,
+                    client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
+                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationCore,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddInternalServiceAuthentication(
+                    identity: InternalServicePrincipals.SimulationSystems,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate);
 
             return services;
         }
