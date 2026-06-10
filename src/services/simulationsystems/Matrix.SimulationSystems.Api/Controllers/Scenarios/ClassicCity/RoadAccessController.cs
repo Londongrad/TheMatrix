@@ -4,6 +4,7 @@ using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAc
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadAccessStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.SetCityRoadAccessEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Views;
@@ -15,10 +16,10 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/classic-city/cities")]
+    [Route(ClassicCitySimulationSystemsApiRoutes.CitiesRoute)]
     public sealed class RoadAccessController(IMediator mediator) : ControllerBase
     {
-        [HttpGet("{cityId:guid}/road-access")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.RoadAccessSegment)]
         public async Task<IResult> Get(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -32,7 +33,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpGet("{cityId:guid}/road-access/segments")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.RoadAccessSegment + "/segments")]
         public async Task<IResult> GetSegments(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -46,7 +47,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToSegmentConditionsView(status));
         }
 
-        [HttpPut("{cityId:guid}/road-access/emergency-mode")]
+        [HttpPut("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.RoadAccessSegment + "/emergency-mode")]
         public async Task<IResult> SetEmergencyMode(
             [FromRoute] Guid cityId,
             [FromBody] SetCityRoadAccessEmergencyModeRequest request,
@@ -63,7 +64,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpPost("{cityId:guid}/road-access/maintenance-dispatch")]
+        [HttpPost("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.RoadAccessSegment + "/maintenance-dispatch")]
         public async Task<IResult> DispatchMaintenance(
             [FromRoute] Guid cityId,
             [FromBody] DispatchCityRoadAccessMaintenanceRequest request,
