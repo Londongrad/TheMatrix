@@ -63,7 +63,6 @@ namespace Matrix.SimulationSystems.Infrastructure
                .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
-            services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationSystemsDbContext>>();
             services.AddPermissionCheckingFromClaims();
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();

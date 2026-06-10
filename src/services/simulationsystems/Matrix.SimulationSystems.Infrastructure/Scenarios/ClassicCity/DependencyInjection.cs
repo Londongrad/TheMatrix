@@ -15,7 +15,7 @@ using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorizati
 
 namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity
 {
-    internal static class DependencyInjection
+    public static class DependencyInjection
     {
         public static IServiceCollection AddClassicCityScenarioInfrastructure(this IServiceCollection services)
         {
