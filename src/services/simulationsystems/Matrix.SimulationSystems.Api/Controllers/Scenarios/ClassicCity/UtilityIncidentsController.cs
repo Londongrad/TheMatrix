@@ -7,6 +7,7 @@ using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Utilit
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityUtilityIncidentStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.
     SetCityUtilityIncidentEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
@@ -18,10 +19,10 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/classic-city/cities")]
+    [Route(ClassicCitySimulationSystemsApiRoutes.CitiesRoute)]
     public sealed class UtilityIncidentsController(IMediator mediator) : ControllerBase
     {
-        [HttpGet("{cityId:guid}/utility-incidents")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.UtilityIncidentsSegment)]
         public async Task<IResult> Get(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -35,7 +36,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpGet("{cityId:guid}/utility-incidents/districts")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.UtilityIncidentsSegment + "/districts")]
         public async Task<IResult> GetDistricts(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -49,7 +50,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToDistrictConditionsView(status));
         }
 
-        [HttpPut("{cityId:guid}/utility-incidents/emergency-mode")]
+        [HttpPut("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.UtilityIncidentsSegment + "/emergency-mode")]
         public async Task<IResult> SetEmergencyMode(
             [FromRoute] Guid cityId,
             [FromBody] SetCityUtilityIncidentEmergencyModeRequest request,
@@ -66,7 +67,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpPost("{cityId:guid}/utility-incidents/response-dispatch")]
+        [HttpPost("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.UtilityIncidentsSegment + "/response-dispatch")]
         public async Task<IResult> DispatchResponse(
             [FromRoute] Guid cityId,
             [FromBody] DispatchCityUtilityIncidentResponseRequest request,
