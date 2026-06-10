@@ -5,6 +5,7 @@ using
     Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCitySanitationStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.SetCitySanitationEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
@@ -16,10 +17,10 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/classic-city/cities")]
+    [Route(ClassicCitySimulationSystemsApiRoutes.CitiesRoute)]
     public sealed class SanitationController(IMediator mediator) : ControllerBase
     {
-        [HttpGet("{cityId:guid}/sanitation")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.SanitationSegment)]
         public async Task<IResult> Get(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -33,7 +34,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpGet("{cityId:guid}/sanitation/districts")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.SanitationSegment + "/districts")]
         public async Task<IResult> GetDistricts(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -47,7 +48,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToDistrictConditionsView(status));
         }
 
-        [HttpPut("{cityId:guid}/sanitation/emergency-mode")]
+        [HttpPut("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.SanitationSegment + "/emergency-mode")]
         public async Task<IResult> SetEmergencyMode(
             [FromRoute] Guid cityId,
             [FromBody] SetCitySanitationEmergencyModeRequest request,
@@ -64,7 +65,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpPost("{cityId:guid}/sanitation/maintenance-dispatch")]
+        [HttpPost("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.SanitationSegment + "/maintenance-dispatch")]
         public async Task<IResult> DispatchMaintenance(
             [FromRoute] Guid cityId,
             [FromBody] DispatchCitySanitationMaintenanceRequest request,
