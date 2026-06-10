@@ -4,6 +4,7 @@ using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockp
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Requests;
@@ -108,7 +109,8 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.SimulationSystems
             Assert.Null(result);
             RecordedRequest request = Assert.Single(handler.Requests);
             Assert.EndsWith(
-                expectedEndString: $"/api/classic-city/cities/{cityId}/environmental-conditions",
+                expectedEndString: $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/" +
+                                   ClassicCitySimulationSystemsApiRoutes.EnvironmentalConditionsSegment,
                 actualString: request.RequestUri,
                 comparisonType: StringComparison.Ordinal);
         }
@@ -150,7 +152,8 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.SimulationSystems
                 actual: Assert.Single(result.Districts));
             RecordedRequest request = Assert.Single(handler.Requests);
             Assert.EndsWith(
-                expectedEndString: $"/api/classic-city/cities/{cityId}/heating/districts",
+                expectedEndString: $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/" +
+                                   ClassicCitySimulationSystemsApiRoutes.HeatingSegment + "/districts",
                 actualString: request.RequestUri,
                 comparisonType: StringComparison.Ordinal);
         }

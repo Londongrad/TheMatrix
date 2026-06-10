@@ -1,6 +1,7 @@
 using System.Net;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
@@ -14,25 +15,32 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.Classi
     internal sealed class EnvironmentalConditionsApiClient(HttpClient client) : IEnvironmentalConditionsApiClient
     {
         private const string EnvironmentalConditionsEndpointTemplate =
-            "/api/classic-city/cities/{0}/environmental-conditions";
+            ClassicCitySimulationSystemsApiRoutes.CitiesPath + "/{0}/" +
+            ClassicCitySimulationSystemsApiRoutes.EnvironmentalConditionsSegment;
 
         private const string DistrictHeatingConditionsEndpointTemplate =
-            "/api/classic-city/cities/{0}/heating/districts";
+            ClassicCitySimulationSystemsApiRoutes.CitiesPath + "/{0}/" +
+            ClassicCitySimulationSystemsApiRoutes.HeatingSegment + "/districts";
 
         private const string DistrictWaterConditionsEndpointTemplate =
-            "/api/classic-city/cities/{0}/water-distribution/districts";
+            ClassicCitySimulationSystemsApiRoutes.CitiesPath + "/{0}/" +
+            ClassicCitySimulationSystemsApiRoutes.WaterDistributionSegment + "/districts";
 
         private const string DistrictPowerConditionsEndpointTemplate =
-            "/api/classic-city/cities/{0}/power-distribution/districts";
+            ClassicCitySimulationSystemsApiRoutes.CitiesPath + "/{0}/" +
+            ClassicCitySimulationSystemsApiRoutes.PowerDistributionSegment + "/districts";
 
         private const string DistrictSanitationConditionsEndpointTemplate =
-            "/api/classic-city/cities/{0}/sanitation/districts";
+            ClassicCitySimulationSystemsApiRoutes.CitiesPath + "/{0}/" +
+            ClassicCitySimulationSystemsApiRoutes.SanitationSegment + "/districts";
 
         private const string DistrictUtilityIncidentConditionsEndpointTemplate =
-            "/api/classic-city/cities/{0}/utility-incidents/districts";
+            ClassicCitySimulationSystemsApiRoutes.CitiesPath + "/{0}/" +
+            ClassicCitySimulationSystemsApiRoutes.UtilityIncidentsSegment + "/districts";
 
         private const string UtilityIncidentResponseDispatchEndpointTemplate =
-            "/api/classic-city/cities/{0}/utility-incidents/response-dispatch";
+            ClassicCitySimulationSystemsApiRoutes.CitiesPath + "/{0}/" +
+            ClassicCitySimulationSystemsApiRoutes.UtilityIncidentsSegment + "/response-dispatch";
 
         private readonly HttpClient _client = client;
 
