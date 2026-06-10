@@ -10,10 +10,8 @@ using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Economy;
 using Matrix.SimulationSystems.Infrastructure.Options;
-using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
-using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;
 using Microsoft.EntityFrameworkCore;
@@ -70,18 +68,12 @@ namespace Matrix.SimulationSystems.Infrastructure
                .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
-            services.AddScoped<ICityEnvironmentalConditionRepository, CityEnvironmentalConditionRepository>();
-            services.AddScoped<ICitySystemsDeletionStateRepository, CitySystemsDeletionStateRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationSystemsDbContext>>();
             services.AddPermissionCheckingFromClaims();
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
             services.AddOutbox<SimulationSystemsDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
-            services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
-            services
-               .AddScoped<ICityPopulationLivingConditionsOutboxWriter, CityPopulationLivingConditionsOutboxWriter>();
-            services.AddScoped<ICitySystemsResourceDemandOutboxWriter, CitySystemsResourceDemandOutboxWriter>();
             services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((
                     sp,
                     client) =>

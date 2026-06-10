@@ -1,4 +1,8 @@
 using MassTransit;
+using Matrix.SimulationSystems.Application.Abstractions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.SimulationSystems.Infrastructure.Outbox;
+using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +12,13 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity
     {
         public static IServiceCollection AddClassicCityScenarioInfrastructure(this IServiceCollection services)
         {
+            services.AddScoped<ICityEnvironmentalConditionRepository, CityEnvironmentalConditionRepository>();
+            services.AddScoped<ICitySystemsDeletionStateRepository, CitySystemsDeletionStateRepository>();
+            services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
+            services
+               .AddScoped<ICityPopulationLivingConditionsOutboxWriter, CityPopulationLivingConditionsOutboxWriter>();
+            services.AddScoped<ICitySystemsResourceDemandOutboxWriter, CitySystemsResourceDemandOutboxWriter>();
+
             return services;
         }
 
