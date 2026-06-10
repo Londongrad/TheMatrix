@@ -1,10 +1,15 @@
 using MassTransit;
+using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.SimulationSystems.Infrastructure.Economy;
+using Matrix.SimulationSystems.Infrastructure.Options;
 using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity
 {
@@ -18,6 +23,23 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity
             services
                .AddScoped<ICityPopulationLivingConditionsOutboxWriter, CityPopulationLivingConditionsOutboxWriter>();
             services.AddScoped<ICitySystemsResourceDemandOutboxWriter, CitySystemsResourceDemandOutboxWriter>();
+            services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((
+                    sp,
+                    client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.Economy))
+                        throw new InvalidOperationException("DownstreamServices:Economy is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.Economy,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddInternalServiceAuthentication(
+                    identity: InternalServicePrincipals.SimulationSystems,
+                    EconomyPermissionKeys.EconomyBudgetAuthorize);
 
             return services;
         }
