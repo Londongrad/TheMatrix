@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Views;
 
 namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems
@@ -13,7 +14,8 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Integration
             Guid cityId,
             CancellationToken cancellationToken)
         {
-            string url = $"/api/classic-city/cities/{cityId}/road-access/segments";
+            string url = $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/" +
+                         ClassicCitySimulationSystemsApiRoutes.RoadAccessSegment + "/segments";
 
             using HttpResponseMessage response = await _client.GetAsync(
                 requestUri: url,

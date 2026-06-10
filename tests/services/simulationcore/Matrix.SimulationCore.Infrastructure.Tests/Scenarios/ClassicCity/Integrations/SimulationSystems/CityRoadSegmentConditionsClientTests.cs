@@ -3,6 +3,7 @@ using System.Text.Json;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.SimulationCore.Infrastructure.Tests.Http;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Views;
 using Xunit;
 
@@ -62,8 +63,9 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Integ
                 expected: HttpMethod.Get,
                 actual: request.Method);
             Assert.Equal(
-                expected:
-                "https://localhost:7155/api/classic-city/cities/11111111-1111-1111-1111-111111111111/road-access/segments",
+                expected: "https://localhost:7155" + ClassicCitySimulationSystemsApiRoutes.CitiesPath +
+                          "/11111111-1111-1111-1111-111111111111/" +
+                          ClassicCitySimulationSystemsApiRoutes.RoadAccessSegment + "/segments",
                 actual: request.RequestUri);
             Assert.Null(request.Body);
 
