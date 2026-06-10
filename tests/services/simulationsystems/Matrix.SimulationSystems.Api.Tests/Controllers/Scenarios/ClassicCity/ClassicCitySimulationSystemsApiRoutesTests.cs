@@ -22,6 +22,14 @@ namespace Matrix.SimulationSystems.Api.Tests.Controllers.Scenarios.ClassicCity
                 typeof(WaterDistributionController)
             };
 
+        [Fact]
+        public void CitiesRoute_IsScenarioScoped()
+        {
+            Assert.Equal(
+                expected: "api/scenarios/classic-city/cities",
+                actual: ClassicCitySimulationSystemsApiRoutes.CitiesRoute);
+        }
+
         [Theory]
         [MemberData(nameof(ControllerTypes))]
         public void Controller_UsesScenarioRouteContract(Type controllerType)

@@ -2,7 +2,7 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 
 public static class ClassicCitySimulationSystemsApiRoutes
 {
-    public const string CitiesRoute = "api/classic-city/cities";
+    public const string CitiesRoute = "api/scenarios/classic-city/cities";
     public const string CitiesPath = "/" + CitiesRoute;
 
     public const string EnvironmentalConditionsSegment = "environmental-conditions";
