@@ -4,6 +4,7 @@ using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heatin
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.GetCityDistrictHeatingConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.GetCityHeatingStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.SetCityHeatingEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
@@ -15,10 +16,10 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/classic-city/cities")]
+    [Route(ClassicCitySimulationSystemsApiRoutes.CitiesRoute)]
     public sealed class HeatingController(IMediator mediator) : ControllerBase
     {
-        [HttpGet("{cityId:guid}/heating")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.HeatingSegment)]
         public async Task<IResult> Get(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -32,7 +33,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpGet("{cityId:guid}/heating/districts")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.HeatingSegment + "/districts")]
         public async Task<IResult> GetDistricts(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -46,7 +47,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToDistrictConditionsView(status));
         }
 
-        [HttpPut("{cityId:guid}/heating/emergency-mode")]
+        [HttpPut("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.HeatingSegment + "/emergency-mode")]
         public async Task<IResult> SetEmergencyMode(
             [FromRoute] Guid cityId,
             [FromBody] SetCityHeatingEmergencyModeRequest request,
@@ -63,7 +64,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpPost("{cityId:guid}/heating/maintenance-dispatch")]
+        [HttpPost("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.HeatingSegment + "/maintenance-dispatch")]
         public async Task<IResult> DispatchMaintenance(
             [FromRoute] Guid cityId,
             [FromBody] DispatchCityHeatingMaintenanceRequest request,
