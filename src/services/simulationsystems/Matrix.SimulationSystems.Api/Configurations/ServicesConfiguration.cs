@@ -20,7 +20,8 @@ namespace Matrix.SimulationSystems.Api.Configurations
             services.AddApplication();
             services.AddInfrastructure(
                 configuration: configuration,
-                environment: builder.Environment);
+                environment: builder.Environment,
+                configureConsumers: consumers => consumers.AddClassicCityScenarioConsumers());
             services.AddClassicCityScenarioInfrastructure();
         }
     }

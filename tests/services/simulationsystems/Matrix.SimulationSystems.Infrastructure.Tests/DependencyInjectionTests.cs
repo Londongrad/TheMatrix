@@ -4,6 +4,7 @@ using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Economy;
 using Matrix.SimulationSystems.Infrastructure.Options;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;
 using Matrix.SimulationSystems.Infrastructure.Tests.TestSupport;
 using Microsoft.Extensions.Configuration;
@@ -33,7 +34,22 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests
         }
 
         [Fact]
-        public void AddInfrastructure_WhenConfigurationIsValid_RegistersKeyServices()
+        public void AddInfrastructure_WhenScenarioIsNotComposed_DoesNotRegisterClassicCityServices()
+        {
+            var services = new ServiceCollection();
+
+            services.AddInfrastructure(
+                configuration: StartupTestSupport.BuildValidInfrastructureConfiguration(),
+                environment: new FakeHostEnvironment());
+
+            using ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            Assert.Null(serviceProvider.GetService<ICityEnvironmentalConditionRepository>());
+            Assert.Null(serviceProvider.GetService<ICityBudgetAuthorizationClient>());
+        }
+
+        [Fact]
+        public void AddInfrastructureAndClassicCityScenario_WhenConfigurationIsValid_RegistersKeyServices()
         {
             var services = new ServiceCollection();
             IConfiguration configuration = StartupTestSupport.BuildValidInfrastructureConfiguration();
@@ -46,7 +62,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests
                 environment: new FakeHostEnvironment
                 {
                     EnvironmentName = Environments.Development
-                });
+                },
+                configureConsumers: consumers => consumers.AddClassicCityScenarioConsumers());
+            services.AddClassicCityScenarioInfrastructure();
 
             using ServiceProvider serviceProvider = services.BuildServiceProvider();
 

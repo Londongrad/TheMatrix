@@ -6,11 +6,9 @@ using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
-using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Options;
 using Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
-using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +24,8 @@ namespace Matrix.SimulationSystems.Infrastructure
         public static IServiceCollection AddInfrastructure(
             this IServiceCollection services,
             IConfiguration configuration,
-            IHostEnvironment environment)
+            IHostEnvironment environment,
+            Action<IBusRegistrationConfigurator>? configureConsumers = null)
         {
             string connectionString = configuration.GetConnectionString("SimulationSystemsDb") ??
                                       throw new InvalidOperationException(
@@ -72,7 +71,7 @@ namespace Matrix.SimulationSystems.Infrastructure
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
-                x.AddClassicCityScenarioConsumers();
+                configureConsumers?.Invoke(x);
 
                 x.UsingRabbitMq((
                     context,
