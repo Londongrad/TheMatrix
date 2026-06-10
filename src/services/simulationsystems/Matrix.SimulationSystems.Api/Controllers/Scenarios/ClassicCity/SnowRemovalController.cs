@@ -4,6 +4,7 @@ using
     Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.DispatchCitySnowRemovalMaintenance;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.GetCitySnowRemovalStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.SetCitySnowRemovalEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.SnowRemoval.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.SnowRemoval.Views;
@@ -15,10 +16,10 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/classic-city/cities")]
+    [Route(ClassicCitySimulationSystemsApiRoutes.CitiesRoute)]
     public sealed class SnowRemovalController(IMediator mediator) : ControllerBase
     {
-        [HttpGet("{cityId:guid}/snow-removal")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.SnowRemovalSegment)]
         public async Task<IResult> Get(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -32,7 +33,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpPut("{cityId:guid}/snow-removal/emergency-mode")]
+        [HttpPut("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.SnowRemovalSegment + "/emergency-mode")]
         public async Task<IResult> SetEmergencyMode(
             [FromRoute] Guid cityId,
             [FromBody] SetCitySnowRemovalEmergencyModeRequest request,
@@ -49,7 +50,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpPost("{cityId:guid}/snow-removal/maintenance-dispatch")]
+        [HttpPost("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.SnowRemovalSegment + "/maintenance-dispatch")]
         public async Task<IResult> DispatchMaintenance(
             [FromRoute] Guid cityId,
             [FromBody] DispatchCitySnowRemovalMaintenanceRequest request,
