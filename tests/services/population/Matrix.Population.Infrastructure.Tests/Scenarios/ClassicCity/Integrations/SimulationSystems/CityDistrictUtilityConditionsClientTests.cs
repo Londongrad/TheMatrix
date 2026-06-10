@@ -2,6 +2,7 @@ using System.Net;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Xunit;
 using static Matrix.Population.Infrastructure.Tests.Http.HttpClientTestSupport;
 
@@ -108,6 +109,12 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Integrati
             Assert.Equal(
                 expected: 5,
                 actual: requestedPaths.Count);
+            Assert.All(
+                collection: requestedPaths,
+                action: path => Assert.StartsWith(
+                    expectedStartString: $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/",
+                    actualString: path,
+                    comparisonType: StringComparison.Ordinal));
         }
 
         [Fact]

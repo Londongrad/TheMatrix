@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 
 namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationSystems
 {
@@ -16,21 +17,26 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.Si
             CancellationToken cancellationToken)
         {
             Task<DistrictHeatingConditionsPayload?> heatingTask = TryGetPayloadAsync<DistrictHeatingConditionsPayload>(
-                requestUri: $"/api/classic-city/cities/{cityId}/heating/districts",
+                requestUri: $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/" +
+                            ClassicCitySimulationSystemsApiRoutes.HeatingSegment + "/districts",
                 cancellationToken: cancellationToken);
             Task<DistrictWaterConditionsPayload?> waterTask = TryGetPayloadAsync<DistrictWaterConditionsPayload>(
-                requestUri: $"/api/classic-city/cities/{cityId}/water-distribution/districts",
+                requestUri: $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/" +
+                            ClassicCitySimulationSystemsApiRoutes.WaterDistributionSegment + "/districts",
                 cancellationToken: cancellationToken);
             Task<DistrictPowerConditionsPayload?> powerTask = TryGetPayloadAsync<DistrictPowerConditionsPayload>(
-                requestUri: $"/api/classic-city/cities/{cityId}/power-distribution/districts",
+                requestUri: $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/" +
+                            ClassicCitySimulationSystemsApiRoutes.PowerDistributionSegment + "/districts",
                 cancellationToken: cancellationToken);
             Task<DistrictSanitationConditionsPayload?> sanitationTask =
                 TryGetPayloadAsync<DistrictSanitationConditionsPayload>(
-                    requestUri: $"/api/classic-city/cities/{cityId}/sanitation/districts",
+                    requestUri: $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/" +
+                                ClassicCitySimulationSystemsApiRoutes.SanitationSegment + "/districts",
                     cancellationToken: cancellationToken);
             Task<DistrictUtilityIncidentConditionsPayload?> incidentsTask =
                 TryGetPayloadAsync<DistrictUtilityIncidentConditionsPayload>(
-                    requestUri: $"/api/classic-city/cities/{cityId}/utility-incidents/districts",
+                    requestUri: $"{ClassicCitySimulationSystemsApiRoutes.CitiesPath}/{cityId}/" +
+                                ClassicCitySimulationSystemsApiRoutes.UtilityIncidentsSegment + "/districts",
                     cancellationToken: cancellationToken);
 
             await Task.WhenAll(
