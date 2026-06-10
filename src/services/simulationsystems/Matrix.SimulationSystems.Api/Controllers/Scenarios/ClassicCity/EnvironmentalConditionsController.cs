@@ -1,5 +1,6 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     GetCityEnvironmentalConditions;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -9,10 +10,10 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/classic-city/cities")]
+    [Route(ClassicCitySimulationSystemsApiRoutes.CitiesRoute)]
     public sealed class EnvironmentalConditionsController(IMediator mediator) : ControllerBase
     {
-        [HttpGet("{cityId:guid}/environmental-conditions")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.EnvironmentalConditionsSegment)]
         public async Task<IResult> Get(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
