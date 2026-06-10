@@ -8,6 +8,7 @@ using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerD
     GetCityPowerDistributionStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.
     SetCityPowerDistributionEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
@@ -19,10 +20,10 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
-    [Route("api/classic-city/cities")]
+    [Route(ClassicCitySimulationSystemsApiRoutes.CitiesRoute)]
     public sealed class PowerDistributionController(IMediator mediator) : ControllerBase
     {
-        [HttpGet("{cityId:guid}/power-distribution")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.PowerDistributionSegment)]
         public async Task<IResult> Get(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -36,7 +37,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpGet("{cityId:guid}/power-distribution/districts")]
+        [HttpGet("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.PowerDistributionSegment + "/districts")]
         public async Task<IResult> GetDistricts(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -50,7 +51,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToDistrictConditionsView(status));
         }
 
-        [HttpPut("{cityId:guid}/power-distribution/emergency-mode")]
+        [HttpPut("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.PowerDistributionSegment + "/emergency-mode")]
         public async Task<IResult> SetEmergencyMode(
             [FromRoute] Guid cityId,
             [FromBody] SetCityPowerDistributionEmergencyModeRequest request,
@@ -67,7 +68,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 : Results.Ok(MapToView(status));
         }
 
-        [HttpPost("{cityId:guid}/power-distribution/maintenance-dispatch")]
+        [HttpPost("{cityId:guid}/" + ClassicCitySimulationSystemsApiRoutes.PowerDistributionSegment + "/maintenance-dispatch")]
         public async Task<IResult> DispatchMaintenance(
             [FromRoute] Guid cityId,
             [FromBody] DispatchCityPowerDistributionMaintenanceRequest request,
