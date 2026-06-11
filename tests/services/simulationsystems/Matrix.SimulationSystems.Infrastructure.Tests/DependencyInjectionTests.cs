@@ -4,6 +4,7 @@ using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Options;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Integrations.Economy;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;
 using Matrix.SimulationSystems.Infrastructure.Tests.TestSupport;
 using Microsoft.Extensions.Configuration;

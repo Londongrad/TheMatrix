@@ -4,7 +4,7 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
 
-namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore
 {
     internal sealed class CityMapTopologyClient(HttpClient client) : ICityMapTopologyClient
     {
