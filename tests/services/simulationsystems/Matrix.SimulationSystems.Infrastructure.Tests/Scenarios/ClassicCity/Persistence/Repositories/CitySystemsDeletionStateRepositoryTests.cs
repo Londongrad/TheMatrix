@@ -1,9 +1,9 @@
 using Matrix.SimulationSystems.Infrastructure.Persistence;
-using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Xunit;
 using static Matrix.SimulationSystems.Infrastructure.Tests.TestSupport.SimulationSystemsInfrastructureTestSupport;
 
-namespace Matrix.SimulationSystems.Infrastructure.Tests.Persistence.Repositories
+namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CitySystemsDeletionStateRepositoryTests
     {

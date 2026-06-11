@@ -1,8 +1,9 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
-using Matrix.SimulationSystems.Infrastructure.Persistence.Models;
+using Matrix.SimulationSystems.Infrastructure.Persistence;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.SimulationSystems.Infrastructure.Persistence.Repositories
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CitySystemsDeletionStateRepository(SimulationSystemsDbContext dbContext)
         : ICitySystemsDeletionStateRepository

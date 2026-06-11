@@ -1,8 +1,8 @@
-using Matrix.SimulationSystems.Infrastructure.Persistence.Models;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Configurations
 {
     public sealed class CitySystemsDeletionStateConfiguration : IEntityTypeConfiguration<CitySystemsDeletionState>
     {

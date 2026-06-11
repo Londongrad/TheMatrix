@@ -1,4 +1,4 @@
-namespace Matrix.SimulationSystems.Infrastructure.Persistence.Models
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Models
 {
     public sealed class CitySystemsDeletionState
     {

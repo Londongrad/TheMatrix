@@ -126,7 +126,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Migrations
                     b.ToTable("CityEnvironmentalConditions", (string)null);
                 });
 
-            modelBuilder.Entity("Matrix.SimulationSystems.Infrastructure.Persistence.Models.CitySystemsDeletionState", b =>
+            modelBuilder.Entity("Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Models.CitySystemsDeletionState", b =>
                 {
                     b.Property<Guid>("CityId")
                         .ValueGeneratedOnAdd()
