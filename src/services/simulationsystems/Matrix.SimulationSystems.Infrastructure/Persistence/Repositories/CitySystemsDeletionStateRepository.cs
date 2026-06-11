@@ -1,4 +1,4 @@
-using Matrix.SimulationSystems.Application.Abstractions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 

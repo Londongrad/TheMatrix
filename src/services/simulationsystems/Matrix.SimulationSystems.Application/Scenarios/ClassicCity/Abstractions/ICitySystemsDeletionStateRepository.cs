@@ -1,4 +1,4 @@
-namespace Matrix.SimulationSystems.Application.Abstractions
+namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICitySystemsDeletionStateRepository
     {
