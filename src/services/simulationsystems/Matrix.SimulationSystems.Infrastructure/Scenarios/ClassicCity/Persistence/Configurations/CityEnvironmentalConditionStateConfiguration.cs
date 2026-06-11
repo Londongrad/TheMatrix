@@ -4,7 +4,7 @@ using Matrix.SimulationSystems.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Configurations
 {
     public sealed class CityEnvironmentalConditionStateConfiguration
         : IEntityTypeConfiguration<CityEnvironmentalConditionState>
