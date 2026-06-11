@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;
 
 namespace Matrix.SimulationSystems.Infrastructure.Outbox
 {
@@ -17,7 +18,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Outbox
         {
             dbContext.OutboxMessages.Add(
                 OutboxMessage.Create(
-                    type: SimulationSystemsOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1,
+                    type: ClassicCityOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1,
                     occurredOnUtc: snapshot.OccurredAtUtc.UtcDateTime,
                     payload: snapshot,
                     jsonOptions: JsonOptions));

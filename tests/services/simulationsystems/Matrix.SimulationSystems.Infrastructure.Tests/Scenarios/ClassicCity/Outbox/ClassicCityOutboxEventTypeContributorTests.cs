@@ -17,15 +17,15 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Ou
             Assert.Equal(
                 expected: typeof(ClassicCityOperationalExpenseIncurredV1),
                 actual: contributor.EventTypes[
-                    SimulationSystemsOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1]);
+                    ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1]);
             Assert.Equal(
                 expected: typeof(ClassicCityLivingConditionsSnapshotV1),
                 actual: contributor.EventTypes[
-                    SimulationSystemsOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1]);
+                    ClassicCityOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1]);
             Assert.Equal(
                 expected: typeof(ClassicCitySystemsResourceDemandSnapshotV1),
                 actual: contributor.EventTypes[
-                    SimulationSystemsOutboxEventTypes.ClassicCitySystemsResourceDemandSnapshotV1]);
+                    ClassicCityOutboxEventTypes.ClassicCitySystemsResourceDemandSnapshotV1]);
         }
     }
 }

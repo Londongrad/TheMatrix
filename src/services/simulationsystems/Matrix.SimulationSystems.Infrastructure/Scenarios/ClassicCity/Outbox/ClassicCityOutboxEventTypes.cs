@@ -1,6 +1,6 @@
-namespace Matrix.SimulationSystems.Infrastructure.Outbox
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox
 {
-    public static class SimulationSystemsOutboxEventTypes
+    public static class ClassicCityOutboxEventTypes
     {
         public const string ClassicCityOperationalExpenseIncurredV1 =
             "simulation-systems.classic-city-operational-expense-incurred.v1";

@@ -5,6 +5,7 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Xunit;
 using static Matrix.SimulationSystems.Infrastructure.Tests.TestSupport.SimulationSystemsInfrastructureTestSupport;
 
@@ -26,7 +27,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
 
             OutboxMessage message = Assert.Single(dbContext.OutboxMessages);
             Assert.Equal(
-                expected: SimulationSystemsOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1,
+                expected: ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1,
                 actual: message.Type);
             Assert.Equal(
                 expected: expense.OccurredAtUtc.UtcDateTime,
@@ -60,7 +61,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
 
             OutboxMessage message = Assert.Single(dbContext.OutboxMessages);
             Assert.Equal(
-                expected: SimulationSystemsOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1,
+                expected: ClassicCityOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1,
                 actual: message.Type);
             Assert.Equal(
                 expected: snapshot.OccurredAtUtc.UtcDateTime,
@@ -94,7 +95,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
 
             OutboxMessage message = Assert.Single(dbContext.OutboxMessages);
             Assert.Equal(
-                expected: SimulationSystemsOutboxEventTypes.ClassicCitySystemsResourceDemandSnapshotV1,
+                expected: ClassicCityOutboxEventTypes.ClassicCitySystemsResourceDemandSnapshotV1,
                 actual: message.Type);
             Assert.Equal(
                 expected: snapshot.OccurredAtUtc.UtcDateTime,

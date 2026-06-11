@@ -10,11 +10,11 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox
         public IReadOnlyDictionary<string, Type> EventTypes { get; } =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
-                [SimulationSystemsOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] =
+                [ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] =
                     typeof(ClassicCityOperationalExpenseIncurredV1),
-                [SimulationSystemsOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1] =
+                [ClassicCityOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1] =
                     typeof(ClassicCityLivingConditionsSnapshotV1),
-                [SimulationSystemsOutboxEventTypes.ClassicCitySystemsResourceDemandSnapshotV1] =
+                [ClassicCityOutboxEventTypes.ClassicCitySystemsResourceDemandSnapshotV1] =
                     typeof(ClassicCitySystemsResourceDemandSnapshotV1)
             };
     }
