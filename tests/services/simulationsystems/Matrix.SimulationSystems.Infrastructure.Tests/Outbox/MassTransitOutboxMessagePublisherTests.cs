@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Xunit;
 
 namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
@@ -10,7 +11,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
         [Fact]
         public async Task PublishAsync_WhenMessageTypeIsUnsupported_ThrowsNotSupportedException()
         {
-            var publisher = new MassTransitOutboxMessagePublisher(null!);
+            var publisher = new MassTransitOutboxMessagePublisher(
+                publishEndpoint: null!,
+                eventTypeRegistry: new OutboxEventTypeRegistry(contributors: []));
 
             NotSupportedException exception = await Assert.ThrowsAsync<NotSupportedException>(()
                 => publisher.PublishAsync(
@@ -27,7 +30,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
         [Fact]
         public async Task PublishAsync_WhenPayloadDeserializesToNull_ThrowsInvalidOperationException()
         {
-            var publisher = new MassTransitOutboxMessagePublisher(null!);
+            var publisher = CreatePublisher();
 
             InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(()
                 => publisher.PublishAsync(
@@ -44,13 +47,21 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
         [Fact]
         public async Task PublishAsync_WhenPayloadJsonIsMalformed_ThrowsJsonException()
         {
-            var publisher = new MassTransitOutboxMessagePublisher(null!);
+            var publisher = CreatePublisher();
 
             await Assert.ThrowsAsync<JsonException>(() => publisher.PublishAsync(
                 messageId: Guid.Parse("56131248-e854-4ecc-a7f3-31ddb4d3d2b5"),
                 type: SimulationSystemsOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1,
                 payloadJson: "{",
                 cancellationToken: CancellationToken.None));
+        }
+
+        private static MassTransitOutboxMessagePublisher CreatePublisher()
+        {
+            return new MassTransitOutboxMessagePublisher(
+                publishEndpoint: null!,
+                eventTypeRegistry: new OutboxEventTypeRegistry(
+                    contributors: [new ClassicCityOutboxEventTypeContributor()]));
         }
     }
 }

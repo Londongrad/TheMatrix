@@ -13,23 +13,6 @@ namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
     public sealed class SimulationSystemsOutboxWriterTests
     {
         [Fact]
-        public void OutboxEventTypeMap_ContainsKnownSimulationSystemsEvents()
-        {
-            Assert.Equal(
-                expected: typeof(ClassicCityOperationalExpenseIncurredV1),
-                actual: OutboxEventTypeMap.Map[
-                    SimulationSystemsOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1]);
-            Assert.Equal(
-                expected: typeof(ClassicCityLivingConditionsSnapshotV1),
-                actual: OutboxEventTypeMap.Map[SimulationSystemsOutboxEventTypes
-                   .ClassicCityLivingConditionsSnapshotV1]);
-            Assert.Equal(
-                expected: typeof(ClassicCitySystemsResourceDemandSnapshotV1),
-                actual: OutboxEventTypeMap.Map[SimulationSystemsOutboxEventTypes
-                   .ClassicCitySystemsResourceDemandSnapshotV1]);
-        }
-
-        [Fact]
         public async Task CityOperationalExpenseOutboxWriter_AddsSerializedOutboxMessage()
         {
             await using SimulationSystemsDbContext dbContext = CreateDbContext();

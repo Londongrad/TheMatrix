@@ -4,7 +4,9 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 
 namespace Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq
 {
-    public sealed class MassTransitOutboxMessagePublisher(IPublishEndpoint publishEndpoint)
+    public sealed class MassTransitOutboxMessagePublisher(
+        IPublishEndpoint publishEndpoint,
+        OutboxEventTypeRegistry eventTypeRegistry)
         : IOutboxMessagePublisher
     {
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -15,10 +17,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq
             string payloadJson,
             CancellationToken cancellationToken)
         {
-            if (!OutboxEventTypeMap.Map.TryGetValue(
-                    key: type,
-                    value: out Type? eventType))
-                throw new NotSupportedException($"Outbox message type '{type}' is not supported.");
+            Type eventType = eventTypeRegistry.Resolve(type);
 
             object? message = JsonSerializer.Deserialize(
                 json: payloadJson,

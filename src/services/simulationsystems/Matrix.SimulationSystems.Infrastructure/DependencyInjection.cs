@@ -7,6 +7,7 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Infrastructure.Options;
+using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,7 @@ namespace Matrix.SimulationSystems.Infrastructure
             services.AddPermissionCheckingFromClaims();
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
             services.AddOutbox<SimulationSystemsDbContext>(configuration);
+            services.AddSingleton<OutboxEventTypeRegistry>();
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddMassTransit(x =>
             {
