@@ -1,6 +1,5 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
-using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Economy;
 using Matrix.SimulationSystems.Infrastructure.Options;

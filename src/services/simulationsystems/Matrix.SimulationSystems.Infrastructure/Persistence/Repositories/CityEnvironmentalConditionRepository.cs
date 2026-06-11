@@ -1,4 +1,4 @@
-using Matrix.SimulationSystems.Application.Abstractions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;

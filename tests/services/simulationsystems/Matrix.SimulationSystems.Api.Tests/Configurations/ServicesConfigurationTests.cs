@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Api.Configurations;
-using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;

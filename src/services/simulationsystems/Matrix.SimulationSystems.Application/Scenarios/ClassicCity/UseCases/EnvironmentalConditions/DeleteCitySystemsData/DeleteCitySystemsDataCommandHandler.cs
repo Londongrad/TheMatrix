@@ -1,6 +1,5 @@
 using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;

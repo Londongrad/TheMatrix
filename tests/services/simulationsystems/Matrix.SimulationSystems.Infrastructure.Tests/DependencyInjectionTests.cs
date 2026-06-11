@@ -1,6 +1,5 @@
 using System.Reflection;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
-using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Economy;
 using Matrix.SimulationSystems.Infrastructure.Options;
