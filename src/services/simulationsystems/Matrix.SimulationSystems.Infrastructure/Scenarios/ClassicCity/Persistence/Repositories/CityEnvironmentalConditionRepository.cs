@@ -1,9 +1,10 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
+using Matrix.SimulationSystems.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.SimulationSystems.Infrastructure.Persistence.Repositories
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityEnvironmentalConditionRepository(SimulationSystemsDbContext dbContext)
         : ICityEnvironmentalConditionRepository
