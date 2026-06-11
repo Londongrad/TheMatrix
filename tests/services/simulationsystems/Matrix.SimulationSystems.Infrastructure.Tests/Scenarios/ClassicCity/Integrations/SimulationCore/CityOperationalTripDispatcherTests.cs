@@ -3,12 +3,12 @@ using System.Text.Json;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
-using Matrix.SimulationSystems.Infrastructure.SimulationCore;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
 using Matrix.SimulationSystems.Infrastructure.Tests.Http;
 using Xunit;
 using static Matrix.SimulationSystems.Infrastructure.Tests.TestSupport.SimulationSystemsInfrastructureTestSupport;
 
-namespace Matrix.SimulationSystems.Infrastructure.Tests.SimulationCore
+namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Integrations.SimulationCore
 {
     public sealed class CityOperationalTripDispatcherTests
     {

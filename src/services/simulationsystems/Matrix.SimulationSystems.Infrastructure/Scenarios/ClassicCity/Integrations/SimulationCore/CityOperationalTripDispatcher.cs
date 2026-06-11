@@ -5,7 +5,7 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 
-namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore
 {
     internal sealed class CityOperationalTripDispatcher(HttpClient client) : ICityOperationalTripDispatcher
     {
