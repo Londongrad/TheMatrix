@@ -5,7 +5,7 @@ using PopulationPermissionsCatalog = Matrix.Population.Contracts.Authorization.P
 using ResourcesPermissionsCatalog = Matrix.Resources.Contracts.Authorization.Permissions.PermissionsCatalog;
 using SimulationCorePermissionsCatalog = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionsCatalog;
 using SimulationSystemsPermissionsCatalog =
-    Matrix.SimulationSystems.Contracts.Authorization.Permissions.PermissionsCatalog;
+    Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionsCatalog;
 
 namespace Matrix.PermissionCatalog
 {

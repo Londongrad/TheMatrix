@@ -1,4 +1,5 @@
-using ContractPermissionKeys = Matrix.SimulationSystems.Contracts.Authorization.Permissions.PermissionKeys;
+using ContractPermissionKeys =
+    Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationSystems.Application.Authorization.Permissions
 {

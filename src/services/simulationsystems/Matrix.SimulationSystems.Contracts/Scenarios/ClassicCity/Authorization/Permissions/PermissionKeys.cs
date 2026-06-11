@@ -1,4 +1,4 @@
-namespace Matrix.SimulationSystems.Contracts.Authorization.Permissions
+namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Authorization.Permissions
 {
     public static class PermissionKeys
     {
