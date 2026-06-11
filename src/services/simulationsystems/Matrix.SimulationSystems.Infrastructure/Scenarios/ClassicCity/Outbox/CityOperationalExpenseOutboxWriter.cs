@@ -3,9 +3,8 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
-using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;
 
-namespace Matrix.SimulationSystems.Infrastructure.Outbox
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox
 {
     public sealed class CityOperationalExpenseOutboxWriter(SimulationSystemsDbContext dbContext)
         : ICityOperationalExpenseOutboxWriter
