@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Api.Defaults;
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Matrix.SimulationSystems.Application;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Infrastructure;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity;
 
@@ -18,6 +19,7 @@ namespace Matrix.SimulationSystems.Api.Configurations
             services.AddMatrixInternalApi(configuration);
 
             services.AddApplication();
+            services.AddClassicCityScenarioApplication();
             services.AddInfrastructure(
                 configuration: configuration,
                 environment: builder.Environment,

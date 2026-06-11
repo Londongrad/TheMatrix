@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Api.Configurations;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -69,6 +70,7 @@ namespace Matrix.SimulationSystems.Api.Tests.Configurations
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityBudgetAuthorizationClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityMapTopologyClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityOperationalTripDispatcher>());
+            Assert.NotNull(scope.ServiceProvider.GetRequiredService<CityEnvironmentalConditionPolicy>());
             Assert.Same(
                 expected: TimeProvider.System,
                 actual: provider.GetRequiredService<TimeProvider>());
