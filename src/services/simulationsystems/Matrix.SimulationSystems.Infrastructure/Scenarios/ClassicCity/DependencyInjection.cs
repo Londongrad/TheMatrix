@@ -5,6 +5,7 @@ using Matrix.SimulationSystems.Infrastructure.Economy;
 using Matrix.SimulationSystems.Infrastructure.Options;
 using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumers;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity
             services
                .AddScoped<ICityPopulationLivingConditionsOutboxWriter, CityPopulationLivingConditionsOutboxWriter>();
             services.AddScoped<ICitySystemsResourceDemandOutboxWriter, CitySystemsResourceDemandOutboxWriter>();
+            services.AddSingleton<IOutboxEventTypeContributor, ClassicCityOutboxEventTypeContributor>();
             services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((
                     sp,
                     client) =>
