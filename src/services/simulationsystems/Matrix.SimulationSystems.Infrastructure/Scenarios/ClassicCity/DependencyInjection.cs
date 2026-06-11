@@ -1,10 +1,10 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
-using Matrix.SimulationSystems.Infrastructure.Economy;
 using Matrix.SimulationSystems.Infrastructure.Options;
 using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumers;
+using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Integrations.Economy;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;

@@ -4,7 +4,7 @@ using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 
-namespace Matrix.SimulationSystems.Infrastructure.Economy
+namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Integrations.Economy
 {
     internal sealed class CityBudgetAuthorizationClient(HttpClient client) : ICityBudgetAuthorizationClient
     {
