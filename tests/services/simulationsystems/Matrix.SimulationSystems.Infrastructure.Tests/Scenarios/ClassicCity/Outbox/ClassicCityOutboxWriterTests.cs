@@ -3,15 +3,14 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
-using Matrix.SimulationSystems.Infrastructure.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Xunit;
 using static Matrix.SimulationSystems.Infrastructure.Tests.TestSupport.SimulationSystemsInfrastructureTestSupport;
 
-namespace Matrix.SimulationSystems.Infrastructure.Tests.Outbox
+namespace Matrix.SimulationSystems.Infrastructure.Tests.Scenarios.ClassicCity.Outbox
 {
-    public sealed class SimulationSystemsOutboxWriterTests
+    public sealed class ClassicCityOutboxWriterTests
     {
         [Fact]
         public async Task CityOperationalExpenseOutboxWriter_AddsSerializedOutboxMessage()
