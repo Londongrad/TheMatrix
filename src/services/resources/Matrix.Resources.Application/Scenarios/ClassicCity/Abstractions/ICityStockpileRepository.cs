@@ -1,7 +1,7 @@
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Domain.Simulation;
 
-namespace Matrix.Resources.Application.Abstractions
+namespace Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICityStockpileRepository
     {

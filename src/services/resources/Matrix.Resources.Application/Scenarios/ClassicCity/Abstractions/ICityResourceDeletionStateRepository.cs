@@ -1,4 +1,4 @@
-namespace Matrix.Resources.Application.Abstractions
+namespace Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICityResourceDeletionStateRepository
     {
