@@ -6,7 +6,6 @@ using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
-using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Infrastructure.Options;
 using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Outbox.RabbitMq;
@@ -70,8 +69,6 @@ namespace Matrix.Resources.Infrastructure
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
             services.AddOutbox<ResourcesDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
-            services.AddScoped<ICityStockpileSnapshotOutboxWriter, CityStockpileSnapshotOutboxWriter>();
-            services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();

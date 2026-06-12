@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Resources.Infrastructure.Outbox;
+using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.Resources.Infrastructure.Persistence;
 using Xunit;
 using static Matrix.Resources.Infrastructure.Tests.TestSupport.ResourcesInfrastructureTestSupport;

@@ -5,6 +5,7 @@ using Matrix.Resources.Infrastructure.Options;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Integrations.Economy;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
+using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -19,6 +20,8 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity
         {
             services.AddScoped<ICityStockpileRepository, CityStockpileRepository>();
             services.AddScoped<ICityResourceDeletionStateRepository, CityResourceDeletionStateRepository>();
+            services.AddScoped<ICityStockpileSnapshotOutboxWriter, CityStockpileSnapshotOutboxWriter>();
+            services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
             services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((
                     sp,
                     client) =>

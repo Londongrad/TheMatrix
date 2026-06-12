@@ -2,9 +2,10 @@ using System.Text.Json;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Persistence;
 
-namespace Matrix.Resources.Infrastructure.Outbox
+namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox
 {
     public sealed class CityOperationalExpenseOutboxWriter(ResourcesDbContext dbContext)
         : ICityOperationalExpenseOutboxWriter
