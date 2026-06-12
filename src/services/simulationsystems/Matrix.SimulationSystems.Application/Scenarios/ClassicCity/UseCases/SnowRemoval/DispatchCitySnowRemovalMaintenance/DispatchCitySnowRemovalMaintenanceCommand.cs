@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.SimulationSystems.Application.Authorization.Permissions;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Authorization.Permissions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.Common;
 using MediatR;
 
