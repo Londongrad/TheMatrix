@@ -3,7 +3,7 @@ using Matrix.Resources.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Matrix.Resources.Infrastructure.Persistence.Configurations
+namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Configurations
 {
     public sealed class CityStockpileStateConfiguration : IEntityTypeConfiguration<CityStockpileState>
     {

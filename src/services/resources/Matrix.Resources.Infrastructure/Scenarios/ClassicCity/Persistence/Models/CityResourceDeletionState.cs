@@ -1,4 +1,4 @@
-namespace Matrix.Resources.Infrastructure.Persistence.Models
+namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Models
 {
     public sealed class CityResourceDeletionState
     {

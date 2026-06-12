@@ -1,6 +1,6 @@
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Infrastructure.Persistence;
-using Matrix.Resources.Infrastructure.Persistence.Models;
+using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
