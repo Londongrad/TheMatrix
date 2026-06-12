@@ -4,7 +4,6 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Errors;
-using Matrix.Economy.Application.Scenarios.ClassicCity;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.Common;
 using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.UseCases.Businesses.Common;
@@ -33,7 +32,6 @@ namespace Matrix.Economy.Application
                     CityOperationalBudgetPressureProjectionService>();
             services.AddScoped<HouseholdObligationChargeSupport>();
             services.AddScoped<CityBusinessTaxRemittanceSupport>();
-            services.AddClassicCityScenarioApplication();
             services.AddScoped<CityMunicipalOperatingCyclePolicy>();
 
             services.AddDefaultApplicationPipeline();

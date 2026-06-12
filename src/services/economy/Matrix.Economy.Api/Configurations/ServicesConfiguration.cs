@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Api.Defaults;
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Matrix.Economy.Application;
+using Matrix.Economy.Application.Scenarios.ClassicCity;
 using Matrix.Economy.Infrastructure;
 
 namespace Matrix.Economy.Api.Configurations
@@ -17,6 +18,7 @@ namespace Matrix.Economy.Api.Configurations
             services.AddMatrixInternalApi(configuration);
 
             services.AddApplication();
+            services.AddClassicCityScenarioApplication();
             services.AddInfrastructure(
                 configuration: configuration,
                 environment: builder.Environment);

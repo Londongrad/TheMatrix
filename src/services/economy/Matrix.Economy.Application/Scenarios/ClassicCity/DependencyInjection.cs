@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity
 {
-    internal static class DependencyInjection
+    public static class DependencyInjection
     {
         public static IServiceCollection AddClassicCityScenarioApplication(this IServiceCollection services)
         {
