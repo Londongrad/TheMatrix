@@ -54,44 +54,6 @@ namespace Matrix.Economy.Domain.Tests.Scenarios.ClassicCity.Services
         }
 
         [Fact]
-        public void Resolve_WhenMetroSimulationIsRequested_ReturnsMetroCommodityTemplate()
-        {
-            var policy = new CityEconomySimulationTemplatePolicy();
-
-            CityEconomySimulationTemplate template = policy.Resolve(
-                scenarioKey: "metro",
-                economyProfile: "ignored");
-
-            Assert.Equal(
-                expected: CityBudgetUnitKind.Commodity,
-                actual: template.UnitProfile.Kind);
-            Assert.Equal(
-                expected: "AMMO",
-                actual: template.UnitProfile.Code);
-            Assert.Equal(
-                expected: "ctg",
-                actual: template.UnitProfile.Symbol);
-            Assert.Equal(
-                expected: 12_000m,
-                actual: template.InitialReserve.Amount);
-            Assert.Equal(
-                expected: 3,
-                actual: template.DefaultAllocations.Count);
-            Assert.Equal(
-                expected: 3,
-                actual: template.DefaultBusinesses.Count);
-            Assert.Contains(
-                collection: template.DefaultBusinesses,
-                filter: x => x.Kind == CityBusinessKind.MunicipalVendor);
-            Assert.Contains(
-                collection: template.DefaultBusinesses,
-                filter: x => x.Kind == CityBusinessKind.Manufacturer);
-            Assert.Contains(
-                collection: template.DefaultBusinesses,
-                filter: x => x.Kind == CityBusinessKind.RetailStore);
-        }
-
-        [Fact]
         public void Resolve_WhenScenarioKeyIsUnknown_ReturnsFallbackTemplate()
         {
             var policy = new CityEconomySimulationTemplatePolicy();

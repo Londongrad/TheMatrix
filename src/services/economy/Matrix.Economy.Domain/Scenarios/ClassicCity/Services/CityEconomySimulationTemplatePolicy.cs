@@ -15,7 +15,6 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
                    .ToUpperInvariant() switch
             {
                 "CLASSICCITY" or "CLASSIC-CITY" => BuildClassicCityTemplate(economyProfile),
-                "METRO" => BuildMetroTemplate(),
                 _ => BuildFallbackTemplate()
             };
         }
@@ -225,49 +224,6 @@ namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
                         Name: "Metropolitan Employment Exchange",
                         Kind: CityBusinessKind.Employer,
                         StartingCapital: Money.FromDecimal(16_000m))
-                ]);
-        }
-
-        private static CityEconomySimulationTemplate BuildMetroTemplate()
-        {
-            var unitProfile = new CityBudgetUnitProfile(
-                Kind: CityBudgetUnitKind.Commodity,
-                Code: "AMMO",
-                DisplayName: "Cartridges",
-                Symbol: "ctg");
-
-            return new CityEconomySimulationTemplate(
-                UnitProfile: unitProfile,
-                InitialReserve: Money.FromDecimal(12_000m),
-                DefaultAllocations:
-                [
-                    new CityEconomyAllocationTemplate(
-                        Category: CityBudgetCategory.General,
-                        TargetAmount: Money.FromDecimal(1_500m)),
-                    new CityEconomyAllocationTemplate(
-                        Category: CityBudgetCategory.Operations,
-                        TargetAmount: Money.FromDecimal(4_000m)),
-                    new CityEconomyAllocationTemplate(
-                        Category: CityBudgetCategory.Infrastructure,
-                        TargetAmount: Money.FromDecimal(3_000m))
-                ],
-                DefaultBusinesses:
-                [
-                    new CityEconomyBusinessTemplate(
-                        TemplateKey: "station-quartermaster",
-                        Name: "Station Quartermaster",
-                        Kind: CityBusinessKind.MunicipalVendor,
-                        StartingCapital: Money.FromDecimal(4_000m)),
-                    new CityEconomyBusinessTemplate(
-                        TemplateKey: "tunnel-maintenance-yard",
-                        Name: "Tunnel Maintenance Yard",
-                        Kind: CityBusinessKind.Manufacturer,
-                        StartingCapital: Money.FromDecimal(3_000m)),
-                    new CityEconomyBusinessTemplate(
-                        TemplateKey: "ration-and-supply-depot",
-                        Name: "Ration and Supply Depot",
-                        Kind: CityBusinessKind.RetailStore,
-                        StartingCapital: Money.FromDecimal(2_500m))
                 ]);
         }
 
