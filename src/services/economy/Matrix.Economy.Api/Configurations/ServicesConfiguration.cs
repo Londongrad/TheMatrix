@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Matrix.Economy.Application;
 using Matrix.Economy.Application.Scenarios.ClassicCity;
 using Matrix.Economy.Infrastructure;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity;
 
 namespace Matrix.Economy.Api.Configurations
 {
@@ -21,7 +22,9 @@ namespace Matrix.Economy.Api.Configurations
             services.AddClassicCityScenarioApplication();
             services.AddInfrastructure(
                 configuration: configuration,
-                environment: builder.Environment);
+                environment: builder.Environment,
+                configureConsumers: consumers => consumers.AddClassicCityScenarioConsumers());
+            services.AddClassicCityScenarioInfrastructure();
         }
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity
 {
-    internal static class DependencyInjection
+    public static class DependencyInjection
     {
         public static IServiceCollection AddClassicCityScenarioInfrastructure(this IServiceCollection services)
         {

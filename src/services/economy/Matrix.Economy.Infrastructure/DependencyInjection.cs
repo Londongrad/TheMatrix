@@ -11,7 +11,6 @@ using Matrix.Economy.Infrastructure.Outbox;
 using Matrix.Economy.Infrastructure.Outbox.RabbitMq;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
-using Matrix.Economy.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Economy.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -27,7 +26,8 @@ namespace Matrix.Economy.Infrastructure
         public static IServiceCollection AddInfrastructure(
             this IServiceCollection services,
             IConfiguration configuration,
-            IHostEnvironment environment)
+            IHostEnvironment environment,
+            Action<IBusRegistrationConfigurator>? configureConsumers = null)
         {
             string connectionString = configuration.GetConnectionString("EconomyDb") ??
                                       throw new InvalidOperationException(
@@ -82,8 +82,6 @@ namespace Matrix.Economy.Infrastructure
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
             services.AddPermissionCheckingFromClaims();
             services.AddOutbox<EconomyDbContext>(configuration);
-            services.AddClassicCityScenarioInfrastructure();
-
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
@@ -92,7 +90,7 @@ namespace Matrix.Economy.Infrastructure
                 x.AddConsumer<CityDeletedConsumer, CityDeletedConsumerDefinition>();
                 x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
-                x.AddClassicCityScenarioConsumers();
+                configureConsumers?.Invoke(x);
 
                 x.UsingRabbitMq((
                     context,
