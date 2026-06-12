@@ -3,7 +3,6 @@ using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.SimulationCore.Application.Errors;
-using Matrix.SimulationCore.Application.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +23,6 @@ namespace Matrix.SimulationCore.Application
             services.AddScoped<SimulationScenarioAdvanceHandlerRegistry>();
             services.TryAddSingleton<ISimulationFixedStepSettings, DefaultSimulationFixedStepSettings>();
             services.AddScoped<IValidationExceptionFactory, SimulationCoreValidationErrorFactory>();
-            services.AddClassicCityScenarioApplication();
             services.AddDefaultApplicationPipeline();
 
             return services;
