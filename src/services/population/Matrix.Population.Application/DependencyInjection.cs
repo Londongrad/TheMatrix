@@ -3,7 +3,6 @@ using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Application.Scenarios.ClassicCity;
 using Matrix.Population.Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,8 +17,6 @@ namespace Matrix.Population.Application
             services.AddSingleton<PersonNeedsProgressionPolicy>();
             services.AddSingleton<MarriageDomainService>();
             services.AddSingleton<PopulationBirthDomainService>();
-            services.AddClassicCityScenarioApplication();
-
             services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });
             services.AddValidatorsFromAssembly(assembly);
 
