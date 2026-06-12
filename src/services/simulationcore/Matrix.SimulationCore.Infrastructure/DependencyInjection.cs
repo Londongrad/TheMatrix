@@ -15,7 +15,6 @@ using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
-using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Infrastructure.Services.Simulation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -70,7 +69,6 @@ namespace Matrix.SimulationCore.Infrastructure
                 sp.GetRequiredService<SimulationCoreOutboxWriter>());
             services.AddSingleton<IOutboxEventTypeContributor, SimulationCoreOutboxEventTypeContributor>();
             services.AddSingleton<OutboxEventTypeRegistry>();
-            services.AddClassicCityScenarioInfrastructure(configuration);
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationCoreDbContext>>();
             services.AddSingleton<SimulationOperationGate>();
             services.AddScoped<ISimulationBatchAdvanceExecutor, SimulationBatchAdvanceExecutor>();
