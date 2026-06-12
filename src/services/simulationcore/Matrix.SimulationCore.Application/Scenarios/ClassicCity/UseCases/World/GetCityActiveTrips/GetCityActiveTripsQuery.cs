@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.SimulationCore.Application.Authorization.Permissions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Authorization.Permissions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.World.Common;
 using MediatR;
 

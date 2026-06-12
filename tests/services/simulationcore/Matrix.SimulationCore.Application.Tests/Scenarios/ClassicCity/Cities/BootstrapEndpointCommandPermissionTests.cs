@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.SimulationCore.Application.Authorization.Permissions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Authorization.Permissions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompletePopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
