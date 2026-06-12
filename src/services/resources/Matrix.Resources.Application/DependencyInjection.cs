@@ -3,7 +3,6 @@ using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.Resources.Application.Errors;
-using Matrix.Resources.Application.Scenarios.ClassicCity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Resources.Application
@@ -17,7 +16,6 @@ namespace Matrix.Resources.Application
             services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });
             services.AddValidatorsFromAssembly(assembly);
             services.AddScoped<IValidationExceptionFactory, ResourcesValidationErrorFactory>();
-            services.AddClassicCityScenarioApplication();
             services.AddDefaultApplicationPipeline();
         }
     }
