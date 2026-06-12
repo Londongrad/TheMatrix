@@ -11,7 +11,8 @@ using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
-using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
+using SimulationCorePermissionKeys =
+    Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity
 {

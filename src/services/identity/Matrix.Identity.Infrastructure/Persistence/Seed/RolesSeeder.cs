@@ -4,6 +4,8 @@ using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
 using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
+using SimulationCoreClassicCityPermissionKeys =
+    Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Seed
 {
@@ -184,12 +186,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 PermissionKeys.IdentityMeSessionsRevoke,
                 PermissionKeys.IdentityMeSessionsRevokeAll,
                 SimulationCorePermissionKeys.SimulationCoreScenariosCatalogRead,
-                SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
-                SimulationCorePermissionKeys.SimulationCoreClassicCityCreate,
-                SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate,
-                SimulationCorePermissionKeys.SimulationCoreClassicCityArchive,
-                SimulationCorePermissionKeys.SimulationCoreClassicCityDelete,
-                SimulationCorePermissionKeys.SimulationCoreClassicCityPopulationBootstrapRetry,
+                SimulationCoreClassicCityPermissionKeys.SimulationCoreClassicCityRead,
+                SimulationCoreClassicCityPermissionKeys.SimulationCoreClassicCityCreate,
+                SimulationCoreClassicCityPermissionKeys.SimulationCoreClassicCityUpdate,
+                SimulationCoreClassicCityPermissionKeys.SimulationCoreClassicCityArchive,
+                SimulationCoreClassicCityPermissionKeys.SimulationCoreClassicCityDelete,
+                SimulationCoreClassicCityPermissionKeys.SimulationCoreClassicCityPopulationBootstrapRetry,
                 SimulationCorePermissionKeys.SimulationCoreSimulationRead,
                 SimulationCorePermissionKeys.SimulationCoreSimulationControl,
                 PopulationPermissionKeys.PopulationPeopleRead,
