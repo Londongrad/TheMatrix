@@ -5,7 +5,7 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
 
-namespace Matrix.Resources.Infrastructure.SimulationCore
+namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore
 {
     internal sealed class CityResupplyTripDispatcher(HttpClient client) : ICityResupplyTripDispatcher
     {

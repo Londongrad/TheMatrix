@@ -4,12 +4,12 @@ using System.Text.Json;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
-using Matrix.Resources.Infrastructure.Economy;
+using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Integrations.Economy;
 using Matrix.Resources.Infrastructure.Tests.Http;
 using Xunit;
 using static Matrix.Resources.Infrastructure.Tests.TestSupport.ResourcesInfrastructureTestSupport;
 
-namespace Matrix.Resources.Infrastructure.Tests.Economy
+namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Integrations.Economy
 {
     public sealed class CityBudgetAuthorizationClientTests
     {

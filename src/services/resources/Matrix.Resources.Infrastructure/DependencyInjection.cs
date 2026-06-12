@@ -7,13 +7,11 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
-using Matrix.Resources.Infrastructure.Economy;
 using Matrix.Resources.Infrastructure.Options;
 using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Outbox.RabbitMq;
 using Matrix.Resources.Infrastructure.Persistence;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity;
-using Matrix.Resources.Infrastructure.SimulationCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,8 +19,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
-using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Resources.Infrastructure
 {
@@ -76,42 +72,6 @@ namespace Matrix.Resources.Infrastructure
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityStockpileSnapshotOutboxWriter, CityStockpileSnapshotOutboxWriter>();
             services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
-            services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((
-                    sp,
-                    client) =>
-                {
-                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
-                       .Value;
-
-                    if (string.IsNullOrWhiteSpace(options.Economy))
-                        throw new InvalidOperationException("DownstreamServices:Economy is not configured.");
-
-                    client.BaseAddress = new Uri(
-                        uriString: options.Economy,
-                        uriKind: UriKind.Absolute);
-                })
-               .AddInternalServiceAuthentication(
-                    identity: InternalServicePrincipals.Resources,
-                    EconomyPermissionKeys.EconomyBudgetAuthorize);
-            services.AddHttpClient<ICityResupplyTripDispatcher, CityResupplyTripDispatcher>((
-                    sp,
-                    client) =>
-                {
-                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
-                       .Value;
-
-                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
-                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
-
-                    client.BaseAddress = new Uri(
-                        uriString: options.SimulationCore,
-                        uriKind: UriKind.Absolute);
-                })
-               .AddInternalServiceAuthentication(
-                    identity: InternalServicePrincipals.Resources,
-                    SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
-                    SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate);
-
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();

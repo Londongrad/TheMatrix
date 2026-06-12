@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using Matrix.Resources.Infrastructure.SimulationCore;
+using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
 using Matrix.Resources.Infrastructure.Tests.Http;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
@@ -8,7 +8,7 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
 using Xunit;
 using static Matrix.Resources.Infrastructure.Tests.TestSupport.ResourcesInfrastructureTestSupport;
 
-namespace Matrix.Resources.Infrastructure.Tests.SimulationCore
+namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Integrations.SimulationCore
 {
     public sealed class CityResupplyTripDispatcherTests
     {
