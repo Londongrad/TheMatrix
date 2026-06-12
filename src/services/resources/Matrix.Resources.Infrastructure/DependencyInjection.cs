@@ -10,7 +10,6 @@ using Matrix.Resources.Infrastructure.Options;
 using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Outbox.RabbitMq;
 using Matrix.Resources.Infrastructure.Persistence;
-using Matrix.Resources.Infrastructure.Scenarios.ClassicCity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +25,8 @@ namespace Matrix.Resources.Infrastructure
         public static IServiceCollection AddInfrastructure(
             this IServiceCollection services,
             IConfiguration configuration,
-            IHostEnvironment environment)
+            IHostEnvironment environment,
+            Action<IBusRegistrationConfigurator>? configureConsumers = null)
         {
             string connectionString = configuration.GetConnectionString("ResourcesDb") ??
                                       throw new InvalidOperationException(
@@ -63,7 +63,6 @@ namespace Matrix.Resources.Infrastructure
                .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
-            services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<ResourcesDbContext>>();
             services.AddPermissionCheckingFromClaims();
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
@@ -73,7 +72,7 @@ namespace Matrix.Resources.Infrastructure
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
-                x.AddClassicCityScenarioConsumers();
+                configureConsumers?.Invoke(x);
 
                 x.UsingRabbitMq((
                     context,
