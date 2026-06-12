@@ -12,7 +12,6 @@ using Matrix.Resources.Infrastructure.Options;
 using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Outbox.RabbitMq;
 using Matrix.Resources.Infrastructure.Persistence;
-using Matrix.Resources.Infrastructure.Persistence.Repositories;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Resources.Infrastructure.SimulationCore;
 using Microsoft.EntityFrameworkCore;
@@ -69,8 +68,6 @@ namespace Matrix.Resources.Infrastructure
                .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
-            services.AddScoped<ICityStockpileRepository, CityStockpileRepository>();
-            services.AddScoped<ICityResourceDeletionStateRepository, CityResourceDeletionStateRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<ResourcesDbContext>>();
             services.AddPermissionCheckingFromClaims();

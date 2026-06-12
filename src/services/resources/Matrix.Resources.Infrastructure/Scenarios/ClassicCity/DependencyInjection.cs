@@ -1,5 +1,7 @@
 using MassTransit;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers;
+using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity
@@ -8,6 +10,9 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity
     {
         public static IServiceCollection AddClassicCityScenarioInfrastructure(this IServiceCollection services)
         {
+            services.AddScoped<ICityStockpileRepository, CityStockpileRepository>();
+            services.AddScoped<ICityResourceDeletionStateRepository, CityResourceDeletionStateRepository>();
+
             return services;
         }
 

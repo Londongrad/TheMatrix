@@ -1,8 +1,9 @@
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Resources.Infrastructure.Persistence;
 using Matrix.Resources.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.Resources.Infrastructure.Persistence.Repositories
+namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityResourceDeletionStateRepository(ResourcesDbContext dbContext)
         : ICityResourceDeletionStateRepository

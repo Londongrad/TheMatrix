@@ -1,9 +1,10 @@
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Domain.Simulation;
+using Matrix.Resources.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.Resources.Infrastructure.Persistence.Repositories
+namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityStockpileRepository(ResourcesDbContext dbContext)
         : ICityStockpileRepository
