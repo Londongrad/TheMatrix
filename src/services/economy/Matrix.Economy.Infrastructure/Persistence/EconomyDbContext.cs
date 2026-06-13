@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
-using Matrix.Economy.Infrastructure.Persistence.Models;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Economy.Infrastructure.Persistence

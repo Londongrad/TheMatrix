@@ -1,4 +1,4 @@
-using Matrix.Economy.Infrastructure.Persistence.Models;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

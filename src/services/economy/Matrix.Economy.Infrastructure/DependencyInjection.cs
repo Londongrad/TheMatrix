@@ -59,9 +59,6 @@ namespace Matrix.Economy.Infrastructure
             services.AddRabbitMqOptions(configuration);
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
-            services.AddScoped<ICityEconomyDeletionRepository, CityEconomyDeletionRepository>();
-            services.AddScoped<ICityEconomyCostProfileStateRepository, CityEconomyCostProfileStateRepository>();
-            services.AddScoped<ICityEconomyProgressionStateRepository, CityEconomyProgressionStateRepository>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddSingleton<OutboxEventTypeRegistry>();

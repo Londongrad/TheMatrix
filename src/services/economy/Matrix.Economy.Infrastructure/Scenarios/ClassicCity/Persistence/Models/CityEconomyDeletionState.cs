@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Infrastructure.Persistence.Models
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Models
 {
     public sealed class CityEconomyDeletionState
     {

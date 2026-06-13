@@ -1,8 +1,9 @@
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Infrastructure.Persistence.Models;
+using Matrix.Economy.Infrastructure.Persistence;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.Economy.Infrastructure.Persistence.Repositories
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityEconomyDeletionRepository(EconomyDbContext dbContext)
         : ICityEconomyDeletionRepository
