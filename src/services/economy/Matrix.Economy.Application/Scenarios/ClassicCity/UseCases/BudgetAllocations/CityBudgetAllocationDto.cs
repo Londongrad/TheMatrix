@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.BudgetAllocations
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations
 {
     public sealed record CityBudgetAllocationDto(
         Guid AllocationId,

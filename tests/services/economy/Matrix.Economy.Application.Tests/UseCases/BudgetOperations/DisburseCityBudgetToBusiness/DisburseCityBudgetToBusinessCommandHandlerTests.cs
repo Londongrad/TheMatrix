@@ -1,4 +1,4 @@
-using Matrix.Economy.Application.UseCases.BudgetAllocations.Common;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.Common;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;

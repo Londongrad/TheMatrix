@@ -2,7 +2,7 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Entities;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.GetCityBudgetAllocations
 {
     public sealed class GetCityBudgetAllocationsQueryHandler(ICityBudgetAllocationRepository allocationRepository)
         : IRequestHandler<GetCityBudgetAllocationsQuery, IReadOnlyList<CityBudgetAllocationDto>>

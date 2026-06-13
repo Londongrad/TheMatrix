@@ -1,12 +1,12 @@
-using Matrix.Economy.Application.UseCases.BudgetAllocations;
-using Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAllocation;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.SetCityBudgetAllocation;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.BudgetAllocations.SetCityBudgetAllocation
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.BudgetAllocations.SetCityBudgetAllocation
 {
     public sealed class SetCityBudgetAllocationCommandHandlerTests
     {

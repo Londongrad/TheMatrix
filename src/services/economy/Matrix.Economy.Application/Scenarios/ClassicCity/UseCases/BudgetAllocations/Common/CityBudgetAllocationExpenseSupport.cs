@@ -4,7 +4,7 @@ using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
 
-namespace Matrix.Economy.Application.UseCases.BudgetAllocations.Common
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.Common
 {
     public sealed class CityBudgetAllocationExpenseSupport(
         ICityBudgetAllocationRepository allocationRepository,

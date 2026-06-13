@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Authorization.Permissions;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAllocation
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.SetCityBudgetAllocation
 {
     public sealed record SetCityBudgetAllocationCommand(
         Guid CityId,

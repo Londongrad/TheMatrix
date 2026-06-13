@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.GetCityBudgetAllocations;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
@@ -9,7 +9,7 @@ using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAllocation
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.SetCityBudgetAllocation
 {
     public sealed class SetCityBudgetAllocationCommandHandler(
         ICityBudgetRepository budgetRepository,
