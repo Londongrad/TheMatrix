@@ -4,7 +4,7 @@ using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Matrix.Economy.Infrastructure.Persistence.Configurations
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Configurations
 {
     public class CityBudgetConfiguration : IEntityTypeConfiguration<CityBudget>
     {
