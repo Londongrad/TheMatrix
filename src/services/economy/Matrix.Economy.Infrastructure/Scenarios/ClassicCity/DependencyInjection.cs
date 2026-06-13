@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Infrastructure.Outbox;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
@@ -18,6 +19,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity
             services.AddSingleton<CityHouseholdConsumerSpendAllocationPolicy>();
             services.AddSingleton<CityEconomyServiceQualityPolicy>();
             services.AddSingleton<CityEconomySimulationTemplatePolicy>();
+            services.AddSingleton<CityBudgetOperatingExpensePolicy>();
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
             services.AddScoped<ICityBudgetAllocationRepository, CityBudgetAllocationRepository>();
             services.AddScoped<ICityBudgetLedgerRepository, CityBudgetLedgerRepository>();

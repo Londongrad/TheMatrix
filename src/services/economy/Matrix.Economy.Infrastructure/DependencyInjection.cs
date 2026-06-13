@@ -5,7 +5,6 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Outbox;
 using Matrix.Economy.Infrastructure.Outbox.RabbitMq;
 using Matrix.Economy.Infrastructure.Persistence;
@@ -63,7 +62,6 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddSingleton<OutboxEventTypeRegistry>();
             services.AddSingleton(TimeProvider.System);
-            services.AddSingleton<CityBudgetOperatingExpensePolicy>();
             services.AddPermissionCheckingFromClaims();
             services.AddOutbox<EconomyDbContext>(configuration);
             services.AddMassTransit(x =>
