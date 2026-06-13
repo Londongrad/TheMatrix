@@ -4,6 +4,7 @@ using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Infrastructure.Outbox;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity
@@ -18,6 +19,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity
             services.AddSingleton<CityEconomySimulationTemplatePolicy>();
             services.AddScoped<ICityOperationalBudgetSignalPublisher, CityOperationalBudgetSignalOutboxWriter>();
             services.AddScoped<ICityPopulationSignalPublisher, CityPopulationSignalOutboxWriter>();
+            services.AddScoped<ICityEconomyBootstrapService, CityEconomyBootstrapService>();
             services.AddSingleton<IOutboxEventTypeContributor, ClassicCityOutboxEventTypeContributor>();
 
             return services;

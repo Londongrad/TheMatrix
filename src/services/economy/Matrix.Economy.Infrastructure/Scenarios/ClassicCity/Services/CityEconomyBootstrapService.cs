@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Npgsql;
 
-namespace Matrix.Economy.Infrastructure.Services
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Services
 {
     internal sealed class CityEconomyBootstrapService(
         EconomyDbContext dbContext,
