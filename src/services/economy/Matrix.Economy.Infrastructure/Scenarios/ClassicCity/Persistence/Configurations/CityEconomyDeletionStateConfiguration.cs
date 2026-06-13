@@ -2,7 +2,7 @@ using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Matrix.Economy.Infrastructure.Persistence.Configurations
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Configurations
 {
     public sealed class CityEconomyDeletionStateConfiguration : IEntityTypeConfiguration<CityEconomyDeletionState>
     {
