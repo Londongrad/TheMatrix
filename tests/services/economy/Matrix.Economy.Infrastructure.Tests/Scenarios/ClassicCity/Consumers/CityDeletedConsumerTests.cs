@@ -1,5 +1,5 @@
 using Matrix.Economy.Application.UseCases.Lifecycle.DeleteCityEconomyData;
-using Matrix.Economy.Infrastructure.Consumers;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Economy.Infrastructure.Tests.TestSupport;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
@@ -7,7 +7,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Matrix.Economy.Infrastructure.Tests.Consumers;
+namespace Matrix.Economy.Infrastructure.Tests.Scenarios.ClassicCity.Consumers;
 
 public sealed class CityDeletedConsumerTests
 {

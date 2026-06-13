@@ -4,7 +4,7 @@ using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace Matrix.Economy.Infrastructure.Consumers
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     internal static class CityBudgetInitializationSupport
     {

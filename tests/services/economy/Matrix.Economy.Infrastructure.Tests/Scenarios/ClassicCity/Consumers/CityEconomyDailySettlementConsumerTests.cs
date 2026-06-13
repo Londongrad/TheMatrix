@@ -8,12 +8,12 @@ using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Services;
-using Matrix.Economy.Infrastructure.Consumers;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Economy.Infrastructure.Tests.TestSupport;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Matrix.Economy.Infrastructure.Tests.Consumers
+namespace Matrix.Economy.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityEconomyDailySettlementConsumerTests
     {

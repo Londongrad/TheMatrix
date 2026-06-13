@@ -1,6 +1,6 @@
 using MassTransit;
 
-namespace Matrix.Economy.Infrastructure.Consumers
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityCreatedConsumerDefinition : ConsumerDefinition<CityCreatedConsumer>
     {

@@ -1,8 +1,9 @@
 using MassTransit;
 
-namespace Matrix.Economy.Infrastructure.Consumers
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
-    public sealed class CityTimeAdvancedConsumerDefinition : ConsumerDefinition<CityTimeAdvancedConsumer>
+    public sealed class CityEconomyDailySettlementConsumerDefinition
+        : ConsumerDefinition<CityEconomyDailySettlementConsumer>
     {
         private static readonly TimeSpan[] RetryIntervals =
         [
@@ -11,15 +12,15 @@ namespace Matrix.Economy.Infrastructure.Consumers
             TimeSpan.FromSeconds(10)
         ];
 
-        public CityTimeAdvancedConsumerDefinition()
+        public CityEconomyDailySettlementConsumerDefinition()
         {
-            EndpointName = "economy-classic-city-tick-phase-reached-v1";
+            EndpointName = "economy-city-daily-settlement";
             ConcurrentMessageLimit = 1;
         }
 
         protected override void ConfigureConsumer(
             IReceiveEndpointConfigurator endpointConfigurator,
-            IConsumerConfigurator<CityTimeAdvancedConsumer> consumerConfigurator,
+            IConsumerConfigurator<CityEconomyDailySettlementConsumer> consumerConfigurator,
             IRegistrationContext context)
         {
             endpointConfigurator.UseMessageRetry(retry => retry.Intervals(RetryIntervals));

@@ -5,7 +5,7 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Matrix.Economy.Infrastructure.Consumers
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityDeletedConsumer(
         IMediator mediator,

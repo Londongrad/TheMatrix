@@ -6,7 +6,6 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Services;
-using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Outbox;
 using Matrix.Economy.Infrastructure.Outbox.RabbitMq;
 using Matrix.Economy.Infrastructure.Persistence;
@@ -86,10 +85,6 @@ namespace Matrix.Economy.Infrastructure
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
-                x.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
-                x.AddConsumer<CityDeletedConsumer, CityDeletedConsumerDefinition>();
-                x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
-                x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
                 configureConsumers?.Invoke(x);
 
                 x.UsingRabbitMq((

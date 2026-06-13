@@ -9,7 +9,7 @@ using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.Services;
 using Microsoft.Extensions.Logging;
 
-namespace Matrix.Economy.Infrastructure.Consumers
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityEconomyDailySettlementConsumer(
         ICityBudgetRepository budgetRepository,

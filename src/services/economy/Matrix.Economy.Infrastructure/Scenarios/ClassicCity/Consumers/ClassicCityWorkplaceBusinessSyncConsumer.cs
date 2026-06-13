@@ -4,7 +4,7 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Infrastructure.Consumers;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
