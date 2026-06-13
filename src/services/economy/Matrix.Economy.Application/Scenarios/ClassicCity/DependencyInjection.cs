@@ -1,4 +1,11 @@
+using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
+using Matrix.Economy.Application.UseCases.BudgetAllocations.Common;
+using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
+using Matrix.Economy.Application.UseCases.Businesses.Common;
+using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
+using Matrix.Economy.Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity
@@ -8,6 +15,15 @@ namespace Matrix.Economy.Application.Scenarios.ClassicCity
         public static IServiceCollection AddClassicCityScenarioApplication(this IServiceCollection services)
         {
             services.AddScoped<CityEconomyRecurringCycleExecutionService>();
+            services.AddScoped<CityBudgetAllocationExpenseSupport>();
+            services.AddScoped<CityBudgetBusinessDisbursementSupport>();
+            services.AddScoped<CityBudgetOperationalExpenseSupport>();
+            services
+               .AddScoped<ICityOperationalBudgetPressureProjectionService,
+                    CityOperationalBudgetPressureProjectionService>();
+            services.AddScoped<HouseholdObligationChargeSupport>();
+            services.AddScoped<CityBusinessTaxRemittanceSupport>();
+            services.AddScoped<CityMunicipalOperatingCyclePolicy>();
 
             return services;
         }
