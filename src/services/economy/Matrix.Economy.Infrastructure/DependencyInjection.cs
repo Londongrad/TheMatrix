@@ -77,6 +77,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityEconomyBootstrapService, CityEconomyBootstrapService>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
+            services.AddSingleton<OutboxEventTypeRegistry>();
             services.AddSingleton(TimeProvider.System);
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
             services.AddPermissionCheckingFromClaims();

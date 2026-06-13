@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Infrastructure.Persistence;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
 
 namespace Matrix.Economy.Infrastructure.Outbox
 {
@@ -16,7 +17,7 @@ namespace Matrix.Economy.Infrastructure.Outbox
             CancellationToken cancellationToken = default)
         {
             return AddAsync(
-                type: EconomyOutboxEventTypes.ClassicCityCostOfLivingSnapshotV1,
+                    type: ClassicCityOutboxEventTypes.ClassicCityCostOfLivingSnapshotV1,
                 payload: snapshot,
                 occurredAtUtc: snapshot.OccurredAtUtc);
         }
@@ -26,7 +27,7 @@ namespace Matrix.Economy.Infrastructure.Outbox
             CancellationToken cancellationToken = default)
         {
             return AddAsync(
-                type: EconomyOutboxEventTypes.ClassicCityServiceQualitySnapshotV1,
+                    type: ClassicCityOutboxEventTypes.ClassicCityServiceQualitySnapshotV1,
                 payload: snapshot,
                 occurredAtUtc: snapshot.OccurredAtUtc);
         }
@@ -36,7 +37,7 @@ namespace Matrix.Economy.Infrastructure.Outbox
             CancellationToken cancellationToken = default)
         {
             return AddAsync(
-                type: EconomyOutboxEventTypes.ClassicCityEmployerFinancialStressBatchV1,
+                    type: ClassicCityOutboxEventTypes.ClassicCityEmployerFinancialStressBatchV1,
                 payload: batch,
                 occurredAtUtc: batch.OccurredAtUtc);
         }
@@ -46,7 +47,7 @@ namespace Matrix.Economy.Infrastructure.Outbox
             CancellationToken cancellationToken = default)
         {
             return AddAsync(
-                type: EconomyOutboxEventTypes.ClassicCityHouseholdFinancialStressBatchV1,
+                    type: ClassicCityOutboxEventTypes.ClassicCityHouseholdFinancialStressBatchV1,
                 payload: batch,
                 occurredAtUtc: batch.OccurredAtUtc);
         }

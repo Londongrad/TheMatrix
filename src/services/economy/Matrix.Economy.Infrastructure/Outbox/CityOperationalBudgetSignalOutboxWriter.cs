@@ -4,6 +4,7 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Infrastructure.Persistence;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
 
 namespace Matrix.Economy.Infrastructure.Outbox
 {
@@ -20,7 +21,7 @@ namespace Matrix.Economy.Infrastructure.Outbox
         {
             dbContext.OutboxMessages.Add(
                 OutboxMessage.Create(
-                    type: EconomyOutboxEventTypes.ClassicCityOperationalBudgetPressureSnapshotV1,
+                    type: ClassicCityOutboxEventTypes.ClassicCityOperationalBudgetPressureSnapshotV1,
                     occurredOnUtc: occurredAtUtc.UtcDateTime,
                     payload: new ClassicCityOperationalBudgetPressureSnapshotV1(
                         CityId: snapshot.CityId,

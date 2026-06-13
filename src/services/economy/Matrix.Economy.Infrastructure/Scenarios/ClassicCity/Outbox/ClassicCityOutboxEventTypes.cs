@@ -1,6 +1,6 @@
-namespace Matrix.Economy.Infrastructure.Outbox
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox
 {
-    public static class EconomyOutboxEventTypes
+    public static class ClassicCityOutboxEventTypes
     {
         public const string ClassicCityOperationalBudgetPressureSnapshotV1 =
             "economy.classic-city-operational-budget-pressure-snapshot.v1";

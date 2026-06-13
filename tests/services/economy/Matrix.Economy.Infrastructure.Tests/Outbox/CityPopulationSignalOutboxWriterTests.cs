@@ -2,6 +2,7 @@ using System.Text.Json;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Economy.Infrastructure.Outbox;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.Economy.Infrastructure.Persistence;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
@@ -45,7 +46,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Outbox
                     json: message.PayloadJson,
                     options: JsonOptions);
             Assert.Equal(
-                expected: EconomyOutboxEventTypes.ClassicCityCostOfLivingSnapshotV1,
+                expected: ClassicCityOutboxEventTypes.ClassicCityCostOfLivingSnapshotV1,
                 actual: message.Type);
             Assert.NotNull(payload);
             Assert.Equal(
@@ -86,7 +87,7 @@ namespace Matrix.Economy.Infrastructure.Tests.Outbox
                     json: message.PayloadJson,
                     options: JsonOptions);
             Assert.Equal(
-                expected: EconomyOutboxEventTypes.ClassicCityServiceQualitySnapshotV1,
+                expected: ClassicCityOutboxEventTypes.ClassicCityServiceQualitySnapshotV1,
                 actual: message.Type);
             Assert.NotNull(payload);
             Assert.Equal(
@@ -167,10 +168,10 @@ namespace Matrix.Economy.Infrastructure.Tests.Outbox
             Assert.Collection(
                 collection: dbContext.OutboxMessages.OrderBy(x => x.OccurredOnUtc),
                 x => Assert.Equal(
-                    expected: EconomyOutboxEventTypes.ClassicCityEmployerFinancialStressBatchV1,
+                    expected: ClassicCityOutboxEventTypes.ClassicCityEmployerFinancialStressBatchV1,
                     actual: x.Type),
                 x => Assert.Equal(
-                    expected: EconomyOutboxEventTypes.ClassicCityHouseholdFinancialStressBatchV1,
+                    expected: ClassicCityOutboxEventTypes.ClassicCityHouseholdFinancialStressBatchV1,
                     actual: x.Type));
         }
     }
