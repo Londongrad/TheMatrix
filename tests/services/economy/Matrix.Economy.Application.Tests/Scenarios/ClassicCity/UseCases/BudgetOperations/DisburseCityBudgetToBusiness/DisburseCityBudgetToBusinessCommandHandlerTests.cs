@@ -1,14 +1,14 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.Common;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
-using Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.BudgetOperations.DisburseCityBudgetToBusiness
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.BudgetOperations.DisburseCityBudgetToBusiness
 {
     public sealed class DisburseCityBudgetToBusinessCommandHandlerTests
     {

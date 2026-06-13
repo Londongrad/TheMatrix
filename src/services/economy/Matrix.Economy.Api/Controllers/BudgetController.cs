@@ -6,7 +6,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocation
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.SetCityBudgetAllocation;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedgerFeed;
-using Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetExpense;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetRevenue;
 using Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;

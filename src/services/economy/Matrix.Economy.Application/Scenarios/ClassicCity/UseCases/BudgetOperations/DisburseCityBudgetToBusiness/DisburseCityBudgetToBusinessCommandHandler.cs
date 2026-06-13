@@ -5,7 +5,7 @@ using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.DisburseCityBudgetToBusiness
 {
     public sealed class DisburseCityBudgetToBusinessCommandHandler(
         ICityBusinessRepository businessRepository,
