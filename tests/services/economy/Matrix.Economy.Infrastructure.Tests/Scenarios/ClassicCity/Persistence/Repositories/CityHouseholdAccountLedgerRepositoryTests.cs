@@ -4,11 +4,11 @@ using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Infrastructure.Persistence;
-using Matrix.Economy.Infrastructure.Persistence.Repositories;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Persistence.Repositories
+namespace Matrix.Economy.Infrastructure.Tests.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityHouseholdAccountLedgerRepositoryTests
     {

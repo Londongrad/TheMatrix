@@ -24,6 +24,9 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
             services.AddScoped<ICityBusinessRepository, CityBusinessRepository>();
             services.AddScoped<ICityBusinessLedgerRepository, CityBusinessLedgerRepository>();
+            services.AddScoped<ICityHouseholdAccountRepository, CityHouseholdAccountRepository>();
+            services.AddScoped<ICityHouseholdAccountLedgerRepository, CityHouseholdAccountLedgerRepository>();
+            services.AddScoped<ICityHouseholdObligationRepository, CityHouseholdObligationRepository>();
             services.AddScoped<ICityOperationalBudgetSignalPublisher, CityOperationalBudgetSignalOutboxWriter>();
             services.AddScoped<ICityPopulationSignalPublisher, CityPopulationSignalOutboxWriter>();
             services.AddScoped<ICityEconomyBootstrapService, CityEconomyBootstrapService>();
