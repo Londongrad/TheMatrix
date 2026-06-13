@@ -8,7 +8,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocation
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedgerFeed;
 using Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
-using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetExpense;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetExpense;
 using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetRevenue;
 using Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
 using Matrix.Economy.Application.UseCases.GetBudgetSummary;

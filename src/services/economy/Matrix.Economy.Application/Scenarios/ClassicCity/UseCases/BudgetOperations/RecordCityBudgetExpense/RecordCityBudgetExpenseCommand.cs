@@ -4,7 +4,7 @@ using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetExpense
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetExpense
 {
     public sealed record RecordCityBudgetExpenseCommand(
         Guid CityId,

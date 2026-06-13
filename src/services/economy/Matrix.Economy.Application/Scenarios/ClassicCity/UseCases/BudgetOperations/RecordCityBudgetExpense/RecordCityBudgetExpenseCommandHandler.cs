@@ -10,7 +10,7 @@ using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetExpense
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetExpense
 {
     public sealed class RecordCityBudgetExpenseCommandHandler(
         ICityBudgetRepository budgetRepository,
