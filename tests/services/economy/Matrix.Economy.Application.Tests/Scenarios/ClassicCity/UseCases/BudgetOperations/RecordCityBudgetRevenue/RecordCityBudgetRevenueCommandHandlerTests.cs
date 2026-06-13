@@ -1,12 +1,12 @@
 using Matrix.Economy.Application.UseCases.BudgetLedger;
-using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetRevenue;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetRevenue;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.BudgetOperations.RecordCityBudgetRevenue
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetRevenue
 {
     public sealed class RecordCityBudgetRevenueCommandHandlerTests
     {
