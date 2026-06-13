@@ -4,9 +4,10 @@ using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.Economy.Infrastructure.Persistence.Repositories
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityBudgetLedgerRepository(EconomyDbContext dbContext) : ICityBudgetLedgerRepository
     {

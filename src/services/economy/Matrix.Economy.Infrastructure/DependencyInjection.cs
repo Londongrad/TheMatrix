@@ -59,11 +59,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddRabbitMqOptions(configuration);
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
-            services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
             services.AddScoped<ICityEconomyDeletionRepository, CityEconomyDeletionRepository>();
-            services.AddScoped<ICityBudgetAllocationRepository, CityBudgetAllocationRepository>();
-            services.AddScoped<ICityBudgetLedgerRepository, CityBudgetLedgerRepository>();
-            services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
             services.AddScoped<ICityBusinessRepository, CityBusinessRepository>();
             services.AddScoped<ICityBusinessLedgerRepository, CityBusinessLedgerRepository>();
             services.AddScoped<ICityEconomyCostProfileStateRepository, CityEconomyCostProfileStateRepository>();

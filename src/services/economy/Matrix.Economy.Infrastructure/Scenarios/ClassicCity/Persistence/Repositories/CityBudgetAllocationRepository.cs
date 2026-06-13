@@ -1,9 +1,10 @@
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.Economy.Infrastructure.Persistence.Repositories
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityBudgetAllocationRepository(EconomyDbContext dbContext) : ICityBudgetAllocationRepository
     {
