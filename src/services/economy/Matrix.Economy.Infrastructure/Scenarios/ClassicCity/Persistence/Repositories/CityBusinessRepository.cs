@@ -1,8 +1,9 @@
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.Economy.Infrastructure.Persistence.Repositories
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories
 {
     public sealed class CityBusinessRepository(EconomyDbContext dbContext) : ICityBusinessRepository
     {

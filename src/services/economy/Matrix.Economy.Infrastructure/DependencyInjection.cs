@@ -60,8 +60,6 @@ namespace Matrix.Economy.Infrastructure
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ICityEconomyDeletionRepository, CityEconomyDeletionRepository>();
-            services.AddScoped<ICityBusinessRepository, CityBusinessRepository>();
-            services.AddScoped<ICityBusinessLedgerRepository, CityBusinessLedgerRepository>();
             services.AddScoped<ICityEconomyCostProfileStateRepository, CityEconomyCostProfileStateRepository>();
             services.AddScoped<ICityEconomyProgressionStateRepository, CityEconomyProgressionStateRepository>();
             services.AddScoped<ICityHouseholdAccountRepository, CityHouseholdAccountRepository>();
