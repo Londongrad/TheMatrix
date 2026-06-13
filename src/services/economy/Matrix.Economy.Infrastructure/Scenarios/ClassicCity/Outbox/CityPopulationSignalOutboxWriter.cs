@@ -5,7 +5,7 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
 
-namespace Matrix.Economy.Infrastructure.Outbox
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox
 {
     public sealed class CityPopulationSignalOutboxWriter(EconomyDbContext dbContext)
         : ICityPopulationSignalPublisher

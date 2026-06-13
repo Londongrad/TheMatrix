@@ -2,13 +2,12 @@ using System.Text.Json;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
-using Matrix.Economy.Infrastructure.Outbox;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.Economy.Infrastructure.Persistence;
 using Xunit;
 using static Matrix.Economy.Infrastructure.Tests.TestSupport.EconomyInfrastructureTestSupport;
 
-namespace Matrix.Economy.Infrastructure.Tests.Outbox
+namespace Matrix.Economy.Infrastructure.Tests.Scenarios.ClassicCity.Outbox
 {
     public sealed class CityOperationalBudgetSignalOutboxWriterTests
     {

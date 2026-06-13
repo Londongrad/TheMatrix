@@ -6,7 +6,7 @@ using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
 
-namespace Matrix.Economy.Infrastructure.Outbox
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox
 {
     public sealed class CityOperationalBudgetSignalOutboxWriter(EconomyDbContext dbContext)
         : ICityOperationalBudgetSignalPublisher
