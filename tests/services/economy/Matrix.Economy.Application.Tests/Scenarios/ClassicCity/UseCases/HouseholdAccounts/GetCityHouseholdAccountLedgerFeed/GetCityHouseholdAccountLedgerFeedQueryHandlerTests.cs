@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
-using Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
@@ -10,7 +10,7 @@ using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed
 {
     public sealed class GetCityHouseholdAccountLedgerFeedQueryHandlerTests
     {
