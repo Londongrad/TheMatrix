@@ -1,7 +1,7 @@
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.Common;
-using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.UseCases.Businesses.Common;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;

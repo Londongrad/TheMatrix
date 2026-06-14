@@ -8,7 +8,7 @@ using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
 
-namespace Matrix.Economy.Application.UseCases.BudgetOperations.Common
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common
 {
     public sealed class CityBudgetBusinessDisbursementSupport(
         ICityBudgetRepository budgetRepository,
