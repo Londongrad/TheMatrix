@@ -1,8 +1,9 @@
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Businesses.GetCityBusinesses
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.GetCityBusinesses
 {
     public sealed class GetCityBusinessesQueryHandler(ICityBusinessRepository businessRepository)
         : IRequestHandler<GetCityBusinessesQuery, IReadOnlyList<CityBusinessDto>>

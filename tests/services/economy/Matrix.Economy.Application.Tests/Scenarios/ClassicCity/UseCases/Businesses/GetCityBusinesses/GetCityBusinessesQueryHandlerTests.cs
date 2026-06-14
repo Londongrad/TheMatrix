@@ -1,12 +1,12 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.UseCases.Businesses;
-using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinesses;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.GetCityBusinesses;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Businesses.GetCityBusinesses
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.Businesses.GetCityBusinesses
 {
     public sealed class GetCityBusinessesQueryHandlerTests
     {
