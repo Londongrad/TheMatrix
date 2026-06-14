@@ -3,7 +3,7 @@ using Matrix.Economy.Api.Controllers;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccounts;
-using Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount;
 using Matrix.Economy.Application.UseCases.HouseholdObligations;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseholdObligations;

@@ -1,8 +1,9 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
+using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase
 {
     public sealed record RecordCityHouseholdPurchaseCommand(
         Guid HouseholdAccountId,
