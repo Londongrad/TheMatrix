@@ -1,12 +1,12 @@
 using Matrix.Economy.Application.UseCases.Businesses;
-using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpense;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RecordCityBusinessExpense;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RecordCityBusinessExpense
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.Businesses.RecordCityBusinessExpense
 {
     public sealed class RecordCityBusinessExpenseCommandHandlerTests
     {
