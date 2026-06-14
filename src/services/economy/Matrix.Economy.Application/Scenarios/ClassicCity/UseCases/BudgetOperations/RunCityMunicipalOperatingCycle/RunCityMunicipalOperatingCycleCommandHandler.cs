@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle
 {
     public sealed class RunCityMunicipalOperatingCycleCommandHandler(
         CityEconomyRecurringCycleExecutionService recurringCycleExecutionService,

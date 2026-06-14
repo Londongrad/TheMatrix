@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
-using Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
 using Matrix.Economy.Application.UseCases.Businesses.Common;
 using Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;

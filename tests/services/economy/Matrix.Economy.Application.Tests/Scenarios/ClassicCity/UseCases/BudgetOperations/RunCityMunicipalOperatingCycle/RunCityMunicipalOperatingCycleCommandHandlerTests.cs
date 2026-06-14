@@ -1,7 +1,7 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.Common;
 using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
-using Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
 using Matrix.Economy.Application.UseCases.Businesses.Common;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
@@ -12,7 +12,7 @@ using Matrix.Economy.Domain.Services;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle
 {
     public sealed class RunCityMunicipalOperatingCycleCommandHandlerTests
     {
