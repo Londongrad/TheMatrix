@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
-using Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using MediatR;

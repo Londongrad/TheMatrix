@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Authorization.Permissions;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle
 {
     public sealed record RunCityBusinessTaxCycleCommand(
         Guid CityId,

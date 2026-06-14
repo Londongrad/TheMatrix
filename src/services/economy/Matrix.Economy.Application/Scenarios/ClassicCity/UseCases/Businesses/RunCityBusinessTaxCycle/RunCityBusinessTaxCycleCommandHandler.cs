@@ -2,7 +2,7 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle
 {
     public sealed class RunCityBusinessTaxCycleCommandHandler(
         CityEconomyRecurringCycleExecutionService recurringCycleExecutionService,

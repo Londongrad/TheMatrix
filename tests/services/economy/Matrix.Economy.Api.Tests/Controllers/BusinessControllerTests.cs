@@ -8,7 +8,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Recor
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RecordCityBusinessRetailSale;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RegisterCityBusiness;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RemitCityBusinessTax;
-using Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Contracts.Business.Requests;
 using Matrix.Economy.Domain.Enums;
 using Microsoft.AspNetCore.Http;

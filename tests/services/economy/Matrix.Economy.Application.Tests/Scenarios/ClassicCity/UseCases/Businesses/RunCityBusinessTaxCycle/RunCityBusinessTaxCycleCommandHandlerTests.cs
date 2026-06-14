@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.UseCases.Businesses.Common;
-using Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
@@ -13,7 +13,7 @@ using Matrix.Economy.Domain.Services;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RunCityBusinessTaxCycle
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle
 {
     public sealed class RunCityBusinessTaxCycleCommandHandlerTests
     {
