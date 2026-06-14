@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure
 {
     public sealed record CityOperationalBudgetPressureDto(
         Guid CityId,

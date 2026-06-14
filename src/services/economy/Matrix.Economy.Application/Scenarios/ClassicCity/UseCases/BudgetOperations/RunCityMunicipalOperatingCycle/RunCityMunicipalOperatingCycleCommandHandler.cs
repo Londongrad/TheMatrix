@@ -1,6 +1,6 @@
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
-using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using MediatR;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle

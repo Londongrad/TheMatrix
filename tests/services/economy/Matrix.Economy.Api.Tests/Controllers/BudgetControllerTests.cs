@@ -13,7 +13,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityBudgetSummary;
-using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Economy.Domain.Enums;

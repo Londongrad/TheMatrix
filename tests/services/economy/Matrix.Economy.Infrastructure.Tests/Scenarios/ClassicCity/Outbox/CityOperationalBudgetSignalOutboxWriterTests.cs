@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
-using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.Economy.Infrastructure.Persistence;
 using Xunit;

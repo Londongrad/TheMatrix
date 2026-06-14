@@ -1,8 +1,8 @@
-using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.GetCityOperationalBudgetPressure
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure
 {
     public sealed class GetCityOperationalBudgetPressureQueryHandlerTests
     {

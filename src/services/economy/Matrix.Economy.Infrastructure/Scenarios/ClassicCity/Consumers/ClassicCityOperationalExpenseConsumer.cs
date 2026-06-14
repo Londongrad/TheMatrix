@@ -3,7 +3,7 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;
-using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Enums;
 using Microsoft.Extensions.Logging;
 

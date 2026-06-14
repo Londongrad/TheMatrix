@@ -1,7 +1,7 @@
 using Matrix.Economy.Application.Abstractions;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure
 {
     public sealed class GetCityOperationalBudgetPressureQueryHandler(
         ICityOperationalBudgetPressureProjectionService projectionService)

@@ -4,7 +4,7 @@ using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.ValueObjects;
 
-namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure
 {
     public sealed class CityOperationalBudgetPressureProjectionService(
         ICityBudgetRepository budgetRepository,

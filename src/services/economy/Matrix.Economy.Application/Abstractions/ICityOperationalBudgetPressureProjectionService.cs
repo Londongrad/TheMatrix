@@ -1,4 +1,4 @@
-using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 
 namespace Matrix.Economy.Application.Abstractions
 {
