@@ -1,8 +1,9 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
+using Matrix.Economy.Application.UseCases.Businesses;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayroll
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RecordCityBusinessPayroll
 {
     public sealed record RecordCityBusinessPayrollCommand(
         Guid BusinessId,

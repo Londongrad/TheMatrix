@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
@@ -7,7 +8,7 @@ using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayroll
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RecordCityBusinessPayroll
 {
     public sealed class RecordCityBusinessPayrollCommandHandler(
         ICityBusinessRepository businessRepository,
