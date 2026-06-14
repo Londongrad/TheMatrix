@@ -1,14 +1,14 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.Common;
-using Matrix.Economy.Application.UseCases.Businesses.RemitCityBusinessTax;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RemitCityBusinessTax;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Businesses.RemitCityBusinessTax
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.Businesses.RemitCityBusinessTax
 {
     public sealed class RemitCityBusinessTaxCommandHandlerTests
     {
