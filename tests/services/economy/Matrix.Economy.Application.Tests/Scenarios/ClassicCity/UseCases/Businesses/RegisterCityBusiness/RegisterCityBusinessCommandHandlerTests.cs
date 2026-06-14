@@ -1,4 +1,4 @@
-using Matrix.Economy.Application.UseCases.Businesses;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RegisterCityBusiness;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;

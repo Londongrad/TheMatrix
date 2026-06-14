@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.Businesses;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Common;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;

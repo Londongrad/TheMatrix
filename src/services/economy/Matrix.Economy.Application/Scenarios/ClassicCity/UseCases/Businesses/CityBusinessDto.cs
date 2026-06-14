@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.Businesses
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses
 {
     public sealed record CityBusinessDto(
         Guid BusinessId,

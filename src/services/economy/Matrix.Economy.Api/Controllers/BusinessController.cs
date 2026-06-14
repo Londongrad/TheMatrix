@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Application.UseCases.Businesses;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.GetCityBusinesses;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.GetCityBusinessLedgerFeed;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RegisterCityBusiness;
