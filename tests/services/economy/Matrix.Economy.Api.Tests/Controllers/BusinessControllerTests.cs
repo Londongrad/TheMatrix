@@ -6,7 +6,7 @@ using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedgerFeed;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpense;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayroll;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetailSale;
-using Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RegisterCityBusiness;
 using Matrix.Economy.Application.UseCases.Businesses.RemitCityBusinessTax;
 using Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Contracts.Business.Requests;

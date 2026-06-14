@@ -1,9 +1,10 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
+using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RegisterCityBusiness
 {
     public sealed record RegisterCityBusinessCommand(
         Guid CityId,
