@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.Common;
-using Matrix.Economy.Application.UseCases.BudgetLedger;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;

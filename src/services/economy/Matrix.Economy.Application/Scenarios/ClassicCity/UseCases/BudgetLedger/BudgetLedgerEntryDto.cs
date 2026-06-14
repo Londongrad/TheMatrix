@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.BudgetLedger
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger
 {
     public sealed record BudgetLedgerEntryDto(
         Guid EntryId,

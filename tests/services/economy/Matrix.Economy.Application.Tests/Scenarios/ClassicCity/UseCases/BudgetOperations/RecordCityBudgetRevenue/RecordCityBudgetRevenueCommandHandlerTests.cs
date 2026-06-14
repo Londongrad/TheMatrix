@@ -1,4 +1,4 @@
-using Matrix.Economy.Application.UseCases.BudgetLedger;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetRevenue;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;

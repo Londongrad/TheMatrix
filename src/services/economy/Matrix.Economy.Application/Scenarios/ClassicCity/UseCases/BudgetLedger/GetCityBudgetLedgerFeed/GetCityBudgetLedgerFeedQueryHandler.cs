@@ -9,7 +9,7 @@ using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedgerFeed
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger.GetCityBudgetLedgerFeed
 {
     public sealed class GetCityBudgetLedgerFeedQueryHandler(
         ICityBudgetLedgerRepository ledgerRepository,

@@ -3,7 +3,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.Authorization.Permissions;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedgerFeed
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger.GetCityBudgetLedgerFeed
 {
     public sealed record GetCityBudgetLedgerFeedQuery(
         Guid CityId,

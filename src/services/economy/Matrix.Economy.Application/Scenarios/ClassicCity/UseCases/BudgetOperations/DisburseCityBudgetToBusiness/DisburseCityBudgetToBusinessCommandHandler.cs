@@ -1,5 +1,5 @@
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.BudgetLedger;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Aggregates;

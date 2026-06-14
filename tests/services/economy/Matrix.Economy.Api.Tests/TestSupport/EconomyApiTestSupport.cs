@@ -3,7 +3,7 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations;
-using Matrix.Economy.Application.UseCases.BudgetLedger;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle;
