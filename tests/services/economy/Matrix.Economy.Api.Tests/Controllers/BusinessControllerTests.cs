@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Api.Controllers;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.GetCityBusinesses;
-using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedgerFeed;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.GetCityBusinessLedgerFeed;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpense;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayroll;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetailSale;

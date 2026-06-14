@@ -2,13 +2,14 @@ using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Models;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedgerFeed
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.GetCityBusinessLedgerFeed
 {
     public sealed class GetCityBusinessLedgerFeedQueryHandler(
         ICityBusinessRepository businessRepository,
