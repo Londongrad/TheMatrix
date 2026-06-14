@@ -2,7 +2,7 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.AuthorizeCityBudgetOperation
 {
     public sealed class AuthorizeCityBudgetOperationCommandHandler(
         ICityOperationalBudgetPressureProjectionService pressureProjectionService)

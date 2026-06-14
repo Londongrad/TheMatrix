@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.AuthorizeCityBudgetOperation;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.GetCityBudgetAllocations;

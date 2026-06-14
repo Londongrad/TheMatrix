@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.AuthorizeCityBudgetOperation
 {
     public sealed record CityBudgetOperationAuthorizationDto(
         Guid CityId,

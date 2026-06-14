@@ -1,7 +1,7 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Enums;
 
-namespace Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.AuthorizeCityBudgetOperation
 {
     public static class CityBudgetOperationAuthorizationPolicy
     {

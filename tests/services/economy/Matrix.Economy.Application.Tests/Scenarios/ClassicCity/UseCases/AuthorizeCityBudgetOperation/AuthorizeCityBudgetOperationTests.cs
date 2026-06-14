@@ -1,10 +1,10 @@
-using Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.AuthorizeCityBudgetOperation;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.AuthorizeCityBudgetOperation
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.AuthorizeCityBudgetOperation
 {
     public sealed class AuthorizeCityBudgetOperationTests
     {
