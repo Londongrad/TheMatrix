@@ -4,7 +4,7 @@ using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.GetCityBudgetSummary
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityBudgetSummary
 {
     public sealed class GetCityBudgetSummaryQueryHandler(ICityBudgetRepository budgetRepository)
         : IRequestHandler<GetCityBudgetSummaryQuery, BudgetSummaryDto>

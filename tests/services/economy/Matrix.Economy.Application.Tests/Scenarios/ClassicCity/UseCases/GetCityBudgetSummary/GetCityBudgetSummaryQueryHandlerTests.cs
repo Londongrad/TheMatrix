@@ -1,12 +1,12 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
-using Matrix.Economy.Application.UseCases.GetCityBudgetSummary;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityBudgetSummary;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.GetCityBudgetSummary
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.GetCityBudgetSummary
 {
     public sealed class GetCityBudgetSummaryQueryHandlerTests
     {
