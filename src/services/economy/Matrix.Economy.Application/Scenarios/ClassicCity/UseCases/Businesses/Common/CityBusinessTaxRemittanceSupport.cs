@@ -1,11 +1,12 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.ValueObjects;
 
-namespace Matrix.Economy.Application.UseCases.Businesses.Common
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Common
 {
     public sealed class CityBusinessTaxRemittanceSupport(
         ICityBusinessLedgerRepository businessLedgerRepository,

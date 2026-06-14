@@ -2,7 +2,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
-using Matrix.Economy.Application.UseCases.Businesses.Common;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Common;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
