@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 
-namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary
 {
     public sealed record BudgetSummaryDto(
         string UnitKind,

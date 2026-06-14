@@ -1,5 +1,5 @@
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.GetBudgetSummary;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.ValueObjects;
 using MediatR;

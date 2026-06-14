@@ -11,7 +11,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetExpense;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetRevenue;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
-using Matrix.Economy.Application.UseCases.GetBudgetSummary;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
 using Matrix.Economy.Application.UseCases.GetCityBudgetSummary;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Contracts.Budget.Requests;

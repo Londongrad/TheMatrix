@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
-using Matrix.Economy.Application.UseCases.GetBudgetSummary;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.GetCityBudgetSummary

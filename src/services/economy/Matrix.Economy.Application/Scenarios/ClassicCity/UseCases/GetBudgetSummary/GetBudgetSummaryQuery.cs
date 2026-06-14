@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary
 {
     public sealed record GetBudgetSummaryQuery : IRequest<BudgetSummaryDto>, IRequirePermission
     {

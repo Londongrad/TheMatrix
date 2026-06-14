@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary
 {
     public sealed class GetBudgetSummaryQueryHandler(ICityBudgetRepository budgetRepository)
         : IRequestHandler<GetBudgetSummaryQuery, BudgetSummaryDto>

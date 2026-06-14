@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
-using Matrix.Economy.Application.UseCases.GetBudgetSummary;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
 using Matrix.Economy.Application.UseCases.GetCityBudgetSummary;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
