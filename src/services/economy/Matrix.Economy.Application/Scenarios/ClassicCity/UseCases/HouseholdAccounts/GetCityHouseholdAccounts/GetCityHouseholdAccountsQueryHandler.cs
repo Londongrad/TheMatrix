@@ -1,8 +1,9 @@
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccounts
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccounts
 {
     public sealed class GetCityHouseholdAccountsQueryHandler(ICityHouseholdAccountRepository householdAccountRepository)
         : IRequestHandler<GetCityHouseholdAccountsQuery, IReadOnlyList<CityHouseholdAccountDto>>

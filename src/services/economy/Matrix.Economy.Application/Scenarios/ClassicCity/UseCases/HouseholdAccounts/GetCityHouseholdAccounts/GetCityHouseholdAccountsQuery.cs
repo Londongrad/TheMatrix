@@ -1,8 +1,9 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
+using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccounts
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccounts
 {
     public sealed record GetCityHouseholdAccountsQuery(Guid CityId)
         : IRequest<IReadOnlyList<CityHouseholdAccountDto>>, IRequirePermission
