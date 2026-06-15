@@ -1,6 +1,6 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 
-namespace Matrix.Economy.Application.Abstractions
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICityOperationalBudgetPressureProjectionService
     {
