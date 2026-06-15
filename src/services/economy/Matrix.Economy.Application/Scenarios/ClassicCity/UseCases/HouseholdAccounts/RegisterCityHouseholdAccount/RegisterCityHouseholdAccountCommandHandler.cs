@@ -1,11 +1,12 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount
 {
     public sealed class RegisterCityHouseholdAccountCommandHandler(
         ICityHouseholdAccountRepository householdAccountRepository,

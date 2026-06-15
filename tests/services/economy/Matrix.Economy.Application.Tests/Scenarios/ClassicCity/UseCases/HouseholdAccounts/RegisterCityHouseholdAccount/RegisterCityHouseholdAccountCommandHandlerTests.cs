@@ -1,10 +1,10 @@
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
-using Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount;
 using Matrix.Economy.Domain.Aggregates;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount
 {
     public sealed class RegisterCityHouseholdAccountCommandHandlerTests
     {
