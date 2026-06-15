@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Infrastructure.Outbox;
