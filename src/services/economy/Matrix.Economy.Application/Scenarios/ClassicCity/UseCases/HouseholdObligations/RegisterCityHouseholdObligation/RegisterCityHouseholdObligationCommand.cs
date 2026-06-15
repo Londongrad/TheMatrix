@@ -1,9 +1,10 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
+using Matrix.Economy.Application.UseCases.HouseholdObligations;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityHouseholdObligation
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RegisterCityHouseholdObligation
 {
     public sealed record RegisterCityHouseholdObligationCommand(
         Guid CityId,
