@@ -10,7 +10,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCi
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
-using Matrix.Economy.Application.UseCases.HouseholdObligations;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
 using MediatR;
 using Microsoft.AspNetCore.Builder;

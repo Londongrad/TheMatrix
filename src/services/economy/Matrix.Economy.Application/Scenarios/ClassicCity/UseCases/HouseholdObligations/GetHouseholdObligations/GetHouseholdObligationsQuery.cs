@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
-using Matrix.Economy.Application.UseCases.HouseholdObligations;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations;
 using MediatR;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.GetHouseholdObligations
