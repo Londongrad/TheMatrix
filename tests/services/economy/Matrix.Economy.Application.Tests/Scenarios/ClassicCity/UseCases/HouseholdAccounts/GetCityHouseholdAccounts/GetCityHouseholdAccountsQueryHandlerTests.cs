@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
-using Matrix.Economy.Application.UseCases.HouseholdAccounts;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccounts;
 using Matrix.Economy.Domain.Aggregates;
 using Xunit;

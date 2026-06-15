@@ -9,7 +9,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
-using Matrix.Economy.Application.UseCases.HouseholdAccounts;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdObligations;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
 using MediatR;

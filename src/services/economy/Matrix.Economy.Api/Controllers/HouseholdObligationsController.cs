@@ -1,4 +1,4 @@
-using Matrix.Economy.Application.UseCases.HouseholdAccounts;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdObligations;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseholdObligations;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.GetHouseholdObligations;

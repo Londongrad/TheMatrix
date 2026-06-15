@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
-using Matrix.Economy.Application.UseCases.HouseholdAccounts;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Aggregates;

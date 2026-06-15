@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.HouseholdAccounts
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts
 {
     public sealed record CityHouseholdAccountDto(
         Guid HouseholdAccountId,

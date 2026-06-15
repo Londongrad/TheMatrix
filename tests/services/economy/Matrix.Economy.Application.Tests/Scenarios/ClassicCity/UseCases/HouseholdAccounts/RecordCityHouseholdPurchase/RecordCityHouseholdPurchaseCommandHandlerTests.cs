@@ -1,4 +1,4 @@
-using Matrix.Economy.Application.UseCases.HouseholdAccounts;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
