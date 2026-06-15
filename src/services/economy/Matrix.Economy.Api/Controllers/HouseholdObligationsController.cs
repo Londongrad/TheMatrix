@@ -1,7 +1,7 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdObligations;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.GetCityHouseholdObligations;
-using Matrix.Economy.Application.UseCases.HouseholdObligations.GetHouseholdObligations;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.GetHouseholdObligations;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.IssueHouseholdObligationCharge;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityHouseholdObligation;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
