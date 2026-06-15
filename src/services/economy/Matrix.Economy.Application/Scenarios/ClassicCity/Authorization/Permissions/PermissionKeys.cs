@@ -1,6 +1,6 @@
 using ContractPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
 
-namespace Matrix.Economy.Application.Authorization.Permissions
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.Authorization.Permissions
 {
     public static class PermissionKeys
     {
