@@ -1,6 +1,6 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Simulation.AdvanceCityEconomy;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Simulation;

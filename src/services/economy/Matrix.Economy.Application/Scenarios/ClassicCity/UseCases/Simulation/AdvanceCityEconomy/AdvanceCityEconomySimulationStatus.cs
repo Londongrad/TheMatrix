@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Simulation.AdvanceCityEconomy
 {
     public enum AdvanceCityEconomySimulationStatus
     {

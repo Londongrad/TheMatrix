@@ -8,7 +8,7 @@ using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Simulation.AdvanceCityEconomy
 {
     public sealed class AdvanceCityEconomySimulationCommandHandler(
         ICityEconomyProgressionStateRepository progressionStateRepository,

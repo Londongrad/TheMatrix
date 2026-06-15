@@ -1,4 +1,4 @@
-using Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Simulation.AdvanceCityEconomy;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Economy.Infrastructure.Tests.TestSupport;
 using Matrix.SimulationCore.Contracts.Events;

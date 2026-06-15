@@ -4,7 +4,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocation
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.Common;
-using Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Simulation.AdvanceCityEconomy;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
@@ -12,7 +12,7 @@ using Matrix.Economy.Domain.Services;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Simulation.AdvanceCityEconomy
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.Simulation.AdvanceCityEconomy
 {
     public sealed class AdvanceCityEconomySimulationCommandHandlerTests
     {
