@@ -4,7 +4,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocation
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle;
-using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;

@@ -5,7 +5,7 @@ using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.Common
 {
     public sealed class HouseholdObligationChargeSupport(
         ICityHouseholdAccountRepository householdAccountRepository,

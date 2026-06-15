@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.Common
 {
     public sealed record HouseholdObligationChargeAttemptResult(
         bool Succeeded,
