@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle
 {
     public sealed record RunCityHouseholdBillingCycleResultDto(
         Guid CityId,

@@ -4,7 +4,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle
 {
     public sealed class RunCityHouseholdBillingCycleCommandHandler(
         ICityPopulationSignalPublisher cityPopulationSignalPublisher,

@@ -4,7 +4,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocation
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Common;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
-using Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
@@ -12,7 +12,7 @@ using Matrix.Economy.Domain.Services;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle
 {
     public sealed class RunCityHouseholdBillingCycleCommandHandlerTests
     {

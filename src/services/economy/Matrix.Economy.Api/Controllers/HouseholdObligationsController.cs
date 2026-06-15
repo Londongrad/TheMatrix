@@ -4,7 +4,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligat
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.GetHouseholdObligations;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.IssueHouseholdObligationCharge;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RegisterCityHouseholdObligation;
-using Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
 using Matrix.Economy.Contracts.HouseholdObligations.Requests;
 using Matrix.Economy.Domain.Enums;
 using MediatR;

@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
-using Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.Models
 {
