@@ -3,7 +3,7 @@ using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 
-namespace Matrix.Economy.Application.Abstractions
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICityHouseholdAccountLedgerRepository
     {
