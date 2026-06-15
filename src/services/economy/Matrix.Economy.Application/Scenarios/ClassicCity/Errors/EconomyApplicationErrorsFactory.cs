@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 
-namespace Matrix.Economy.Application.Errors
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.Errors
 {
     public static class EconomyApplicationErrorsFactory
     {
