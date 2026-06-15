@@ -1,8 +1,9 @@
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.HouseholdObligations;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseholdObligations
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.GetCityHouseholdObligations
 {
     public sealed class GetCityHouseholdObligationsQueryHandler(ICityHouseholdObligationRepository obligationRepository)
         : IRequestHandler<GetCityHouseholdObligationsQuery, IReadOnlyList<CityHouseholdObligationDto>>

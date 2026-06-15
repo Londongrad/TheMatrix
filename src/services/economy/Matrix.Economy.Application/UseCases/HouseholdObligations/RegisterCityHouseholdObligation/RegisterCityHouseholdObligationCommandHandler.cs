@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseholdObligations;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.GetCityHouseholdObligations;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
