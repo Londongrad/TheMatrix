@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 
-namespace Matrix.Economy.Application.Abstractions
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICityPopulationSignalPublisher
     {
