@@ -1,4 +1,4 @@
-using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Bootstrap.InitializeCityEconomy;
 
 namespace Matrix.Economy.Application.Abstractions
 {

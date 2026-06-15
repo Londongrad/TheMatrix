@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Bootstrap.InitializeCityEconomy
 {
     public sealed record CityEconomyBootstrapResultDto(
         Guid CityId,

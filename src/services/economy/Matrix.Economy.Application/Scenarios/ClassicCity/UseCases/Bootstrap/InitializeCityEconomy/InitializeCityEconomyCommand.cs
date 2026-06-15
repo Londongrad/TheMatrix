@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Authorization.Permissions;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Bootstrap.InitializeCityEconomy
 {
     public sealed record InitializeCityEconomyCommand(
         Guid CityId,

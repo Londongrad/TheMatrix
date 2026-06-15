@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Bootstrap.InitializeCityEconomy
 {
     public sealed class InitializeCityEconomyCommandValidator
         : AbstractValidator<InitializeCityEconomyCommand>

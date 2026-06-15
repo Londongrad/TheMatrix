@@ -1,8 +1,8 @@
 using FluentValidation.Results;
-using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Bootstrap.InitializeCityEconomy;
 using Xunit;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Bootstrap.InitializeCityEconomy
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.Bootstrap.InitializeCityEconomy
 {
     public sealed class InitializeCityEconomyCommandValidatorTests
     {

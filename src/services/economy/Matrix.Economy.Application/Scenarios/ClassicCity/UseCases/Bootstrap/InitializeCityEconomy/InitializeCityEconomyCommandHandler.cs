@@ -2,7 +2,7 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Errors;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Bootstrap.InitializeCityEconomy
 {
     public sealed class InitializeCityEconomyCommandHandler(
         ICityEconomyBootstrapService cityEconomyBootstrapService,
