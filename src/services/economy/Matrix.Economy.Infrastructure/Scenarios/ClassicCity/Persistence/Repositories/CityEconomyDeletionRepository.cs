@@ -1,4 +1,5 @@
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;

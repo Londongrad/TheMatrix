@@ -1,6 +1,6 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Bootstrap.InitializeCityEconomy;
 
-namespace Matrix.Economy.Application.Abstractions
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICityEconomyBootstrapService
     {

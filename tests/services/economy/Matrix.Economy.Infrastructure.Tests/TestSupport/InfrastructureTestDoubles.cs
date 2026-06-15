@@ -1,4 +1,5 @@
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Tests.TestSupport

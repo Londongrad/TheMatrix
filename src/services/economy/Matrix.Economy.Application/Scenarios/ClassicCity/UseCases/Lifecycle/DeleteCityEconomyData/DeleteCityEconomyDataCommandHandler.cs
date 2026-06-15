@@ -1,5 +1,6 @@
 using System.Data;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using MediatR;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData

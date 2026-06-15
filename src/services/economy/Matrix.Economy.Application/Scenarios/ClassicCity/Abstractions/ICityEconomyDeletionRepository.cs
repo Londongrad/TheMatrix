@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.Abstractions
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICityEconomyDeletionRepository
     {
