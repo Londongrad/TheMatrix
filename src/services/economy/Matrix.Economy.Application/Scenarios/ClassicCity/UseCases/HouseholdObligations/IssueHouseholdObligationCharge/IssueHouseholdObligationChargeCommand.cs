@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdObligations.IssueHouseholdObligationCharge
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.IssueHouseholdObligationCharge
 {
     public sealed record IssueHouseholdObligationChargeCommand(
         Guid ObligationId,

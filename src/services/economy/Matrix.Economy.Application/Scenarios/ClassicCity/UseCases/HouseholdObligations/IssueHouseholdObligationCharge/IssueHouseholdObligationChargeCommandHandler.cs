@@ -4,7 +4,7 @@ using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.HouseholdObligations.IssueHouseholdObligationCharge
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.IssueHouseholdObligationCharge
 {
     public sealed class IssueHouseholdObligationChargeCommandHandler(
         ICityHouseholdObligationRepository obligationRepository,

@@ -1,12 +1,12 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
-using Matrix.Economy.Application.UseCases.HouseholdObligations.IssueHouseholdObligationCharge;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.IssueHouseholdObligationCharge;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.HouseholdObligations.IssueHouseholdObligationCharge
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.HouseholdObligations.IssueHouseholdObligationCharge
 {
     public sealed class IssueHouseholdObligationChargeCommandHandlerTests
     {
