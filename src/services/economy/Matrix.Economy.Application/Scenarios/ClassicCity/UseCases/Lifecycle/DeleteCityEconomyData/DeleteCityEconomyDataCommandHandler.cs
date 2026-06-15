@@ -2,7 +2,7 @@ using System.Data;
 using Matrix.Economy.Application.Abstractions;
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Lifecycle.DeleteCityEconomyData
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData
 {
     public sealed class DeleteCityEconomyDataCommandHandler(
         ICityEconomyDeletionRepository deletionRepository,

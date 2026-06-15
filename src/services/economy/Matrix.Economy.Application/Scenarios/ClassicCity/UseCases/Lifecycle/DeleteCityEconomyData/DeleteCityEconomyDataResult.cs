@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Application.UseCases.Lifecycle.DeleteCityEconomyData
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData
 {
     public enum DeleteCityEconomyDataStatus
     {

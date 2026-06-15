@@ -1,9 +1,9 @@
 using System.Data;
-using Matrix.Economy.Application.UseCases.Lifecycle.DeleteCityEconomyData;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Lifecycle.DeleteCityEconomyData
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData
 {
     public sealed class DeleteCityEconomyDataCommandHandlerTests
     {

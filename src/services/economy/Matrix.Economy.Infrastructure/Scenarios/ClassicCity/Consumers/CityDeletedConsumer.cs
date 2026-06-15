@@ -1,5 +1,5 @@
 using MassTransit;
-using Matrix.Economy.Application.UseCases.Lifecycle.DeleteCityEconomyData;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using MediatR;

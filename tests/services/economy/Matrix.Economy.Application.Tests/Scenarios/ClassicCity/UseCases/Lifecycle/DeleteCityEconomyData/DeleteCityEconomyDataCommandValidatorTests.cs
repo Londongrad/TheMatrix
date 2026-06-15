@@ -1,8 +1,8 @@
 using FluentValidation.TestHelper;
-using Matrix.Economy.Application.UseCases.Lifecycle.DeleteCityEconomyData;
+using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData;
 using Xunit;
 
-namespace Matrix.Economy.Application.Tests.UseCases.Lifecycle.DeleteCityEconomyData
+namespace Matrix.Economy.Application.Tests.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData
 {
     public sealed class DeleteCityEconomyDataCommandValidatorTests
     {

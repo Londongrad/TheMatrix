@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace Matrix.Economy.Application.UseCases.Lifecycle.DeleteCityEconomyData
+namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Lifecycle.DeleteCityEconomyData
 {
     public sealed record DeleteCityEconomyDataCommand(
         Guid CityId,
