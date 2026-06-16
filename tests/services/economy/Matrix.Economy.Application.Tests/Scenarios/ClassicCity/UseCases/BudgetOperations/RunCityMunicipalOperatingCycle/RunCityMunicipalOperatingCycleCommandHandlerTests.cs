@@ -5,6 +5,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;

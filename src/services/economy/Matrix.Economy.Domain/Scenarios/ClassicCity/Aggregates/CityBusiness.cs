@@ -3,7 +3,7 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
 
-namespace Matrix.Economy.Domain.Aggregates
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates
 {
     public sealed class CityBusiness
     {

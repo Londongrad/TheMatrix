@@ -146,7 +146,7 @@ namespace Matrix.Economy.Infrastructure.Persistence.Migrations
                     b.ToTable("City_Budget", (string)null);
                 });
 
-            modelBuilder.Entity("Matrix.Economy.Domain.Aggregates.CityBusiness", b =>
+            modelBuilder.Entity("Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates.CityBusiness", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 
 namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Models
 {

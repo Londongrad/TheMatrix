@@ -1,4 +1,5 @@
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
