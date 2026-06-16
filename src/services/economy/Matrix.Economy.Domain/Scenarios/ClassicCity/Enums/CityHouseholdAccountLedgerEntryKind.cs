@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Domain.Enums
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Enums
 {
     public enum CityHouseholdAccountLedgerEntryKind
     {
