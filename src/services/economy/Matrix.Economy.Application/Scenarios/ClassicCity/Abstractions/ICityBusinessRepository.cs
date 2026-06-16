@@ -1,4 +1,3 @@
-using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions
