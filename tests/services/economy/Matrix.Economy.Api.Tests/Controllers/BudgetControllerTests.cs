@@ -16,7 +16,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityBudgetSum
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
-using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;

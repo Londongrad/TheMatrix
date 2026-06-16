@@ -1,5 +1,5 @@
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
-using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;

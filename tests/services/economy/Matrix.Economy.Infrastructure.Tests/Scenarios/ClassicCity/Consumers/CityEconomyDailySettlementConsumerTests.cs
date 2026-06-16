@@ -8,7 +8,7 @@ using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
-using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Economy.Infrastructure.Tests.TestSupport;

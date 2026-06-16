@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
-using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Models;
 
 namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Entities

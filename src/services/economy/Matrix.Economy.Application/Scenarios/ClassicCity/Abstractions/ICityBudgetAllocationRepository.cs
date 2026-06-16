@@ -1,6 +1,6 @@
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
-using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions
 {

@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Authorization.Permissions;
-using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using MediatR;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.AuthorizeCityBudgetOperation
