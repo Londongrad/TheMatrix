@@ -2,6 +2,7 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using MediatR;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccounts

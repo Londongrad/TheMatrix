@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Infrastructure.Persistence;
