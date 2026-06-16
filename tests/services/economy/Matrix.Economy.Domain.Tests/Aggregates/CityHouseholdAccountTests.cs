@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Models;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using Xunit;
 
 namespace Matrix.Economy.Domain.Tests.Aggregates

@@ -5,6 +5,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Models;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using MediatR;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RegisterCityBusiness

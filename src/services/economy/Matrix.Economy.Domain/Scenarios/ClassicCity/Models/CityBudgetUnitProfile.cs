@@ -1,6 +1,6 @@
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 
-namespace Matrix.Economy.Domain.Models
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Models
 {
     public sealed record CityBudgetUnitProfile(
         CityBudgetUnitKind Kind,
