@@ -5,6 +5,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.GetCi
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RegisterCityBusiness;
 using Matrix.Economy.Contracts.Business.Requests;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

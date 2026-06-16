@@ -6,6 +6,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Microsoft.Extensions.Logging;
 

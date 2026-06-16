@@ -11,6 +11,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Remit
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Contracts.Business.Requests;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;

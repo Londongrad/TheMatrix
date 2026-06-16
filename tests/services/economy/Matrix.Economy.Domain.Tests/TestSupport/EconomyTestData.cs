@@ -3,6 +3,7 @@ using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
 
