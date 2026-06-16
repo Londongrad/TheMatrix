@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Domain.Enums;
 
-namespace Matrix.Economy.Domain.Entities
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Entities
 {
     public sealed class CityBudgetLedgerEntry
     {

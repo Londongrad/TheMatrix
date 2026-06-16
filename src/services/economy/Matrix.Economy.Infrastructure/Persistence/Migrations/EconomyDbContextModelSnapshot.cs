@@ -513,7 +513,7 @@ namespace Matrix.Economy.Infrastructure.Persistence.Migrations
                     b.ToTable("City_Budget_Allocation", (string)null);
                 });
 
-            modelBuilder.Entity("Matrix.Economy.Domain.Entities.CityBudgetLedgerEntry", b =>
+            modelBuilder.Entity("Matrix.Economy.Domain.Scenarios.ClassicCity.Entities.CityBudgetLedgerEntry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

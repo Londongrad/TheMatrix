@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;

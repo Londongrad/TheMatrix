@@ -5,6 +5,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger.GetCityBudgetLedgerFeed;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
 using Xunit;

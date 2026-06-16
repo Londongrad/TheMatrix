@@ -2,6 +2,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetLedger;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RecordCityBudgetRevenue;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
