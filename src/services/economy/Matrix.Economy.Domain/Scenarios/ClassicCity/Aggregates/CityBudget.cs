@@ -4,7 +4,7 @@ using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.ValueObjects;
 
-namespace Matrix.Economy.Domain.Aggregates
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates
 {
     public sealed class CityBudget
     {

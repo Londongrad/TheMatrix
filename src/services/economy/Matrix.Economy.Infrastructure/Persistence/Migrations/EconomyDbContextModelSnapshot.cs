@@ -72,7 +72,7 @@ namespace Matrix.Economy.Infrastructure.Persistence.Migrations
                     b.ToTable("OutboxMessages", (string)null);
                 });
 
-            modelBuilder.Entity("Matrix.Economy.Domain.Aggregates.CityBudget", b =>
+            modelBuilder.Entity("Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates.CityBudget", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
