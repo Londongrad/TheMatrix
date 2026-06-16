@@ -321,7 +321,7 @@ namespace Matrix.Economy.Infrastructure.Persistence.Migrations
                     b.ToTable("City_Household_Account", (string)null);
                 });
 
-            modelBuilder.Entity("Matrix.Economy.Domain.Aggregates.CityHouseholdObligation", b =>
+            modelBuilder.Entity("Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates.CityHouseholdObligation", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
