@@ -1,4 +1,3 @@
-using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using Xunit;
