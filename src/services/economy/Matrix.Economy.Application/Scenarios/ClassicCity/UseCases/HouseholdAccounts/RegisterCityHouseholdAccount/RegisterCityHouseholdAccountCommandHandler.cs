@@ -4,7 +4,6 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
-using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using MediatR;
 

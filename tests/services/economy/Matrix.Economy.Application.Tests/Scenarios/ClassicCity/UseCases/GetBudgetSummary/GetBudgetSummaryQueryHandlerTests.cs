@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetBudgetSummary;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
-using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
