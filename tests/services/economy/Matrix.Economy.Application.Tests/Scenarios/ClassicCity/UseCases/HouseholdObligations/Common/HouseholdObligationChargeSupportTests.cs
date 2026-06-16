@@ -2,6 +2,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligat
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Enums;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
