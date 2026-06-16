@@ -11,6 +11,7 @@ using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Models;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Microsoft.Extensions.Logging;
 
