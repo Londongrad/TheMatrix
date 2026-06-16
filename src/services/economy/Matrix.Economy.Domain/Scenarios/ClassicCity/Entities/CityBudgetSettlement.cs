@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 
-namespace Matrix.Economy.Domain.Entities
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Entities
 {
     public sealed class CityBudgetSettlement
     {
