@@ -803,7 +803,7 @@ namespace Matrix.Economy.Infrastructure.Persistence.Migrations
                     b.ToTable("CityEconomyProgressionStates", (string)null);
                 });
 
-            modelBuilder.Entity("Matrix.Economy.Domain.Entities.CityHouseholdAccountLedgerEntry", b =>
+            modelBuilder.Entity("Matrix.Economy.Domain.Scenarios.ClassicCity.Entities.CityHouseholdAccountLedgerEntry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
