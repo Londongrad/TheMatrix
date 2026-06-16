@@ -5,7 +5,7 @@ using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Models;
-using Matrix.Economy.Domain.ValueObjects;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.Economy.Domain.Tests.TestSupport
 {

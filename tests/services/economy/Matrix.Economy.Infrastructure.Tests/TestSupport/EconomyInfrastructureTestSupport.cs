@@ -7,7 +7,7 @@ using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
-using Matrix.Economy.Domain.ValueObjects;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Economy.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 

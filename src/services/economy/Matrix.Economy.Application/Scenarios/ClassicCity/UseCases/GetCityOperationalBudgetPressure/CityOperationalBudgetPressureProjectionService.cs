@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Domain.ValueObjects;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.GetCityOperationalBudgetPressure
 {

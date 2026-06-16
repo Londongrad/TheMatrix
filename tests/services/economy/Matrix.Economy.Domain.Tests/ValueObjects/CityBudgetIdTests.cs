@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain.Exceptions;
-using Matrix.Economy.Domain.ValueObjects;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.ValueObjects;
 using Xunit;
 
 namespace Matrix.Economy.Domain.Tests.ValueObjects

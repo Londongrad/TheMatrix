@@ -3,7 +3,7 @@ using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
-using Matrix.Economy.Domain.ValueObjects;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.ValueObjects;
 using Xunit;
 
 namespace Matrix.Economy.Domain.Tests.Aggregates
