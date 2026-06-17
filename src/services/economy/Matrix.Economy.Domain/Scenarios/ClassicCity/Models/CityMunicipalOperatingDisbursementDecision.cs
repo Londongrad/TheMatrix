@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Domain.Models
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Models
 {
     public sealed record CityMunicipalOperatingDisbursementDecision(
         Guid BusinessId,
