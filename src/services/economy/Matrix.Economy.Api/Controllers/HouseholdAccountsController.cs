@@ -3,7 +3,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccount
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.GetCityHouseholdAccounts;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount;
-using Matrix.Economy.Contracts.HouseholdAccounts.Requests;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.HouseholdAccounts.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

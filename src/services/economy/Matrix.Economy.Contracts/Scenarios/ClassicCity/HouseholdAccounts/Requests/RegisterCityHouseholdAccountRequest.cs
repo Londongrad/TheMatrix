@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Contracts.HouseholdAccounts.Requests
+namespace Matrix.Economy.Contracts.Scenarios.ClassicCity.HouseholdAccounts.Requests
 {
     public sealed class RegisterCityHouseholdAccountRequest
     {

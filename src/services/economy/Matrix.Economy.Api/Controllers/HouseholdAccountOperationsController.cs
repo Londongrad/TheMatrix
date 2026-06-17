@@ -1,6 +1,6 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase;
-using Matrix.Economy.Contracts.HouseholdAccounts.Requests;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.HouseholdAccounts.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
