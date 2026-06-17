@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
-using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
