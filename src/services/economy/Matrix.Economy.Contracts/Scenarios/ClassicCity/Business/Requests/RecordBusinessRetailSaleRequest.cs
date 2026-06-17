@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Contracts.Business.Requests
+namespace Matrix.Economy.Contracts.Scenarios.ClassicCity.Business.Requests
 {
     public sealed class RecordBusinessRetailSaleRequest
     {

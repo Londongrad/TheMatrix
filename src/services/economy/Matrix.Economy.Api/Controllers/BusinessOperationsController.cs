@@ -4,7 +4,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.Recor
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RecordCityBusinessRetailSale;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RemitCityBusinessTax;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle;
-using Matrix.Economy.Contracts.Business.Requests;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Business.Requests;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
