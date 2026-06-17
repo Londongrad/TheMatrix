@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Contracts.Budget.Views
+namespace Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views
 {
     public sealed record EconomySummaryView(
         string UnitKind,

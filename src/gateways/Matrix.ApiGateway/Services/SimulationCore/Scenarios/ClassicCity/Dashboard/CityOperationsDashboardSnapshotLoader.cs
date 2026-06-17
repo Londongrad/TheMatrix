@@ -5,7 +5,7 @@ using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;

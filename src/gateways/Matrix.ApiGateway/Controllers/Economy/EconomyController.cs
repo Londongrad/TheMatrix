@@ -1,5 +1,5 @@
 using Matrix.ApiGateway.DownstreamClients.Economy;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

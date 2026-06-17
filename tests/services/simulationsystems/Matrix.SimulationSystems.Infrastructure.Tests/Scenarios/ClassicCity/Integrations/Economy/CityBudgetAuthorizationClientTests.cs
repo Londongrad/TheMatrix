@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Matrix.Economy.Contracts.Budget.Requests;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Requests;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Integrations.Economy;
 using Matrix.SimulationSystems.Infrastructure.Tests.Http;

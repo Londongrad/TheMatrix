@@ -1,7 +1,7 @@
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

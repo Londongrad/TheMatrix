@@ -1,6 +1,6 @@
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.Economy
 {

@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Contracts.Budget.Requests
+namespace Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Requests
 {
     public sealed record SetBudgetAllocationRequest(
         decimal TargetAmount,

@@ -2,8 +2,8 @@ using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Contracts.Budget.Requests;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Requests;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity
 {

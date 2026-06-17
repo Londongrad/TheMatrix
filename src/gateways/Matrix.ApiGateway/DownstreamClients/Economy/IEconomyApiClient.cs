@@ -1,4 +1,4 @@
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.Economy
 {

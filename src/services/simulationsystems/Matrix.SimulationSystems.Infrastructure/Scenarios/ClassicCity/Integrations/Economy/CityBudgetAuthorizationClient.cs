@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
-using Matrix.Economy.Contracts.Budget.Requests;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Requests;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 

@@ -1,6 +1,6 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Dashboard;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;

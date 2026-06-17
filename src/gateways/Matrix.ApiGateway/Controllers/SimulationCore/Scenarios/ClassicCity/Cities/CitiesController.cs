@@ -11,7 +11,7 @@ using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
