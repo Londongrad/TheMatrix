@@ -4,7 +4,6 @@ using Matrix.ApiGateway.Authorization.InternalJwt.Abstractions;
 using Matrix.ApiGateway.Configurations;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Configurations.Security;
-using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
@@ -96,7 +95,6 @@ namespace Matrix.ApiGateway.Tests.Configurations
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICitiesApiClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<IPopulationApiClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<IClassicCityPopulationApiClient>());
-            Assert.NotNull(scope.ServiceProvider.GetRequiredService<IEconomyApiClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<IClassicCityEconomyApiClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<IIdentityAuthClient>());
             Assert.Same(

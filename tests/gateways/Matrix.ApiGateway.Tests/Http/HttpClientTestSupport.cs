@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
 using Matrix.ApiGateway.Controllers.Economy.Scenarios.ClassicCity;
-using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
@@ -156,24 +155,12 @@ namespace Matrix.ApiGateway.Tests.Http
             return new IdentityInternalUsersClient(httpClient);
         }
 
-        internal static IEconomyApiClient CreateEconomyApiClient(HttpClient httpClient)
-        {
-            return Assert.IsAssignableFrom<IEconomyApiClient>(CreateEconomyApiClientInstance(httpClient));
-        }
-
         internal static IClassicCityEconomyApiClient CreateClassicCityEconomyApiClient(HttpClient httpClient)
         {
-            return CreateInternalClient<IClassicCityEconomyApiClient>(
-                typeName:
-                "Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity.ClassicCityEconomyApiClient",
-                args: [httpClient]);
-        }
-
-        private static object CreateEconomyApiClientInstance(HttpClient httpClient)
-        {
             Type type = GetGatewayAssembly()
-                           .GetType("Matrix.ApiGateway.DownstreamClients.Economy.EconomyApiClient") ??
-                        throw new InvalidOperationException("EconomyApiClient type was not found.");
+                           .GetType(
+                                "Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity.ClassicCityEconomyApiClient") ??
+                        throw new InvalidOperationException("ClassicCityEconomyApiClient type was not found.");
 
             Type nullLoggerType = typeof(NullLogger<>).MakeGenericType(type);
             object logger = nullLoggerType.GetProperty(
@@ -198,7 +185,7 @@ namespace Matrix.ApiGateway.Tests.Http
                 ],
                 culture: null);
 
-            return Assert.IsAssignableFrom<object>(instance);
+            return Assert.IsAssignableFrom<IClassicCityEconomyApiClient>(instance);
         }
 
         internal static IStockpilesApiClient CreateStockpilesApiClient(HttpClient httpClient)

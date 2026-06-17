@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text.Json;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
-using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
@@ -303,7 +302,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
         }
 
         [Fact]
-        public async Task EconomyApiClientHealthAsync_WhenReadyProbeFails_ReturnsFalse()
+        public async Task ClassicCityEconomyApiClientHealthAsync_WhenReadyProbeFails_ReturnsFalse()
         {
             var handler = new RecordingHttpMessageHandler
             {
@@ -311,7 +310,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                     _,
                     _) => Task.FromResult(CreateEmptyResponse(HttpStatusCode.ServiceUnavailable))
             };
-            IEconomyApiClient client = CreateEconomyApiClient(CreateHttpClient(handler));
+            IClassicCityEconomyApiClient client = CreateClassicCityEconomyApiClient(CreateHttpClient(handler));
 
             bool result = await client.HealthAsync(CancellationToken.None);
 

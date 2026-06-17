@@ -7,6 +7,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity
 {
     public interface IClassicCityEconomyApiClient
     {
+        Task<EconomySummaryView?> GetSummaryAsync(CancellationToken cancellationToken = default);
+
+        Task<bool> HealthAsync(CancellationToken cancellationToken = default);
+
         Task<EconomySummaryView?> GetCitySummaryAsync(
             Guid cityId,
             CancellationToken cancellationToken = default);

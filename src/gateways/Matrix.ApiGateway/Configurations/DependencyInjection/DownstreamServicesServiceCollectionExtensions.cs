@@ -1,6 +1,5 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.DownstreamClients.Common;
-using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.HttpHandlers;
 using Matrix.ApiGateway.DownstreamClients.Identity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
@@ -54,7 +53,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddTransient<InternalJwtExchangeHandler>();
 
             services.AddSimulationCoreClients();
-            services.AddEconomyClients();
             services.AddPopulationClients();
             services.AddIdentityClients();
 
@@ -65,14 +63,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         {
             services.AddInternalDownstreamClient<ISimulationApiClient, SimulationApiClient>(
                 DownstreamServiceNames.SimulationCore);
-
-            return services;
-        }
-
-        private static IServiceCollection AddEconomyClients(this IServiceCollection services)
-        {
-            services.AddInternalDownstreamClient<IEconomyApiClient, EconomyApiClient>(
-                DownstreamServiceNames.Economy);
 
             return services;
         }

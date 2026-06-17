@@ -1,4 +1,4 @@
-using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,9 +8,9 @@ namespace Matrix.ApiGateway.Controllers.Economy.Scenarios.ClassicCity
     [Authorize]
     [ApiController]
     [Route("api/economy")]
-    public sealed class EconomyController(IEconomyApiClient economyClient) : ControllerBase
+    public sealed class EconomyController(IClassicCityEconomyApiClient economyClient) : ControllerBase
     {
-        private readonly IEconomyApiClient _economyClient = economyClient;
+        private readonly IClassicCityEconomyApiClient _economyClient = economyClient;
 
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)

@@ -7,8 +7,12 @@ using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity
 {
-    internal sealed class ClassicCityEconomyApiClient(HttpClient client) : IClassicCityEconomyApiClient
+    internal sealed class ClassicCityEconomyApiClient(
+        HttpClient client,
+        ILogger<ClassicCityEconomyApiClient> logger) : IClassicCityEconomyApiClient
     {
+        private const string SummaryEndpoint = "/api/economy/Budget/summary";
+        private const string ReadyEndpoint = "/health/ready";
         private const string CitySummaryEndpointTemplate = "/api/economy/Budget/cities/{0}/summary";
 
         private const string CityOperationalPressureEndpointTemplate =
@@ -24,6 +28,36 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity
 
         private const string CityBootstrapEndpointTemplate = "/api/economy/Budget/cities/{0}/bootstrap";
         private readonly HttpClient _client = client;
+        private readonly ILogger<ClassicCityEconomyApiClient> _logger = logger;
+
+        public async Task<EconomySummaryView?> GetSummaryAsync(CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: SummaryEndpoint,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<EconomySummaryView>(
+                serviceName: DownstreamServiceNames.Economy,
+                cancellationToken: cancellationToken,
+                requestUrl: SummaryEndpoint);
+        }
+
+        public async Task<bool> HealthAsync(CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: ReadyEndpoint,
+                cancellationToken: cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning(
+                    message: "Economy ready probe failed with status code {StatusCode}",
+                    response.StatusCode);
+                return false;
+            }
+
+            return true;
+        }
 
         public async Task<EconomySummaryView?> GetCitySummaryAsync(
             Guid cityId,

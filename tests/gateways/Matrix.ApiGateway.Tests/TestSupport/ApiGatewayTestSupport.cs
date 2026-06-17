@@ -19,7 +19,6 @@ using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.ApiGateway.Controllers.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
-using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
@@ -1755,7 +1754,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
             }
         }
 
-        public sealed class RecordingEconomyApiClient : IEconomyApiClient, IClassicCityEconomyApiClient
+        public sealed class RecordingEconomyApiClient : IClassicCityEconomyApiClient
         {
             public EconomySummaryView? CitySummaryResult { get; set; }
             public CityOperationalBudgetPressureView? BudgetPressureResult { get; set; }

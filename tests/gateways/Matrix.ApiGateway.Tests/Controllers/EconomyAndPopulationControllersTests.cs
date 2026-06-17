@@ -3,7 +3,6 @@ using Matrix.ApiGateway.Controllers.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.Controllers.Population;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Population;
-using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
@@ -243,7 +242,7 @@ namespace Matrix.ApiGateway.Tests.Controllers
             return Assert.IsType<T>(value);
         }
 
-        private sealed class RecordingGatewayEconomyClient : IEconomyApiClient, IClassicCityEconomyApiClient
+        private sealed class RecordingGatewayEconomyClient : IClassicCityEconomyApiClient
         {
             public EconomySummaryView? SummaryResult { get; set; } = CreateEconomySummaryView();
             public bool HealthResult { get; set; } = true;
