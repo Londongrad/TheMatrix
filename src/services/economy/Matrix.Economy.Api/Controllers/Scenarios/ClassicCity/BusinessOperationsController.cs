@@ -10,7 +10,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.Economy.Api.Controllers
+namespace Matrix.Economy.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]
