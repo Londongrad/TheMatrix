@@ -3,6 +3,7 @@ using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Domain.Services;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Xunit;
 
 namespace Matrix.Economy.Domain.Tests.Services

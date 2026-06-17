@@ -9,6 +9,7 @@ using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Domain.Services;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
