@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 
-namespace Matrix.Economy.Domain.Entities
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Entities
 {
     public sealed class CityEconomyCostProfileState
     {
