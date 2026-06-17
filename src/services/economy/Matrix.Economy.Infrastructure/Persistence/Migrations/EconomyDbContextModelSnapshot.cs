@@ -779,7 +779,7 @@ namespace Matrix.Economy.Infrastructure.Persistence.Migrations
                     b.ToTable("CityEconomyCostProfileStates", (string)null);
                 });
 
-            modelBuilder.Entity("Matrix.Economy.Domain.Entities.CityEconomyProgressionState", b =>
+            modelBuilder.Entity("Matrix.Economy.Domain.Scenarios.ClassicCity.Entities.CityEconomyProgressionState", b =>
                 {
                     b.Property<Guid>("CityId")
                         .ValueGeneratedOnAdd()

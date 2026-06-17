@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Domain.Exceptions;
-using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using Xunit;

@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 
-namespace Matrix.Economy.Domain.Entities
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Entities
 {
     public sealed class CityEconomyProgressionState
     {

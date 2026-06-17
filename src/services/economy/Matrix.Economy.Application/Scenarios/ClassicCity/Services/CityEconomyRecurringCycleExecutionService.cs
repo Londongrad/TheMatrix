@@ -9,7 +9,6 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCi
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
-using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;

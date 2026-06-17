@@ -1,4 +1,3 @@
-using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

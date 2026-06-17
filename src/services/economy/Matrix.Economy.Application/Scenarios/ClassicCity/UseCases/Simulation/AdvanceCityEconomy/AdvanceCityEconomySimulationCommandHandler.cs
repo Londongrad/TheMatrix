@@ -5,7 +5,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.Businesses.RunCityBusinessTaxCycle;
-using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using MediatR;
 

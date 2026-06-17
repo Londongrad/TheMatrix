@@ -1,4 +1,4 @@
-using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Xunit;
