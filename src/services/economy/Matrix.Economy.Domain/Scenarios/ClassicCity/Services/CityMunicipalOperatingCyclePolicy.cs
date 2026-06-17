@@ -4,7 +4,7 @@ using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 
-namespace Matrix.Economy.Domain.Services
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
 {
     public sealed class CityMunicipalOperatingCyclePolicy
     {

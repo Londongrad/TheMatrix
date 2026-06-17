@@ -9,7 +9,6 @@ using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
-using Matrix.Economy.Domain.Services;
 using Xunit;
 using static Matrix.Economy.Application.Tests.TestSupport.EconomyApplicationTestSupport;
 
