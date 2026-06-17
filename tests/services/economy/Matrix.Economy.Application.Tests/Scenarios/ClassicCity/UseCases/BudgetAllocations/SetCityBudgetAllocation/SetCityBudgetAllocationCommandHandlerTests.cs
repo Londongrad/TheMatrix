@@ -1,7 +1,6 @@
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetAllocations.SetCityBudgetAllocation;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Aggregates;
-using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Xunit;

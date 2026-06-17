@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.UseCases.Ledger.Common;
-using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 
