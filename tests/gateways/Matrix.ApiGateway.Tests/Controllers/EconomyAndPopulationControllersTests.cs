@@ -1,5 +1,5 @@
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Economy;
-using Matrix.ApiGateway.Controllers.Economy;
+using Matrix.ApiGateway.Controllers.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.Controllers.Population;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Economy;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Population;

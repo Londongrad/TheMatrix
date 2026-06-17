@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
-using Matrix.ApiGateway.Controllers.Economy;
+using Matrix.ApiGateway.Controllers.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;

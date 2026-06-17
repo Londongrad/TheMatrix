@@ -3,7 +3,7 @@ using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers.Economy
+namespace Matrix.ApiGateway.Controllers.Economy.Scenarios.ClassicCity
 {
     [Authorize]
     [ApiController]
