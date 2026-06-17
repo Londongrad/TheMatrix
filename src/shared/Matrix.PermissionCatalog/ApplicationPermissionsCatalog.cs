@@ -1,5 +1,5 @@
 using Matrix.PermissionCatalog.Abstractions;
-using EconomyPermissionsCatalog = Matrix.Economy.Contracts.Authorization.Permissions.PermissionsCatalog;
+using EconomyPermissionsCatalog = Matrix.Economy.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionsCatalog;
 using IdentityPermissionsCatalog = Matrix.Identity.Contracts.Authorization.Permissions.PermissionsCatalog;
 using PopulationPermissionsCatalog = Matrix.Population.Contracts.Authorization.Permissions.PermissionsCatalog;
 using ResourcesPermissionsCatalog = Matrix.Resources.Contracts.Authorization.Permissions.PermissionsCatalog;

@@ -1,4 +1,4 @@
-using ContractPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
+using ContractPermissionKeys = Matrix.Economy.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.Authorization.Permissions
 {

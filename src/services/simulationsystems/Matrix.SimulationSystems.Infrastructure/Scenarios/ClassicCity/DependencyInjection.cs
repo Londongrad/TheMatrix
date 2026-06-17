@@ -10,7 +10,7 @@ using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
+using EconomyPermissionKeys = Matrix.Economy.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 using SimulationCorePermissionKeys =
     Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 

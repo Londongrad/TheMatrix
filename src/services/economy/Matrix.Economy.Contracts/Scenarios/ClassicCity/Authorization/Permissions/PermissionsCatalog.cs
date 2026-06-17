@@ -1,6 +1,6 @@
 using Matrix.PermissionCatalog.Abstractions;
 
-namespace Matrix.Economy.Contracts.Authorization.Permissions
+namespace Matrix.Economy.Contracts.Scenarios.ClassicCity.Authorization.Permissions
 {
     public static class PermissionsCatalog
     {
