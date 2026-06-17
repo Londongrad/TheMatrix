@@ -12,7 +12,7 @@ using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligat
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RegisterCityHouseholdObligation;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
 using Matrix.Economy.Contracts.Scenarios.ClassicCity.HouseholdAccounts.Requests;
-using Matrix.Economy.Contracts.HouseholdObligations.Requests;
+using Matrix.Economy.Contracts.Scenarios.ClassicCity.HouseholdObligations.Requests;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

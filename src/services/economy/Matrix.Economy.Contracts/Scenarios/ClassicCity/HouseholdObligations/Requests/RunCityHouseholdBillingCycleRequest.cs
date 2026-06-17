@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Contracts.HouseholdObligations.Requests
+namespace Matrix.Economy.Contracts.Scenarios.ClassicCity.HouseholdObligations.Requests
 {
     public sealed class RunCityHouseholdBillingCycleRequest
     {
