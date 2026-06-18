@@ -1,4 +1,4 @@
-namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Economy
+namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy
 {
     public sealed record ClassicCityWorkplaceBusinessSyncItemV1(
         Guid WorkplaceId,
