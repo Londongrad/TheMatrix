@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.SyncCityOperationalBudgetPressure;
 using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.SyncCitySystemsDemand;

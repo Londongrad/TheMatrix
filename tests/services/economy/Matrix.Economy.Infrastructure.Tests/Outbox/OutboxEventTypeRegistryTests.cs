@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.Economy.Infrastructure.Outbox;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Outbox;
