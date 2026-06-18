@@ -1,11 +1,8 @@
 using System.Globalization;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Models;
-using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
 namespace Matrix.Population.Application.Mapping
 {
@@ -66,114 +63,6 @@ namespace Matrix.Population.Application.Mapping
             return new PersonReferenceDto(
                 Id: person.Id.Value,
                 FullName: person.Name.ToString());
-        }
-
-        public static CityResidentDetailsDto ToResidentDetailsDto(
-            this Person person,
-            DateOnly currentDate,
-            Person? currentSpouse = null,
-            CityResidentHousingSnapshot? currentHousing = null,
-            Person? mother = null,
-            Person? father = null,
-            IReadOnlyCollection<Person>? children = null,
-            CityPopulationCommuteContext? workplaceRouteAccess = null,
-            CityPopulationCommuteContext? educationRouteAccess = null,
-            CityResidentHealthcareProviderDto? primaryHealthcareProvider = null,
-            CityResidentActiveTripDto? currentActiveTrip = null)
-        {
-            PersonDto snapshot = person.ToDto(currentDate);
-            CityResidentHousingDto housing = currentHousing is null
-                ? new CityResidentHousingDto(
-                    HouseholdId: person.HouseholdId.Value,
-                    HousingStatus: "Unknown",
-                    ResidentialBuildingId: null)
-                : new CityResidentHousingDto(
-                    HouseholdId: currentHousing.HouseholdId.Value,
-                    HousingStatus: currentHousing.HousingStatus.ToString(),
-                    ResidentialBuildingId: currentHousing.ResidentialBuildingId?.Value);
-            CityResidentWorkplaceDto? workplace = person.Employment.Job is null
-                ? null
-                : new CityResidentWorkplaceDto(
-                    WorkplaceId: person.Employment.Job.WorkplaceId.Value,
-                    WorkplaceAnchorId: person.Employment.Job.WorkplaceAnchorId?.Value,
-                    RouteAccess: ToRouteAccessDto(workplaceRouteAccess));
-            CityResidentEducationInstitutionDto? educationInstitution = person.Education.CurrentInstitutionId is null
-                ? null
-                : new CityResidentEducationInstitutionDto(
-                    InstitutionId: person.Education.CurrentInstitutionId.Value,
-                    InstitutionAnchorId: person.Education.CurrentInstitutionAnchorId?.Value,
-                    EducationLevel: person.Education.Level.ToString(),
-                    RouteAccess: ToRouteAccessDto(educationRouteAccess));
-            IReadOnlyCollection<PersonReferenceDto> childReferences = (children ?? Array.Empty<Person>())
-               .OrderBy(x => x.BirthDate)
-               .ThenBy(x => x.Name.LastName)
-               .ThenBy(x => x.Name.FirstName)
-               .Select(x => x.ToReferenceDto())
-               .ToArray();
-            string? lastChildbirthDate = person.LastChildbirthDate?
-               .ToString(
-                    format: "dd MMMM yyyy",
-                    provider: CultureInfo.InvariantCulture);
-            CityResidentIllnessDto? currentIllness = person.CurrentIllnessKind is not
-            { } illnessKind ||
-                                                     person.CurrentIllnessSeverity is not
-                                                     { } illnessSeverity ||
-                                                     person.IllnessDiagnosedOn is not
-                                                     { } illnessDiagnosedOn
-                ? null
-                : new CityResidentIllnessDto(
-                    Kind: illnessKind.ToString(),
-                    Severity: illnessSeverity.ToString(),
-                    DiagnosedOn: illnessDiagnosedOn.ToString(
-                        format: "dd MMMM yyyy",
-                        provider: CultureInfo.InvariantCulture));
-            string? lastIllnessRecoveredOn = person.LastIllnessRecoveredOn?
-               .ToString(
-                    format: "dd MMMM yyyy",
-                    provider: CultureInfo.InvariantCulture);
-
-            return new CityResidentDetailsDto(
-                Id: snapshot.Id,
-                FullName: snapshot.FullName,
-                Sex: snapshot.Sex,
-                BirthDate: snapshot.BirthDate,
-                DeathDate: snapshot.DeathDate,
-                Age: snapshot.Age,
-                AgeGroup: snapshot.AgeGroup,
-                LifeStatus: snapshot.LifeStatus,
-                MaritalStatus: snapshot.MaritalStatus,
-                EducationLevel: snapshot.EducationLevel,
-                Health: snapshot.Health,
-                Happiness: snapshot.Happiness,
-                Energy: snapshot.Energy,
-                Stress: snapshot.Stress,
-                SocialNeed: snapshot.SocialNeed,
-                EmploymentStatus: snapshot.EmploymentStatus,
-                JobTitle: snapshot.JobTitle,
-                CurrentSpouse: currentSpouse?.ToReferenceDto(),
-                Mother: mother?.ToReferenceDto(),
-                Father: father?.ToReferenceDto(),
-                Children: childReferences,
-                LastChildbirthDate: lastChildbirthDate,
-                CurrentIllness: currentIllness,
-                LastIllnessRecoveredOn: lastIllnessRecoveredOn,
-                CurrentHousing: housing,
-                CurrentWorkplace: workplace,
-                CurrentEducationInstitution: educationInstitution,
-                PrimaryHealthcareProvider: primaryHealthcareProvider,
-                CurrentActiveTrip: currentActiveTrip);
-        }
-
-        private static CityResidentRouteAccessDto? ToRouteAccessDto(CityPopulationCommuteContext? routeAccess)
-        {
-            return routeAccess is null
-                ? null
-                : new CityResidentRouteAccessDto(
-                    HasRouteData: routeAccess.HasRouteData,
-                    IsAccessible: routeAccess.IsAccessible,
-                    AccessibilityIndex: routeAccess.AccessibilityIndex,
-                    PassabilityIndex: routeAccess.PassabilityIndex,
-                    EstimatedTravelTimeMinutes: routeAccess.EstimatedTravelTimeMinutes);
         }
 
         public static PersonDto ToDto(
