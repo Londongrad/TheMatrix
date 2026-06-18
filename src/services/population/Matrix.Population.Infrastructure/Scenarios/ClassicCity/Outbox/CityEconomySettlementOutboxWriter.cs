@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
