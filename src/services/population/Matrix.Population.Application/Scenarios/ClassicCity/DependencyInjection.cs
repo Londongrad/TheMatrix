@@ -1,3 +1,5 @@
+using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Generation;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
@@ -37,6 +39,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity
             services.AddSingleton<CityPopulationWeatherExposurePolicy>();
             services.AddScoped<ICityPopulationCommuteRoutingService, CityPopulationCommuteRoutingService>();
             services.AddScoped<ICityPopulationCommuteTripSyncService, CityPopulationCommuteTripSyncService>();
+            services.AddScoped<IPersonLifecycleExtension, ClassicCityPersonLifecycleExtension>();
 
             return services;
         }
