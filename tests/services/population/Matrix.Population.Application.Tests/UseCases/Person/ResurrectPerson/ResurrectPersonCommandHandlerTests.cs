@@ -1,12 +1,14 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services;
 using Matrix.Population.Application.UseCases.Person.ResurrectPerson;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.Services;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
 
@@ -152,17 +154,29 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
             FakePersonWriteRepository? personWriteRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
+            FakePersonReadRepository resolvedPersonReadRepository =
+                personReadRepository ?? new FakePersonReadRepository();
+            FakePersonWriteRepository resolvedPersonWriteRepository =
+                personWriteRepository ?? new FakePersonWriteRepository();
+
             return new ResurrectPersonCommandHandler(
-                personReadRepository: personReadRepository ?? new FakePersonReadRepository(),
-                cityPopulationPersonReadRepository: cityPopulationPersonReadRepository ??
-                                                    new FakeCityPopulationPersonReadRepository(),
-                cityPopulationProgressionStateRepository: progressionStateRepository ??
-                                                          new FakeCityPopulationProgressionStateRepository(),
-                cityPopulationActivityJournalService: activityJournalService ??
-                                                      new FakeCityPopulationActivityJournalService(),
-                cityPopulationSummaryProjectionService: summaryProjectionService ??
-                                                        new FakeCityPopulationSummaryProjectionService(),
-                personWriteRepository: personWriteRepository ?? new FakePersonWriteRepository(),
+                personReadRepository: resolvedPersonReadRepository,
+                personWriteRepository: resolvedPersonWriteRepository,
+                lifecycleExtensions:
+                [
+                    new ClassicCityPersonLifecycleExtension(
+                        personReadRepository: resolvedPersonReadRepository,
+                        cityPopulationPersonReadRepository: cityPopulationPersonReadRepository ??
+                                                            new FakeCityPopulationPersonReadRepository(),
+                        cityPopulationProgressionStateRepository: progressionStateRepository ??
+                                                                  new FakeCityPopulationProgressionStateRepository(),
+                        cityPopulationActivityJournalService: activityJournalService ??
+                                                              new FakeCityPopulationActivityJournalService(),
+                        cityPopulationSummaryProjectionService: summaryProjectionService ??
+                                                                new FakeCityPopulationSummaryProjectionService(),
+                        marriageDomainService: new MarriageDomainService(),
+                        personWriteRepository: resolvedPersonWriteRepository)
+                ],
                 timeProvider: new FakeTimeProvider(UtcNow),
                 unitOfWork: unitOfWork ?? new FakeUnitOfWork());
         }
