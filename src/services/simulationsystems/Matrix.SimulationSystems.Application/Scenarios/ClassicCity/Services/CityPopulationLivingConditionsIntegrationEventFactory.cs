@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services

@@ -1,4 +1,3 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
 
 namespace Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions

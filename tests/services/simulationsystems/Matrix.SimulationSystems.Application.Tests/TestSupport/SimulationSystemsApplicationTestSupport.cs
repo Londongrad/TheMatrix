@@ -1,7 +1,7 @@
 using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
