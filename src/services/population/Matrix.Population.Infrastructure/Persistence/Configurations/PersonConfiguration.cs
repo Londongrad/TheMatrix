@@ -1,5 +1,4 @@
 using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -199,7 +198,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                                 ? id.Value.Value
                                 : (Guid?)null,
                             convertFromProviderExpression: value => value.HasValue
-                                ? CityAnchorId.From(value.Value)
+                                ? LocationAnchorId.From(value.Value)
                                 : null)
                        .HasColumnName("EducationInstitutionAnchorId");
                 });
@@ -284,7 +283,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                                         ? id.Value.Value
                                         : (Guid?)null,
                                     convertFromProviderExpression: value => value.HasValue
-                                        ? CityAnchorId.From(value.Value)
+                                        ? LocationAnchorId.From(value.Value)
                                         : null)
                                .HasColumnName("WorkplaceAnchorId");
 

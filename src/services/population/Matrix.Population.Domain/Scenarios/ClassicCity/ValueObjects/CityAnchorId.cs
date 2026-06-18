@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects
 {
@@ -16,6 +17,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects
         public static CityAnchorId From(Guid value)
         {
             return new CityAnchorId(value);
+        }
+
+        public static implicit operator LocationAnchorId(CityAnchorId cityAnchorId)
+        {
+            return LocationAnchorId.From(cityAnchorId.Value);
+        }
+
+        public static implicit operator CityAnchorId(LocationAnchorId locationAnchorId)
+        {
+            return From(locationAnchorId.Value);
         }
     }
 }

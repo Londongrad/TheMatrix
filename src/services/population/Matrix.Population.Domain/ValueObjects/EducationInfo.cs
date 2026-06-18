@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
-using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.Population.Domain.ValueObjects
 {
@@ -12,7 +11,7 @@ namespace Matrix.Population.Domain.ValueObjects
         private EducationInfo(
             EducationLevel level,
             EducationInstitutionId? currentInstitutionId,
-            CityAnchorId? currentInstitutionAnchorId)
+            LocationAnchorId? currentInstitutionAnchorId)
         {
             Level = GuardHelper.AgainstInvalidEnum(
                 value: level,
@@ -23,12 +22,12 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public EducationLevel Level { get; }
         public EducationInstitutionId? CurrentInstitutionId { get; }
-        public CityAnchorId? CurrentInstitutionAnchorId { get; }
+        public LocationAnchorId? CurrentInstitutionAnchorId { get; }
 
         public static EducationInfo FromLevel(
             EducationLevel level,
             EducationInstitutionId? currentInstitutionId = null,
-            CityAnchorId? currentInstitutionAnchorId = null)
+            LocationAnchorId? currentInstitutionAnchorId = null)
         {
             return new EducationInfo(
                 level: level,
@@ -47,7 +46,7 @@ namespace Matrix.Population.Domain.ValueObjects
         public EducationInfo GraduateTo(
             EducationLevel newLevel,
             EducationInstitutionId? currentInstitutionId = null,
-            CityAnchorId? currentInstitutionAnchorId = null)
+            LocationAnchorId? currentInstitutionAnchorId = null)
         {
             EducationRules.ValidateTransition(
                 from: Level,
@@ -60,7 +59,7 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public EducationInfo AssignInstitution(
             EducationInstitutionId institutionId,
-            CityAnchorId? currentInstitutionAnchorId = null)
+            LocationAnchorId? currentInstitutionAnchorId = null)
         {
             return new EducationInfo(
                 level: Level,

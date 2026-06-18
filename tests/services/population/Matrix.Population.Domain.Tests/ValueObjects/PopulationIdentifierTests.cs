@@ -25,8 +25,26 @@ namespace Matrix.Population.Domain.Tests.ValueObjects
             Assert.Throws<DomainException>(() => PersonId.From(Guid.Empty));
             Assert.Throws<DomainException>(() => HouseholdId.From(Guid.Empty));
             Assert.Throws<DomainException>(() => WorkplaceId.From(Guid.Empty));
+            Assert.Throws<DomainException>(() => LocationAnchorId.From(Guid.Empty));
             Assert.Throws<DomainException>(() => CityAnchorId.From(Guid.Empty));
             Assert.Throws<DomainException>(() => EducationInstitutionId.From(Guid.Empty));
+        }
+
+        [Fact]
+        public void CityAnchorId_ConvertsToAndFromCommonLocationAnchorId()
+        {
+            var value = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            CityAnchorId cityAnchorId = CityAnchorId.From(value);
+
+            LocationAnchorId locationAnchorId = cityAnchorId;
+            CityAnchorId roundTripCityAnchorId = locationAnchorId;
+
+            Assert.Equal(
+                expected: value,
+                actual: locationAnchorId.Value);
+            Assert.Equal(
+                expected: cityAnchorId,
+                actual: roundTripCityAnchorId);
         }
     }
 }

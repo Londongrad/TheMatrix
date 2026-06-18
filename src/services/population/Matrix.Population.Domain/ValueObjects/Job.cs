@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.Population.Domain.ValueObjects
 {
@@ -8,7 +7,7 @@ namespace Matrix.Population.Domain.ValueObjects
         public Job(
             WorkplaceId workplaceId,
             string title,
-            CityAnchorId? workplaceAnchorId = null)
+            LocationAnchorId? workplaceAnchorId = null)
         {
             WorkplaceId = workplaceId;
             Title = GuardHelper.AgainstNullOrWhiteSpace(
@@ -19,6 +18,6 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public WorkplaceId WorkplaceId { get; }
         public string Title { get; }
-        public CityAnchorId? WorkplaceAnchorId { get; }
+        public LocationAnchorId? WorkplaceAnchorId { get; }
     }
 }

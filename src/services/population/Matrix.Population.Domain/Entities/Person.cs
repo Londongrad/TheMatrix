@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Rules;
-using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Entities
@@ -24,7 +23,7 @@ namespace Matrix.Population.Domain.Entities
             PersonId? spouseId,
             EducationLevel educationLevel,
             EducationInstitutionId? educationInstitutionId,
-            CityAnchorId? educationInstitutionAnchorId,
+            LocationAnchorId? educationInstitutionAnchorId,
             EmploymentStatus employmentStatus,
             HappinessLevel happinessLevel,
             EnergyLevel energyLevel,
@@ -404,7 +403,7 @@ namespace Matrix.Population.Domain.Entities
         public void StartStudying(
             DateOnly currentDate,
             EducationInstitutionId institutionId,
-            CityAnchorId? institutionAnchorId = null)
+            LocationAnchorId? institutionAnchorId = null)
         {
             Education = Education.AssignInstitution(
                 institutionId: GuardHelper.AgainstNull(
@@ -441,7 +440,7 @@ namespace Matrix.Population.Domain.Entities
         public void GraduateTo(
             EducationLevel newLevel,
             EducationInstitutionId? institutionId = null,
-            CityAnchorId? institutionAnchorId = null)
+            LocationAnchorId? institutionAnchorId = null)
         {
             Education = Education.GraduateTo(
                 newLevel: newLevel,
