@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     RecalculateCityEnvironmentalConditions;

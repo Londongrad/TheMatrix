@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
 
 namespace Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions
 {

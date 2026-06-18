@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Infrastructure.Outbox;

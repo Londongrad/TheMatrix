@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Domain.Simulation;
