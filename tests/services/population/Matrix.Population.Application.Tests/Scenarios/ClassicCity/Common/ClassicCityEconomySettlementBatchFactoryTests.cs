@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Domain.ValueObjects;
 using Xunit;
