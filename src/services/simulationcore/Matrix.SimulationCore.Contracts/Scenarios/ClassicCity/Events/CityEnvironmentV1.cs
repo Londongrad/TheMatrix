@@ -1,4 +1,4 @@
-namespace Matrix.SimulationCore.Contracts.Events
+namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events
 {
     public sealed record CityEnvironmentV1(
         string ClimateZone,

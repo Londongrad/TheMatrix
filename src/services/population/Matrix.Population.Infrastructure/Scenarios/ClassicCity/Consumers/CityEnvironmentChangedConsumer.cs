@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

@@ -5,6 +5,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Sy
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Population.Infrastructure.Tests.TestSupport;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity;
 using MediatR;
 using Microsoft.Extensions.Logging;

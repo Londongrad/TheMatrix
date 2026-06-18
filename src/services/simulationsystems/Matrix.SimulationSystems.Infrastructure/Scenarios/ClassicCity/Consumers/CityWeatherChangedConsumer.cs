@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.
     RecalculateCityEnvironmentalConditions;
 using MediatR;

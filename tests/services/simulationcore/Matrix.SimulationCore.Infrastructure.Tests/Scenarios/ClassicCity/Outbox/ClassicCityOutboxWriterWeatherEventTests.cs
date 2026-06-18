@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Weather;
