@@ -1,5 +1,6 @@
 using System.Text;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
 
 namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
