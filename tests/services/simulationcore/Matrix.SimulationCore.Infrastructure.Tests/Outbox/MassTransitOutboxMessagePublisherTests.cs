@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Events;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox;
@@ -34,7 +35,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(()
                 => publisher.PublishAsync(
                     messageId: Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
-                    type: SimulationCoreEventTypes.ClassicCityCreatedV1,
+                    type: ClassicCityEventTypes.ClassicCityCreatedV1,
                     payloadJson: "null",
                     cancellationToken: CancellationToken.None));
 
@@ -50,7 +51,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
 
             await Assert.ThrowsAsync<JsonException>(() => publisher.PublishAsync(
                 messageId: Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"),
-                type: SimulationCoreEventTypes.ClassicCityCreatedV1,
+                type: ClassicCityEventTypes.ClassicCityCreatedV1,
                 payloadJson: "{",
                 cancellationToken: CancellationToken.None));
         }

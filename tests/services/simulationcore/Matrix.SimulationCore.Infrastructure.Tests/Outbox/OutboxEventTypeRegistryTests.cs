@@ -34,16 +34,16 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
                 actual: registry.Resolve(SimulationCoreEventTypes.SimulationTickPhaseReachedV1));
             Assert.Equal(
                 expected: typeof(ClassicCityCreatedV1),
-                actual: registry.Resolve(SimulationCoreEventTypes.ClassicCityCreatedV1));
+                actual: registry.Resolve(ClassicCityEventTypes.ClassicCityCreatedV1));
             Assert.Equal(
                 expected: typeof(CityEnvironmentChangedV1),
-                actual: registry.Resolve(SimulationCoreEventTypes.CityEnvironmentChangedV1));
+                actual: registry.Resolve(ClassicCityEventTypes.CityEnvironmentChangedV1));
             Assert.Equal(
                 expected: typeof(CityWeatherCreatedV1),
-                actual: registry.Resolve(SimulationCoreEventTypes.CityWeatherCreatedV1));
+                actual: registry.Resolve(ClassicCityEventTypes.CityWeatherCreatedV1));
             Assert.Equal(
                 expected: typeof(CityWeatherChangedV1),
-                actual: registry.Resolve(SimulationCoreEventTypes.CityWeatherChangedV1));
+                actual: registry.Resolve(ClassicCityEventTypes.CityWeatherChangedV1));
             Assert.Equal(
                 expected: typeof(WeatherOverrideStartedV1),
                 actual: registry.Resolve(SimulationCoreEventTypes.WeatherOverrideStartedV1));

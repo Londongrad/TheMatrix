@@ -97,7 +97,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
 
             OutboxMessage createdMessage = Assert.Single(
                 collection: messages,
-                predicate: x => x.Type == SimulationCoreEventTypes.CityWeatherCreatedV1);
+                predicate: x => x.Type == ClassicCityEventTypes.CityWeatherCreatedV1);
             CityWeatherCreatedV1 createdPayload =
                 OutboxTestSupport.DeserializePayload<CityWeatherCreatedV1>(createdMessage);
             Assert.Equal(
@@ -133,7 +133,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Scenarios.ClassicCity.Outbo
 
             OutboxMessage changedMessage = Assert.Single(
                 collection: messages,
-                predicate: x => x.Type == SimulationCoreEventTypes.CityWeatherChangedV1);
+                predicate: x => x.Type == ClassicCityEventTypes.CityWeatherChangedV1);
             CityWeatherChangedV1 changedPayload =
                 OutboxTestSupport.DeserializePayload<CityWeatherChangedV1>(changedMessage);
             Assert.Equal(

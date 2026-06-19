@@ -31,7 +31,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
                 {
                     dbContext.OutboxMessages.Add(
                         OutboxMessage.Create(
-                            type: SimulationCoreEventTypes.ClassicCityCreatedV1,
+                            type: ClassicCityEventTypes.ClassicCityCreatedV1,
                             occurredOnUtc: occurredOnUtc.UtcDateTime,
                             payload: new ClassicCityCreatedV1(
                                 SimulationId: created.CityId.Value,
@@ -48,7 +48,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
 
                     dbContext.OutboxMessages.Add(
                         OutboxMessage.Create(
-                            type: SimulationCoreEventTypes.CityEnvironmentChangedV1,
+                            type: ClassicCityEventTypes.CityEnvironmentChangedV1,
                             occurredOnUtc: occurredOnUtc.UtcDateTime,
                             payload: new CityEnvironmentChangedV1(
                                 CityId: created.CityId.Value,
@@ -62,7 +62,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
                 OutboxMessage? message = domainEvent switch
                 {
                     CityEnvironmentChangedDomainEvent changed => OutboxMessage.Create(
-                        type: SimulationCoreEventTypes.CityEnvironmentChangedV1,
+                        type: ClassicCityEventTypes.CityEnvironmentChangedV1,
                         occurredOnUtc: occurredOnUtc.UtcDateTime,
                         payload: new CityEnvironmentChangedV1(
                             CityId: changed.CityId.Value,
@@ -94,7 +94,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
                 OutboxMessage message = domainEvent switch
                 {
                     CityWeatherCreatedDomainEvent created => OutboxMessage.Create(
-                        type: SimulationCoreEventTypes.CityWeatherCreatedV1,
+                        type: ClassicCityEventTypes.CityWeatherCreatedV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new CityWeatherCreatedV1(
                             CityId: created.CityId.Value,
@@ -103,7 +103,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
                             AtSimTimeUtc: created.AtSimTime.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     CityWeatherChangedDomainEvent changed => OutboxMessage.Create(
-                        type: SimulationCoreEventTypes.CityWeatherChangedV1,
+                        type: ClassicCityEventTypes.CityWeatherChangedV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new CityWeatherChangedV1(
                             CityId: changed.CityId.Value,
