@@ -4,11 +4,7 @@ namespace Matrix.Population.Application.Authorization.Permissions
 {
     public static class PermissionKeys
     {
-        public const string PopulationPeopleInitialize = ContractPermissionKeys.PopulationPeopleInitialize;
         public const string PopulationPeopleRead = ContractPermissionKeys.PopulationPeopleRead;
-        public const string PopulationCivilRegistryManage = ContractPermissionKeys.PopulationCivilRegistryManage;
-        public const string PopulationEmploymentManage = ContractPermissionKeys.PopulationEmploymentManage;
-        public const string PopulationEducationManage = ContractPermissionKeys.PopulationEducationManage;
 
         public const string PopulationPersonResurrect = ContractPermissionKeys.PopulationPersonResurrect;
         public const string PopulationPersonKill = ContractPermissionKeys.PopulationPersonKill;
