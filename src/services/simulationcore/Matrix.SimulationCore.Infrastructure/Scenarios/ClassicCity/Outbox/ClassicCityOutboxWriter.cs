@@ -112,7 +112,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
                             AtSimTimeUtc: changed.AtSimTime.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     WeatherOverrideStartedDomainEvent started => OutboxMessage.Create(
-                        type: SimulationCoreEventTypes.WeatherOverrideStartedV1,
+                        type: ClassicCityEventTypes.WeatherOverrideStartedV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new WeatherOverrideStartedV1(
                             CityId: started.CityId.Value,
@@ -123,7 +123,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
                             Reason: started.Reason,
                             OccurredOnUtc: occurredOnUtc)),
                     WeatherOverrideCancelledDomainEvent cancelled => OutboxMessage.Create(
-                        type: SimulationCoreEventTypes.WeatherOverrideCancelledV1,
+                        type: ClassicCityEventTypes.WeatherOverrideCancelledV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new WeatherOverrideCancelledV1(
                             CityId: cancelled.CityId.Value,
@@ -132,7 +132,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
                             CancelledAtUtc: cancelled.CancelledAt.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     WeatherOverrideExpiredDomainEvent expired => OutboxMessage.Create(
-                        type: SimulationCoreEventTypes.WeatherOverrideExpiredV1,
+                        type: ClassicCityEventTypes.WeatherOverrideExpiredV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new WeatherOverrideExpiredV1(
                             CityId: expired.CityId.Value,
@@ -141,7 +141,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity.Outbox
                             ExpiredAtUtc: expired.ExpiredAt.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     ClimateProfileChangedDomainEvent profileChanged => OutboxMessage.Create(
-                        type: SimulationCoreEventTypes.ClimateProfileChangedV1,
+                        type: ClassicCityEventTypes.ClimateProfileChangedV1,
                         occurredOnUtc: occurredOnUtc,
                         payload: new ClimateProfileChangedV1(
                             CityId: profileChanged.CityId.Value,
