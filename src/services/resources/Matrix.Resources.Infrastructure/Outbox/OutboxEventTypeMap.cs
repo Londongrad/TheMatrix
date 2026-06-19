@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
+using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox;
 
 namespace Matrix.Resources.Infrastructure.Outbox
 {
@@ -8,8 +9,8 @@ namespace Matrix.Resources.Infrastructure.Outbox
         public static readonly IReadOnlyDictionary<string, Type> Map =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
-                [ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1] = typeof(ClassicCityStockpileSnapshotV1),
-                [ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] =
+                [ClassicCityOutboxEventTypes.ClassicCityStockpileSnapshotV1] = typeof(ClassicCityStockpileSnapshotV1),
+                [ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] =
                     typeof(ClassicCityOperationalExpenseIncurredV1)
             };
     }

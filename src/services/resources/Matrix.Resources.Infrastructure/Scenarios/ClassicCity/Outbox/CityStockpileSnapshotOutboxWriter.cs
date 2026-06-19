@@ -2,7 +2,6 @@ using System.Text.Json;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
-using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Persistence;
 
 namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox
@@ -18,7 +17,7 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox
         {
             dbContext.OutboxMessages.Add(
                 OutboxMessage.Create(
-                    type: ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1,
+                    type: ClassicCityOutboxEventTypes.ClassicCityStockpileSnapshotV1,
                     occurredOnUtc: snapshot.OccurredAtUtc.UtcDateTime,
                     payload: snapshot,
                     jsonOptions: JsonOptions));

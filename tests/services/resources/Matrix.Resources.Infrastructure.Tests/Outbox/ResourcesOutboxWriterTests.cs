@@ -17,10 +17,10 @@ namespace Matrix.Resources.Infrastructure.Tests.Outbox
         {
             Assert.Equal(
                 expected: typeof(ClassicCityStockpileSnapshotV1),
-                actual: OutboxEventTypeMap.Map[ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1]);
+                actual: OutboxEventTypeMap.Map[ClassicCityOutboxEventTypes.ClassicCityStockpileSnapshotV1]);
             Assert.Equal(
                 expected: typeof(ClassicCityOperationalExpenseIncurredV1),
-                actual: OutboxEventTypeMap.Map[ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1]);
+                actual: OutboxEventTypeMap.Map[ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1]);
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Outbox
 
             OutboxMessage message = Assert.Single(dbContext.OutboxMessages);
             Assert.Equal(
-                expected: ResourcesOutboxEventTypes.ClassicCityStockpileSnapshotV1,
+                expected: ClassicCityOutboxEventTypes.ClassicCityStockpileSnapshotV1,
                 actual: message.Type);
             Assert.Equal(
                 expected: snapshot.OccurredAtUtc.UtcDateTime,
@@ -70,7 +70,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Outbox
 
             OutboxMessage message = Assert.Single(dbContext.OutboxMessages);
             Assert.Equal(
-                expected: ResourcesOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1,
+                expected: ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1,
                 actual: message.Type);
             Assert.Equal(
                 expected: expense.OccurredAtUtc.UtcDateTime,
