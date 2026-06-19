@@ -2,6 +2,8 @@ using Matrix.PermissionCatalog.Abstractions;
 using EconomyPermissionsCatalog = Matrix.Economy.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionsCatalog;
 using IdentityPermissionsCatalog = Matrix.Identity.Contracts.Authorization.Permissions.PermissionsCatalog;
 using PopulationPermissionsCatalog = Matrix.Population.Contracts.Authorization.Permissions.PermissionsCatalog;
+using PopulationClassicCityPermissionsCatalog =
+    Matrix.Population.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionsCatalog;
 using ResourcesPermissionsCatalog = Matrix.Resources.Contracts.Authorization.Permissions.PermissionsCatalog;
 using SimulationCorePermissionsCatalog = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionsCatalog;
 using SimulationCoreClassicCityPermissionsCatalog =
@@ -34,6 +36,10 @@ namespace Matrix.PermissionCatalog
             AddRange(
                 permissionsByKey: permissionsByKey,
                 definitions: PopulationPermissionsCatalog.All);
+
+            AddRange(
+                permissionsByKey: permissionsByKey,
+                definitions: PopulationClassicCityPermissionsCatalog.All);
 
             AddRange(
                 permissionsByKey: permissionsByKey,
