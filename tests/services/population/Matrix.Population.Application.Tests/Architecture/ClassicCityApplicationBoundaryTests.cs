@@ -11,9 +11,7 @@ namespace Matrix.Population.Application.Tests.Architecture
             Type[] misplacedTypes = typeof(IPersonLifecycleExtension).Assembly
                .GetTypes()
                .Where(type =>
-                    (type.Name.StartsWith("City", StringComparison.Ordinal) ||
-                     type.Name.StartsWith("ICity", StringComparison.Ordinal) ||
-                     type.Name.Contains("ClassicCity", StringComparison.Ordinal)) &&
+                    type.Name.Contains("City", StringComparison.Ordinal) &&
                     (type.Namespace is null ||
                      !type.Namespace.StartsWith(
                          "Matrix.Population.Application.Scenarios.ClassicCity",
