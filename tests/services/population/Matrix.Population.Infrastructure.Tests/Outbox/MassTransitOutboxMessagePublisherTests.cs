@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Matrix.Population.Infrastructure.Outbox;
 using Matrix.Population.Infrastructure.Outbox.RabbitMq;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Xunit;
 
 namespace Matrix.Population.Infrastructure.Tests.Outbox
@@ -32,7 +33,7 @@ namespace Matrix.Population.Infrastructure.Tests.Outbox
             InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(()
                 => publisher.PublishAsync(
                     messageId: Guid.Parse("6b9282cb-c3f4-418f-95bd-b60670bd8f88"),
-                    type: PopulationOutboxEventTypes.CityEconomyDailySettlementV1,
+                    type: ClassicCityOutboxEventTypes.CityEconomyDailySettlementV1,
                     payloadJson: "null",
                     cancellationToken: CancellationToken.None));
 
@@ -48,7 +49,7 @@ namespace Matrix.Population.Infrastructure.Tests.Outbox
 
             await Assert.ThrowsAsync<JsonException>(() => publisher.PublishAsync(
                 messageId: Guid.Parse("8351fa7f-9c7a-4ca1-9816-6b69ea90d427"),
-                type: PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1,
+                type: ClassicCityOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1,
                 payloadJson: "{",
                 cancellationToken: CancellationToken.None));
         }

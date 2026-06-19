@@ -55,7 +55,7 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Outbox
                     json: message.PayloadJson,
                     options: JsonOptions);
             Assert.Equal(
-                expected: PopulationOutboxEventTypes.CityEconomyDailySettlementV1,
+                expected: ClassicCityOutboxEventTypes.CityEconomyDailySettlementV1,
                 actual: message.Type);
             Assert.NotNull(payload);
             Assert.Equal(
@@ -176,16 +176,16 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Outbox
                 actual: messages.Count);
             Assert.Contains(
                 collection: messages,
-                filter: x => x.Type == PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1);
+                filter: x => x.Type == ClassicCityOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1);
             Assert.Contains(
                 collection: messages,
-                filter: x => x.Type == PopulationOutboxEventTypes.ClassicCityWorkplaceBusinessSyncBatchV1);
+                filter: x => x.Type == ClassicCityOutboxEventTypes.ClassicCityWorkplaceBusinessSyncBatchV1);
             Assert.Contains(
                 collection: messages,
-                filter: x => x.Type == PopulationOutboxEventTypes.ClassicCityWorkplacePayrollSettlementBatchV1);
+                filter: x => x.Type == ClassicCityOutboxEventTypes.ClassicCityWorkplacePayrollSettlementBatchV1);
             Assert.Contains(
                 collection: messages,
-                filter: x => x.Type == PopulationOutboxEventTypes.ClassicCityHouseholdCashflowSettlementBatchV1);
+                filter: x => x.Type == ClassicCityOutboxEventTypes.ClassicCityHouseholdCashflowSettlementBatchV1);
             Assert.All(
                 collection: messages,
                 action: x => Assert.Equal(

@@ -1,6 +1,6 @@
-namespace Matrix.Population.Infrastructure.Outbox
+namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox
 {
-    public static class PopulationOutboxEventTypes
+    public static class ClassicCityOutboxEventTypes
     {
         public const string CityEconomyDailySettlementV1 = "population.city-economy-daily-settlement.v1";
 
