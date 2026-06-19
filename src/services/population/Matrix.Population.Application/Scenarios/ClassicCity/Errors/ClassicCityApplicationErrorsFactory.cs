@@ -30,5 +30,35 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Errors
                 message: $"Household '{householdId}' has no classic city placement for city '{cityId}'.",
                 errorType: ApplicationErrorType.NotFound);
         }
+
+        public static MatrixApplicationException PersonNotAssignedToCity(
+            Guid personId,
+            Guid cityId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Person.NotAssignedToCity",
+                message: $"Person '{personId}' is not assigned to city '{cityId}'.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
+        public static MatrixApplicationException EmploymentWorkplaceNotFound(
+            Guid workplaceId,
+            Guid cityId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Employment.Workplace.NotFound",
+                message: $"Workplace '{workplaceId}' was not found inside city '{cityId}'.",
+                errorType: ApplicationErrorType.NotFound);
+        }
+
+        public static MatrixApplicationException EducationInstitutionNotFound(
+            Guid institutionId,
+            Guid cityId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.Institution.NotFound",
+                message: $"Education institution '{institutionId}' was not found inside city '{cityId}'.",
+                errorType: ApplicationErrorType.NotFound);
+        }
     }
 }

@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
+using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -36,7 +37,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                 cancellationToken: cancellationToken);
 
             if (actualCityId is null || actualCityId.Value.Value != cityId)
-                throw ApplicationErrorsFactory.PersonNotAssignedToCity(
+                throw ClassicCityApplicationErrorsFactory.PersonNotAssignedToCity(
                     personId: residentId,
                     cityId: cityId);
 
@@ -128,7 +129,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                     cancellationToken: cancellationToken);
 
             if (institution is null)
-                throw ApplicationErrorsFactory.EducationInstitutionNotFound(
+                throw ClassicCityApplicationErrorsFactory.EducationInstitutionNotFound(
                     institutionId: institutionId.Value,
                     cityId: cityId);
 

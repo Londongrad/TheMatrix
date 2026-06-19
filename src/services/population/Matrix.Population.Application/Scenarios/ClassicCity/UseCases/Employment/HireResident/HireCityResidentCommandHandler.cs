@@ -4,6 +4,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
+using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Common;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -48,7 +49,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                 : null;
 
             if (request.WorkplaceId.HasValue && workplace is null)
-                throw ApplicationErrorsFactory.EmploymentWorkplaceNotFound(
+                throw ClassicCityApplicationErrorsFactory.EmploymentWorkplaceNotFound(
                     workplaceId: request.WorkplaceId.Value,
                     cityId: request.CityId);
 

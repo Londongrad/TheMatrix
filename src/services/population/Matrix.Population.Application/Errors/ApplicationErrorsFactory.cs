@@ -101,16 +101,6 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.NotFound);
         }
 
-        public static MatrixApplicationException PersonNotAssignedToCity(
-            Guid personId,
-            Guid cityId)
-        {
-            return new MatrixApplicationException(
-                code: "Population.Person.NotAssignedToCity",
-                message: $"Person '{personId}' is not assigned to city '{cityId}'.",
-                errorType: ApplicationErrorType.BusinessRule);
-        }
-
         public static MatrixApplicationException CivilRegistryResidentsAreNotCurrentSpouses(
             Guid firstResidentId,
             Guid secondResidentId)
@@ -127,26 +117,6 @@ namespace Matrix.Population.Application.Errors
             return new MatrixApplicationException(
                 code: "Population.Household.NotFound",
                 message: $"Household '{householdId}' was not found.",
-                errorType: ApplicationErrorType.NotFound);
-        }
-
-        public static MatrixApplicationException EmploymentWorkplaceNotFound(
-            Guid workplaceId,
-            Guid cityId)
-        {
-            return new MatrixApplicationException(
-                code: "Population.Employment.Workplace.NotFound",
-                message: $"Workplace '{workplaceId}' was not found inside city '{cityId}'.",
-                errorType: ApplicationErrorType.NotFound);
-        }
-
-        public static MatrixApplicationException EducationInstitutionNotFound(
-            Guid institutionId,
-            Guid cityId)
-        {
-            return new MatrixApplicationException(
-                code: "Population.Education.Institution.NotFound",
-                message: $"Education institution '{institutionId}' was not found inside city '{cityId}'.",
                 errorType: ApplicationErrorType.NotFound);
         }
 
