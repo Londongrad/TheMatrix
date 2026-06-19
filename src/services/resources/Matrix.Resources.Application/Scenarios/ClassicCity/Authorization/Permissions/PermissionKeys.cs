@@ -1,6 +1,7 @@
-using ContractPermissionKeys = Matrix.Resources.Contracts.Authorization.Permissions.PermissionKeys;
+using ContractPermissionKeys =
+    Matrix.Resources.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 
-namespace Matrix.Resources.Application.Authorization.Permissions
+namespace Matrix.Resources.Application.Scenarios.ClassicCity.Authorization.Permissions
 {
     public static class PermissionKeys
     {

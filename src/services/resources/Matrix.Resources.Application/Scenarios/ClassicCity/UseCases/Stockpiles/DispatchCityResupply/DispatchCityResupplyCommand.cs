@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.Resources.Application.Authorization.Permissions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Authorization.Permissions;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
 using MediatR;
 

@@ -4,7 +4,8 @@ using IdentityPermissionsCatalog = Matrix.Identity.Contracts.Authorization.Permi
 using PopulationPermissionsCatalog = Matrix.Population.Contracts.Authorization.Permissions.PermissionsCatalog;
 using PopulationClassicCityPermissionsCatalog =
     Matrix.Population.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionsCatalog;
-using ResourcesPermissionsCatalog = Matrix.Resources.Contracts.Authorization.Permissions.PermissionsCatalog;
+using ResourcesPermissionsCatalog =
+    Matrix.Resources.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionsCatalog;
 using SimulationCorePermissionsCatalog = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionsCatalog;
 using SimulationCoreClassicCityPermissionsCatalog =
     Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionsCatalog;
