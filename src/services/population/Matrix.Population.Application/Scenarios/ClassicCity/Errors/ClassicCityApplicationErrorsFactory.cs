@@ -20,5 +20,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Errors
                 message: $"Cannot initialize population for deleted city '{cityId}'.",
                 errorType: ApplicationErrorType.Conflict);
         }
+
+        public static MatrixApplicationException HouseholdPlacementNotFound(
+            Guid householdId,
+            Guid cityId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.ClassicCity.HouseholdPlacement.NotFound",
+                message: $"Household '{householdId}' has no classic city placement for city '{cityId}'.",
+                errorType: ApplicationErrorType.NotFound);
+        }
     }
 }

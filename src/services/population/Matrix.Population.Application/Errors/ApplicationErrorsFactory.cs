@@ -130,16 +130,6 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.NotFound);
         }
 
-        public static MatrixApplicationException HouseholdPlacementNotFound(
-            Guid householdId,
-            Guid cityId)
-        {
-            return new MatrixApplicationException(
-                code: "Population.ClassicCity.HouseholdPlacement.NotFound",
-                message: $"Household '{householdId}' has no classic city placement for city '{cityId}'.",
-                errorType: ApplicationErrorType.NotFound);
-        }
-
         public static MatrixApplicationException EmploymentWorkplaceNotFound(
             Guid workplaceId,
             Guid cityId)

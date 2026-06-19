@@ -1,5 +1,6 @@
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -80,7 +81,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 cancellationToken: cancellationToken);
 
             if (placement is null || placement.CityId != cityId)
-                throw ApplicationErrorsFactory.HouseholdPlacementNotFound(
+                throw ClassicCityApplicationErrorsFactory.HouseholdPlacementNotFound(
                     householdId: householdId.Value,
                     cityId: cityId.Value);
 
