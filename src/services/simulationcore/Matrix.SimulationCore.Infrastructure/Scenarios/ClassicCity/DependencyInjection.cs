@@ -17,7 +17,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using EconomyPermissionKeys = Matrix.Economy.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
-using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
+using PopulationClassicCityPermissionKeys =
+    Matrix.Population.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity
 {
@@ -79,7 +80,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity
                 })
                .AddInternalServiceAuthentication(
                     identity: InternalServicePrincipals.SimulationCore,
-                    PopulationPermissionKeys.PopulationPeopleInitialize);
+                    PopulationClassicCityPermissionKeys.PopulationPeopleInitialize);
 
             services.AddHttpClient<ICityRoadSegmentConditionsClient, CityRoadSegmentConditionsClient>((
                     sp,

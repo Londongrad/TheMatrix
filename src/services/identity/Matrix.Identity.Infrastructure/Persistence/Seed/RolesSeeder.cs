@@ -3,6 +3,8 @@ using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
+using PopulationClassicCityPermissionKeys =
+    Matrix.Population.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
 using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 using SimulationCoreClassicCityPermissionKeys =
     Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Authorization.Permissions.PermissionKeys;
@@ -195,9 +197,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 SimulationCorePermissionKeys.SimulationCoreSimulationRead,
                 SimulationCorePermissionKeys.SimulationCoreSimulationControl,
                 PopulationPermissionKeys.PopulationPeopleRead,
-                PopulationPermissionKeys.PopulationCivilRegistryManage,
-                PopulationPermissionKeys.PopulationEmploymentManage,
-                PopulationPermissionKeys.PopulationEducationManage
+                PopulationClassicCityPermissionKeys.PopulationCivilRegistryManage,
+                PopulationClassicCityPermissionKeys.PopulationEmploymentManage,
+                PopulationClassicCityPermissionKeys.PopulationEducationManage
             };
         }
     }

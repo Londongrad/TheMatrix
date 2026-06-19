@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.Population.Application.Authorization.Permissions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Authorization.Permissions;
 using MediatR;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment

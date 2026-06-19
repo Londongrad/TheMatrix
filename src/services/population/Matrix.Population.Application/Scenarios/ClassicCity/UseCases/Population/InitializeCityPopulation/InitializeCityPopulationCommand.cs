@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.Population.Application.Authorization.Permissions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Authorization.Permissions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using MediatR;
