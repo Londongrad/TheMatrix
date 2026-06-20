@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Resources;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Outbox;

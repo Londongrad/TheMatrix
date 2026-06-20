@@ -1,6 +1,6 @@
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Resources;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;

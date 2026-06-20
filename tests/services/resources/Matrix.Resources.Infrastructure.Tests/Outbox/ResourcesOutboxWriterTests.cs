@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Resources;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox;

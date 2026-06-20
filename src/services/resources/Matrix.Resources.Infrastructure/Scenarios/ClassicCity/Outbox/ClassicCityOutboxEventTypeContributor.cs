@@ -1,5 +1,5 @@
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Resources;
 using Matrix.Resources.Infrastructure.Outbox;
 
 namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox

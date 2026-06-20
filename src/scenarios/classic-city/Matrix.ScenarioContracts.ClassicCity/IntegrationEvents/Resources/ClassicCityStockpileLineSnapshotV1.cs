@@ -1,4 +1,4 @@
-namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources
+namespace Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Resources
 {
     public sealed record ClassicCityStockpileLineSnapshotV1(
         string Kind,

@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Resources;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 
