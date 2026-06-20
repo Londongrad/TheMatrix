@@ -1,15 +1,16 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
-using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox;
+using Matrix.Resources.Infrastructure.Outbox;
 
-namespace Matrix.Resources.Infrastructure.Outbox
+namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Outbox
 {
-    public static class OutboxEventTypeMap
+    public sealed class ClassicCityOutboxEventTypeContributor : IOutboxEventTypeContributor
     {
-        public static readonly IReadOnlyDictionary<string, Type> Map =
+        public IReadOnlyDictionary<string, Type> EventTypes { get; } =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
-                [ClassicCityOutboxEventTypes.ClassicCityStockpileSnapshotV1] = typeof(ClassicCityStockpileSnapshotV1),
+                [ClassicCityOutboxEventTypes.ClassicCityStockpileSnapshotV1] =
+                    typeof(ClassicCityStockpileSnapshotV1),
                 [ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] =
                     typeof(ClassicCityOperationalExpenseIncurredV1)
             };

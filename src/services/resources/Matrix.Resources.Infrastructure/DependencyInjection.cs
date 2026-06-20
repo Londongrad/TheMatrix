@@ -68,6 +68,7 @@ namespace Matrix.Resources.Infrastructure
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
             services.AddOutbox<ResourcesDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
+            services.AddSingleton<OutboxEventTypeRegistry>();
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();

@@ -11,7 +11,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Outbox
         [Fact]
         public async Task PublishAsync_WhenMessageTypeIsUnsupported_ThrowsNotSupportedException()
         {
-            var publisher = new MassTransitOutboxMessagePublisher(null!);
+            var publisher = CreatePublisher();
 
             NotSupportedException exception = await Assert.ThrowsAsync<NotSupportedException>(()
                 => publisher.PublishAsync(
@@ -28,7 +28,7 @@ namespace Matrix.Resources.Infrastructure.Tests.Outbox
         [Fact]
         public async Task PublishAsync_WhenPayloadDeserializesToNull_ThrowsInvalidOperationException()
         {
-            var publisher = new MassTransitOutboxMessagePublisher(null!);
+            var publisher = CreatePublisher();
 
             InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(()
                 => publisher.PublishAsync(
@@ -45,13 +45,21 @@ namespace Matrix.Resources.Infrastructure.Tests.Outbox
         [Fact]
         public async Task PublishAsync_WhenPayloadJsonIsMalformed_ThrowsJsonException()
         {
-            var publisher = new MassTransitOutboxMessagePublisher(null!);
+            var publisher = CreatePublisher();
 
             await Assert.ThrowsAsync<JsonException>(() => publisher.PublishAsync(
                 messageId: Guid.Parse("56131248-e854-4ecc-a7f3-31ddb4d3d2b5"),
                 type: ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1,
                 payloadJson: "{",
                 cancellationToken: CancellationToken.None));
+        }
+
+        private static MassTransitOutboxMessagePublisher CreatePublisher()
+        {
+            var registry = new OutboxEventTypeRegistry([new ClassicCityOutboxEventTypeContributor()]);
+            return new MassTransitOutboxMessagePublisher(
+                publishEndpoint: null!,
+                eventTypeRegistry: registry);
         }
     }
 }

@@ -13,14 +13,16 @@ namespace Matrix.Resources.Infrastructure.Tests.Outbox
     public sealed class ResourcesOutboxWriterTests
     {
         [Fact]
-        public void OutboxEventTypeMap_ContainsKnownResourcesEvents()
+        public void ClassicCityOutboxContributor_ContainsKnownResourcesEvents()
         {
+            var registry = new OutboxEventTypeRegistry([new ClassicCityOutboxEventTypeContributor()]);
+
             Assert.Equal(
                 expected: typeof(ClassicCityStockpileSnapshotV1),
-                actual: OutboxEventTypeMap.Map[ClassicCityOutboxEventTypes.ClassicCityStockpileSnapshotV1]);
+                actual: registry.Resolve(ClassicCityOutboxEventTypes.ClassicCityStockpileSnapshotV1));
             Assert.Equal(
                 expected: typeof(ClassicCityOperationalExpenseIncurredV1),
-                actual: OutboxEventTypeMap.Map[ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1]);
+                actual: registry.Resolve(ClassicCityOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1));
         }
 
         [Fact]

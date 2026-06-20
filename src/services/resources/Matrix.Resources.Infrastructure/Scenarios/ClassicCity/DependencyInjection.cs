@@ -2,6 +2,7 @@ using MassTransit;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Infrastructure.Options;
+using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Integrations.Economy;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
@@ -23,6 +24,7 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityResourceDeletionStateRepository, CityResourceDeletionStateRepository>();
             services.AddScoped<ICityStockpileSnapshotOutboxWriter, CityStockpileSnapshotOutboxWriter>();
             services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
+            services.AddSingleton<IOutboxEventTypeContributor, ClassicCityOutboxEventTypeContributor>();
             services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((
                     sp,
                     client) =>
