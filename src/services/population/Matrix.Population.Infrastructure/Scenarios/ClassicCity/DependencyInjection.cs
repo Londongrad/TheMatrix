@@ -4,6 +4,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Infrastructure.Options;
+using Matrix.Population.Infrastructure.Outbox;
 using Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Integrations.SimulationCore;
@@ -98,6 +99,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
                .AddScoped<ICityPopulationWeatherImpactStateRepository, CityPopulationWeatherImpactStateRepository>();
             services.AddScoped<ICityPopulationWeatherExposureStateRepository,
                 CityPopulationWeatherExposureStateRepository>();
+            services.AddSingleton<IOutboxEventTypeContributor, ClassicCityOutboxEventTypeContributor>();
 
             return services;
         }

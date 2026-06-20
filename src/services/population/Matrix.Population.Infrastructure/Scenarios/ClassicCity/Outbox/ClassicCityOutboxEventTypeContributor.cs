@@ -1,14 +1,15 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
-using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox;
+using Matrix.Population.Infrastructure.Outbox;
 
-namespace Matrix.Population.Infrastructure.Outbox
+namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox
 {
-    public static class OutboxEventTypeMap
+    public sealed class ClassicCityOutboxEventTypeContributor : IOutboxEventTypeContributor
     {
-        public static readonly IReadOnlyDictionary<string, Type> Map =
+        public IReadOnlyDictionary<string, Type> EventTypes { get; } =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
-                [ClassicCityOutboxEventTypes.CityEconomyDailySettlementV1] = typeof(CityEconomyDailySettlementV1),
+                [ClassicCityOutboxEventTypes.CityEconomyDailySettlementV1] =
+                    typeof(CityEconomyDailySettlementV1),
                 [ClassicCityOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1] =
                     typeof(ClassicCityHouseholdAccountSyncBatchV1),
                 [ClassicCityOutboxEventTypes.ClassicCityWorkplaceBusinessSyncBatchV1] =

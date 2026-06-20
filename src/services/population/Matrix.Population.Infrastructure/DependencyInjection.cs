@@ -9,6 +9,7 @@ using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Options;
+using Matrix.Population.Infrastructure.Outbox;
 using Matrix.Population.Infrastructure.Outbox.RabbitMq;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
@@ -69,6 +70,7 @@ namespace Matrix.Population.Infrastructure
             services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
             services.AddOutbox<PopulationDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
+            services.AddSingleton<OutboxEventTypeRegistry>();
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
