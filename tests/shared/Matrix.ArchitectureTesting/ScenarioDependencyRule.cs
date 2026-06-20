@@ -1,4 +1,5 @@
 using System.Reflection;
+using Mono.Cecil;
 using NetArchTest.Rules;
 using Xunit;
 
@@ -33,13 +34,7 @@ namespace Matrix.ArchitectureTesting
             TestResult result = Types
                .InAssembly(assembly)
                .That()
-               .DoNotResideInNamespaceContaining(scenarioNamespaceSegment)
-               .And()
-               .DoNotResideInNamespaceContaining(".Migrations")
-               .And()
-               .DoNotHaveNameEndingWith("DbContext")
-               .And()
-               .DoNotHaveName("DependencyInjection")
+               .MeetCustomRule(new ScenarioNeutralTypeRule(scenarioNamespaceSegment))
                .ShouldNot()
                .HaveDependencyOnAny(scenarioNamespaceRoots)
                .GetResult();
@@ -54,6 +49,38 @@ namespace Matrix.ArchitectureTesting
                        .Order(StringComparer.Ordinal));
 
             Assert.True(result.IsSuccessful, dependencies);
+        }
+
+        private sealed class ScenarioNeutralTypeRule(string scenarioNamespaceSegment) : ICustomRule
+        {
+            public bool MeetsRule(TypeDefinition typeDefinition)
+            {
+                string effectiveNamespace = GetEffectiveNamespace(typeDefinition);
+
+                return !effectiveNamespace.Contains(
+                           scenarioNamespaceSegment,
+                           StringComparison.Ordinal) &&
+                       !effectiveNamespace.Contains(
+                           ".Migrations",
+                           StringComparison.Ordinal) &&
+                       !typeDefinition.Name.EndsWith(
+                           "DbContext",
+                           StringComparison.Ordinal) &&
+                       !string.Equals(
+                           typeDefinition.Name,
+                           "DependencyInjection",
+                           StringComparison.Ordinal);
+            }
+
+            private static string GetEffectiveNamespace(TypeDefinition typeDefinition)
+            {
+                TypeDefinition current = typeDefinition;
+
+                while (string.IsNullOrEmpty(current.Namespace) && current.DeclaringType is not null)
+                    current = current.DeclaringType;
+
+                return current.Namespace ?? string.Empty;
+            }
         }
     }
 }
