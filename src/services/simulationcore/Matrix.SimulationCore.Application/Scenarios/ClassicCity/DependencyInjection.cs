@@ -1,5 +1,6 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Catalog;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning;
@@ -14,6 +15,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.A
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
+using Matrix.SimulationCore.Application.Services.Scenarios.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity
@@ -33,6 +35,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity
             services.AddScoped<ICityActiveTripAdvanceExecutor, CityActiveTripAdvanceExecutor>();
             services.AddScoped<ISimulationScenarioAdvanceHandler, ClassicCitySimulationAdvanceHandler>();
             services.AddScoped<IClassicCityProvisioningOrchestrator, ClassicCityProvisioningOrchestrator>();
+            services.AddSingleton<ISimulationScenarioDescriptorContributor,
+                ClassicCityScenarioDescriptorContributor>();
 
             return services;
         }
