@@ -1,6 +1,6 @@
 using MassTransit;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;

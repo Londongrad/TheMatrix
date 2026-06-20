@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Resources;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityCostOfLivingSnapshot;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityEssentialsSnapshot;

@@ -1,4 +1,4 @@
-namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population
+namespace Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population
 {
     public sealed record ClassicCityLivingConditionsSnapshotV1(
         Guid CityId,

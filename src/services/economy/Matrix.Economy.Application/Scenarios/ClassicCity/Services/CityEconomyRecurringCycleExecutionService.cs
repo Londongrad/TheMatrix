@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Economy.Application.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Application.Scenarios.ClassicCity.UseCases.BudgetOperations.Common;

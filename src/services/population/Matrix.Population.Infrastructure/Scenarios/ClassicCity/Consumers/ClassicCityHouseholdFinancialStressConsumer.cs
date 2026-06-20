@@ -1,5 +1,5 @@
 using MassTransit;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityHouseholdFinancialStress;
 using MediatR;
 using Microsoft.Extensions.Logging;

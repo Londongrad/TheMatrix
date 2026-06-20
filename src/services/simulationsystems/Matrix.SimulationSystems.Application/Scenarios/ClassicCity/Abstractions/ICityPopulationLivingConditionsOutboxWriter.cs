@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions
 {

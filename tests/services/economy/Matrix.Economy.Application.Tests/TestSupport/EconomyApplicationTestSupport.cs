@@ -1,5 +1,5 @@
 using System.Data;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Population;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
