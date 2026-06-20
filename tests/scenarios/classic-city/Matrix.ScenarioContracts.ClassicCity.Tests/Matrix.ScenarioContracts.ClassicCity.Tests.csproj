@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="NetArchTest.Rules"/>
     <PackageReference Include="xunit"/>
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
@@ -15,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj"/>
+    <ProjectReference Include="..\..\..\..\src\scenarios\classic-city\Matrix.ScenarioContracts.ClassicCity\Matrix.ScenarioContracts.ClassicCity.csproj"/>
   </ItemGroup>
 
 </Project>
