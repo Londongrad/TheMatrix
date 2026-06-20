@@ -11,9 +11,7 @@ public sealed class ScenarioContractsBoundaryTests
         string[] misplacedTypes = typeof(CityStockpilesView).Assembly
            .GetTypes()
            .Where(type => type.IsPublic)
-           .Where(type =>
-                type.Name.StartsWith("City", StringComparison.Ordinal) ||
-                type.Name.Contains("ClassicCity", StringComparison.Ordinal))
+           .Where(type => type.Name.Contains("City", StringComparison.Ordinal))
            .Where(type =>
                 type.Namespace?.StartsWith(
                     "Matrix.Resources.Contracts.Scenarios.ClassicCity",

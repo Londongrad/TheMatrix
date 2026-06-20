@@ -24,8 +24,6 @@ public sealed class ClassicCityDomainBoundaryTests
 
     private static bool IsClassicCityNamed(Type type)
     {
-        return type.Name.StartsWith("City", StringComparison.Ordinal) ||
-               type.Name.StartsWith("ICity", StringComparison.Ordinal) ||
-               type.Name.Contains("ClassicCity", StringComparison.Ordinal);
+        return type.Name.Contains("City", StringComparison.Ordinal);
     }
 }
