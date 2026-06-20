@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj"/>
+    <ProjectReference Include="..\..\..\src\scenarios\classic-city\Matrix.ScenarioContracts.ClassicCity\Matrix.ScenarioContracts.ClassicCity.csproj"/>
   </ItemGroup>
 
 </Project>

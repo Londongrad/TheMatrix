@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;

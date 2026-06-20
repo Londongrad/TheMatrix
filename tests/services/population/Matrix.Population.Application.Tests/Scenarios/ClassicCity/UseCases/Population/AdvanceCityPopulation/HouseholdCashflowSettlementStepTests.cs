@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;

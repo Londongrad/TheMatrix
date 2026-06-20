@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Infrastructure.Outbox;
 
 namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox

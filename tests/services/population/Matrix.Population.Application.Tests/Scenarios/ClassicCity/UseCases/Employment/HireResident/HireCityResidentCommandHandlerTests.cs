@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Exceptions;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.HireResident;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;

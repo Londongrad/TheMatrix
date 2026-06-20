@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.Common

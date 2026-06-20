@@ -1,4 +1,4 @@
-namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy
+namespace Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy
 {
     public sealed record ClassicCityHouseholdAccountSyncItemV1(
         Guid HouseholdId,

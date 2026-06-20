@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Scenarios.ClassicCity.Economy;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Infrastructure.Outbox;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox;
 using Xunit;
