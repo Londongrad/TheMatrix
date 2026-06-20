@@ -12,8 +12,7 @@ namespace Matrix.SimulationCore.Api.Tests.Architecture
                .GetTypes()
                .Where(type =>
                     type.IsPublic &&
-                    (type.Name.StartsWith("City", StringComparison.Ordinal) ||
-                     type.Name.Contains("ClassicCity", StringComparison.Ordinal)) &&
+                    type.Name.Contains("City", StringComparison.Ordinal) &&
                     (type.Namespace is null ||
                      !type.Namespace.StartsWith(
                          "Matrix.SimulationCore.Contracts.Scenarios.ClassicCity",
