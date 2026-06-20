@@ -41,12 +41,13 @@ public sealed class ClassicCityInfrastructureBoundaryTests
         string[] misplacedTypes = typeof(DependencyInjection).Assembly
            .GetTypes()
            .Where(type =>
-                type.Name.StartsWith(
+                type.Name.Contains(
                     value: "City",
-                    comparisonType: StringComparison.Ordinal) ||
-                type.Name.StartsWith(
-                    value: "ClassicCity",
                     comparisonType: StringComparison.Ordinal))
+           .Where(type =>
+                type.Namespace?.Contains(
+                    value: ".Migrations",
+                    comparisonType: StringComparison.Ordinal) != true)
            .Where(type => !IsClassicCityInfrastructureType(type))
            .Select(type => type.FullName ?? type.Name)
            .Order(StringComparer.Ordinal)
