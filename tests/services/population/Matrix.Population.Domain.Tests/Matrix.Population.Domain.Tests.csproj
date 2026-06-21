@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\services\population\Matrix.Population.Domain\Matrix.Population.Domain.csproj"/>
+    <ProjectReference Include="..\..\..\shared\Matrix.ArchitectureTesting\Matrix.ArchitectureTesting.csproj"/>
   </ItemGroup>
 
 </Project>

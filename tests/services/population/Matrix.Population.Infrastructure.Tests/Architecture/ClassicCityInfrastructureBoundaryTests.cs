@@ -1,3 +1,4 @@
+using Matrix.ArchitectureTesting;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Xunit;
 
@@ -34,21 +35,12 @@ public sealed class ClassicCityInfrastructureBoundaryTests
     }
 
     [Fact]
-    public void ClassicCityNamedTypes_StayInsideClassicCityInfrastructure()
+    public void ScenarioNeutralInfrastructureTypes_DoNotDependOnClassicCity()
     {
-        string[] misplacedTypes = typeof(DependencyInjection).Assembly
-           .GetTypes()
-           .Where(type => type.Name.Contains("City", StringComparison.Ordinal))
-           .Where(type =>
-                type.Namespace?.Contains(
-                    ".Migrations",
-                    StringComparison.Ordinal) != true)
-           .Where(type => !IsClassicCityInfrastructureType(type))
-           .Select(type => type.FullName ?? type.Name)
-           .Order(StringComparer.Ordinal)
-           .ToArray();
-
-        Assert.Empty(misplacedTypes);
+        ScenarioDependencyRule.AssertScenarioNeutral(
+            assembly: typeof(DependencyInjection).Assembly,
+            boundedContextNamespace: "Matrix.Population",
+            scenarioName: "ClassicCity");
     }
 
     private static bool IsClassicCityInfrastructureType(Type type)
