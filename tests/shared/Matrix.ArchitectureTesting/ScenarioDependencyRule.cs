@@ -1,7 +1,6 @@
 using System.Reflection;
 using Mono.Cecil;
 using NetArchTest.Rules;
-using Xunit;
 
 namespace Matrix.ArchitectureTesting
 {
@@ -48,7 +47,9 @@ namespace Matrix.ArchitectureTesting
                        .Where(typeName => typeName is not null)
                        .Order(StringComparer.Ordinal));
 
-            Assert.True(result.IsSuccessful, dependencies);
+            if (!result.IsSuccessful)
+                throw new InvalidOperationException(
+                    $"Scenario-neutral types depend on scenario code:{Environment.NewLine}{dependencies}");
         }
 
         private sealed class ScenarioNeutralTypeRule(string scenarioNamespaceSegment) : ICustomRule

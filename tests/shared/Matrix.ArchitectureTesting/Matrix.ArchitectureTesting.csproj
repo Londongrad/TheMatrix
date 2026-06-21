@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="NetArchTest.Rules"/>
-    <PackageReference Include="xunit"/>
   </ItemGroup>
 
 </Project>
