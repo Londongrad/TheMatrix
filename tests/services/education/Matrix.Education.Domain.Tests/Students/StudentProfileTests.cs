@@ -27,6 +27,7 @@ namespace Matrix.Education.Domain.Tests.Students
                 simulationHostId: hostId,
                 birthDate: birthDate,
                 isAlive: true,
+                isActive: true,
                 sourceRevision: 10,
                 synchronizedAtUtc: SynchronizedAtUtc);
 
@@ -43,20 +44,20 @@ namespace Matrix.Education.Domain.Tests.Students
         public void SynchronizeResidentFacts_UpdatesReplicatedFacts()
         {
             StudentProfile profile = CreateProfile();
-            SimulationHostId nextHostId = new(Guid.NewGuid());
             var nextBirthDate = new DateOnly(2011, 3, 2);
 
             bool accepted = profile.TrySynchronizeResidentFacts(
-                simulationHostId: nextHostId,
+                simulationHostId: profile.SimulationHostId,
                 birthDate: nextBirthDate,
                 isAlive: false,
+                isActive: false,
                 sourceRevision: 11,
                 synchronizedAtUtc: SynchronizedAtUtc.AddMinutes(1));
 
             Assert.True(accepted);
-            Assert.Equal(nextHostId, profile.SimulationHostId);
             Assert.Equal(nextBirthDate, profile.BirthDate);
             Assert.False(profile.IsAlive);
+            Assert.False(profile.IsActive);
         }
 
         [Fact]
@@ -68,12 +69,14 @@ namespace Matrix.Education.Domain.Tests.Students
                 simulationHostId: profile.SimulationHostId,
                 birthDate: new DateOnly(2000, 1, 1),
                 isAlive: false,
+                isActive: false,
                 sourceRevision: 10,
                 synchronizedAtUtc: SynchronizedAtUtc.AddMinutes(1));
             bool olderAccepted = profile.TrySynchronizeResidentFacts(
                 simulationHostId: profile.SimulationHostId,
                 birthDate: new DateOnly(2000, 1, 1),
                 isAlive: false,
+                isActive: false,
                 sourceRevision: 9,
                 synchronizedAtUtc: SynchronizedAtUtc.AddMinutes(2));
 
@@ -82,6 +85,38 @@ namespace Matrix.Education.Domain.Tests.Students
             Assert.Equal(new DateOnly(2010, 5, 12), profile.BirthDate);
             Assert.True(profile.IsAlive);
             Assert.Equal(10, profile.LastSourceRevision);
+        }
+
+        [Fact]
+        public void SynchronizeResidentFacts_RejectsMovingProfileBetweenHosts()
+        {
+            StudentProfile profile = CreateProfile();
+
+            Assert.Throws<InvalidOperationException>(() => profile.TrySynchronizeResidentFacts(
+                simulationHostId: new SimulationHostId(Guid.NewGuid()),
+                birthDate: profile.BirthDate,
+                isAlive: profile.IsAlive,
+                isActive: profile.IsActive,
+                sourceRevision: 11,
+                synchronizedAtUtc: SynchronizedAtUtc.AddMinutes(1)));
+
+            Assert.Equal(10, profile.LastSourceRevision);
+        }
+
+        [Fact]
+        public void Register_CanCreateInactivePopulationReference()
+        {
+            StudentProfile profile = StudentProfile.Register(
+                residentId: new ResidentId(Guid.NewGuid()),
+                simulationHostId: new SimulationHostId(Guid.NewGuid()),
+                birthDate: new DateOnly(2010, 1, 1),
+                isAlive: false,
+                isActive: false,
+                sourceRevision: 1,
+                synchronizedAtUtc: SynchronizedAtUtc);
+
+            Assert.False(profile.IsAlive);
+            Assert.False(profile.IsActive);
         }
 
         [Fact]
@@ -110,6 +145,7 @@ namespace Matrix.Education.Domain.Tests.Students
                 simulationHostId: new SimulationHostId(Guid.NewGuid()),
                 birthDate: new DateOnly(2010, 1, 1),
                 isAlive: true,
+                isActive: true,
                 sourceRevision: 1,
                 synchronizedAtUtc: SynchronizedAtUtc.ToOffset(TimeSpan.FromHours(3))));
         }
@@ -121,6 +157,7 @@ namespace Matrix.Education.Domain.Tests.Students
                 simulationHostId: new SimulationHostId(Guid.NewGuid()),
                 birthDate: new DateOnly(2010, 5, 12),
                 isAlive: true,
+                isActive: true,
                 sourceRevision: 10,
                 synchronizedAtUtc: SynchronizedAtUtc);
         }

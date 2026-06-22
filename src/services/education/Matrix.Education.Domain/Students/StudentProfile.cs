@@ -45,6 +45,7 @@ namespace Matrix.Education.Domain.Students
             SimulationHostId simulationHostId,
             DateOnly birthDate,
             bool isAlive,
+            bool isActive,
             long sourceRevision,
             DateTimeOffset synchronizedAtUtc)
         {
@@ -53,7 +54,7 @@ namespace Matrix.Education.Domain.Students
                 simulationHostId: simulationHostId,
                 birthDate: birthDate,
                 isAlive: isAlive,
-                isActive: true,
+                isActive: isActive,
                 lastSourceRevision: sourceRevision,
                 lastSynchronizedAtUtc: synchronizedAtUtc);
         }
@@ -62,15 +63,18 @@ namespace Matrix.Education.Domain.Students
             SimulationHostId simulationHostId,
             DateOnly birthDate,
             bool isAlive,
+            bool isActive,
             long sourceRevision,
             DateTimeOffset synchronizedAtUtc)
         {
+            EnsureSameSimulationHost(simulationHostId);
+
             if (!TryAcceptSourceRevision(sourceRevision, synchronizedAtUtc))
                 return false;
 
-            SimulationHostId = simulationHostId;
             BirthDate = birthDate;
             IsAlive = isAlive;
+            IsActive = isActive;
 
             return true;
         }
@@ -113,6 +117,13 @@ namespace Matrix.Education.Domain.Students
             LastSynchronizedAtUtc = normalizedTimestamp;
 
             return true;
+        }
+
+        private void EnsureSameSimulationHost(SimulationHostId simulationHostId)
+        {
+            if (simulationHostId != SimulationHostId)
+                throw new InvalidOperationException(
+                    "A synchronized student profile cannot move between simulation hosts.");
         }
 
         private static DateTimeOffset EnsureUtc(DateTimeOffset value)

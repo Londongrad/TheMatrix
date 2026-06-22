@@ -31,6 +31,7 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence
                 simulationHostId: hostId,
                 birthDate: new DateOnly(2028, 5, 12),
                 isAlive: true,
+                isActive: true,
                 sourceRevision: 4,
                 synchronizedAtUtc: new DateTimeOffset(2048, 1, 1, 0, 0, 0, TimeSpan.Zero));
             StudentEnrollment enrollment = StudentEnrollment.Enroll(
@@ -79,6 +80,7 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence
                 simulationHostId: hostId,
                 birthDate: new DateOnly(2038, 2, 3),
                 isAlive: true,
+                isActive: true,
                 sourceRevision: 1,
                 synchronizedAtUtc: new DateTimeOffset(2048, 1, 1, 0, 0, 0, TimeSpan.Zero));
             StudentEnrollment enrollment = StudentEnrollment.Enroll(
