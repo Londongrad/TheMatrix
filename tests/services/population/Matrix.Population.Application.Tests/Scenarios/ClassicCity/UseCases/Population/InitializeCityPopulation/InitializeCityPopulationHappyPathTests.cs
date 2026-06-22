@@ -27,6 +27,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var activityJournalService = new FakeCityPopulationActivityJournalService();
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+            var residentFactsOutboxWriter = new FakePopulationResidentFactsOutboxWriter();
             var unitOfWork = new FakeUnitOfWork();
             InitializeCityPopulationCommandHandler handler = CreateHandler(
                 personWriteRepository: personWriteRepository,
@@ -36,6 +37,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 activityJournalService: activityJournalService,
                 summaryProjectionService: summaryProjectionService,
                 outboxWriter: outboxWriter,
+                residentFactsOutboxWriter: residentFactsOutboxWriter,
                 unitOfWork: unitOfWork);
 
             CityPopulationBootstrapSummaryDto result = await handler.Handle(
@@ -137,6 +139,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         action: item => Assert.True(item.IsHoused));
                 });
 
+            var residentFactsBatch = Assert.Single(residentFactsOutboxWriter.Batches);
+            Assert.Equal(cityId, residentFactsBatch.SimulationHostId);
+            Assert.Equal(0, residentFactsBatch.SourceRevision);
+            Assert.Equal(result.GeneratedPeopleCount, residentFactsBatch.Residents.Count);
+            Assert.Equal(UtcNow, residentFactsBatch.SynchronizedAtUtc);
+
             Assert.Equal(
                 expected: 1,
                 actual: unitOfWork.ExecuteTransactionCalls);
@@ -218,6 +226,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
+            FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
             FakeUnitOfWork? unitOfWork = null)
         {
             return new InitializeCityPopulationCommandHandler(
@@ -234,6 +243,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                         new FakeCityPopulationSummaryProjectionService(),
                 cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
+                residentFactsOutboxWriter: residentFactsOutboxWriter ??
+                                           new FakePopulationResidentFactsOutboxWriter(),
                 generator: new CityPopulationBootstrapGenerator(
                     contentCatalog: new TestPopulationGenerationContentCatalog(),
                     anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy()),

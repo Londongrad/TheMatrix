@@ -29,6 +29,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var activityJournalService = new FakeCityPopulationActivityJournalService();
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+            var residentFactsOutboxWriter = new FakePopulationResidentFactsOutboxWriter();
             var unitOfWork = new FakeUnitOfWork();
             InitializeCityPopulationCommandHandler handler = CreateHandler(
                 archiveStateRepository: archiveStateRepository,
@@ -39,6 +40,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 activityJournalService: activityJournalService,
                 summaryProjectionService: summaryProjectionService,
                 outboxWriter: outboxWriter,
+                residentFactsOutboxWriter: residentFactsOutboxWriter,
                 unitOfWork: unitOfWork);
 
             MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
@@ -75,6 +77,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Empty(summaryProjectionService.RebuildCalls);
             Assert.Empty(outboxWriter.HouseholdBatches);
             Assert.Empty(outboxWriter.WorkplaceBatches);
+            Assert.Empty(residentFactsOutboxWriter.Batches);
         }
 
         [Fact]
@@ -95,6 +98,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var activityJournalService = new FakeCityPopulationActivityJournalService();
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+            var residentFactsOutboxWriter = new FakePopulationResidentFactsOutboxWriter();
             var unitOfWork = new FakeUnitOfWork();
             InitializeCityPopulationCommandHandler handler = CreateHandler(
                 archiveStateRepository: archiveStateRepository,
@@ -105,6 +109,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 activityJournalService: activityJournalService,
                 summaryProjectionService: summaryProjectionService,
                 outboxWriter: outboxWriter,
+                residentFactsOutboxWriter: residentFactsOutboxWriter,
                 unitOfWork: unitOfWork);
 
             MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(()
@@ -141,6 +146,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Empty(summaryProjectionService.RebuildCalls);
             Assert.Empty(outboxWriter.HouseholdBatches);
             Assert.Empty(outboxWriter.WorkplaceBatches);
+            Assert.Empty(residentFactsOutboxWriter.Batches);
         }
 
         private static InitializeCityPopulationCommandHandler CreateHandler(
@@ -151,6 +157,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
+            FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
             FakeHouseholdWriteRepository? householdWriteRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
@@ -170,6 +177,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                         new FakeCityPopulationSummaryProjectionService(),
                 cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
+                residentFactsOutboxWriter: residentFactsOutboxWriter ??
+                                           new FakePopulationResidentFactsOutboxWriter(),
                 generator: null!,
                 unitOfWork: unitOfWork ?? new FakeUnitOfWork());
         }

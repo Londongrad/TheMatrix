@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
@@ -10,6 +11,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstr
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
+using Matrix.Population.Contracts.Events;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -802,6 +804,20 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 CancellationToken cancellationToken = default)
             {
                 WorkplaceBatches.Add(batch);
+                return Task.CompletedTask;
+            }
+        }
+
+        internal sealed class FakePopulationResidentFactsOutboxWriter
+            : IPopulationResidentFactsOutboxWriter
+        {
+            public List<PopulationResidentFactsBatchV1> Batches { get; } = [];
+
+            public Task AddResidentFactsBatchAsync(
+                PopulationResidentFactsBatchV1 batch,
+                CancellationToken cancellationToken = default)
+            {
+                Batches.Add(batch);
                 return Task.CompletedTask;
             }
         }
