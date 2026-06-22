@@ -767,28 +767,34 @@ namespace Matrix.Population.Application.Tests.TestSupport
 
         internal sealed class FakeCityEconomySettlementOutboxWriter : ICityEconomySettlementOutboxWriter
         {
+            public List<CityEconomyDailySettlementV1> DailySettlements { get; } = [];
+            public List<ClassicCityHouseholdCashflowSettlementBatchV1> HouseholdCashflowBatches { get; } = [];
             public List<ClassicCityHouseholdAccountSyncBatchV1> HouseholdBatches { get; } = [];
+            public List<ClassicCityWorkplacePayrollSettlementBatchV1> WorkplacePayrollBatches { get; } = [];
             public List<ClassicCityWorkplaceBusinessSyncBatchV1> WorkplaceBatches { get; } = [];
 
             public Task AddCityDailySettlementAsync(
                 CityEconomyDailySettlementV1 settlement,
                 CancellationToken cancellationToken = default)
             {
-                throw new NotSupportedException();
+                DailySettlements.Add(settlement);
+                return Task.CompletedTask;
             }
 
             public Task AddClassicCityWorkplacePayrollSettlementBatchAsync(
                 ClassicCityWorkplacePayrollSettlementBatchV1 batch,
                 CancellationToken cancellationToken = default)
             {
-                throw new NotSupportedException();
+                WorkplacePayrollBatches.Add(batch);
+                return Task.CompletedTask;
             }
 
             public Task AddClassicCityHouseholdCashflowSettlementBatchAsync(
                 ClassicCityHouseholdCashflowSettlementBatchV1 batch,
                 CancellationToken cancellationToken = default)
             {
-                throw new NotSupportedException();
+                HouseholdCashflowBatches.Add(batch);
+                return Task.CompletedTask;
             }
 
             public Task AddClassicCityHouseholdAccountSyncBatchAsync(

@@ -7,6 +7,7 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.Services;
+using Matrix.Population.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
@@ -32,6 +33,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var activityJournalService = new FakeCityPopulationActivityJournalService();
             var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+            var residentFactsOutboxWriter = new FakePopulationResidentFactsOutboxWriter();
             var commuteTripSyncService = new FakeCityPopulationCommuteTripSyncService();
             var unitOfWork = new FakeUnitOfWork();
             AdvanceCityPopulationCommandHandler handler = CreateHandler(
@@ -41,6 +43,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 summaryProjectionService: summaryProjectionService,
                 activityJournalService: activityJournalService,
                 outboxWriter: outboxWriter,
+                residentFactsOutboxWriter: residentFactsOutboxWriter,
                 commuteTripSyncService: commuteTripSyncService,
                 unitOfWork: unitOfWork);
 
@@ -83,6 +86,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Empty(activityJournalService.Entries);
             Assert.Empty(outboxWriter.HouseholdBatches);
             Assert.Empty(outboxWriter.WorkplaceBatches);
+            Assert.Empty(residentFactsOutboxWriter.Batches);
             Assert.Equal(
                 expected: 1,
                 actual: commuteTripSyncService.SyncCalls);
@@ -92,6 +96,70 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: 1,
                 actual: unitOfWork.SaveChangesCalls);
+        }
+
+        [Fact]
+        public async Task Handle_WhenResidentDies_EmitsOnlyChangedResidentFactsWithTickRevision()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            Person resident = CreatePerson(
+                personId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                householdId: Guid.Parse("66666666-7777-8888-9999-aaaaaaaaaaaa"),
+                currentDate: new DateOnly(2048, 5, 5),
+                energy: 0,
+                stress: 100,
+                socialNeed: 100,
+                health: 1);
+            Household household = Household.Create(
+                id: resident.HouseholdId,
+                size: HouseholdSize.From(1),
+                createdAtUtc: UtcNow);
+            var personReadRepository = new FakeCityPopulationPersonReadRepository
+            {
+                ListByCityResult = [resident]
+            };
+            var householdWriteRepository = new FakeHouseholdWriteRepository
+            {
+                HouseholdsByCityResult = [household],
+                PlacementsByCityResult =
+                [
+                    ClassicCityHouseholdPlacement.CreateHomeless(
+                        householdId: household.Id,
+                        cityId: CityId.From(cityId))
+                ]
+            };
+            var residentFactsOutboxWriter = new FakePopulationResidentFactsOutboxWriter();
+            AdvanceCityPopulationCommandHandler handler = CreateHandler(
+                personReadRepository: personReadRepository,
+                householdWriteRepository: householdWriteRepository,
+                residentFactsOutboxWriter: residentFactsOutboxWriter);
+
+            AdvanceCityPopulationResult result = await handler.Handle(
+                request: CreateCommand(
+                    cityId: cityId,
+                    tickId: 41),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: AdvanceCityPopulationStatus.Applied,
+                actual: result.Status);
+            Assert.False(resident.IsAlive);
+            var batch = Assert.Single(residentFactsOutboxWriter.Batches);
+            Assert.Equal(
+                expected: cityId,
+                actual: batch.SimulationHostId);
+            Assert.Equal(
+                expected: 41,
+                actual: batch.SourceRevision);
+            Assert.Equal(
+                expected: $"population:{cityId:N}:tick:41:resident-facts",
+                actual: batch.CorrelationId);
+            var facts = Assert.Single(batch.Residents);
+            Assert.Equal(
+                expected: resident.Id.Value,
+                actual: facts.ResidentId);
+            Assert.False(facts.IsAlive);
+            Assert.True(facts.IsActive);
         }
 
         [Fact]
@@ -114,6 +182,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var activityJournalService = new FakeCityPopulationActivityJournalService();
             var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+            var residentFactsOutboxWriter = new FakePopulationResidentFactsOutboxWriter();
             var commuteTripSyncService = new FakeCityPopulationCommuteTripSyncService();
             var unitOfWork = new FakeUnitOfWork();
             AdvanceCityPopulationCommandHandler handler = CreateHandler(
@@ -123,6 +192,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 summaryProjectionService: summaryProjectionService,
                 activityJournalService: activityJournalService,
                 outboxWriter: outboxWriter,
+                residentFactsOutboxWriter: residentFactsOutboxWriter,
                 commuteTripSyncService: commuteTripSyncService,
                 unitOfWork: unitOfWork);
 
@@ -171,6 +241,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Empty(activityJournalService.Entries);
             Assert.Empty(outboxWriter.HouseholdBatches);
             Assert.Empty(outboxWriter.WorkplaceBatches);
+            Assert.Empty(residentFactsOutboxWriter.Batches);
             Assert.Equal(
                 expected: 0,
                 actual: commuteTripSyncService.SyncCalls);
@@ -376,6 +447,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
+            FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
             FakeCityPopulationCommuteTripSyncService? commuteTripSyncService = null,
             FakeUnitOfWork? unitOfWork = null)
         {
@@ -405,7 +477,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationActivityJournalService: activityJournalService ??
                                                       new FakeCityPopulationActivityJournalService(),
                 cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
-                residentFactsOutboxWriter: new FakePopulationResidentFactsOutboxWriter(),
+                residentFactsOutboxWriter: residentFactsOutboxWriter ??
+                                           new FakePopulationResidentFactsOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
                 cityPopulationSummaryProjectionService: summaryProjectionService ??
