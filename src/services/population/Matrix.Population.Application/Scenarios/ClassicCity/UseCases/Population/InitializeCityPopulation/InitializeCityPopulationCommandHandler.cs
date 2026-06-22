@@ -1,10 +1,12 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
+using Matrix.Population.Contracts.Events;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
@@ -25,6 +27,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
+        IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
         CityPopulationBootstrapGenerator generator,
         IUnitOfWork unitOfWork)
         : IRequestHandler<InitializeCityPopulationCommand, CityPopulationBootstrapSummaryDto>
@@ -104,6 +107,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     correlationId: $"{syncCorrelationId}:workplaces",
                     occurredAtUtc: syncOccurredAtUtc,
                     batchSize: EconomyWorkplaceSyncBatchSize);
+            PopulationResidentFactsBatchV1[] residentFactsBatches =
+                PopulationResidentFactsBatchFactory.Build(
+                    simulationHostId: request.CityId,
+                    sourceRevision: 0,
+                    residents: result.Persons,
+                    correlationId: $"{syncCorrelationId}:resident-facts",
+                    synchronizedAtUtc: syncOccurredAtUtc);
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -165,6 +175,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     foreach (ClassicCityWorkplaceBusinessSyncBatchV1 batch in workplaceBusinessBatches)
                         await cityEconomySettlementOutboxWriter.AddClassicCityWorkplaceBusinessSyncBatchAsync(
+                            batch: batch,
+                            cancellationToken: ct);
+
+                    foreach (PopulationResidentFactsBatchV1 batch in residentFactsBatches)
+                        await residentFactsOutboxWriter.AddResidentFactsBatchAsync(
                             batch: batch,
                             cancellationToken: ct);
 
