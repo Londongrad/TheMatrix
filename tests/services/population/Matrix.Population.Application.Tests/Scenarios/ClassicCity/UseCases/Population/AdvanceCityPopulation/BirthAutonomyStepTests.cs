@@ -66,6 +66,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var personWriteRepository = new RecordingPersonWriteRepository();
             var householdWriteRepository = new RecordingHouseholdWriteRepository();
             List<CityPopulationActivityWriteModel> activityEntries = [];
+            List<PersonEntity> registeredResidents = [];
 
             int affected = await BirthAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
@@ -79,6 +80,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 householdWriteRepository: householdWriteRepository,
                 activityEntries: activityEntries,
                 residents: residents,
+                registeredResidents: registeredResidents,
                 occurredAtUtc: OccurredAtUtc,
                 cancellationToken: CancellationToken.None);
 
@@ -89,6 +91,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Empty(householdWriteRepository.FindRequests);
             Assert.Empty(householdWriteRepository.UpdatedHouseholds);
             Assert.Empty(activityEntries);
+            Assert.Empty(registeredResidents);
             Assert.Equal(
                 expected: 2,
                 actual: residents.Count);
@@ -116,6 +119,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var householdWriteRepository = new RecordingHouseholdWriteRepository(callOrder);
             householdWriteRepository.AddHousehold(household);
             List<CityPopulationActivityWriteModel> activityEntries = [];
+            List<PersonEntity> registeredResidents = [];
 
             int affected = await BirthAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
@@ -129,6 +133,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 householdWriteRepository: householdWriteRepository,
                 activityEntries: activityEntries,
                 residents: residents,
+                registeredResidents: registeredResidents,
                 occurredAtUtc: OccurredAtUtc,
                 cancellationToken: CancellationToken.None);
 
@@ -136,6 +141,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: 1,
                 actual: affected);
             PersonEntity newborn = Assert.Single(personWriteRepository.AddedPeople);
+            Assert.Same(
+                expected: newborn,
+                actual: Assert.Single(registeredResidents));
             Assert.Equal(
                 expected: householdId,
                 actual: newborn.HouseholdId);
@@ -214,6 +222,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var personWriteRepository = new RecordingPersonWriteRepository();
             var householdWriteRepository = new RecordingHouseholdWriteRepository();
             List<CityPopulationActivityWriteModel> activityEntries = [];
+            List<PersonEntity> registeredResidents = [];
 
             int affected = await BirthAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
@@ -227,6 +236,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 householdWriteRepository: householdWriteRepository,
                 activityEntries: activityEntries,
                 residents: residents,
+                registeredResidents: registeredResidents,
                 occurredAtUtc: OccurredAtUtc,
                 cancellationToken: CancellationToken.None);
 
@@ -239,6 +249,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Empty(personWriteRepository.AddedPeople);
             Assert.Empty(householdWriteRepository.UpdatedHouseholds);
             Assert.Empty(activityEntries);
+            Assert.Empty(registeredResidents);
             Assert.Equal(
                 expected: 2,
                 actual: residents.Count);

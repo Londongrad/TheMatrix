@@ -161,6 +161,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyCollection<HouseholdEntity>? householdsSnapshot = null;
             IReadOnlyCollection<ClassicCityHouseholdPlacement>? placementsSnapshot = null;
             List<CityPopulationActivityWriteModel> pendingActivityEntries = [];
+            List<PersonEntity> registeredResidents = [];
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
             List<ClassicCityHouseholdCashflowSettlementItemV1> pendingHouseholdCashflowItems = [];
             List<ClassicCityWorkplacePayrollSettlementItemV1> pendingWorkplacePayrollItems = [];
@@ -337,6 +338,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 householdWriteRepository: householdWriteRepository,
                                 activityEntries: pendingActivityEntries,
                                 residents: residents,
+                                registeredResidents: registeredResidents,
                                 occurredAtUtc: handledAtUtc,
                                 cancellationToken: ct);
 

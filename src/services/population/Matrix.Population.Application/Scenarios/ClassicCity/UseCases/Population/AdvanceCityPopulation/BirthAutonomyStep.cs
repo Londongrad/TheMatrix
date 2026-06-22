@@ -27,6 +27,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IHouseholdWriteRepository householdWriteRepository,
             ICollection<CityPopulationActivityWriteModel> activityEntries,
             ICollection<PersonEntity> residents,
+            ICollection<PersonEntity> registeredResidents,
             DateTimeOffset occurredAtUtc,
             CancellationToken cancellationToken)
         {
@@ -77,6 +78,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cancellationToken: cancellationToken);
 
                 residents.Add(newborn);
+                registeredResidents.Add(newborn);
                 residentsById[newborn.Id] = newborn;
                 activityEntries.Add(
                     ClassicCityActivityFactory.ResidentBorn(
