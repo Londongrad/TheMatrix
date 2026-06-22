@@ -248,6 +248,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 commuteTripSyncService: new FakeCityPopulationCommuteTripSyncService(),
                 cityPopulationActivityJournalService: new FakeCityPopulationActivityJournalService(),
                 cityEconomySettlementOutboxWriter: new FakeCityEconomySettlementOutboxWriter(),
+                residentFactsOutboxWriter: new FakePopulationResidentFactsOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
                 cityPopulationSummaryProjectionService: new FakeCityPopulationSummaryProjectionService(),

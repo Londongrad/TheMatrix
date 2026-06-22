@@ -405,6 +405,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationActivityJournalService: activityJournalService ??
                                                       new FakeCityPopulationActivityJournalService(),
                 cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
+                residentFactsOutboxWriter: new FakePopulationResidentFactsOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
                 cityPopulationSummaryProjectionService: summaryProjectionService ??

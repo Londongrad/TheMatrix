@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -14,6 +15,7 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.Services;
+using Matrix.Population.Contracts.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using CityEducationInstitutionBinding =
@@ -46,6 +48,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationCommuteTripSyncService commuteTripSyncService,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
+        IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
@@ -162,6 +165,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyCollection<ClassicCityHouseholdPlacement>? placementsSnapshot = null;
             List<CityPopulationActivityWriteModel> pendingActivityEntries = [];
             List<PersonEntity> registeredResidents = [];
+            List<PersonEntity> residentLifecycleChanges = [];
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
             List<ClassicCityHouseholdCashflowSettlementItemV1> pendingHouseholdCashflowItems = [];
             List<ClassicCityWorkplacePayrollSettlementItemV1> pendingWorkplacePayrollItems = [];
@@ -286,6 +290,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     cancellationToken: ct))
                             {
                                 affectedPeopleCount++;
+                                if (beforeSnapshot.IsAlive != person.IsAlive)
+                                    residentLifecycleChanges.Add(person);
+
                                 ResidentProgressionActivityCollector.Collect(
                                     cityId: cityId,
                                     currentDate: toDate,
@@ -508,6 +515,24 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             await cityEconomySettlementOutboxWriter.AddClassicCityWorkplaceBusinessSyncBatchAsync(
                                 batch: batch,
                                 cancellationToken: ct);
+
+                    if (registeredResidents.Count > 0 || residentLifecycleChanges.Count > 0)
+                    {
+                        PersonEntity[] residentFactChanges = registeredResidents
+                           .Concat(residentLifecycleChanges)
+                           .ToArray();
+
+                        foreach (PopulationResidentFactsBatchV1 batch in PopulationResidentFactsBatchFactory.Build(
+                                     simulationHostId: request.CityId,
+                                     sourceRevision: request.TickId,
+                                     residents: residentFactChanges,
+                                     correlationId:
+                                     $"population:{request.CityId:N}:tick:{request.TickId}:resident-facts",
+                                     synchronizedAtUtc: updatedAtUtc))
+                            await residentFactsOutboxWriter.AddResidentFactsBatchAsync(
+                                batch: batch,
+                                cancellationToken: ct);
+                    }
 
                     await unitOfWork.SaveChangesAsync(ct);
                 },
