@@ -2,6 +2,7 @@ using Matrix.Education.Domain.Enrollments;
 using Matrix.Education.Domain.Institutions;
 using Matrix.Education.Domain.Progression;
 using Matrix.Education.Domain.Students;
+using Matrix.Education.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Education.Infrastructure.Persistence
@@ -14,6 +15,8 @@ namespace Matrix.Education.Infrastructure.Persistence
         public DbSet<StudentEnrollment> Enrollments => Set<StudentEnrollment>();
         public DbSet<EducationProgressionCheckpoint> ProgressionCheckpoints =>
             Set<EducationProgressionCheckpoint>();
+        public DbSet<EducationSimulationDeletionState> SimulationDeletionStates =>
+            Set<EducationSimulationDeletionState>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
