@@ -53,6 +53,8 @@ namespace Matrix.Education.Infrastructure
             services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
             services.AddScoped<IEducationProgressionCheckpointRepository,
                 EducationProgressionCheckpointRepository>();
+            services.AddScoped<IEducationSimulationDeletionRepository,
+                EducationSimulationDeletionRepository>();
             services.AddScoped<IEducationUnitOfWork, EducationUnitOfWork>();
 
             services.AddRabbitMqOptions(configuration);
