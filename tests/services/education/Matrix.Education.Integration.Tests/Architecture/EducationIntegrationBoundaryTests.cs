@@ -12,7 +12,8 @@ namespace Matrix.Education.Integration.Tests.Architecture
             BoundedContextDependencyRule.AssertOnlyReferencesMatrixAssemblies(
                 assembly: typeof(PopulationResidentFactsConsumer).Assembly,
                 "Matrix.Education.Application",
-                "Matrix.Population.Contracts");
+                "Matrix.Population.Contracts",
+                "Matrix.SimulationCore.Contracts");
         }
     }
 }
