@@ -27,6 +27,16 @@ namespace Matrix.Education.Integration.Consumers
                 request: command,
                 cancellationToken: cancellationToken);
 
+            if (result.Status == SynchronizeStudentProfilesStatus.SimulationDeleted)
+            {
+                logger.LogDebug(
+                    message: "Ignored population resident facts for deleted simulationHostId={SimulationHostId}, sourceRevision={SourceRevision}, correlationId={CorrelationId}.",
+                    message.SimulationHostId,
+                    message.SourceRevision,
+                    message.CorrelationId);
+                return;
+            }
+
             logger.LogInformation(
                 message: "Synchronized education resident profiles for simulationHostId={SimulationHostId}, sourceRevision={SourceRevision}, batch={BatchNumber}/{TotalBatches}, added={AddedProfiles}, updated={UpdatedProfiles}, ignored={IgnoredProfiles}, correlationId={CorrelationId}.",
                 message.SimulationHostId,
