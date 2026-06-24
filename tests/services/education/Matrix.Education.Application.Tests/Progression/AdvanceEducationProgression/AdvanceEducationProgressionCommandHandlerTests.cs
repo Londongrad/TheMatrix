@@ -119,6 +119,31 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
         }
 
         [Fact]
+        public async Task Handle_DeletedSimulation_SkipsBatchAndCheckpointWork()
+        {
+            var repository = new CheckpointRepositoryStub();
+            var processor = new BatchProcessorStub();
+            var unitOfWork = new EducationUnitOfWorkStub();
+            var deletionRepository = new DeletionRepositoryStub(ToUtc);
+            AdvanceEducationProgressionCommandHandler handler = CreateHandler(
+                repository,
+                processor,
+                unitOfWork,
+                deletionRepository);
+
+            AdvanceEducationProgressionResult result = await handler.Handle(
+                CreateCommand(tickId: 6),
+                CancellationToken.None);
+
+            Assert.Equal(AdvanceEducationProgressionStatus.SimulationDeleted, result.Status);
+            Assert.Same(EducationProgressionBatchResult.Empty, result.BatchResult);
+            Assert.Equal(0, processor.CallCount);
+            Assert.Equal(0, repository.AddCount);
+            Assert.Equal(0, unitOfWork.SaveCount);
+            Assert.Equal(1, deletionRepository.GetCallCount);
+        }
+
+        [Fact]
         public async Task Handle_InvalidBatch_DoesNotOpenTransaction()
         {
             var repository = new CheckpointRepositoryStub();
@@ -140,10 +165,12 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
         private static AdvanceEducationProgressionCommandHandler CreateHandler(
             CheckpointRepositoryStub repository,
             BatchProcessorStub processor,
-            EducationUnitOfWorkStub unitOfWork)
+            EducationUnitOfWorkStub unitOfWork,
+            DeletionRepositoryStub? deletionRepository = null)
         {
             return new AdvanceEducationProgressionCommandHandler(
                 checkpointRepository: repository,
+                deletionRepository: deletionRepository ?? new DeletionRepositoryStub(),
                 batchProcessor: processor,
                 unitOfWork: unitOfWork,
                 timeProvider: new FixedTimeProvider(UpdatedAtUtc));
@@ -213,6 +240,36 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
             {
                 CallCount++;
                 return Task.FromResult(Result);
+            }
+        }
+
+        private sealed class DeletionRepositoryStub(DateTimeOffset? deletedAtUtc = null)
+            : IEducationSimulationDeletionRepository
+        {
+            public int GetCallCount { get; private set; }
+
+            public Task<DateTimeOffset?> GetDeletedAtUtcAsync(
+                SimulationHostId simulationHostId,
+                CancellationToken cancellationToken = default)
+            {
+                GetCallCount++;
+                return Task.FromResult(deletedAtUtc);
+            }
+
+            public Task DeleteSimulationDataAsync(
+                SimulationHostId simulationHostId,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task RecordAsync(
+                SimulationHostId simulationHostId,
+                DateTimeOffset deletedAtUtcValue,
+                DateTimeOffset updatedAtUtc,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
             }
         }
 
