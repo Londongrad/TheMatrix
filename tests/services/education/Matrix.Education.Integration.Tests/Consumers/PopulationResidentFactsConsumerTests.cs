@@ -1,7 +1,7 @@
 using Matrix.Education.Application.Students.SynchronizeStudentProfiles;
 using Matrix.Education.Integration.Consumers;
+using Matrix.Education.Integration.Tests.TestSupport;
 using Matrix.Population.Contracts.Events;
-using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -12,9 +12,9 @@ namespace Matrix.Education.Integration.Tests.Consumers
         [Fact]
         public async Task ConsumeAsync_SendsMappedSynchronizationCommand()
         {
-            var mediator = new RecordingMediator
+            var mediator = new EducationIntegrationMediatorStub
             {
-                Result = new SynchronizeStudentProfilesResult(
+                ProfileResult = new SynchronizeStudentProfilesResult(
                     Status: SynchronizeStudentProfilesStatus.Applied,
                     AddedProfiles: 1,
                     UpdatedProfiles: 0,
@@ -44,7 +44,7 @@ namespace Matrix.Education.Integration.Tests.Consumers
                 message: message,
                 cancellationToken: CancellationToken.None);
 
-            SynchronizeStudentProfilesCommand command = Assert.Single(mediator.Commands);
+            SynchronizeStudentProfilesCommand command = Assert.Single(mediator.ProfileCommands);
             Assert.Equal(
                 expected: message.SimulationHostId,
                 actual: command.SimulationHostId);
@@ -57,62 +57,5 @@ namespace Matrix.Education.Integration.Tests.Consumers
                 actual: profile.SourceRevision);
         }
 
-        private sealed class RecordingMediator : IMediator
-        {
-            public List<SynchronizeStudentProfilesCommand> Commands { get; } = [];
-            public required SynchronizeStudentProfilesResult Result { get; init; }
-
-            public Task<TResponse> Send<TResponse>(
-                IRequest<TResponse> request,
-                CancellationToken cancellationToken = default)
-            {
-                Commands.Add(Assert.IsType<SynchronizeStudentProfilesCommand>(request));
-                return Task.FromResult((TResponse)(object)Result);
-            }
-
-            public Task Send<TRequest>(
-                TRequest request,
-                CancellationToken cancellationToken = default)
-                where TRequest : IRequest
-            {
-                throw new NotSupportedException();
-            }
-
-            public Task<object?> Send(
-                object request,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IAsyncEnumerable<TResponse> CreateStream<TResponse>(
-                IStreamRequest<TResponse> request,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IAsyncEnumerable<object?> CreateStream(
-                object request,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
-            public Task Publish(
-                object notification,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
-            public Task Publish<TNotification>(
-                TNotification notification,
-                CancellationToken cancellationToken = default)
-                where TNotification : INotification
-            {
-                throw new NotSupportedException();
-            }
-        }
     }
 }
