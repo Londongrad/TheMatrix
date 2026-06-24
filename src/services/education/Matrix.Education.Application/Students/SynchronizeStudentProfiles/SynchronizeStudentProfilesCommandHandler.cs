@@ -8,6 +8,7 @@ namespace Matrix.Education.Application.Students.SynchronizeStudentProfiles
 {
     public sealed class SynchronizeStudentProfilesCommandHandler(
         IStudentProfileRepository studentProfileRepository,
+        IEducationSimulationDeletionRepository deletionRepository,
         IEducationUnitOfWork unitOfWork)
         : IRequestHandler<SynchronizeStudentProfilesCommand, SynchronizeStudentProfilesResult>
     {
@@ -29,6 +30,17 @@ namespace Matrix.Education.Application.Students.SynchronizeStudentProfiles
             PreparedBatch batch,
             CancellationToken cancellationToken)
         {
+            DateTimeOffset? deletedAtUtc = await deletionRepository.GetDeletedAtUtcAsync(
+                simulationHostId: batch.SimulationHostId,
+                cancellationToken: cancellationToken);
+
+            if (deletedAtUtc is not null)
+                return new SynchronizeStudentProfilesResult(
+                    Status: SynchronizeStudentProfilesStatus.SimulationDeleted,
+                    AddedProfiles: 0,
+                    UpdatedProfiles: 0,
+                    IgnoredProfiles: batch.Facts.Count);
+
             IReadOnlyList<StudentProfile> existingProfiles =
                 await studentProfileRepository.GetByIdsAsync(
                     residentIds: batch.ResidentIds,
@@ -78,6 +90,7 @@ namespace Matrix.Education.Application.Students.SynchronizeStudentProfiles
                 await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new SynchronizeStudentProfilesResult(
+                Status: SynchronizeStudentProfilesStatus.Applied,
                 AddedProfiles: addedProfiles.Count,
                 UpdatedProfiles: updatedProfiles,
                 IgnoredProfiles: ignoredProfiles);
