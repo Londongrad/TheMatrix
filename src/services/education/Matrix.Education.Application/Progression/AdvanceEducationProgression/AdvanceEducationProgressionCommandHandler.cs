@@ -8,6 +8,7 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
 {
     public sealed class AdvanceEducationProgressionCommandHandler(
         IEducationProgressionCheckpointRepository checkpointRepository,
+        IEducationSimulationDeletionRepository deletionRepository,
         IEducationProgressionBatchProcessor batchProcessor,
         IEducationUnitOfWork unitOfWork,
         TimeProvider timeProvider)
@@ -34,6 +35,13 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
             EducationProgressionBatch batch,
             CancellationToken cancellationToken)
         {
+            DateTimeOffset? deletedAtUtc = await deletionRepository.GetDeletedAtUtcAsync(
+                simulationHostId: batch.SimulationHostId,
+                cancellationToken: cancellationToken);
+
+            if (deletedAtUtc is not null)
+                return Skipped(AdvanceEducationProgressionStatus.SimulationDeleted);
+
             EducationProgressionCheckpoint? checkpoint = await checkpointRepository.GetAsync(
                 simulationHostId: batch.SimulationHostId,
                 cancellationToken: cancellationToken);

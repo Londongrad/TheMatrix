@@ -4,6 +4,7 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
     {
         Applied = 1,
         Duplicate = 2,
-        OutOfOrder = 3
+        OutOfOrder = 3,
+        SimulationDeleted = 4
     }
 }
