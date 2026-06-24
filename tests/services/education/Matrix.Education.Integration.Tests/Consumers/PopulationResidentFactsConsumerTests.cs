@@ -15,6 +15,7 @@ namespace Matrix.Education.Integration.Tests.Consumers
             var mediator = new RecordingMediator
             {
                 Result = new SynchronizeStudentProfilesResult(
+                    Status: SynchronizeStudentProfilesStatus.Applied,
                     AddedProfiles: 1,
                     UpdatedProfiles: 0,
                     IgnoredProfiles: 0)

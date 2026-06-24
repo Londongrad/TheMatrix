@@ -7,16 +7,49 @@ using Matrix.Education.Domain.Students;
 namespace Matrix.Education.Application.Tests.TestSupport
 {
     internal sealed class StudentProfileSynchronizationTestContext(
-        IReadOnlyList<StudentProfile>? existingProfiles = null)
+        IReadOnlyList<StudentProfile>? existingProfiles = null,
+        DateTimeOffset? deletedAtUtc = null)
     {
         internal StudentProfileRepositoryStub Repository { get; } = new(existingProfiles);
+        internal EducationSimulationDeletionRepositoryStub DeletionRepository { get; } = new(deletedAtUtc);
         internal EducationUnitOfWorkStub UnitOfWork { get; } = new();
 
         internal SynchronizeStudentProfilesCommandHandler CreateHandler()
         {
             return new SynchronizeStudentProfilesCommandHandler(
                 studentProfileRepository: Repository,
+                deletionRepository: DeletionRepository,
                 unitOfWork: UnitOfWork);
+        }
+    }
+
+    internal sealed class EducationSimulationDeletionRepositoryStub(DateTimeOffset? deletedAtUtc = null)
+        : IEducationSimulationDeletionRepository
+    {
+        internal int GetCallCount { get; private set; }
+
+        public Task<DateTimeOffset?> GetDeletedAtUtcAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            GetCallCount++;
+            return Task.FromResult(deletedAtUtc);
+        }
+
+        public Task DeleteSimulationDataAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task RecordAsync(
+            SimulationHostId simulationHostId,
+            DateTimeOffset deletedAtUtcValue,
+            DateTimeOffset updatedAtUtc,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
         }
     }
 

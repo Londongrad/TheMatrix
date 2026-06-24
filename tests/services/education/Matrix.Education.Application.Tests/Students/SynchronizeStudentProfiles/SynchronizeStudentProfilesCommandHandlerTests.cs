@@ -41,6 +41,7 @@ namespace Matrix.Education.Application.Tests.Students.SynchronizeStudentProfiles
                         sourceRevision: 1)),
                 CancellationToken.None);
 
+            Assert.Equal(SynchronizeStudentProfilesStatus.Applied, result.Status);
             Assert.Equal(1, result.AddedProfiles);
             Assert.Equal(1, result.UpdatedProfiles);
             Assert.Equal(1, result.IgnoredProfiles);
@@ -57,6 +58,28 @@ namespace Matrix.Education.Application.Tests.Students.SynchronizeStudentProfiles
             Assert.False(updatedProfile.IsAlive);
             Assert.False(updatedProfile.IsActive);
             Assert.Equal(8, ignoredProfile.LastSourceRevision);
+        }
+
+        [Fact]
+        public async Task Handle_DeletedSimulation_IgnoresBatchWithoutLoadingProfiles()
+        {
+            var context = new StudentProfileSynchronizationTestContext(
+                deletedAtUtc: StudentProfileSynchronizationTestData.SynchronizedAtUtc.AddMinutes(-1));
+            SynchronizeStudentProfilesCommandHandler handler = context.CreateHandler();
+
+            SynchronizeStudentProfilesResult result = await handler.Handle(
+                StudentProfileSynchronizationTestData.CreateCommand(
+                    StudentProfileSynchronizationTestData.CreateItem(
+                        residentId: Guid.NewGuid(),
+                        sourceRevision: 10)),
+                CancellationToken.None);
+
+            Assert.Equal(SynchronizeStudentProfilesStatus.SimulationDeleted, result.Status);
+            Assert.Equal(1, result.IgnoredProfiles);
+            Assert.Equal(0, context.Repository.GetCallCount);
+            Assert.Equal(0, context.Repository.AddRangeCallCount);
+            Assert.Equal(0, context.UnitOfWork.SaveCount);
+            Assert.Equal(1, context.DeletionRepository.GetCallCount);
         }
 
         [Fact]
