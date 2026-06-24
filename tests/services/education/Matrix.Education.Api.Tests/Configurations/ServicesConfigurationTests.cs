@@ -58,9 +58,11 @@ namespace Matrix.Education.Api.Tests.Configurations
             Assert.NotNull(scopedServices.GetRequiredService<EducationDbContext>());
             Assert.NotNull(scopedServices.GetRequiredService<IStudentProfileRepository>());
             Assert.NotNull(scopedServices.GetRequiredService<IEducationProgressionCheckpointRepository>());
+            Assert.NotNull(scopedServices.GetRequiredService<IEducationSimulationDeletionRepository>());
             Assert.NotNull(scopedServices.GetRequiredService<IEducationUnitOfWork>());
             Assert.NotNull(scopedServices.GetRequiredService<IMediator>());
             Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentFactsConsumer>());
+            Assert.NotNull(scopedServices.GetRequiredService<SimulationDeletedConsumer>());
             Assert.Same(
                 expected: TimeProvider.System,
                 actual: provider.GetRequiredService<TimeProvider>());
