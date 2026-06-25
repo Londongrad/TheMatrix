@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit"/>
+    <PackageReference Include="MediatR"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Matrix.Healthcare.Application\Matrix.Healthcare.Application.csproj"/>
+    <ProjectReference Include="..\..\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj"/>
+  </ItemGroup>
+
+</Project>
