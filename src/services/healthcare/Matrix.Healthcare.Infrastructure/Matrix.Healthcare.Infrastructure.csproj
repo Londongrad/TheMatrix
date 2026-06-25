@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit"/>
+    <PackageReference Include="MassTransit.RabbitMQ"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Infrastructure\Matrix.BuildingBlocks.Infrastructure.csproj"/>
+    <ProjectReference Include="..\Matrix.Healthcare.Application\Matrix.Healthcare.Application.csproj"/>
+  </ItemGroup>
+
+</Project>
