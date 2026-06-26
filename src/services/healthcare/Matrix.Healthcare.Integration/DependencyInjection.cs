@@ -8,6 +8,7 @@ namespace Matrix.Healthcare.Integration
         public static void AddHealthcareIntegrationConsumers(this IBusRegistrationConfigurator configurator)
         {
             configurator.AddConsumer<PopulationResidentFactsConsumer, PopulationResidentFactsConsumerDefinition>();
+            configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
         }
     }
 }
