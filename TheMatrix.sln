@@ -253,6 +253,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Healthcare.Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Healthcare.Api", "src\services\healthcare\Matrix.Healthcare.Api\Matrix.Healthcare.Api.csproj", "{2989FCE3-F524-434F-8B34-D7F275344667}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Healthcare.Api.Tests", "tests\services\healthcare\Matrix.Healthcare.Api.Tests\Matrix.Healthcare.Api.Tests.csproj", "{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1379,6 +1381,18 @@ Global
 		{2989FCE3-F524-434F-8B34-D7F275344667}.Release|x64.Build.0 = Release|Any CPU
 		{2989FCE3-F524-434F-8B34-D7F275344667}.Release|x86.ActiveCfg = Release|Any CPU
 		{2989FCE3-F524-434F-8B34-D7F275344667}.Release|x86.Build.0 = Release|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Debug|x64.Build.0 = Debug|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Debug|x86.Build.0 = Debug|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Release|x64.ActiveCfg = Release|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Release|x64.Build.0 = Release|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Release|x86.ActiveCfg = Release|Any CPU
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1506,6 +1520,7 @@ Global
 		{2FFF978D-60E8-4420-A63E-3B376C71CA99} = {433576DD-322E-4960-D66A-EDE758B5B948}
 		{8613347E-F77E-44BF-A8A3-FBD1F63FE816} = {E1B476BC-2664-B91C-C420-1A2403A7A9CF}
 		{2989FCE3-F524-434F-8B34-D7F275344667} = {433576DD-322E-4960-D66A-EDE758B5B948}
+		{64ABE2EB-A160-4A56-BAC1-E9E6FAD3E4CC} = {E1B476BC-2664-B91C-C420-1A2403A7A9CF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ADBA93C1-0295-4781-B60C-C1A0FBC03209}
