@@ -1,3 +1,4 @@
+using Matrix.Healthcare.Application.Lifecycle.DeleteHealthcareSimulation;
 using Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles;
 using MediatR;
 
@@ -6,6 +7,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
     internal sealed class HealthcareIntegrationMediatorStub : IMediator
     {
         internal List<SynchronizePatientProfilesCommand> Commands { get; } = [];
+        internal List<DeleteHealthcareSimulationCommand> DeletionCommands { get; } = [];
 
         internal SynchronizePatientProfilesResult Result { get; set; } = new(
             Status: SynchronizePatientProfilesStatus.Applied,
@@ -13,15 +15,21 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
             UpdatedProfiles: 0,
             IgnoredProfiles: 0);
 
+        internal DeleteHealthcareSimulationResult DeletionResult { get; set; } =
+            new(DeleteHealthcareSimulationStatus.Applied);
+
         public Task<TResponse> Send<TResponse>(
             IRequest<TResponse> request,
             CancellationToken cancellationToken = default)
         {
-            if (request is not SynchronizePatientProfilesCommand command)
-                throw new NotSupportedException(request.GetType().FullName);
+            object response = request switch
+            {
+                SynchronizePatientProfilesCommand command => RecordProfile(command),
+                DeleteHealthcareSimulationCommand command => RecordDeletion(command),
+                _ => throw new NotSupportedException(request.GetType().FullName)
+            };
 
-            Commands.Add(command);
-            return Task.FromResult((TResponse)(object)Result);
+            return Task.FromResult((TResponse)response);
         }
 
         public Task Send<TRequest>(
@@ -66,6 +74,18 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
             where TNotification : INotification
         {
             throw new NotSupportedException();
+        }
+
+        private SynchronizePatientProfilesResult RecordProfile(SynchronizePatientProfilesCommand command)
+        {
+            Commands.Add(command);
+            return Result;
+        }
+
+        private DeleteHealthcareSimulationResult RecordDeletion(DeleteHealthcareSimulationCommand command)
+        {
+            DeletionCommands.Add(command);
+            return DeletionResult;
         }
     }
 }

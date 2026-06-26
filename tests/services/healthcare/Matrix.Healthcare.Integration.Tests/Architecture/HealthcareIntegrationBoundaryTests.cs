@@ -13,7 +13,8 @@ namespace Matrix.Healthcare.Integration.Tests.Architecture
                 assembly: typeof(PopulationResidentFactsConsumer).Assembly,
                 "Matrix.Healthcare.Application",
                 "Matrix.Healthcare.Domain",
-                "Matrix.Population.Contracts");
+                "Matrix.Population.Contracts",
+                "Matrix.SimulationCore.Contracts");
         }
     }
 }
