@@ -5,3 +5,4 @@ CREATE DATABASE resources;
 CREATE DATABASE simulationsystems;
 CREATE DATABASE economy;
 CREATE DATABASE education;
+CREATE DATABASE healthcare;
