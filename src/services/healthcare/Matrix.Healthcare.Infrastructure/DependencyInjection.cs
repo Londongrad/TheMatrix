@@ -51,6 +51,8 @@ namespace Matrix.Healthcare.Infrastructure
             });
 
             services.AddScoped<IPatientProfileRepository, PatientProfileRepository>();
+            services.AddScoped<IHealthcareSimulationDeletionRepository,
+                HealthcareSimulationDeletionRepository>();
             services.AddScoped<IHealthcareUnitOfWork, HealthcareUnitOfWork>();
 
             services.AddRabbitMqOptions(configuration);
