@@ -41,6 +41,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.SynchronizePatientProfile
                 CancellationToken.None);
 
             Assert.Equal(1, result.AddedProfiles);
+            Assert.Equal(SynchronizePatientProfilesStatus.Applied, result.Status);
             Assert.Equal(1, result.UpdatedProfiles);
             Assert.Equal(1, result.IgnoredProfiles);
             Assert.Equal(3, result.ProcessedProfiles);
@@ -55,6 +56,27 @@ namespace Matrix.Healthcare.Application.Tests.Patients.SynchronizePatientProfile
             Assert.Equal(PatientSex.Male, updatedProfile.Sex);
             Assert.False(updatedProfile.IsEligibleForCare);
             Assert.Equal(8, ignoredProfile.LastSourceRevision);
+        }
+
+        [Fact]
+        public async Task Handle_DeletedSimulation_IgnoresBatchWithoutLoadingProfiles()
+        {
+            var context = new PatientProfileSynchronizationTestContext(
+                deletedAtUtc: PatientProfileSynchronizationTestData.SynchronizedAtUtc.AddMinutes(-1));
+
+            SynchronizePatientProfilesResult result = await context.CreateHandler().Handle(
+                PatientProfileSynchronizationTestData.CreateCommand(
+                    PatientProfileSynchronizationTestData.CreateItem(
+                        patientId: Guid.NewGuid(),
+                        sourceRevision: 10)),
+                CancellationToken.None);
+
+            Assert.Equal(SynchronizePatientProfilesStatus.SimulationDeleted, result.Status);
+            Assert.Equal(1, result.IgnoredProfiles);
+            Assert.Equal(0, context.Repository.GetCallCount);
+            Assert.Equal(0, context.Repository.AddRangeCallCount);
+            Assert.Equal(0, context.UnitOfWork.SaveCount);
+            Assert.Equal(1, context.DeletionRepository.GetCallCount);
         }
 
         [Fact]

@@ -16,6 +16,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             var mediator = new HealthcareIntegrationMediatorStub
             {
                 Result = new SynchronizePatientProfilesResult(
+                    Status: SynchronizePatientProfilesStatus.Applied,
                     AddedProfiles: 1,
                     UpdatedProfiles: 0,
                     IgnoredProfiles: 0)

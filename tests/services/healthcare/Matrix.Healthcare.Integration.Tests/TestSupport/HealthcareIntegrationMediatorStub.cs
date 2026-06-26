@@ -8,6 +8,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
         internal List<SynchronizePatientProfilesCommand> Commands { get; } = [];
 
         internal SynchronizePatientProfilesResult Result { get; set; } = new(
+            Status: SynchronizePatientProfilesStatus.Applied,
             AddedProfiles: 0,
             UpdatedProfiles: 0,
             IgnoredProfiles: 0);

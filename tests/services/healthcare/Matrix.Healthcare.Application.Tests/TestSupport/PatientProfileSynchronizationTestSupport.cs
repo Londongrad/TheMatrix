@@ -7,16 +7,51 @@ using Matrix.Healthcare.Domain.Simulation;
 namespace Matrix.Healthcare.Application.Tests.TestSupport
 {
     internal sealed class PatientProfileSynchronizationTestContext(
-        IReadOnlyList<PatientProfile>? existingProfiles = null)
+        IReadOnlyList<PatientProfile>? existingProfiles = null,
+        DateTimeOffset? deletedAtUtc = null)
     {
         internal PatientProfileRepositoryStub Repository { get; } = new(existingProfiles);
+        internal HealthcareSimulationDeletionRepositoryStub DeletionRepository { get; } =
+            new(deletedAtUtc);
         internal HealthcareUnitOfWorkStub UnitOfWork { get; } = new();
 
         internal SynchronizePatientProfilesCommandHandler CreateHandler()
         {
             return new SynchronizePatientProfilesCommandHandler(
                 patientProfileRepository: Repository,
+                deletionRepository: DeletionRepository,
                 unitOfWork: UnitOfWork);
+        }
+    }
+
+    internal sealed class HealthcareSimulationDeletionRepositoryStub(
+        DateTimeOffset? deletedAtUtc = null)
+        : IHealthcareSimulationDeletionRepository
+    {
+        internal int GetCallCount { get; private set; }
+
+        public Task<DateTimeOffset?> GetDeletedAtUtcAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            GetCallCount++;
+            return Task.FromResult(deletedAtUtc);
+        }
+
+        public Task DeleteSimulationDataAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task RecordAsync(
+            SimulationHostId simulationHostId,
+            DateTimeOffset deletedAtUtcValue,
+            DateTimeOffset updatedAtUtc,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
         }
     }
 
