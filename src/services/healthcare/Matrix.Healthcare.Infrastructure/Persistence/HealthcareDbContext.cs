@@ -1,4 +1,5 @@
 using Matrix.Healthcare.Domain.Patients;
+using Matrix.Healthcare.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Healthcare.Infrastructure.Persistence
@@ -7,6 +8,8 @@ namespace Matrix.Healthcare.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
+        public DbSet<HealthcareSimulationDeletionState> SimulationDeletionStates =>
+            Set<HealthcareSimulationDeletionState>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
