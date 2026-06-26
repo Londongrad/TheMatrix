@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj"/>
+    <ProjectReference Include="..\Matrix.Healthcare.Application\Matrix.Healthcare.Application.csproj"/>
+    <ProjectReference Include="..\Matrix.Healthcare.Infrastructure\Matrix.Healthcare.Infrastructure.csproj"/>
+    <ProjectReference Include="..\Matrix.Healthcare.Integration\Matrix.Healthcare.Integration.csproj"/>
+  </ItemGroup>
+
+</Project>
