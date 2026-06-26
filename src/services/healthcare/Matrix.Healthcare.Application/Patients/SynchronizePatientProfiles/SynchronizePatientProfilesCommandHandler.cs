@@ -8,6 +8,7 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
 {
     public sealed class SynchronizePatientProfilesCommandHandler(
         IPatientProfileRepository patientProfileRepository,
+        IHealthcareSimulationDeletionRepository deletionRepository,
         IHealthcareUnitOfWork unitOfWork)
         : IRequestHandler<SynchronizePatientProfilesCommand, SynchronizePatientProfilesResult>
     {
@@ -29,6 +30,17 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
             PreparedBatch batch,
             CancellationToken cancellationToken)
         {
+            DateTimeOffset? deletedAtUtc = await deletionRepository.GetDeletedAtUtcAsync(
+                simulationHostId: batch.SimulationHostId,
+                cancellationToken: cancellationToken);
+
+            if (deletedAtUtc is not null)
+                return new SynchronizePatientProfilesResult(
+                    Status: SynchronizePatientProfilesStatus.SimulationDeleted,
+                    AddedProfiles: 0,
+                    UpdatedProfiles: 0,
+                    IgnoredProfiles: batch.Facts.Count);
+
             IReadOnlyList<PatientProfile> existingProfiles =
                 await patientProfileRepository.GetByIdsAsync(
                     patientIds: batch.PatientIds,
@@ -80,6 +92,7 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
                 await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new SynchronizePatientProfilesResult(
+                Status: SynchronizePatientProfilesStatus.Applied,
                 AddedProfiles: addedProfiles.Count,
                 UpdatedProfiles: updatedProfiles,
                 IgnoredProfiles: ignoredProfiles);
