@@ -57,9 +57,11 @@ namespace Matrix.Healthcare.Api.Tests.Configurations
             Assert.NotNull(scopedServices.GetRequiredService<ICurrentUserContext>());
             Assert.NotNull(scopedServices.GetRequiredService<HealthcareDbContext>());
             Assert.NotNull(scopedServices.GetRequiredService<IPatientProfileRepository>());
+            Assert.NotNull(scopedServices.GetRequiredService<IHealthcareSimulationDeletionRepository>());
             Assert.NotNull(scopedServices.GetRequiredService<IHealthcareUnitOfWork>());
             Assert.NotNull(scopedServices.GetRequiredService<IMediator>());
             Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentFactsConsumer>());
+            Assert.NotNull(scopedServices.GetRequiredService<SimulationDeletedConsumer>());
             Assert.Same(
                 expected: TimeProvider.System,
                 actual: provider.GetRequiredService<TimeProvider>());
