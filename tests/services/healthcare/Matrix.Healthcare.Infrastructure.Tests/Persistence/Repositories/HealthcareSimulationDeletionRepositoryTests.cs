@@ -11,7 +11,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
     public sealed class HealthcareSimulationDeletionRepositoryTests
     {
         [Fact]
-        public async Task DeleteAndRecord_RemovesOnlyTargetProfilesAndRetainsTombstone()
+        public async Task DeleteAndRecord_RemovesTargetPatientDataAndRetainsTombstone()
         {
             await using HealthcareDbContext dbContext =
                 HealthcareInfrastructureTestSupport.CreateDbContext();
@@ -20,6 +20,9 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
             PatientProfile deletedProfile = CreateProfile(deletedHostId);
             PatientProfile retainedProfile = CreateProfile(retainedHostId);
             dbContext.PatientProfiles.AddRange(deletedProfile, retainedProfile);
+            dbContext.PatientMedicalRecords.AddRange(
+                CreateMedicalRecord(deletedProfile.PatientId, deletedHostId),
+                CreateMedicalRecord(retainedProfile.PatientId, retainedHostId));
             await dbContext.SaveChangesAsync();
             var repository = new HealthcareSimulationDeletionRepository(dbContext);
             DateTimeOffset deletedAtUtc = DateTimeOffset.Parse("2048-05-06T10:00:00+00:00");
@@ -36,6 +39,10 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 profile => profile.SimulationHostId == deletedHostId));
             Assert.True(await dbContext.PatientProfiles.AnyAsync(
                 profile => profile.SimulationHostId == retainedHostId));
+            Assert.False(await dbContext.PatientMedicalRecords.AnyAsync(
+                record => record.SimulationHostId == deletedHostId));
+            Assert.True(await dbContext.PatientMedicalRecords.AnyAsync(
+                record => record.SimulationHostId == retainedHostId));
             Assert.Equal(
                 deletedAtUtc,
                 await repository.GetDeletedAtUtcAsync(deletedHostId));
@@ -52,6 +59,17 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 isActive: true,
                 sourceRevision: 1,
                 synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
+        }
+
+        private static PatientMedicalRecord CreateMedicalRecord(
+            PatientId patientId,
+            SimulationHostId simulationHostId)
+        {
+            return PatientMedicalRecord.Register(
+                patientId,
+                simulationHostId,
+                HealthScore.Full,
+                PatientIllnessState.Healthy());
         }
     }
 }
