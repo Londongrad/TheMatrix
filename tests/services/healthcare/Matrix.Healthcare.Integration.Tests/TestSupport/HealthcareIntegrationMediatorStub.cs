@@ -1,4 +1,5 @@
 using Matrix.Healthcare.Application.Lifecycle.DeleteHealthcareSimulation;
+using Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords;
 using Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles;
 using MediatR;
 
@@ -7,6 +8,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
     internal sealed class HealthcareIntegrationMediatorStub : IMediator
     {
         internal List<SynchronizePatientProfilesCommand> Commands { get; } = [];
+        internal List<InitializePatientMedicalRecordsCommand> MedicalCommands { get; } = [];
         internal List<DeleteHealthcareSimulationCommand> DeletionCommands { get; } = [];
 
         internal SynchronizePatientProfilesResult Result { get; set; } = new(
@@ -18,6 +20,11 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
         internal DeleteHealthcareSimulationResult DeletionResult { get; set; } =
             new(DeleteHealthcareSimulationStatus.Applied);
 
+        internal InitializePatientMedicalRecordsResult MedicalResult { get; set; } = new(
+            Status: InitializePatientMedicalRecordsStatus.Applied,
+            AddedRecords: 0,
+            IgnoredRecords: 0);
+
         public Task<TResponse> Send<TResponse>(
             IRequest<TResponse> request,
             CancellationToken cancellationToken = default)
@@ -25,6 +32,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
             object response = request switch
             {
                 SynchronizePatientProfilesCommand command => RecordProfile(command),
+                InitializePatientMedicalRecordsCommand command => RecordMedical(command),
                 DeleteHealthcareSimulationCommand command => RecordDeletion(command),
                 _ => throw new NotSupportedException(request.GetType().FullName)
             };
@@ -86,6 +94,13 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
         {
             DeletionCommands.Add(command);
             return DeletionResult;
+        }
+
+        private InitializePatientMedicalRecordsResult RecordMedical(
+            InitializePatientMedicalRecordsCommand command)
+        {
+            MedicalCommands.Add(command);
+            return MedicalResult;
         }
     }
 }
