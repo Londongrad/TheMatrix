@@ -8,6 +8,7 @@ namespace Matrix.Healthcare.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
+        public DbSet<PatientMedicalRecord> PatientMedicalRecords => Set<PatientMedicalRecord>();
         public DbSet<HealthcareSimulationDeletionState> SimulationDeletionStates =>
             Set<HealthcareSimulationDeletionState>();
 
