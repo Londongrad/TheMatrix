@@ -448,6 +448,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
             FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
+            FakePopulationResidentMedicalStateOutboxWriter? residentMedicalStateOutboxWriter = null,
             FakeCityPopulationCommuteTripSyncService? commuteTripSyncService = null,
             FakeUnitOfWork? unitOfWork = null)
         {
@@ -479,6 +480,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
                 residentFactsOutboxWriter: residentFactsOutboxWriter ??
                                            new FakePopulationResidentFactsOutboxWriter(),
+                residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter ??
+                                                  new FakePopulationResidentMedicalStateOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
                 cityPopulationSummaryProjectionService: summaryProjectionService ??

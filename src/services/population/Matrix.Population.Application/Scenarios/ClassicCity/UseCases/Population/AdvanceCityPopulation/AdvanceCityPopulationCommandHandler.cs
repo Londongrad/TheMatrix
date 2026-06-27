@@ -49,6 +49,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
+        IPopulationResidentMedicalStateOutboxWriter residentMedicalStateOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
@@ -533,6 +534,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 batch: batch,
                                 cancellationToken: ct);
                     }
+
+                    if (registeredResidents.Count > 0)
+                        foreach (PopulationResidentMedicalStateBatchV1 batch in
+                                 PopulationResidentMedicalStateBatchFactory.Build(
+                                     simulationHostId: request.CityId,
+                                     sourceRevision: request.TickId,
+                                     residents: registeredResidents,
+                                     correlationId:
+                                     $"population:{request.CityId:N}:tick:{request.TickId}:medical-state",
+                                     observedAtUtc: updatedAtUtc))
+                            await residentMedicalStateOutboxWriter.AddResidentMedicalStateBatchAsync(
+                                batch: batch,
+                                cancellationToken: ct);
 
                     await unitOfWork.SaveChangesAsync(ct);
                 },
