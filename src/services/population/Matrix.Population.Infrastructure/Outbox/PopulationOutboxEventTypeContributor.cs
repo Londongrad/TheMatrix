@@ -8,7 +8,9 @@ namespace Matrix.Population.Infrastructure.Outbox
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
                 [PopulationOutboxEventTypes.PopulationResidentFactsBatchV1] =
-                    typeof(PopulationResidentFactsBatchV1)
+                    typeof(PopulationResidentFactsBatchV1),
+                [PopulationOutboxEventTypes.PopulationResidentMedicalStateBatchV1] =
+                    typeof(PopulationResidentMedicalStateBatchV1)
             };
     }
 }
