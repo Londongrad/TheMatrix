@@ -158,6 +158,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
             FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
+            FakePopulationResidentMedicalStateOutboxWriter? residentMedicalStateOutboxWriter = null,
             FakeHouseholdWriteRepository? householdWriteRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
@@ -179,6 +180,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
                 residentFactsOutboxWriter: residentFactsOutboxWriter ??
                                            new FakePopulationResidentFactsOutboxWriter(),
+                residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter ??
+                                                  new FakePopulationResidentMedicalStateOutboxWriter(),
                 generator: null!,
                 unitOfWork: unitOfWork ?? new FakeUnitOfWork());
         }

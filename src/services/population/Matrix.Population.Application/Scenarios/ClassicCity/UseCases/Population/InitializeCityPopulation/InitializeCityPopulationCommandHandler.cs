@@ -28,6 +28,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
+        IPopulationResidentMedicalStateOutboxWriter residentMedicalStateOutboxWriter,
         CityPopulationBootstrapGenerator generator,
         IUnitOfWork unitOfWork)
         : IRequestHandler<InitializeCityPopulationCommand, CityPopulationBootstrapSummaryDto>
@@ -114,6 +115,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     residents: result.Persons,
                     correlationId: $"{syncCorrelationId}:resident-facts",
                     synchronizedAtUtc: syncOccurredAtUtc);
+            PopulationResidentMedicalStateBatchV1[] residentMedicalStateBatches =
+                PopulationResidentMedicalStateBatchFactory.Build(
+                    simulationHostId: request.CityId,
+                    sourceRevision: 0,
+                    residents: result.Persons,
+                    correlationId: $"{syncCorrelationId}:medical-state",
+                    observedAtUtc: syncOccurredAtUtc);
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -180,6 +188,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     foreach (PopulationResidentFactsBatchV1 batch in residentFactsBatches)
                         await residentFactsOutboxWriter.AddResidentFactsBatchAsync(
+                            batch: batch,
+                            cancellationToken: ct);
+
+                    foreach (PopulationResidentMedicalStateBatchV1 batch in residentMedicalStateBatches)
+                        await residentMedicalStateOutboxWriter.AddResidentMedicalStateBatchAsync(
                             batch: batch,
                             cancellationToken: ct);
 
