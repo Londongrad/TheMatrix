@@ -15,6 +15,7 @@ namespace Matrix.Healthcare.Domain.Patients
             SimulationHostId = simulationHostId;
             Health = health;
             Illness = illness ?? throw new ArgumentNullException(nameof(illness));
+            LastProgressionRevision = -1;
         }
 
         private PatientMedicalRecord()
@@ -27,6 +28,7 @@ namespace Matrix.Healthcare.Domain.Patients
         public SimulationHostId SimulationHostId { get; private set; }
         public HealthScore Health { get; private set; }
         public PatientIllnessState Illness { get; private set; }
+        public long LastProgressionRevision { get; private set; } = -1;
 
         public bool HasActiveIllness => Illness.HasActiveIllness;
         public bool IsCritical => Health.Value == HealthScore.Minimum;
@@ -47,6 +49,17 @@ namespace Matrix.Healthcare.Domain.Patients
         public void ApplyHealthDelta(int delta)
         {
             Health = Health.ApplyDelta(delta);
+        }
+
+        public bool TryAcceptProgressionRevision(long revision)
+        {
+            if (revision < 0)
+                throw new ArgumentOutOfRangeException(nameof(revision));
+            if (revision <= LastProgressionRevision)
+                return false;
+
+            LastProgressionRevision = revision;
+            return true;
         }
 
         public void DiagnoseIllness(

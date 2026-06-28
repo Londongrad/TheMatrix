@@ -28,6 +28,7 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
             Assert.Equal(63, record.Health.Value);
             Assert.Same(illness, record.Illness);
             Assert.True(record.HasActiveIllness);
+            Assert.Equal(-1, record.LastProgressionRevision);
         }
 
         [Fact]
@@ -54,6 +55,23 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
 
             Assert.False(record.HasActiveIllness);
             Assert.Equal(recoveredOn, record.Illness.LastRecoveredOn);
+        }
+
+        [Fact]
+        public void TryAcceptProgressionRevision_AcceptsOnlyMonotonicRevision()
+        {
+            PatientMedicalRecord record = CreateHealthyRecord();
+
+            bool first = record.TryAcceptProgressionRevision(7);
+            bool duplicate = record.TryAcceptProgressionRevision(7);
+            bool stale = record.TryAcceptProgressionRevision(6);
+            bool next = record.TryAcceptProgressionRevision(8);
+
+            Assert.True(first);
+            Assert.False(duplicate);
+            Assert.False(stale);
+            Assert.True(next);
+            Assert.Equal(8, record.LastProgressionRevision);
         }
 
         [Fact]
