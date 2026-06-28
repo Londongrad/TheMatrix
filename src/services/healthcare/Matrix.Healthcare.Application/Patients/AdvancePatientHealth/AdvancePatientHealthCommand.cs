@@ -8,6 +8,9 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         DateOnly PreviousDate,
         DateOnly CurrentDate,
         DateTimeOffset ObservedAtUtc,
+        string CorrelationId,
+        int BatchNumber,
+        int TotalBatches,
         IReadOnlyList<AdvancePatientHealthRiskItem> Patients)
         : IRequest<AdvancePatientHealthResult>;
 }
