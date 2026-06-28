@@ -23,6 +23,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence
                     IllnessSeverity.Moderate,
                     diagnosedOn: new DateOnly(2048, 5, 6),
                     lastRecoveredOn: new DateOnly(2048, 4, 28)));
+            record.TryAcceptProgressionRevision(17);
 
             dbContext.PatientMedicalRecords.Add(record);
             await dbContext.SaveChangesAsync();
@@ -36,6 +37,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence
             Assert.Equal(IllnessSeverity.Moderate, loaded.Illness.CurrentSeverity);
             Assert.Equal(new DateOnly(2048, 5, 6), loaded.Illness.DiagnosedOn);
             Assert.Equal(new DateOnly(2048, 4, 28), loaded.Illness.LastRecoveredOn);
+            Assert.Equal(17, loaded.LastProgressionRevision);
         }
     }
 }

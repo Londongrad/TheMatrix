@@ -34,6 +34,10 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Configurations
                .HasColumnName("health_score")
                .IsRequired();
 
+            builder.Property(record => record.LastProgressionRevision)
+               .HasColumnName("last_progression_revision")
+               .IsRequired();
+
             builder.OwnsOne(record => record.Illness, illness =>
             {
                 illness.Property(state => state.CurrentKind)
