@@ -1,4 +1,5 @@
 using System.Reflection;
+using Matrix.Healthcare.Domain.Progression;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Healthcare.Application
@@ -10,6 +11,11 @@ namespace Matrix.Healthcare.Application
             Assembly assembly = typeof(DependencyInjection).Assembly;
 
             services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
+            services.AddSingleton<PatientMedicalRiskRoll>();
+            services.AddSingleton<PatientIllnessDiagnosisPolicy>();
+            services.AddSingleton<PatientIllnessCoursePolicy>();
+            services.AddSingleton<PatientIllnessBurdenPolicy>();
+            services.AddSingleton<PatientIllnessProgressionPolicy>();
         }
     }
 }
