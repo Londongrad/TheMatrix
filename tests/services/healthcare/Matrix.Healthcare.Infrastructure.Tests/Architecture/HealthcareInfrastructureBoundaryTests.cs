@@ -15,6 +15,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Architecture
                 "Matrix.BuildingBlocks.Domain",
                 "Matrix.BuildingBlocks.Infrastructure",
                 "Matrix.Healthcare.Application",
+                "Matrix.Healthcare.Contracts",
                 "Matrix.Healthcare.Domain");
         }
     }

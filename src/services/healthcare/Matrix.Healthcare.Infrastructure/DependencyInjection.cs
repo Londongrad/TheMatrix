@@ -1,9 +1,13 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Healthcare.Application.Abstractions;
 using Matrix.Healthcare.Infrastructure.Persistence;
 using Matrix.Healthcare.Infrastructure.Persistence.Repositories;
+using Matrix.Healthcare.Infrastructure.Outbox;
+using Matrix.Healthcare.Infrastructure.Outbox.RabbitMq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,9 +56,12 @@ namespace Matrix.Healthcare.Infrastructure
 
             services.AddScoped<IPatientProfileRepository, PatientProfileRepository>();
             services.AddScoped<IPatientMedicalRecordRepository, PatientMedicalRecordRepository>();
+            services.AddScoped<IPatientHealthOutcomeOutboxWriter, PatientHealthOutcomeOutboxWriter>();
             services.AddScoped<IHealthcareSimulationDeletionRepository,
                 HealthcareSimulationDeletionRepository>();
             services.AddScoped<IHealthcareUnitOfWork, HealthcareUnitOfWork>();
+            services.AddOutbox<HealthcareDbContext>(configuration);
+            services.AddScoped<IOutboxMessagePublisher, HealthcareMassTransitOutboxMessagePublisher>();
 
             services.AddRabbitMqOptions(configuration);
             services.AddMassTransitEndpointHygieneOptions(configuration);
