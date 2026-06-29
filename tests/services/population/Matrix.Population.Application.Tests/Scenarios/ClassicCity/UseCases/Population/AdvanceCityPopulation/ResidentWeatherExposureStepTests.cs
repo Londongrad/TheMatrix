@@ -36,11 +36,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Person resident = CreatePerson(currentDate: CurrentDate);
             var before = WeatherSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 exposureSegments: []);
 
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: WeatherSnapshot.Capture(resident));
@@ -64,20 +64,20 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 environment: null);
             var before = WeatherSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 exposureSegments: [segment],
                 policy: policy);
 
             Assert.False(expectedImpact.HasEffect);
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: WeatherSnapshot.Capture(resident));
         }
 
         [Fact]
-        public void Apply_WhenAdverseHeatwaveSegmentHasImpact_AppliesHealthAndHappinessDeltas()
+        public void Apply_WhenAdverseHeatwaveSegmentHasImpact_DelegatesHealthAndAppliesHappinessDelta()
         {
             Person resident = CreatePerson(
                 birthDate: new DateOnly(
@@ -98,16 +98,15 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 environment: null);
             var before = WeatherSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 exposureSegments: [segment],
                 policy: policy);
 
             Assert.True(expectedImpact.HasEffect);
-            Assert.True(changed);
-            Assert.Equal(
-                expected: before.Health + expectedImpact.HealthDelta,
-                actual: resident.Health.Value);
+            Assert.True(result.HasAnyEffect);
+            Assert.Equal(before.Health, resident.Health.Value);
+            Assert.Equal(expectedImpact.HealthDelta, result.HealthcareHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + expectedImpact.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -152,7 +151,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 environment: null);
             var before = WeatherSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 exposureSegments:
                 [
@@ -163,10 +162,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
             Assert.True(adverseImpact.HasEffect);
             Assert.True(recoveryImpact.HasEffect);
-            Assert.True(changed);
+            Assert.True(result.HasAnyEffect);
+            Assert.Equal(before.Health, resident.Health.Value);
             Assert.Equal(
-                expected: before.Health + adverseImpact.HealthDelta + recoveryImpact.HealthDelta,
-                actual: resident.Health.Value);
+                adverseImpact.HealthDelta + recoveryImpact.HealthDelta,
+                result.HealthcareHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + adverseImpact.HappinessDelta + recoveryImpact.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -198,7 +198,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 environment: environment);
             var before = WeatherSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 exposureSegments: [segment],
                 environment: environment,
@@ -208,7 +208,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: baselineImpact,
                 actual: adaptedImpact);
             Assert.False(adaptedImpact.HasEffect);
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: WeatherSnapshot.Capture(resident));
@@ -221,7 +221,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             resident.Die(CurrentDate);
             var before = WeatherSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 exposureSegments:
                 [
@@ -232,7 +232,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                             temperatureC: 39m))
                 ]);
 
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: WeatherSnapshot.Capture(resident));
@@ -240,7 +240,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public void Apply_WhenHealthDeltaKillsResident_DoesNotApplyHappinessDelta()
+        public void Apply_WhenHealthDeltaWouldKillResident_DelegatesMedicalDecision()
         {
             Person resident = CreatePerson(
                 birthDate: new DateOnly(
@@ -263,22 +263,24 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 environment: null);
             int previousHappiness = resident.Happiness.Value;
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 exposureSegments: [segment],
                 policy: policy);
 
             Assert.True(expectedImpact.HealthDelta < 0);
             Assert.True(expectedImpact.HappinessDelta < 0);
-            Assert.True(changed);
-            Assert.False(resident.IsAlive);
+            Assert.True(result.HasAnyEffect);
+            Assert.Equal(expectedImpact.HealthDelta, result.HealthcareHealthDelta);
+            Assert.True(resident.IsAlive);
+            Assert.Equal(1, resident.Health.Value);
             Assert.Equal(
-                expected: previousHappiness,
+                expected: previousHappiness + expectedImpact.HappinessDelta,
                 actual: resident.Happiness.Value);
         }
 
         [Fact]
-        public void Apply_WhenWeatherExposureKillsMarriedResident_RegistersSpouseWidowhood()
+        public void Apply_WhenWeatherExposureCouldKillMarriedResident_DoesNotPreemptHealthcareOutcome()
         {
             var marriageDomainService = new MarriageDomainService();
             var householdId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
@@ -308,7 +310,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 spouse: spouse,
                 currentDate: CurrentDate);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 exposureSegments:
                 [
@@ -317,41 +319,28 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                             type: PopulationWeatherType.Heatwave,
                             severity: PopulationWeatherSeverity.Extreme,
                             temperatureC: 39m))
-                ],
-                residentsById: new Dictionary<PersonId, Person>
-                {
-                    [resident.Id] = resident,
-                    [spouse.Id] = spouse
-                },
-                marriageDomainService: marriageDomainService);
+                ]);
 
-            Assert.True(changed);
-            Assert.False(resident.IsAlive);
+            Assert.True(result.HasAnyEffect);
+            Assert.True(result.HealthcareHealthDelta < 0);
+            Assert.True(resident.IsAlive);
             Assert.Equal(
-                expected: MaritalStatus.Widowed,
+                expected: MaritalStatus.Married,
                 actual: spouse.MaritalStatus);
-            Assert.Null(spouse.SpouseId);
+            Assert.Equal(resident.Id, spouse.SpouseId);
         }
 
-        private static bool Apply(
+        private static ResidentProgressionStepResult Apply(
             Person resident,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             CityPopulationEnvironment? environment = null,
-            IReadOnlyDictionary<PersonId, Person>? residentsById = null,
-            MarriageDomainService? marriageDomainService = null,
             CityPopulationWeatherExposurePolicy? policy = null)
         {
             return ResidentWeatherExposureStep.Apply(
                 person: resident,
-                residentsById: residentsById ??
-                               new Dictionary<PersonId, Person>
-                               {
-                                   [resident.Id] = resident
-                               },
                 currentDate: CurrentDate,
                 environment: environment,
                 exposureSegments: exposureSegments,
-                marriageDomainService: marriageDomainService ?? new MarriageDomainService(),
                 weatherExposurePolicy: policy ?? CreatePolicy());
         }
 

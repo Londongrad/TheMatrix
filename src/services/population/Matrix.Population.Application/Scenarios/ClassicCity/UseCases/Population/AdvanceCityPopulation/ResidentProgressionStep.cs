@@ -17,7 +17,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         internal static async Task<ResidentProgressionStepResult> ApplyAsync(
             PersonEntity person,
             CityId cityId,
-            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
             DateOnly previousDate,
@@ -40,7 +39,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 districtUtilityConditionsByDistrictId,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationServiceQualityState? serviceQualityState,
-            MarriageDomainService marriageDomainService,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
             CityHouseholdPressurePolicy householdPressurePolicy,
@@ -121,16 +119,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 populationChanged |= livingConditionsProgression.PopulationChanged;
                 healthcareHealthDelta += livingConditionsProgression.HealthcareHealthDelta;
             }
-            if (exposureSegments.Count > 0 &&
-                ResidentWeatherExposureStep.Apply(
+            if (exposureSegments.Count > 0)
+            {
+                ResidentProgressionStepResult weatherExposure = ResidentWeatherExposureStep.Apply(
                     person: person,
-                    residentsById: residentsById,
                     currentDate: currentDate,
                     environment: environment,
                     exposureSegments: exposureSegments,
-                    marriageDomainService: marriageDomainService,
-                    weatherExposurePolicy: weatherExposurePolicy))
-                populationChanged = true;
+                    weatherExposurePolicy: weatherExposurePolicy);
+                populationChanged |= weatherExposure.PopulationChanged;
+                healthcareHealthDelta += weatherExposure.HealthcareHealthDelta;
+            }
             return new ResidentProgressionStepResult(
                 PopulationChanged: populationChanged,
                 HealthcareHealthDelta: Math.Clamp(healthcareHealthDelta, -100, 100));

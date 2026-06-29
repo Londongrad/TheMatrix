@@ -252,7 +252,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 await ResidentProgressionStep.ApplyAsync(
                                     person: person,
                                     cityId: cityId,
-                                    residentsById: personsById,
                                     householdsById: householdsById,
                                     residentsByHouseholdId: residentsByHouseholdId,
                                     previousDate: previousDate,
@@ -276,7 +275,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                     districtImpactPolicy: districtImpactPolicy,
                                     serviceQualityState: serviceQualityState,
-                                    marriageDomainService: marriageDomainService,
                                     educationAutonomyPolicy: educationAutonomyPolicy,
                                     employmentAutonomyPolicy: employmentAutonomyPolicy,
                                     householdPressurePolicy: householdPressurePolicy,

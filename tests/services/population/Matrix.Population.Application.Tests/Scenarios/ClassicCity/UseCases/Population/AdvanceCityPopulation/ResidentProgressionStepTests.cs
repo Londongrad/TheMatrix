@@ -155,9 +155,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
             Assert.True(expectedImpact.HasEffect);
             Assert.True(result.HasAnyEffect);
-            Assert.Equal(
-                expected: before.Health + expectedImpact.HealthDelta,
-                actual: resident.Health.Value);
+            Assert.Equal(before.Health, resident.Health.Value);
+            Assert.Equal(expectedImpact.HealthDelta, result.HealthcareHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + expectedImpact.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -207,7 +206,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             bool requiresNeedsProgression = false,
             CityPopulationEnvironment? environment = null,
             IReadOnlyCollection<CityWeatherExposureSegment>? exposureSegments = null,
-            IReadOnlyDictionary<PersonId, PersonEntity>? residentsById = null,
             IReadOnlyDictionary<HouseholdId, HouseholdEntity>? householdsById = null,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>>? residentsByHouseholdId = null,
             IReadOnlyDictionary<HouseholdId, HousingStatus>? housingByHouseholdId = null,
@@ -236,11 +234,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             return ResidentProgressionStep.ApplyAsync(
                 person: resident,
                 cityId: TestCityId,
-                residentsById: residentsById ??
-                               new Dictionary<PersonId, PersonEntity>
-                               {
-                                   [resident.Id] = resident
-                               },
                 householdsById: householdsById ?? new Dictionary<HouseholdId, HouseholdEntity>(),
                 residentsByHouseholdId: residentsByHouseholdId ??
                                         new Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>>(),
@@ -269,7 +262,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                            CityDistrictUtilityConditionsSnapshot>(),
                 districtImpactPolicy: new CityPopulationDistrictImpactPolicy(),
                 serviceQualityState: serviceQualityState,
-                marriageDomainService: new MarriageDomainService(),
                 educationAutonomyPolicy: new CityEducationAutonomyPolicy(anchorSelectionPolicy),
                 employmentAutonomyPolicy: new CityEmploymentAutonomyPolicy(
                     contentCatalog: new TestPopulationGenerationContentCatalog(),
