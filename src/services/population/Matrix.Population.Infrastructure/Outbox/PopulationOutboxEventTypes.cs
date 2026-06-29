@@ -5,6 +5,9 @@ namespace Matrix.Population.Infrastructure.Outbox
         public const string PopulationResidentFactsBatchV1 =
             "population.resident-facts-batch.v1";
 
+        public const string PopulationResidentHealthRiskBatchV1 =
+            "population.resident-health-risk-batch.v1";
+
         public const string PopulationResidentMedicalStateBatchV1 =
             "population.resident-medical-state-batch.v1";
     }

@@ -9,6 +9,8 @@ namespace Matrix.Population.Infrastructure.Outbox
             {
                 [PopulationOutboxEventTypes.PopulationResidentFactsBatchV1] =
                     typeof(PopulationResidentFactsBatchV1),
+                [PopulationOutboxEventTypes.PopulationResidentHealthRiskBatchV1] =
+                    typeof(PopulationResidentHealthRiskBatchV1),
                 [PopulationOutboxEventTypes.PopulationResidentMedicalStateBatchV1] =
                     typeof(PopulationResidentMedicalStateBatchV1)
             };

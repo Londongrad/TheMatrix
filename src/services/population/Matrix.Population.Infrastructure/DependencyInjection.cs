@@ -64,6 +64,8 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<IPersonReadRepository, PersonReadRepository>();
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
             services.AddScoped<IPopulationResidentFactsOutboxWriter, PopulationResidentFactsOutboxWriter>();
+            services.AddScoped<IPopulationResidentHealthRiskOutboxWriter,
+                PopulationResidentHealthRiskOutboxWriter>();
             services.AddScoped<IPopulationResidentMedicalStateOutboxWriter,
                 PopulationResidentMedicalStateOutboxWriter>();
             services.AddScoped<IProcessedIntegrationMessageRepository, ProcessedIntegrationMessageRepository>();
