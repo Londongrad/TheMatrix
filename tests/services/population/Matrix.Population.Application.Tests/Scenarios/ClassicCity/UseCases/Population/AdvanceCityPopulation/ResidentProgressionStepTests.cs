@@ -270,7 +270,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                            CityDistrictUtilityConditionsSnapshot>(),
                 districtImpactPolicy: new CityPopulationDistrictImpactPolicy(),
                 serviceQualityState: serviceQualityState,
-                healthcarePressureProfile: healthcarePressureProfile ?? CreateHealthcarePressureProfile(),
                 marriageDomainService: new MarriageDomainService(),
                 educationAutonomyPolicy: new CityEducationAutonomyPolicy(anchorSelectionPolicy),
                 employmentAutonomyPolicy: new CityEmploymentAutonomyPolicy(
@@ -278,11 +277,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     householdEconomyPolicy: householdEconomyPolicy,
                     anchorSelectionPolicy: anchorSelectionPolicy),
                 householdPressurePolicy: new CityHouseholdPressurePolicy(),
-                illnessAutonomyPolicy: new CityIllnessAutonomyPolicy(),
-                healthcareAutonomyPolicy: new CityHealthcareAutonomyPolicy(
-                    householdLivelihoodPolicy: new CityHouseholdLivelihoodPolicy()),
-                anchorSelectionPolicy: anchorSelectionPolicy,
-                hospitalAnchors: [],
                 livingConditionsPressurePolicy: new CityPopulationLivingConditionsPressurePolicy(),
                 institutionPools: new Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>(),
                 workplaceAnchors: [],

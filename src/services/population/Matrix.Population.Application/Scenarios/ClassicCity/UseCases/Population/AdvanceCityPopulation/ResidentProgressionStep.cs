@@ -40,15 +40,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 districtUtilityConditionsByDistrictId,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationServiceQualityState? serviceQualityState,
-            CityPopulationHealthcarePressureProfile healthcarePressureProfile,
             MarriageDomainService marriageDomainService,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
             CityHouseholdPressurePolicy householdPressurePolicy,
-            CityIllnessAutonomyPolicy illnessAutonomyPolicy,
-            CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
-            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
             CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
             IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
@@ -132,32 +127,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     exposureSegments: exposureSegments,
                     marriageDomainService: marriageDomainService,
                     weatherExposurePolicy: weatherExposurePolicy))
-                changed = true;
-            if (requiresDateProgression &&
-                await ResidentIllnessProgressionStep.ApplyAsync(
-                    person: person,
-                    cityId: cityId,
-                    residentsById: residentsById,
-                    previousDate: previousDate,
-                    currentDate: currentDate,
-                    housingByHouseholdId: housingByHouseholdId,
-                    districtByHouseholdId: districtByHouseholdId,
-                    residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
-                    exposureSegments: exposureSegments,
-                    livingConditionsState: livingConditionsState,
-                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
-                    essentialsState: essentialsState,
-                    serviceQualityState: serviceQualityState,
-                    healthcarePressureProfile: healthcarePressureProfile,
-                    marriageDomainService: marriageDomainService,
-                    illnessAutonomyPolicy: illnessAutonomyPolicy,
-                    healthcareAutonomyPolicy: healthcareAutonomyPolicy,
-                    anchorSelectionPolicy: anchorSelectionPolicy,
-                    hospitalAnchors: hospitalAnchors,
-                    districtImpactPolicy: districtImpactPolicy,
-                    livingConditionsPressurePolicy: livingConditionsPressurePolicy,
-                    commuteRoutingService: commuteRoutingService,
-                    cancellationToken: cancellationToken))
                 changed = true;
             return changed;
         }

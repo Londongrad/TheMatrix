@@ -249,6 +249,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationActivityJournalService: new FakeCityPopulationActivityJournalService(),
                 cityEconomySettlementOutboxWriter: new FakeCityEconomySettlementOutboxWriter(),
                 residentFactsOutboxWriter: new FakePopulationResidentFactsOutboxWriter(),
+                residentHealthRiskOutboxWriter: new FakePopulationResidentHealthRiskOutboxWriter(),
                 residentMedicalStateOutboxWriter: new FakePopulationResidentMedicalStateOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
@@ -276,7 +277,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 anchorSelectionPolicy: anchorSelectionPolicy,
                 districtImpactPolicy: new CityPopulationDistrictImpactPolicy(),
                 healthcarePressurePolicy: new CityPopulationHealthcarePressurePolicy(),
-                illnessAutonomyPolicy: new CityIllnessAutonomyPolicy(),
                 livingConditionsPressurePolicy: new CityPopulationLivingConditionsPressurePolicy(),
                 participationPolicy: new CityPopulationParticipationPolicy(),
                 personNeedsProgressionPolicy: new PersonNeedsProgressionPolicy(),

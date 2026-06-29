@@ -17,6 +17,52 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
     public sealed class AdvanceCityPopulationCommandHandlerAppliedTests
     {
         [Fact]
+        public async Task Handle_DateProgression_PublishesResidentHealthRiskInsteadOfApplyingIllnessLocally()
+        {
+            Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            Person resident = CreatePerson(
+                personId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                householdId: Guid.Parse("66666666-7777-8888-9999-aaaaaaaaaaaa"),
+                currentDate: new DateOnly(2048, 5, 5));
+            Household household = Household.Create(
+                id: resident.HouseholdId,
+                size: HouseholdSize.From(1),
+                createdAtUtc: UtcNow);
+            var personRepository = new FakeCityPopulationPersonReadRepository
+            {
+                ListByCityResult = [resident]
+            };
+            var householdRepository = new FakeHouseholdWriteRepository
+            {
+                HouseholdsByCityResult = [household],
+                PlacementsByCityResult =
+                [
+                    ClassicCityHouseholdPlacement.CreateHomeless(
+                        household.Id,
+                        CityId.From(cityId))
+                ]
+            };
+            var riskWriter = new FakePopulationResidentHealthRiskOutboxWriter();
+            AdvanceCityPopulationCommandHandler handler = CreateHandler(
+                personReadRepository: personRepository,
+                householdWriteRepository: householdRepository,
+                residentHealthRiskOutboxWriter: riskWriter);
+
+            await handler.Handle(
+                CreateCommand(cityId, tickId: 42),
+                CancellationToken.None);
+
+            var batch = Assert.Single(riskWriter.Batches);
+            Assert.Equal(42, batch.SourceRevision);
+            Assert.Equal(new DateOnly(2048, 5, 5), batch.PreviousDate);
+            Assert.Equal(new DateOnly(2048, 5, 6), batch.CurrentDate);
+            var risk = Assert.Single(batch.Residents);
+            Assert.Equal(resident.Id.Value, risk.ResidentId);
+            Assert.Equal("Unhoused", risk.HousingStability);
+            Assert.False(resident.HasActiveIllness);
+        }
+
+        [Fact]
         public async Task Handle_WhenCityHasNoResidents_CreatesProgressionStateAndReturnsApplied()
         {
             var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
@@ -448,6 +494,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
             FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
+            FakePopulationResidentHealthRiskOutboxWriter? residentHealthRiskOutboxWriter = null,
             FakePopulationResidentMedicalStateOutboxWriter? residentMedicalStateOutboxWriter = null,
             FakeCityPopulationCommuteTripSyncService? commuteTripSyncService = null,
             FakeUnitOfWork? unitOfWork = null)
@@ -480,6 +527,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
                 residentFactsOutboxWriter: residentFactsOutboxWriter ??
                                            new FakePopulationResidentFactsOutboxWriter(),
+                residentHealthRiskOutboxWriter: residentHealthRiskOutboxWriter ??
+                                                new FakePopulationResidentHealthRiskOutboxWriter(),
                 residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter ??
                                                   new FakePopulationResidentMedicalStateOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
@@ -510,7 +559,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 anchorSelectionPolicy: anchorSelectionPolicy,
                 districtImpactPolicy: new CityPopulationDistrictImpactPolicy(),
                 healthcarePressurePolicy: new CityPopulationHealthcarePressurePolicy(),
-                illnessAutonomyPolicy: new CityIllnessAutonomyPolicy(),
                 livingConditionsPressurePolicy: new CityPopulationLivingConditionsPressurePolicy(),
                 participationPolicy: new CityPopulationParticipationPolicy(),
                 personNeedsProgressionPolicy: new PersonNeedsProgressionPolicy(),

@@ -49,6 +49,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
+        IPopulationResidentHealthRiskOutboxWriter residentHealthRiskOutboxWriter,
         IPopulationResidentMedicalStateOutboxWriter residentMedicalStateOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
@@ -69,7 +70,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
         CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
-        CityIllnessAutonomyPolicy illnessAutonomyPolicy,
         CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
         CityPopulationParticipationPolicy participationPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
@@ -167,6 +167,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             List<CityPopulationActivityWriteModel> pendingActivityEntries = [];
             List<PersonEntity> registeredResidents = [];
             List<PersonEntity> residentLifecycleChanges = [];
+            IReadOnlyCollection<PopulationResidentHealthRiskSnapshot> pendingHealthRiskSnapshots = [];
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
             List<ClassicCityHouseholdCashflowSettlementItemV1> pendingHouseholdCashflowItems = [];
             List<ClassicCityWorkplacePayrollSettlementItemV1> pendingWorkplacePayrollItems = [];
@@ -273,15 +274,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                     districtImpactPolicy: districtImpactPolicy,
                                     serviceQualityState: serviceQualityState,
-                                    healthcarePressureProfile: healthcarePressureProfile,
                                     marriageDomainService: marriageDomainService,
                                     educationAutonomyPolicy: educationAutonomyPolicy,
                                     employmentAutonomyPolicy: employmentAutonomyPolicy,
                                     householdPressurePolicy: householdPressurePolicy,
-                                    illnessAutonomyPolicy: illnessAutonomyPolicy,
-                                    healthcareAutonomyPolicy: healthcareAutonomyPolicy,
-                                    anchorSelectionPolicy: anchorSelectionPolicy,
-                                    hospitalAnchors: hospitalAnchors,
                                     livingConditionsPressurePolicy: livingConditionsPressurePolicy,
                                     institutionPools: institutionPools,
                                     workplacePools: workplacePools,
@@ -304,6 +300,32 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     occurredAtUtc: handledAtUtc);
                             }
                         }
+
+                        if (requiresDateProgression)
+                            pendingHealthRiskSnapshots =
+                                await ClassicCityResidentHealthRiskSnapshotFactory.BuildAsync(
+                                    cityId: cityId,
+                                    residents: residents,
+                                    residentsByHouseholdId: residentsByHouseholdId,
+                                    currentDate: toDate,
+                                    housingByHouseholdId: housingByHouseholdId,
+                                    districtByHouseholdId: districtByHouseholdId,
+                                    residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
+                                    hadAdverseWeatherExposure: exposureSegments.Any(segment =>
+                                        segment.Kind == CityWeatherExposureKind.Adverse),
+                                    livingConditionsState: livingConditionsState,
+                                    districtUtilityConditionsByDistrictId:
+                                    districtUtilityConditionsByDistrictId,
+                                    essentialsState: essentialsState,
+                                    serviceQualityState: serviceQualityState,
+                                    healthcarePressureProfile: healthcarePressureProfile,
+                                    healthcareAutonomyPolicy: healthcareAutonomyPolicy,
+                                    anchorSelectionPolicy: anchorSelectionPolicy,
+                                    hospitalAnchors: hospitalAnchors,
+                                    districtImpactPolicy: districtImpactPolicy,
+                                    livingConditionsPressurePolicy: livingConditionsPressurePolicy,
+                                    commuteRoutingService: commuteRoutingService,
+                                    cancellationToken: ct);
 
                         if (requiresDateProgression)
                             pendingEconomySettlement = await HouseholdCashflowSettlementStep.ApplyAsync(
@@ -547,6 +569,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             await residentMedicalStateOutboxWriter.AddResidentMedicalStateBatchAsync(
                                 batch: batch,
                                 cancellationToken: ct);
+
+                    foreach (PopulationResidentHealthRiskBatchV1 batch in
+                             PopulationResidentHealthRiskBatchFactory.Build(
+                                 simulationHostId: request.CityId,
+                                 sourceRevision: request.TickId,
+                                 previousDate: previousDate,
+                                 currentDate: toDate,
+                                 residents: pendingHealthRiskSnapshots,
+                                 correlationId:
+                                 $"population:{request.CityId:N}:tick:{request.TickId}:health-risk",
+                                 observedAtUtc: updatedAtUtc))
+                        await residentHealthRiskOutboxWriter.AddResidentHealthRiskBatchAsync(
+                            batch: batch,
+                            cancellationToken: ct);
 
                     await unitOfWork.SaveChangesAsync(ct);
                 },

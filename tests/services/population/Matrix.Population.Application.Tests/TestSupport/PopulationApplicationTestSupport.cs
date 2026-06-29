@@ -862,6 +862,20 @@ namespace Matrix.Population.Application.Tests.TestSupport
             }
         }
 
+        internal sealed class FakePopulationResidentHealthRiskOutboxWriter
+            : IPopulationResidentHealthRiskOutboxWriter
+        {
+            public List<PopulationResidentHealthRiskBatchV1> Batches { get; } = [];
+
+            public Task AddResidentHealthRiskBatchAsync(
+                PopulationResidentHealthRiskBatchV1 batch,
+                CancellationToken cancellationToken = default)
+            {
+                Batches.Add(batch);
+                return Task.CompletedTask;
+            }
+        }
+
         internal sealed class
             FakeCityPopulationWeatherImpactStateRepository : ICityPopulationWeatherImpactStateRepository
         {
