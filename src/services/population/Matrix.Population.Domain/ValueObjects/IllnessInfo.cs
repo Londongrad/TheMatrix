@@ -40,6 +40,19 @@ namespace Matrix.Population.Domain.ValueObjects
                 lastRecoveredOn: lastRecoveredOn);
         }
 
+        public static IllnessInfo FromHealthcareSnapshot(
+            IllnessKind? currentKind,
+            IllnessSeverity? currentSeverity,
+            DateOnly? diagnosedOn,
+            DateOnly? lastRecoveredOn)
+        {
+            return new IllnessInfo(
+                currentKind: currentKind,
+                currentSeverity: currentSeverity,
+                diagnosedOn: diagnosedOn,
+                lastRecoveredOn: lastRecoveredOn);
+        }
+
         public IllnessInfo Diagnose(
             IllnessKind kind,
             IllnessSeverity severity,

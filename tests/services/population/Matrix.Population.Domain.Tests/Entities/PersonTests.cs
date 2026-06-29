@@ -149,5 +149,66 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.Null(person.Employment.Job);
             Assert.Null(person.Education.CurrentInstitutionId);
         }
+
+        [Fact]
+        public void TryApplyHealthcareOutcome_WhenRevisionIsNew_SynchronizesMedicalProjection()
+        {
+            DateOnly currentDate = new(2048, 5, 6);
+            DateOnly diagnosedOn = currentDate.AddDays(-2);
+            Person person = PopulationTestData.CreateAdultPerson(currentDate: currentDate);
+            IllnessInfo illness = IllnessInfo.FromHealthcareSnapshot(
+                currentKind: IllnessKind.Infection,
+                currentSeverity: IllnessSeverity.Moderate,
+                diagnosedOn: diagnosedOn,
+                lastRecoveredOn: null);
+
+            bool applied = person.TryApplyHealthcareOutcome(
+                sourceRevision: 17,
+                healthScore: 63,
+                illness: illness,
+                happinessDelta: -2,
+                energyDelta: -3,
+                stressDelta: 2,
+                currentDate: currentDate);
+
+            Assert.True(applied);
+            Assert.Equal(17, person.LastHealthcareRevision);
+            Assert.Equal(63, person.Health.Value);
+            Assert.Equal(IllnessKind.Infection, person.CurrentIllnessKind);
+            Assert.Equal(IllnessSeverity.Moderate, person.CurrentIllnessSeverity);
+            Assert.Equal(diagnosedOn, person.IllnessDiagnosedOn);
+        }
+
+        [Fact]
+        public void TryApplyHealthcareOutcome_WhenRevisionIsStale_LeavesProjectionUnchanged()
+        {
+            DateOnly currentDate = new(2048, 5, 6);
+            Person person = PopulationTestData.CreateAdultPerson(currentDate: currentDate);
+            person.TryApplyHealthcareOutcome(
+                sourceRevision: 17,
+                healthScore: 63,
+                illness: IllnessInfo.Healthy(),
+                happinessDelta: 0,
+                energyDelta: 0,
+                stressDelta: 0,
+                currentDate: currentDate);
+
+            bool applied = person.TryApplyHealthcareOutcome(
+                sourceRevision: 16,
+                healthScore: 10,
+                illness: IllnessInfo.FromHealthcareSnapshot(
+                    IllnessKind.Exposure,
+                    IllnessSeverity.Severe,
+                    currentDate,
+                    null),
+                happinessDelta: -10,
+                energyDelta: -10,
+                stressDelta: 10,
+                currentDate: currentDate);
+
+            Assert.False(applied);
+            Assert.Equal(63, person.Health.Value);
+            Assert.False(person.HasActiveIllness);
+        }
     }
 }

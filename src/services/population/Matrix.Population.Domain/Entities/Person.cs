@@ -110,6 +110,7 @@ namespace Matrix.Population.Domain.Entities
         public PersonId? MotherId { get; private set; }
         public PersonId? FatherId { get; private set; }
         public DateOnly? LastChildbirthDate { get; private set; }
+        public long LastHealthcareRevision { get; private set; }
 
         #endregion [ Properties ]
 
@@ -196,6 +197,7 @@ namespace Matrix.Population.Domain.Entities
             MotherId = motherId;
             FatherId = fatherId;
             LastChildbirthDate = lastChildbirthDate;
+            LastHealthcareRevision = -1;
         }
 
         #endregion [ Constructors ]
@@ -366,6 +368,50 @@ namespace Matrix.Population.Domain.Entities
                 return;
 
             Illness = Illness.Recover(currentDate);
+        }
+
+        public bool TryApplyHealthcareOutcome(
+            long sourceRevision,
+            int healthScore,
+            IllnessInfo illness,
+            int happinessDelta,
+            int energyDelta,
+            int stressDelta,
+            DateOnly currentDate)
+        {
+            if (sourceRevision < 0)
+                throw new ArgumentOutOfRangeException(nameof(sourceRevision));
+            if (healthScore is < 0 or > 100)
+                throw new ArgumentOutOfRangeException(nameof(healthScore));
+
+            illness = GuardHelper.AgainstNull(
+                value: illness,
+                propertyName: nameof(illness));
+
+            if (sourceRevision <= LastHealthcareRevision)
+                return false;
+
+            LastHealthcareRevision = sourceRevision;
+            if (!IsAlive)
+                return true;
+
+            Illness = illness;
+            if (healthScore != Health.Value)
+                ChangeHealth(
+                    delta: healthScore - Health.Value,
+                    currentDate: currentDate);
+
+            if (IsAlive)
+            {
+                if (happinessDelta != 0)
+                    ChangeHappiness(happinessDelta);
+                if (energyDelta != 0)
+                    ChangeEnergy(energyDelta);
+                if (stressDelta != 0)
+                    ChangeStress(stressDelta);
+            }
+
+            return true;
         }
 
         #endregion [ Health / Life ]
