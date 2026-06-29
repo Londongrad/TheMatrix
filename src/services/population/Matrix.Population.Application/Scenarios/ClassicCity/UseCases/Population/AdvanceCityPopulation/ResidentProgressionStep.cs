@@ -14,7 +14,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 {
     internal static class ResidentProgressionStep
     {
-        internal static async Task<bool> ApplyAsync(
+        internal static async Task<ResidentProgressionStepResult> ApplyAsync(
             PersonEntity person,
             CityId cityId,
             IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
@@ -54,18 +54,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
         {
-            bool changed = false;
-            if (requiresNeedsProgression &&
-                ResidentNeedsProgressionStep.Apply(
+            bool populationChanged = false;
+            int healthcareHealthDelta = 0;
+            if (requiresNeedsProgression)
+            {
+                ResidentProgressionStepResult needsProgression = ResidentNeedsProgressionStep.Apply(
                     person: person,
-                    residentsById: residentsById,
                     fromSimTimeUtc: fromSimTimeUtc,
                     toSimTimeUtc: toSimTimeUtc,
-                    currentDate: currentDate,
                     environment: environment,
-                    marriageDomainService: marriageDomainService,
-                    personNeedsProgressionPolicy: personNeedsProgressionPolicy))
-                changed = true;
+                    personNeedsProgressionPolicy: personNeedsProgressionPolicy);
+                populationChanged |= needsProgression.PopulationChanged;
+                healthcareHealthDelta += needsProgression.HealthcareHealthDelta;
+            }
             if (requiresDateProgression &&
                 await ResidentTimeProgressionStep.ApplyAsync(
                     cityId: cityId,
@@ -88,7 +89,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     workplacePools: workplacePools,
                     commuteRoutingService: commuteRoutingService,
                     cancellationToken: cancellationToken))
-                changed = true;
+                populationChanged = true;
             if (requiresDateProgression &&
                 await ResidentHouseholdPressureProgressionStep.ApplyAsync(
                     cityId: cityId,
@@ -102,7 +103,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     commuteRoutingService: commuteRoutingService,
                     cancellationToken: cancellationToken,
                     householdPressurePolicy: householdPressurePolicy))
-                changed = true;
+                populationChanged = true;
             if (requiresDateProgression &&
                 ResidentLivingConditionsProgressionStep.Apply(
                     person: person,
@@ -117,7 +118,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     districtImpactPolicy: districtImpactPolicy,
                     livingConditionsPressurePolicy: livingConditionsPressurePolicy,
                     marriageDomainService: marriageDomainService))
-                changed = true;
+                populationChanged = true;
             if (exposureSegments.Count > 0 &&
                 ResidentWeatherExposureStep.Apply(
                     person: person,
@@ -127,8 +128,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     exposureSegments: exposureSegments,
                     marriageDomainService: marriageDomainService,
                     weatherExposurePolicy: weatherExposurePolicy))
-                changed = true;
-            return changed;
+                populationChanged = true;
+            return new ResidentProgressionStepResult(
+                PopulationChanged: populationChanged,
+                HealthcareHealthDelta: Math.Clamp(healthcareHealthDelta, -100, 100));
         }
     }
 }

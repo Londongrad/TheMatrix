@@ -145,7 +145,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public async Task Handle_WhenResidentDies_EmitsOnlyChangedResidentFactsWithTickRevision()
+        public async Task Handle_LethalNeedsPressure_DelegatesHealthWithoutPrematureLifecycleFact()
         {
             var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
             Person resident = CreatePerson(
@@ -175,10 +175,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 ]
             };
             var residentFactsOutboxWriter = new FakePopulationResidentFactsOutboxWriter();
+            var healthRiskOutboxWriter = new FakePopulationResidentHealthRiskOutboxWriter();
             AdvanceCityPopulationCommandHandler handler = CreateHandler(
                 personReadRepository: personReadRepository,
                 householdWriteRepository: householdWriteRepository,
-                residentFactsOutboxWriter: residentFactsOutboxWriter);
+                residentFactsOutboxWriter: residentFactsOutboxWriter,
+                residentHealthRiskOutboxWriter: healthRiskOutboxWriter);
 
             AdvanceCityPopulationResult result = await handler.Handle(
                 request: CreateCommand(
@@ -189,23 +191,20 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: AdvanceCityPopulationStatus.Applied,
                 actual: result.Status);
-            Assert.False(resident.IsAlive);
-            var batch = Assert.Single(residentFactsOutboxWriter.Batches);
+            Assert.True(resident.IsAlive);
+            Assert.Empty(residentFactsOutboxWriter.Batches);
+            var batch = Assert.Single(healthRiskOutboxWriter.Batches);
             Assert.Equal(
                 expected: cityId,
                 actual: batch.SimulationHostId);
             Assert.Equal(
                 expected: 41,
                 actual: batch.SourceRevision);
-            Assert.Equal(
-                expected: $"population:{cityId:N}:tick:41:resident-facts",
-                actual: batch.CorrelationId);
-            var facts = Assert.Single(batch.Residents);
+            var risk = Assert.Single(batch.Residents);
             Assert.Equal(
                 expected: resident.Id.Value,
-                actual: facts.ResidentId);
-            Assert.False(facts.IsAlive);
-            Assert.True(facts.IsActive);
+                actual: risk.ResidentId);
+            Assert.True(risk.ExternalHealthDelta < 0);
         }
 
         [Fact]

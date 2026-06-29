@@ -70,14 +70,14 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var routingService = new RecordingCommuteRoutingService();
             var before = ResidentSnapshot.Capture(resident);
 
-            bool changed = await ApplyAsync(
+            ResidentProgressionStepResult result = await ApplyAsync(
                 resident: resident,
                 requiresDateProgression: false,
                 requiresNeedsProgression: false,
                 exposureSegments: [],
                 commuteRoutingService: routingService);
 
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: ResidentSnapshot.Capture(resident));
@@ -98,7 +98,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 utcOffsetMinutes: 0);
             var before = ResidentSnapshot.Capture(resident);
 
-            bool changed = await ApplyAsync(
+            ResidentProgressionStepResult result = await ApplyAsync(
                 resident: resident,
                 requiresDateProgression: false,
                 requiresNeedsProgression: true,
@@ -106,7 +106,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 personNeedsProgressionPolicy: policy);
 
             Assert.True(expectedEffect.HasAnyEffect);
-            Assert.True(changed);
+            Assert.True(result.HasAnyEffect);
             Assert.Equal(
                 expected: before.Energy + expectedEffect.EnergyDelta,
                 actual: resident.Energy.Value);
@@ -116,9 +116,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: before.SocialNeed + expectedEffect.SocialNeedDelta,
                 actual: resident.SocialNeed.Value);
-            Assert.Equal(
-                expected: before.Health + expectedEffect.HealthDelta,
-                actual: resident.Health.Value);
+            Assert.Equal(before.Health, resident.Health.Value);
+            Assert.Equal(expectedEffect.HealthDelta, result.HealthcareHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + expectedEffect.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -146,7 +145,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 environment: null);
             var before = ResidentSnapshot.Capture(resident);
 
-            bool changed = await ApplyAsync(
+            ResidentProgressionStepResult result = await ApplyAsync(
                 resident: resident,
                 currentDate: currentDate,
                 requiresDateProgression: false,
@@ -155,7 +154,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 weatherExposurePolicy: policy);
 
             Assert.True(expectedImpact.HasEffect);
-            Assert.True(changed);
+            Assert.True(result.HasAnyEffect);
             Assert.Equal(
                 expected: before.Health + expectedImpact.HealthDelta,
                 actual: resident.Health.Value);
@@ -182,7 +181,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     title: "Engineer",
                     workplaceAnchorId: null));
 
-            bool changed = await ApplyAsync(
+            ResidentProgressionStepResult result = await ApplyAsync(
                 resident: resident,
                 requiresDateProgression: true,
                 requiresNeedsProgression: false,
@@ -194,13 +193,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     [resident.HouseholdId] = HousingStatus.Housed
                 });
 
-            Assert.True(changed);
+            Assert.True(result.HasAnyEffect);
             Assert.Equal(
                 expected: EmploymentStatus.Retired,
                 actual: resident.Employment.Status);
         }
 
-        private static Task<bool> ApplyAsync(
+        private static Task<ResidentProgressionStepResult> ApplyAsync(
             PersonEntity resident,
             DateOnly? previousDate = null,
             DateOnly? currentDate = null,

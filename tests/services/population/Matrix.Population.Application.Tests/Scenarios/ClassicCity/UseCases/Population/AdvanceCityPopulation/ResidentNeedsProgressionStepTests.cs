@@ -36,12 +36,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Person resident = CreatePerson();
             var before = NeedsSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 fromUtc: FromUtc,
                 toUtc: FromUtc);
 
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: NeedsSnapshot.Capture(resident));
@@ -74,7 +74,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     offset: TimeSpan.Zero),
                 utcOffsetMinutes: 600);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 fromUtc: new DateTimeOffset(
                     year: 2048,
@@ -96,7 +96,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 policy: policy);
 
             Assert.True(expectedEffect.HasAnyEffect);
-            Assert.True(changed);
+            Assert.True(result.HasAnyEffect);
             Assert.Equal(
                 expected: before.Energy + expectedEffect.EnergyDelta,
                 actual: resident.Energy.Value);
@@ -106,9 +106,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: before.SocialNeed + expectedEffect.SocialNeedDelta,
                 actual: resident.SocialNeed.Value);
-            Assert.Equal(
-                expected: before.Health + expectedEffect.HealthDelta,
-                actual: resident.Health.Value);
+            Assert.Equal(before.Health, resident.Health.Value);
+            Assert.Equal(expectedEffect.HealthDelta, result.HealthcareHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + expectedEffect.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -147,7 +146,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 utcOffsetMinutes: 0);
             var before = NeedsSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 fromUtc: fromUtc,
                 toUtc: toUtc,
@@ -157,7 +156,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.NotEqual(
                 expected: expectedEffectWithoutOffset,
                 actual: expectedEffectWithOffset);
-            Assert.True(changed);
+            Assert.True(result.HasAnyEffect);
             Assert.Equal(
                 expected: before.Energy + expectedEffectWithOffset.EnergyDelta,
                 actual: resident.Energy.Value);
@@ -173,9 +172,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             resident.Die(CurrentDate);
             var before = NeedsSnapshot.Capture(resident);
 
-            bool changed = Apply(resident: resident);
+            ResidentProgressionStepResult result = Apply(resident: resident);
 
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: NeedsSnapshot.Capture(resident));
@@ -183,7 +182,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public void Apply_WhenNeedsProgressionKillsMarriedResident_RegistersSpouseWidowhood()
+        public void Apply_WhenNeedsPressureIsLethal_DelegatesHealthWithoutKillingResident()
         {
             var marriageDomainService = new MarriageDomainService();
             var householdId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
@@ -216,13 +215,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 spouse: spouse,
                 currentDate: CurrentDate);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
-                residentsById: new Dictionary<PersonId, Person>
-                {
-                    [resident.Id] = resident,
-                    [spouse.Id] = spouse
-                },
                 fromUtc: new DateTimeOffset(
                     year: 2048,
                     month: 5,
@@ -239,37 +233,27 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     minute: 0,
                     second: 0,
                     offset: TimeSpan.Zero),
-                marriageDomainService: marriageDomainService);
+                policy: new PersonNeedsProgressionPolicy());
 
-            Assert.True(changed);
-            Assert.False(resident.IsAlive);
-            Assert.Equal(
-                expected: MaritalStatus.Widowed,
-                actual: spouse.MaritalStatus);
-            Assert.Null(spouse.SpouseId);
+            Assert.True(result.HasAnyEffect);
+            Assert.True(result.HealthcareHealthDelta < 0);
+            Assert.True(resident.IsAlive);
+            Assert.Equal(MaritalStatus.Married, spouse.MaritalStatus);
+            Assert.Equal(resident.Id, spouse.SpouseId);
         }
 
-        private static bool Apply(
+        private static ResidentProgressionStepResult Apply(
             Person resident,
             DateTimeOffset? fromUtc = null,
             DateTimeOffset? toUtc = null,
             CityPopulationEnvironment? environment = null,
-            IReadOnlyDictionary<PersonId, Person>? residentsById = null,
-            MarriageDomainService? marriageDomainService = null,
             PersonNeedsProgressionPolicy? policy = null)
         {
             return ResidentNeedsProgressionStep.Apply(
                 person: resident,
-                residentsById: residentsById ??
-                               new Dictionary<PersonId, Person>
-                               {
-                                   [resident.Id] = resident
-                               },
                 fromSimTimeUtc: fromUtc ?? FromUtc,
                 toSimTimeUtc: toUtc ?? ToUtc,
-                currentDate: CurrentDate,
                 environment: environment,
-                marriageDomainService: marriageDomainService ?? new MarriageDomainService(),
                 personNeedsProgressionPolicy: policy ?? new PersonNeedsProgressionPolicy());
         }
 

@@ -242,8 +242,7 @@ namespace Matrix.Population.Domain.Entities
         }
 
         public bool ApplyNeedsProgression(
-            PersonNeedsProgressionEffect effect,
-            DateOnly currentDate)
+            PersonNeedsProgressionEffect effect)
         {
             effect = GuardHelper.AgainstNull(
                 value: effect,
@@ -255,9 +254,7 @@ namespace Matrix.Population.Domain.Entities
             int previousEnergy = Energy.Value;
             int previousStress = Stress.Value;
             int previousSocialNeed = SocialNeed.Value;
-            int previousHealth = Health.Value;
             int previousHappiness = Happiness.Value;
-            bool wasAlive = IsAlive;
 
             if (effect.EnergyDelta != 0)
                 ChangeEnergy(effect.EnergyDelta);
@@ -268,20 +265,13 @@ namespace Matrix.Population.Domain.Entities
             if (effect.SocialNeedDelta != 0)
                 ChangeSocialNeed(effect.SocialNeedDelta);
 
-            if (effect.HealthDelta != 0)
-                ChangeHealth(
-                    delta: effect.HealthDelta,
-                    currentDate: currentDate);
-
-            if (effect.HappinessDelta != 0 && IsAlive)
+            if (effect.HappinessDelta != 0)
                 ChangeHappiness(effect.HappinessDelta);
 
             return previousEnergy != Energy.Value ||
                    previousStress != Stress.Value ||
                    previousSocialNeed != SocialNeed.Value ||
-                   previousHealth != Health.Value ||
-                   previousHappiness != Happiness.Value ||
-                   wasAlive != IsAlive;
+                   previousHappiness != Happiness.Value;
         }
 
         #endregion [ Needs / Happiness ]

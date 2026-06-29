@@ -168,6 +168,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             List<PersonEntity> registeredResidents = [];
             List<PersonEntity> residentLifecycleChanges = [];
             IReadOnlyCollection<PopulationResidentHealthRiskSnapshot> pendingHealthRiskSnapshots = [];
+            Dictionary<PersonId, int> pendingHealthAdjustmentsByResidentId = [];
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
             List<ClassicCityHouseholdCashflowSettlementItemV1> pendingHouseholdCashflowItems = [];
             List<ClassicCityWorkplacePayrollSettlementItemV1> pendingWorkplacePayrollItems = [];
@@ -247,7 +248,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             ResidentProgressionActivityCollector.Snapshot beforeSnapshot =
                                 ResidentProgressionActivityCollector.Capture(person);
 
-                            if (await ResidentProgressionStep.ApplyAsync(
+                            ResidentProgressionStepResult progressionResult =
+                                await ResidentProgressionStep.ApplyAsync(
                                     person: person,
                                     cityId: cityId,
                                     residentsById: personsById,
@@ -284,7 +286,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     personNeedsProgressionPolicy: personNeedsProgressionPolicy,
                                     weatherExposurePolicy: weatherExposurePolicy,
                                     commuteRoutingService: commuteRoutingService,
-                                    cancellationToken: ct))
+                                    cancellationToken: ct);
+                            if (progressionResult.HealthcareHealthDelta != 0)
+                                pendingHealthAdjustmentsByResidentId[person.Id] =
+                                    progressionResult.HealthcareHealthDelta;
+                            if (progressionResult.HasAnyEffect)
                             {
                                 affectedPeopleCount++;
                                 if (beforeSnapshot.IsAlive != person.IsAlive)
@@ -301,7 +307,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             }
                         }
 
-                        if (requiresDateProgression)
+                        if (requiresDateProgression || pendingHealthAdjustmentsByResidentId.Count > 0)
+                        {
                             pendingHealthRiskSnapshots =
                                 await ClassicCityResidentHealthRiskSnapshotFactory.BuildAsync(
                                     cityId: cityId,
@@ -326,6 +333,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     livingConditionsPressurePolicy: livingConditionsPressurePolicy,
                                     commuteRoutingService: commuteRoutingService,
                                     cancellationToken: ct);
+                            pendingHealthRiskSnapshots = pendingHealthRiskSnapshots
+                               .Select(snapshot => snapshot with
+                                {
+                                    ExternalHealthDelta = pendingHealthAdjustmentsByResidentId.TryGetValue(
+                                        PersonId.From(snapshot.ResidentId),
+                                        out int healthDelta)
+                                        ? healthDelta
+                                        : 0
+                                })
+                               .ToArray();
+                        }
 
                         if (requiresDateProgression)
                             pendingEconomySettlement = await HouseholdCashflowSettlementStep.ApplyAsync(
