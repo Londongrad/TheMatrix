@@ -16,5 +16,6 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         double CaregiverSupportStrength,
         bool HadAdverseWeatherExposure,
         double HealthcareSupportStrength,
-        double PublicHealthRiskStrength);
+        double PublicHealthRiskStrength,
+        int ExternalHealthDelta = 0);
 }

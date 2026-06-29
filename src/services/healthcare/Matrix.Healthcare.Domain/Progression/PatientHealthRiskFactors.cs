@@ -15,7 +15,8 @@ namespace Matrix.Healthcare.Domain.Progression
             double caregiverSupportStrength,
             bool hadAdverseWeatherExposure,
             double healthcareSupportStrength,
-            double publicHealthRiskStrength)
+            double publicHealthRiskStrength,
+            int externalHealthDelta = 0)
         {
             EnergyScore = EnsureScore(energyScore, nameof(energyScore));
             HappinessScore = EnsureScore(happinessScore, nameof(happinessScore));
@@ -44,6 +45,10 @@ namespace Matrix.Healthcare.Domain.Progression
             PublicHealthRiskStrength = EnsureStrength(
                 publicHealthRiskStrength,
                 nameof(publicHealthRiskStrength));
+            ExternalHealthDelta = Math.Clamp(
+                externalHealthDelta,
+                -Matrix.Healthcare.Domain.Patients.HealthScore.Maximum,
+                Matrix.Healthcare.Domain.Patients.HealthScore.Maximum);
         }
 
         public int EnergyScore { get; }
@@ -59,6 +64,7 @@ namespace Matrix.Healthcare.Domain.Progression
         public bool HadAdverseWeatherExposure { get; }
         public double HealthcareSupportStrength { get; }
         public double PublicHealthRiskStrength { get; }
+        public int ExternalHealthDelta { get; }
 
         private static int EnsureScore(int value, string parameterName)
         {

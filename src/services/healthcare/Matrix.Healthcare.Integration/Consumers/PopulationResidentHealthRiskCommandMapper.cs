@@ -37,7 +37,8 @@ namespace Matrix.Healthcare.Integration.Consumers
                     CaregiverSupportStrength: resident.CaregiverSupportStrength,
                     HadAdverseWeatherExposure: resident.HadAdverseWeatherExposure,
                     HealthcareSupportStrength: resident.HealthcareSupportStrength,
-                    PublicHealthRiskStrength: resident.PublicHealthRiskStrength))
+                    PublicHealthRiskStrength: resident.PublicHealthRiskStrength,
+                    ExternalHealthDelta: resident.ExternalHealthDelta))
                .ToArray();
 
             return new AdvancePatientHealthCommand(

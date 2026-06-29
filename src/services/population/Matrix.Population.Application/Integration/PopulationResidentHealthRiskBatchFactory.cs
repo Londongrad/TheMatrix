@@ -99,7 +99,8 @@ namespace Matrix.Population.Application.Integration
                 CaregiverSupportStrength: resident.CaregiverSupportStrength,
                 HadAdverseWeatherExposure: resident.HadAdverseWeatherExposure,
                 HealthcareSupportStrength: resident.HealthcareSupportStrength,
-                PublicHealthRiskStrength: resident.PublicHealthRiskStrength);
+                PublicHealthRiskStrength: resident.PublicHealthRiskStrength,
+                ExternalHealthDelta: resident.ExternalHealthDelta);
         }
     }
 }

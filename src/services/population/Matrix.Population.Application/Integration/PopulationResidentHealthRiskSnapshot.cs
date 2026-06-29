@@ -14,5 +14,6 @@ namespace Matrix.Population.Application.Integration
         double CaregiverSupportStrength,
         bool HadAdverseWeatherExposure,
         double HealthcareSupportStrength,
-        double PublicHealthRiskStrength);
+        double PublicHealthRiskStrength,
+        int ExternalHealthDelta = 0);
 }

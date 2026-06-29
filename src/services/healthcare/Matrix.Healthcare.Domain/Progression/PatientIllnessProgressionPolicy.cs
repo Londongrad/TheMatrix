@@ -16,12 +16,27 @@ namespace Matrix.Healthcare.Domain.Progression
             ArgumentNullException.ThrowIfNull(record);
             ArgumentNullException.ThrowIfNull(factors);
 
+            int initialHealth = record.Health.Value;
+            if (factors.ExternalHealthDelta != 0)
+                record.ApplyHealthDelta(factors.ExternalHealthDelta);
+            int externalHealthDelta = record.Health.Value - initialHealth;
+            bool becameCritical = initialHealth > HealthScore.Minimum && record.IsCritical;
+
+            if (record.IsCritical)
+                return Outcome(
+                    medicalStateChanged: false,
+                    healthDelta: externalHealthDelta,
+                    becameCritical: becameCritical);
+
             int reviewWindows = Math.Clamp(
                 currentDate.DayNumber - previousDate.DayNumber,
                 min: 0,
                 max: 7);
             if (reviewWindows == 0)
-                return NoChange();
+                return Outcome(
+                    medicalStateChanged: false,
+                    healthDelta: externalHealthDelta,
+                    becameCritical: becameCritical);
 
             bool medicalStateChanged = false;
             bool diagnosedThisPass = false;
@@ -45,7 +60,10 @@ namespace Matrix.Healthcare.Domain.Progression
             }
 
             if (!record.HasActiveIllness)
-                return NoChange();
+                return Outcome(
+                    medicalStateChanged: false,
+                    healthDelta: externalHealthDelta,
+                    becameCritical: becameCritical);
 
             if (!diagnosedThisPass)
             {
@@ -59,11 +77,11 @@ namespace Matrix.Healthcare.Domain.Progression
                     record.RecoverFromIllness(currentDate);
                     return new PatientIllnessProgressionOutcome(
                         MedicalStateChanged: true,
-                        HealthDelta: 0,
+                        HealthDelta: externalHealthDelta,
                         HappinessDelta: +2,
                         EnergyDelta: 0,
                         StressDelta: 0,
-                        BecameCritical: false);
+                        BecameCritical: becameCritical);
                 }
 
                 if (courseDecision == PatientIllnessCourseDecision.Progress)
@@ -78,19 +96,20 @@ namespace Matrix.Healthcare.Domain.Progression
                 severity: record.Illness.CurrentSeverity!.Value,
                 reviewWindows: reviewWindows,
                 healthcareSupportStrength: factors.HealthcareSupportStrength);
-            int healthBefore = record.Health.Value;
+            int healthBeforeIllnessBurden = record.Health.Value;
 
             if (burden.HealthDelta != 0)
                 record.ApplyHealthDelta(burden.HealthDelta);
 
-            int appliedHealthDelta = record.Health.Value - healthBefore;
+            int appliedHealthDelta = record.Health.Value - initialHealth;
             return new PatientIllnessProgressionOutcome(
                 MedicalStateChanged: medicalStateChanged,
                 HealthDelta: appliedHealthDelta,
                 HappinessDelta: burden.HappinessDelta,
                 EnergyDelta: burden.EnergyDelta,
                 StressDelta: burden.StressDelta,
-                BecameCritical: healthBefore > HealthScore.Minimum && record.IsCritical);
+                BecameCritical: becameCritical
+                                || (healthBeforeIllnessBurden > HealthScore.Minimum && record.IsCritical));
         }
 
         private static IllnessSeverity NextSeverity(IllnessSeverity? severity)
@@ -103,15 +122,18 @@ namespace Matrix.Healthcare.Domain.Progression
             };
         }
 
-        private static PatientIllnessProgressionOutcome NoChange()
+        private static PatientIllnessProgressionOutcome Outcome(
+            bool medicalStateChanged,
+            int healthDelta,
+            bool becameCritical)
         {
             return new PatientIllnessProgressionOutcome(
-                MedicalStateChanged: false,
-                HealthDelta: 0,
+                MedicalStateChanged: medicalStateChanged,
+                HealthDelta: healthDelta,
                 HappinessDelta: 0,
                 EnergyDelta: 0,
                 StressDelta: 0,
-                BecameCritical: false);
+                BecameCritical: becameCritical);
         }
     }
 }

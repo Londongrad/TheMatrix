@@ -73,7 +73,8 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                         caregiverSupportStrength: item.CaregiverSupportStrength,
                         hadAdverseWeatherExposure: item.HadAdverseWeatherExposure,
                         healthcareSupportStrength: item.HealthcareSupportStrength,
-                        publicHealthRiskStrength: item.PublicHealthRiskStrength));
+                        publicHealthRiskStrength: item.PublicHealthRiskStrength,
+                        externalHealthDelta: item.ExternalHealthDelta));
             }
 
             return new PreparedPatientHealthBatch(

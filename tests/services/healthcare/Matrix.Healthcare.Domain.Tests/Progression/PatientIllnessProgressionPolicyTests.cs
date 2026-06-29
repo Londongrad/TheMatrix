@@ -28,6 +28,23 @@ namespace Matrix.Healthcare.Domain.Tests.Progression
         }
 
         [Fact]
+        public void Apply_ExternalHealthDelta_AppliesEvenWithoutDailyIllnessReview()
+        {
+            PatientMedicalRecord record = CreateSickRecord(health: 70);
+            PatientHealthRiskFactors factors = CreateHostileFactors(externalHealthDelta: -4);
+
+            PatientIllnessProgressionOutcome outcome = _policy.Apply(
+                record,
+                factors,
+                previousDate: CurrentDate,
+                currentDate: CurrentDate);
+
+            Assert.Equal(-4, outcome.HealthDelta);
+            Assert.Equal(66, record.Health.Value);
+            Assert.True(outcome.HasAnyEffect);
+        }
+
+        [Fact]
         public void Apply_SevereIllness_AppliesBurdenAndReportsCriticalTransition()
         {
             PatientMedicalRecord record = CreateSickRecord(health: 2);
@@ -68,7 +85,7 @@ namespace Matrix.Healthcare.Domain.Tests.Progression
                     CurrentDate.AddDays(-3)));
         }
 
-        private static PatientHealthRiskFactors CreateHostileFactors()
+        private static PatientHealthRiskFactors CreateHostileFactors(int externalHealthDelta = 0)
         {
             return new PatientHealthRiskFactors(
                 energyScore: 5,
@@ -83,7 +100,8 @@ namespace Matrix.Healthcare.Domain.Tests.Progression
                 caregiverSupportStrength: 0d,
                 hadAdverseWeatherExposure: true,
                 healthcareSupportStrength: 0d,
-                publicHealthRiskStrength: 1d);
+                publicHealthRiskStrength: 1d,
+                externalHealthDelta: externalHealthDelta);
         }
     }
 }
