@@ -12,6 +12,10 @@ namespace Matrix.Population.Application.Abstractions
             PersonId id,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyCollection<Person>> GetByIdsAsync(
+            IReadOnlyCollection<PersonId> ids,
+            CancellationToken cancellationToken = default);
+
         Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageAsync(
             Pagination pagination,
             CancellationToken cancellationToken = default);

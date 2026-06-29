@@ -167,6 +167,15 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 return Task.FromResult(PersonById);
             }
 
+            public Task<IReadOnlyCollection<Person>> GetByIdsAsync(
+                IReadOnlyCollection<PersonId> ids,
+                CancellationToken cancellationToken = default)
+            {
+                HashSet<PersonId> requestedIds = ids.ToHashSet();
+                return Task.FromResult<IReadOnlyCollection<Person>>(
+                    PersonsById.Values.Where(person => requestedIds.Contains(person.Id)).ToArray());
+            }
+
             public Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageAsync(
                 Pagination pagination,
                 CancellationToken cancellationToken = default)

@@ -29,6 +29,23 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                     cancellationToken: cancellationToken);
         }
 
+        public async Task<IReadOnlyCollection<Person>> GetByIdsAsync(
+            IReadOnlyCollection<PersonId> ids,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(ids);
+            if (ids.Count == 0)
+                return [];
+
+            PersonId[] values = ids
+               .Distinct()
+               .ToArray();
+
+            return await _dbContext.Persons
+               .Where(person => values.Contains(person.Id))
+               .ToListAsync(cancellationToken);
+        }
+
         public async Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageAsync(
             Pagination pagination,
             CancellationToken cancellationToken = default)

@@ -12,6 +12,31 @@ namespace Matrix.Population.Infrastructure.Tests.Persistence.Repositories
     public sealed class PersonReadRepositoryTests
     {
         [Fact]
+        public async Task GetByIdsAsync_ReturnsOnlyDistinctRequestedPersons()
+        {
+            await using PopulationTestDatabase database = CreateDbContext();
+            PopulationDbContext dbContext = database.DbContext;
+            Person first = CreatePerson(personId: Guid.Parse("11111111-1111-1111-1111-111111111111"));
+            Person second = CreatePerson(personId: Guid.Parse("22222222-2222-2222-2222-222222222222"));
+            Person ignored = CreatePerson(personId: Guid.Parse("33333333-3333-3333-3333-333333333333"));
+            dbContext.Households.AddRange(
+                CreateHousehold(householdId: first.HouseholdId.Value),
+                CreateHousehold(householdId: second.HouseholdId.Value),
+                CreateHousehold(householdId: ignored.HouseholdId.Value));
+            dbContext.Persons.AddRange(first, second, ignored);
+            await dbContext.SaveChangesAsync();
+            var repository = new PersonReadRepository(dbContext);
+
+            IReadOnlyCollection<Person> loaded = await repository.GetByIdsAsync(
+                [second.Id, first.Id, first.Id]);
+
+            Assert.Equal(2, loaded.Count);
+            Assert.Equal(
+                new[] { first.Id, second.Id }.OrderBy(id => id.Value),
+                loaded.Select(person => person.Id).OrderBy(id => id.Value));
+        }
+
+        [Fact]
         public async Task GetAllAsync_ReturnsStoredPersons()
         {
             await using PopulationTestDatabase database = CreateDbContext();
