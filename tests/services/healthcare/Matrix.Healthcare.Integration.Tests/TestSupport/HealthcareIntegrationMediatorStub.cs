@@ -1,5 +1,6 @@
 using Matrix.Healthcare.Application.Lifecycle.DeleteHealthcareSimulation;
 using Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords;
+using Matrix.Healthcare.Application.Patients.AdvancePatientHealth;
 using Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles;
 using MediatR;
 
@@ -9,6 +10,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
     {
         internal List<SynchronizePatientProfilesCommand> Commands { get; } = [];
         internal List<InitializePatientMedicalRecordsCommand> MedicalCommands { get; } = [];
+        internal List<AdvancePatientHealthCommand> HealthProgressionCommands { get; } = [];
         internal List<DeleteHealthcareSimulationCommand> DeletionCommands { get; } = [];
 
         internal SynchronizePatientProfilesResult Result { get; set; } = new(
@@ -25,6 +27,13 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
             AddedRecords: 0,
             IgnoredRecords: 0);
 
+        internal AdvancePatientHealthResult HealthProgressionResult { get; set; } = new(
+            AdvancePatientHealthStatus.Applied,
+            ProcessedPatients: 0,
+            IgnoredPatients: 0,
+            StalePatients: 0,
+            Outcomes: Array.Empty<PatientHealthProgressionResultItem>());
+
         public Task<TResponse> Send<TResponse>(
             IRequest<TResponse> request,
             CancellationToken cancellationToken = default)
@@ -33,6 +42,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
             {
                 SynchronizePatientProfilesCommand command => RecordProfile(command),
                 InitializePatientMedicalRecordsCommand command => RecordMedical(command),
+                AdvancePatientHealthCommand command => RecordHealthProgression(command),
                 DeleteHealthcareSimulationCommand command => RecordDeletion(command),
                 _ => throw new NotSupportedException(request.GetType().FullName)
             };
@@ -101,6 +111,12 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
         {
             MedicalCommands.Add(command);
             return MedicalResult;
+        }
+
+        private AdvancePatientHealthResult RecordHealthProgression(AdvancePatientHealthCommand command)
+        {
+            HealthProgressionCommands.Add(command);
+            return HealthProgressionResult;
         }
     }
 }
