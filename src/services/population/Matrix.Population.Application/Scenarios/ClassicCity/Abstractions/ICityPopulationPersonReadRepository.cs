@@ -13,6 +13,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
             CityId cityId,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyCollection<Person>> ListByCityAndIdsAsync(
+            CityId cityId,
+            IReadOnlyCollection<PersonId> personIds,
+            CancellationToken cancellationToken = default);
+
         Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageByCityAsync(
             CityId cityId,
             Pagination pagination,

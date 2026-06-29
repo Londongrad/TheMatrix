@@ -30,6 +30,27 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .ToListAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyCollection<Person>> ListByCityAndIdsAsync(
+            CityId cityId,
+            IReadOnlyCollection<PersonId> personIds,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(personIds);
+            if (personIds.Count == 0)
+                return [];
+
+            PersonId[] distinctIds = personIds.Distinct().ToArray();
+            return await _dbContext.Persons
+               .Where(person => distinctIds.Contains(person.Id))
+               .Join(
+                    inner: _dbContext.ClassicCityHouseholdPlacements.Where(placement =>
+                        placement.CityId == cityId),
+                    outerKeySelector: person => person.HouseholdId,
+                    innerKeySelector: placement => placement.HouseholdId,
+                    resultSelector: (person, _) => person)
+               .ToListAsync(cancellationToken);
+        }
+
         public async Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageByCityAsync(
             CityId cityId,
             Pagination pagination,

@@ -258,6 +258,17 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 return Task.FromResult(ListByCityResult);
             }
 
+            public Task<IReadOnlyCollection<Person>> ListByCityAndIdsAsync(
+                CityId cityId,
+                IReadOnlyCollection<PersonId> personIds,
+                CancellationToken cancellationToken = default)
+            {
+                RequestedCityId = cityId;
+                HashSet<PersonId> requestedIds = personIds.ToHashSet();
+                return Task.FromResult<IReadOnlyCollection<Person>>(
+                    ListByCityResult.Where(person => requestedIds.Contains(person.Id)).ToArray());
+            }
+
             public Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageByCityAsync(
                 CityId cityId,
                 Pagination pagination,
