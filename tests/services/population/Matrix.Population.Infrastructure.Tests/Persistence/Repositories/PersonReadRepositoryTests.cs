@@ -34,6 +34,7 @@ namespace Matrix.Population.Infrastructure.Tests.Persistence.Repositories
             Assert.Equal(
                 new[] { first.Id, second.Id }.OrderBy(id => id.Value),
                 loaded.Select(person => person.Id).OrderBy(id => id.Value));
+            Assert.All(loaded, person => Assert.Equal(-1, person.LastHealthcareRevision));
         }
 
         [Fact]

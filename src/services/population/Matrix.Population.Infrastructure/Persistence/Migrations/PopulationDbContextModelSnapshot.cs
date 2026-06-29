@@ -118,6 +118,11 @@ namespace Matrix.Population.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("LastChildbirthDate");
 
+                    b.Property<long>("LastHealthcareRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(-1L);
+
                     b.Property<Guid?>("MotherId")
                         .HasColumnType("uuid")
                         .HasColumnName("MotherId");

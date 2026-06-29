@@ -26,6 +26,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(p => p.HouseholdId);
 
+            builder.Property(p => p.LastHealthcareRevision)
+               .HasDefaultValue(-1L)
+               .IsRequired();
+
             builder.Property(p => p.MotherId)
                .HasConversion(
                     convertToProviderExpression: id => id.HasValue
