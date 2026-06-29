@@ -23,6 +23,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Outbox
             var batch = new PatientHealthOutcomeBatch(
                 SimulationHostId: Guid.NewGuid(),
                 SourceRevision: 17,
+                CurrentDate: new DateOnly(2048, 5, 6),
                 OccurredAtUtc: occurredAtUtc,
                 CorrelationId: "health-risk:17:outcome",
                 BatchNumber: 1,
@@ -54,6 +55,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Outbox
             Assert.Equal(HealthcareOutboxEventTypes.PatientHealthOutcomeBatchV1, message.Type);
             Assert.Equal(occurredAtUtc.UtcDateTime, message.OccurredOnUtc);
             Assert.NotNull(payload);
+            Assert.Equal(new DateOnly(2048, 5, 6), payload.CurrentDate);
             HealthcarePatientHealthOutcomeV1 patient = Assert.Single(payload.Patients);
             Assert.Equal(patientId, patient.PatientId);
             Assert.Equal("Infection", patient.CurrentIllnessKind);

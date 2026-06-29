@@ -96,6 +96,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                         new PatientHealthOutcomeBatch(
                             SimulationHostId: batch.SimulationHostId.Value,
                             SourceRevision: batch.SourceRevision,
+                            CurrentDate: batch.CurrentDate,
                             OccurredAtUtc: batch.ObservedAtUtc,
                             CorrelationId: batch.CorrelationId,
                             BatchNumber: batch.BatchNumber,

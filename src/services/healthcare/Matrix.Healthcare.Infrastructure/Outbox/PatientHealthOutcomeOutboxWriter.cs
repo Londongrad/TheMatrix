@@ -22,6 +22,7 @@ namespace Matrix.Healthcare.Infrastructure.Outbox
             var integrationEvent = new HealthcarePatientHealthOutcomeBatchV1(
                 SimulationHostId: batch.SimulationHostId,
                 SourceRevision: batch.SourceRevision,
+                CurrentDate: batch.CurrentDate,
                 OccurredAtUtc: batch.OccurredAtUtc,
                 CorrelationId: batch.CorrelationId,
                 BatchNumber: batch.BatchNumber,

@@ -41,6 +41,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(17, record.LastProgressionRevision);
             PatientHealthOutcomeBatch outboxBatch = Assert.Single(outboxWriter.Batches);
             Assert.Equal(17, outboxBatch.SourceRevision);
+            Assert.Equal(CurrentDate, outboxBatch.CurrentDate);
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
             Assert.Equal(1, unitOfWork.SaveCount);
         }

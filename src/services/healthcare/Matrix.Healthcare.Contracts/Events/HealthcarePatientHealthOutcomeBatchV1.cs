@@ -3,6 +3,7 @@ namespace Matrix.Healthcare.Contracts.Events
     public sealed record HealthcarePatientHealthOutcomeBatchV1(
         Guid SimulationHostId,
         long SourceRevision,
+        DateOnly CurrentDate,
         DateTimeOffset OccurredAtUtc,
         string CorrelationId,
         int BatchNumber,
