@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\..\scenarios\classic-city\Matrix.ScenarioContracts.ClassicCity\Matrix.ScenarioContracts.ClassicCity.csproj"/>
     <ProjectReference Include="..\..\simulationcore\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>
     <ProjectReference Include="..\..\simulationsystems\Matrix.SimulationSystems.Contracts\Matrix.SimulationSystems.Contracts.csproj"/>
+    <ProjectReference Include="..\..\healthcare\Matrix.Healthcare.Contracts\Matrix.Healthcare.Contracts.csproj"/>
     <ProjectReference Include="..\Matrix.Population.Application\Matrix.Population.Application.csproj"/>
   </ItemGroup>
 
