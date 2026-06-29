@@ -4,6 +4,7 @@ using Matrix.Healthcare.Api.Configurations;
 using Matrix.Healthcare.Application.Abstractions;
 using Matrix.Healthcare.Infrastructure.Persistence;
 using Matrix.Healthcare.Integration.Consumers;
+using Matrix.Healthcare.Domain.Progression;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -57,11 +58,16 @@ namespace Matrix.Healthcare.Api.Tests.Configurations
             Assert.NotNull(scopedServices.GetRequiredService<ICurrentUserContext>());
             Assert.NotNull(scopedServices.GetRequiredService<HealthcareDbContext>());
             Assert.NotNull(scopedServices.GetRequiredService<IPatientProfileRepository>());
+            Assert.NotNull(scopedServices.GetRequiredService<IPatientMedicalRecordRepository>());
+            Assert.NotNull(scopedServices.GetRequiredService<IPatientHealthOutcomeOutboxWriter>());
             Assert.NotNull(scopedServices.GetRequiredService<IHealthcareSimulationDeletionRepository>());
             Assert.NotNull(scopedServices.GetRequiredService<IHealthcareUnitOfWork>());
             Assert.NotNull(scopedServices.GetRequiredService<IMediator>());
             Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentFactsConsumer>());
+            Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentMedicalStateConsumer>());
+            Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentHealthRiskConsumer>());
             Assert.NotNull(scopedServices.GetRequiredService<SimulationDeletedConsumer>());
+            Assert.NotNull(provider.GetRequiredService<PatientIllnessProgressionPolicy>());
             Assert.Same(
                 expected: TimeProvider.System,
                 actual: provider.GetRequiredService<TimeProvider>());
