@@ -1,22 +1,18 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.Services;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
-using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
     internal static class ResidentLivingConditionsProgressionStep
     {
-        internal static bool Apply(
+        internal static ResidentProgressionStepResult Apply(
             PersonEntity person,
-            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
             DateOnly previousDate,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
@@ -26,8 +22,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 districtUtilityConditionsByDistrictId,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
-            CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
-            MarriageDomainService marriageDomainService)
+            CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy)
         {
             HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(
                 key: person.HouseholdId,
@@ -58,18 +53,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 essentials: districtEssentials);
 
             if (!effect.HasAnyEffect)
-                return false;
+                return ResidentProgressionStepResult.None;
 
-            bool wasAlive = person.IsAlive;
-            int previousHealth = person.Health.Value;
             int previousEnergy = person.Energy.Value;
             int previousStress = person.Stress.Value;
             int previousHappiness = person.Happiness.Value;
-
-            if (effect.HealthDelta != 0)
-                person.ChangeHealth(
-                    delta: effect.HealthDelta,
-                    currentDate: currentDate);
 
             if (person.IsAlive)
             {
@@ -81,20 +69,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     person.ChangeHappiness(effect.HappinessDelta);
             }
 
-            bool changed = previousHealth != person.Health.Value ||
-                           previousEnergy != person.Energy.Value ||
+            bool changed = previousEnergy != person.Energy.Value ||
                            previousStress != person.Stress.Value ||
-                           previousHappiness != person.Happiness.Value ||
-                           wasAlive != person.IsAlive;
+                           previousHappiness != person.Happiness.Value;
 
-            if (wasAlive && !person.IsAlive)
-                changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
-                              deceased: person,
-                              residentsById: residentsById,
-                              marriageDomainService: marriageDomainService) ||
-                          changed;
-
-            return changed;
+            return new ResidentProgressionStepResult(
+                PopulationChanged: changed,
+                HealthcareHealthDelta: effect.HealthDelta);
         }
     }
 }

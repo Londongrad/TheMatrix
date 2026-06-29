@@ -104,10 +104,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cancellationToken: cancellationToken,
                     householdPressurePolicy: householdPressurePolicy))
                 populationChanged = true;
-            if (requiresDateProgression &&
-                ResidentLivingConditionsProgressionStep.Apply(
+            if (requiresDateProgression)
+            {
+                ResidentProgressionStepResult livingConditionsProgression =
+                    ResidentLivingConditionsProgressionStep.Apply(
                     person: person,
-                    residentsById: residentsById,
                     previousDate: previousDate,
                     currentDate: currentDate,
                     housingByHouseholdId: housingByHouseholdId,
@@ -116,9 +117,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                     essentialsState: essentialsState,
                     districtImpactPolicy: districtImpactPolicy,
-                    livingConditionsPressurePolicy: livingConditionsPressurePolicy,
-                    marriageDomainService: marriageDomainService))
-                populationChanged = true;
+                    livingConditionsPressurePolicy: livingConditionsPressurePolicy);
+                populationChanged |= livingConditionsProgression.PopulationChanged;
+                healthcareHealthDelta += livingConditionsProgression.HealthcareHealthDelta;
+            }
             if (exposureSegments.Count > 0 &&
                 ResidentWeatherExposureStep.Apply(
                     person: person,

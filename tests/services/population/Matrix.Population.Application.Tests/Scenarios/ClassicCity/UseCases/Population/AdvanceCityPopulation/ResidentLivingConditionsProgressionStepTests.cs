@@ -45,12 +45,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Person resident = CreatePerson(currentDate: CurrentDate);
             var before = NeedsSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 previousDate: CurrentDate,
                 currentDate: CurrentDate);
 
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: NeedsSnapshot.Capture(resident));
@@ -63,9 +63,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Person resident = CreatePerson(currentDate: CurrentDate);
             var before = NeedsSnapshot.Capture(resident);
 
-            bool changed = Apply(resident: resident);
+            ResidentProgressionStepResult result = Apply(resident: resident);
 
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: NeedsSnapshot.Capture(resident));
@@ -106,7 +106,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 essentials: expectedEssentials);
             var before = NeedsSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 housingByHouseholdId: new Dictionary<HouseholdId, HousingStatus>
                 {
@@ -118,10 +118,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 livingConditionsPressurePolicy: livingConditionsPressurePolicy);
 
             Assert.True(expectedEffect.HasAnyEffect);
-            Assert.True(changed);
+            Assert.True(result.HasAnyEffect);
             Assert.Equal(
-                expected: before.Health + expectedEffect.HealthDelta,
+                expected: before.Health,
                 actual: resident.Health.Value);
+            Assert.Equal(expectedEffect.HealthDelta, result.HealthcareHealthDelta);
             Assert.Equal(
                 expected: before.Energy + expectedEffect.EnergyDelta,
                 actual: resident.Energy.Value);
@@ -159,7 +160,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 essentials: expectedEssentials);
             var before = NeedsSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 housingByHouseholdId: new Dictionary<HouseholdId, HousingStatus>
                 {
@@ -178,10 +179,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 livingConditionsPressurePolicy: livingConditionsPressurePolicy);
 
             Assert.True(expectedEffect.HasAnyEffect);
-            Assert.True(changed);
+            Assert.True(result.HasAnyEffect);
             Assert.Equal(
-                expected: before.Health + expectedEffect.HealthDelta,
+                expected: before.Health,
                 actual: resident.Health.Value);
+            Assert.Equal(expectedEffect.HealthDelta, result.HealthcareHealthDelta);
             Assert.Equal(
                 expected: before.Energy + expectedEffect.EnergyDelta,
                 actual: resident.Energy.Value);
@@ -200,7 +202,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             resident.Die(CurrentDate);
             var before = NeedsSnapshot.Capture(resident);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 housingByHouseholdId: new Dictionary<HouseholdId, HousingStatus>
                 {
@@ -209,7 +211,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 livingConditionsState: CreateDegradedLivingConditionsState(),
                 essentialsState: CreateDegradedEssentialsState());
 
-            Assert.False(changed);
+            Assert.False(result.HasAnyEffect);
             Assert.Equal(
                 expected: before,
                 actual: NeedsSnapshot.Capture(resident));
@@ -217,7 +219,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public void Apply_WhenLivingConditionsKillMarriedResident_RegistersSpouseWidowhood()
+        public void Apply_WhenLivingPressureIsLethal_DelegatesHealthWithoutKillingResident()
         {
             var marriageDomainService = new MarriageDomainService();
             var householdId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
@@ -247,30 +249,23 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 spouse: spouse,
                 currentDate: CurrentDate);
 
-            bool changed = Apply(
+            ResidentProgressionStepResult result = Apply(
                 resident: resident,
                 housingByHouseholdId: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [resident.HouseholdId] = HousingStatus.Homeless
                 },
                 livingConditionsState: CreateDegradedLivingConditionsState(),
-                essentialsState: CreateDegradedEssentialsState(),
-                residentsById: new Dictionary<PersonId, Person>
-                {
-                    [resident.Id] = resident,
-                    [spouse.Id] = spouse
-                },
-                marriageDomainService: marriageDomainService);
+                essentialsState: CreateDegradedEssentialsState());
 
-            Assert.True(changed);
-            Assert.False(resident.IsAlive);
-            Assert.Equal(
-                expected: MaritalStatus.Widowed,
-                actual: spouse.MaritalStatus);
-            Assert.Null(spouse.SpouseId);
+            Assert.True(result.HasAnyEffect);
+            Assert.True(result.HealthcareHealthDelta < 0);
+            Assert.True(resident.IsAlive);
+            Assert.Equal(MaritalStatus.Married, spouse.MaritalStatus);
+            Assert.Equal(resident.Id, spouse.SpouseId);
         }
 
-        private static bool Apply(
+        private static ResidentProgressionStepResult Apply(
             Person resident,
             DateOnly? previousDate = null,
             DateOnly? currentDate = null,
@@ -280,18 +275,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>?
                 districtUtilityConditionsByDistrictId = null,
             CityPopulationEssentialsState? essentialsState = null,
-            IReadOnlyDictionary<PersonId, Person>? residentsById = null,
             CityPopulationDistrictImpactPolicy? districtImpactPolicy = null,
-            CityPopulationLivingConditionsPressurePolicy? livingConditionsPressurePolicy = null,
-            MarriageDomainService? marriageDomainService = null)
+            CityPopulationLivingConditionsPressurePolicy? livingConditionsPressurePolicy = null)
         {
             return ResidentLivingConditionsProgressionStep.Apply(
                 person: resident,
-                residentsById: residentsById ??
-                               new Dictionary<PersonId, Person>
-                               {
-                                   [resident.Id] = resident
-                               },
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
                 housingByHouseholdId: housingByHouseholdId ?? new Dictionary<HouseholdId, HousingStatus>(),
@@ -303,8 +291,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 essentialsState: essentialsState,
                 districtImpactPolicy: districtImpactPolicy ?? new CityPopulationDistrictImpactPolicy(),
                 livingConditionsPressurePolicy: livingConditionsPressurePolicy ??
-                                                new CityPopulationLivingConditionsPressurePolicy(),
-                marriageDomainService: marriageDomainService ?? new MarriageDomainService());
+                                                new CityPopulationLivingConditionsPressurePolicy());
         }
 
         private static CityPopulationLivingConditionsState CreateHealthyLivingConditionsState()
