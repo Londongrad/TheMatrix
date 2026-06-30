@@ -17,6 +17,7 @@ namespace Matrix.Healthcare.Domain.Patients
             bool isAlive,
             bool isActive,
             long lastSourceRevision,
+            long lastLifecycleRevision,
             DateTimeOffset lastSynchronizedAtUtc)
             : base(patientId)
         {
@@ -26,6 +27,7 @@ namespace Matrix.Healthcare.Domain.Patients
             IsAlive = isAlive;
             IsActive = isActive;
             LastSourceRevision = EnsureRevision(lastSourceRevision);
+            LastLifecycleRevision = EnsureRevision(lastLifecycleRevision);
             LastSynchronizedAtUtc = EnsureUtc(lastSynchronizedAtUtc);
         }
 
@@ -41,6 +43,7 @@ namespace Matrix.Healthcare.Domain.Patients
         public bool IsAlive { get; private set; }
         public bool IsActive { get; private set; }
         public long LastSourceRevision { get; private set; }
+        public long LastLifecycleRevision { get; private set; }
         public DateTimeOffset LastSynchronizedAtUtc { get; private set; }
 
         public bool IsEligibleForCare => IsAlive && IsActive;
@@ -53,7 +56,8 @@ namespace Matrix.Healthcare.Domain.Patients
             bool isAlive,
             bool isActive,
             long sourceRevision,
-            DateTimeOffset synchronizedAtUtc)
+            DateTimeOffset synchronizedAtUtc,
+            long lifecycleRevision = 0)
         {
             return new PatientProfile(
                 patientId: patientId,
@@ -63,6 +67,7 @@ namespace Matrix.Healthcare.Domain.Patients
                 isAlive: isAlive,
                 isActive: isActive,
                 lastSourceRevision: sourceRevision,
+                lastLifecycleRevision: lifecycleRevision,
                 lastSynchronizedAtUtc: synchronizedAtUtc);
         }
 
@@ -73,21 +78,34 @@ namespace Matrix.Healthcare.Domain.Patients
             bool isAlive,
             bool isActive,
             long sourceRevision,
-            DateTimeOffset synchronizedAtUtc)
+            DateTimeOffset synchronizedAtUtc,
+            long lifecycleRevision = 0)
         {
             EnsureSameSimulationHost(simulationHostId);
 
             long normalizedRevision = EnsureRevision(sourceRevision);
+            long normalizedLifecycleRevision = EnsureRevision(lifecycleRevision);
             DateTimeOffset normalizedTimestamp = EnsureUtc(synchronizedAtUtc);
+            bool sourceChanged = normalizedRevision > LastSourceRevision;
+            bool lifecycleChanged = normalizedLifecycleRevision > LastLifecycleRevision;
 
-            if (normalizedRevision <= LastSourceRevision)
+            if (!sourceChanged && !lifecycleChanged)
                 return false;
 
-            BirthDate = birthDate;
-            Sex = EnsureSex(sex);
-            IsAlive = isAlive;
-            IsActive = isActive;
-            LastSourceRevision = normalizedRevision;
+            if (sourceChanged)
+            {
+                BirthDate = birthDate;
+                Sex = EnsureSex(sex);
+                IsActive = isActive;
+                LastSourceRevision = normalizedRevision;
+            }
+
+            if (lifecycleChanged)
+            {
+                IsAlive = isAlive;
+                LastLifecycleRevision = normalizedLifecycleRevision;
+            }
+
             LastSynchronizedAtUtc = normalizedTimestamp;
 
             return true;

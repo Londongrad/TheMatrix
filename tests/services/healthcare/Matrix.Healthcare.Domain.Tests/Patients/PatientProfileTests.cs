@@ -39,14 +39,40 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
                 isAlive: false,
                 isActive: false,
                 sourceRevision: 8,
-                synchronizedAtUtc: synchronizedAtUtc);
+                synchronizedAtUtc: synchronizedAtUtc,
+                lifecycleRevision: 1);
 
             Assert.True(changed);
             Assert.Equal(new DateOnly(2027, 4, 4), profile.BirthDate);
             Assert.Equal(PatientSex.Male, profile.Sex);
             Assert.False(profile.IsEligibleForCare);
             Assert.Equal(8, profile.LastSourceRevision);
+            Assert.Equal(1, profile.LastLifecycleRevision);
             Assert.Equal(synchronizedAtUtc, profile.LastSynchronizedAtUtc);
+        }
+
+        [Fact]
+        public void TrySynchronizeResidentFacts_WhenOnlyLifecycleAdvances_UpdatesAliveState()
+        {
+            PatientProfile profile = CreateProfile();
+
+            bool changed = profile.TrySynchronizeResidentFacts(
+                simulationHostId: SimulationHostId,
+                birthDate: new DateOnly(2030, 1, 1),
+                sex: PatientSex.Male,
+                isAlive: false,
+                isActive: false,
+                sourceRevision: 7,
+                synchronizedAtUtc: DateTimeOffset.Parse("2048-05-08T10:00:00+00:00"),
+                lifecycleRevision: 1);
+
+            Assert.True(changed);
+            Assert.False(profile.IsAlive);
+            Assert.True(profile.IsActive);
+            Assert.Equal(new DateOnly(2027, 4, 3), profile.BirthDate);
+            Assert.Equal(PatientSex.Female, profile.Sex);
+            Assert.Equal(7, profile.LastSourceRevision);
+            Assert.Equal(1, profile.LastLifecycleRevision);
         }
 
         [Fact]
