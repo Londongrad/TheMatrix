@@ -1,4 +1,5 @@
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -54,8 +55,13 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             Person resident = PopulationTestData.CreateAdultPerson(
                 householdId: household.Id.Value,
                 currentDate: currentDate);
-            resident.ChangeHealth(
-                delta: -60,
+            resident.TryApplyHealthcareOutcome(
+                sourceRevision: 0,
+                healthScore: 40,
+                illness: IllnessInfo.Healthy(),
+                happinessDelta: 0,
+                energyDelta: 0,
+                stressDelta: 0,
                 currentDate: currentDate);
             resident.ChangeEnergy(-50);
             resident.ChangeStress(55);

@@ -1,9 +1,11 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Tests.TestSupport;
+using Matrix.Population.Domain.ValueObjects;
 using Xunit;
 
 namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
@@ -180,8 +182,13 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 firstName: "Sergey",
                 lastName: "Petrov",
                 personId: Guid.Parse("cccccccc-1111-1111-1111-111111111111"));
-            unemployedResident.ChangeHealth(
-                delta: -60,
+            unemployedResident.TryApplyHealthcareOutcome(
+                sourceRevision: 0,
+                healthScore: 40,
+                illness: IllnessInfo.Healthy(),
+                happinessDelta: 0,
+                energyDelta: 0,
+                stressDelta: 0,
                 currentDate: currentDate);
             unemployedResident.ChangeEnergy(-45);
             unemployedResident.ChangeStress(55);

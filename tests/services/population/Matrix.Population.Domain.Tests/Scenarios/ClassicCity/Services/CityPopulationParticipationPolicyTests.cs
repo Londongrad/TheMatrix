@@ -1,9 +1,11 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Tests.TestSupport;
+using Matrix.Population.Domain.ValueObjects;
 using Xunit;
 
 namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
@@ -46,12 +48,17 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 job: PopulationTestData.CreateJob());
             employedResident.ChangeEnergy(-50);
             employedResident.ChangeStress(50);
-            employedResident.ChangeHealth(
-                delta: -45,
-                currentDate: currentDate);
-            employedResident.DiagnoseIllness(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Moderate,
+            employedResident.TryApplyHealthcareOutcome(
+                sourceRevision: 0,
+                healthScore: 55,
+                illness: IllnessInfo.FromHealthcareSnapshot(
+                    currentKind: IllnessKind.Infection,
+                    currentSeverity: IllnessSeverity.Moderate,
+                    diagnosedOn: currentDate,
+                    lastRecoveredOn: null),
+                happinessDelta: 0,
+                energyDelta: 0,
+                stressDelta: 0,
                 currentDate: currentDate);
 
             CityPopulationParticipationProfile profile = policy.ResolveEmploymentProfile(
@@ -109,8 +116,13 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 institutionAnchorId: PopulationTestData.CreateCityAnchorId());
             student.ChangeEnergy(-45);
             student.ChangeStress(40);
-            student.ChangeHealth(
-                delta: -40,
+            student.TryApplyHealthcareOutcome(
+                sourceRevision: 0,
+                healthScore: 60,
+                illness: IllnessInfo.Healthy(),
+                happinessDelta: 0,
+                energyDelta: 0,
+                stressDelta: 0,
                 currentDate: currentDate);
 
             decimal attendanceIndex = policy.ResolveStudentAttendanceIndex(

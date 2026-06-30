@@ -278,7 +278,7 @@ namespace Matrix.Population.Domain.Entities
 
         #region [ Health / Life ]
 
-        public void ChangeHealth(
+        private void ChangeHealth(
             int delta,
             DateOnly currentDate)
         {

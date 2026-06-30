@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Tests.TestSupport;
 using Matrix.Population.Domain.ValueObjects;
 using Xunit;
@@ -103,7 +104,7 @@ namespace Matrix.Population.Domain.Tests.Entities
         }
 
         [Fact]
-        public void ChangeHealth_WhenLethalDeltaIsApplied_TransitionsToDeathAndClearsRuntimeState()
+        public void TryApplyHealthcareOutcome_WhenHealthIsCritical_TransitionsToDeathAndClearsRuntimeState()
         {
             Person person = PopulationTestData.CreateAdultPerson();
             person.StartStudying(
@@ -114,8 +115,13 @@ namespace Matrix.Population.Domain.Tests.Entities
                 institutionId: PopulationTestData.CreateEducationInstitutionId(),
                 institutionAnchorId: PopulationTestData.CreateCityAnchorId());
 
-            person.ChangeHealth(
-                delta: -200,
+            person.TryApplyHealthcareOutcome(
+                sourceRevision: 0,
+                healthScore: 0,
+                illness: IllnessInfo.Healthy(),
+                happinessDelta: 0,
+                energyDelta: 0,
+                stressDelta: 0,
                 currentDate: new DateOnly(
                     year: 2048,
                     month: 5,
