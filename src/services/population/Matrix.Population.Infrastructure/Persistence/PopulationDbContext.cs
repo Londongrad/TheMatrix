@@ -44,6 +44,9 @@ namespace Matrix.Population.Infrastructure.Persistence
         public DbSet<CityPopulationProgressionState> CityPopulationProgressionStates
             => Set<CityPopulationProgressionState>();
 
+        public DbSet<CityPopulationPendingWeatherImpact> CityPopulationPendingWeatherImpacts
+            => Set<CityPopulationPendingWeatherImpact>();
+
         public DbSet<CityPopulationSummaryProjection> CityPopulationSummaryProjections
             => Set<CityPopulationSummaryProjection>();
 

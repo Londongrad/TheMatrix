@@ -91,6 +91,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
                .AddScoped<ICityPopulationLivingConditionsStateRepository,
                     CityPopulationLivingConditionsStateRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
+            services.AddScoped<ICityPopulationPendingWeatherImpactRepository,
+                CityPopulationPendingWeatherImpactRepository>();
             services
                .AddScoped<ICityPopulationServiceQualityStateRepository, CityPopulationServiceQualityStateRepository>();
             services.AddScoped<ICityPopulationSummaryProjectionService, CityPopulationSummaryProjectionService>();
