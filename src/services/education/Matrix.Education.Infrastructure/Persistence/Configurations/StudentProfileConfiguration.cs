@@ -46,6 +46,11 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
                .HasColumnName("last_source_revision")
                .IsRequired();
 
+            builder.Property(x => x.LastLifecycleRevision)
+               .HasColumnName("last_lifecycle_revision")
+               .HasDefaultValue(0L)
+               .IsRequired();
+
             builder.Property(x => x.LastSynchronizedAtUtc)
                .HasColumnName("last_synchronized_at_utc")
                .IsRequired();
