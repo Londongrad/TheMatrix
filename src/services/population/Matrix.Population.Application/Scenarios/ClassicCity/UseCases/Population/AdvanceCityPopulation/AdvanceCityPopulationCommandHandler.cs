@@ -52,6 +52,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         IPopulationResidentHealthRiskOutboxWriter residentHealthRiskOutboxWriter,
         IPopulationResidentMedicalStateOutboxWriter residentMedicalStateOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
+        ICityPopulationPendingWeatherImpactRepository pendingWeatherImpactRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
         IHouseholdWriteRepository householdWriteRepository,
@@ -73,6 +74,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
         CityPopulationParticipationPolicy participationPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
+        CityPopulationWeatherImpactPolicy weatherImpactPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
         TimeProvider timeProvider,
         ILogger<AdvanceCityPopulationCommandHandler> logger,
@@ -169,6 +171,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             List<PersonEntity> residentLifecycleChanges = [];
             IReadOnlyCollection<PopulationResidentHealthRiskSnapshot> pendingHealthRiskSnapshots = [];
             Dictionary<PersonId, int> pendingHealthAdjustmentsByResidentId = [];
+            IReadOnlyList<CityPopulationPendingWeatherImpact> pendingWeatherImpacts = [];
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
             List<ClassicCityHouseholdCashflowSettlementItemV1> pendingHouseholdCashflowItems = [];
             List<ClassicCityWorkplacePayrollSettlementItemV1> pendingWorkplacePayrollItems = [];
@@ -202,7 +205,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
-                    if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure)
+                    pendingWeatherImpacts = await pendingWeatherImpactRepository.ListByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+                    bool requiresPendingWeatherImpact = pendingWeatherImpacts.Count > 0;
+
+                    if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure ||
+                        requiresPendingWeatherImpact)
                     {
                         AdvanceCityPopulationWorkingSet workingSet =
                             await AdvanceCityPopulationWorkingSetLoader.LoadAsync(
@@ -285,10 +294,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     weatherExposurePolicy: weatherExposurePolicy,
                                     commuteRoutingService: commuteRoutingService,
                                     cancellationToken: ct);
-                            if (progressionResult.HealthcareHealthDelta != 0)
+                            int pendingWeatherHealthDelta = PendingWeatherHealthImpactStep.CalculateHealthDelta(
+                                person: person,
+                                pendingImpacts: pendingWeatherImpacts,
+                                weatherImpactPolicy: weatherImpactPolicy);
+                            int healthcareHealthDelta = Math.Clamp(
+                                progressionResult.HealthcareHealthDelta + pendingWeatherHealthDelta,
+                                -100,
+                                100);
+                            if (healthcareHealthDelta != 0)
                                 pendingHealthAdjustmentsByResidentId[person.Id] =
-                                    progressionResult.HealthcareHealthDelta;
-                            if (progressionResult.HasAnyEffect)
+                                    healthcareHealthDelta;
+                            if (progressionResult.HasAnyEffect || pendingWeatherHealthDelta != 0)
                             {
                                 affectedPeopleCount++;
                                 if (beforeSnapshot.IsAlive != person.IsAlive)
@@ -599,6 +616,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         await residentHealthRiskOutboxWriter.AddResidentHealthRiskBatchAsync(
                             batch: batch,
                             cancellationToken: ct);
+
+                    if (pendingWeatherImpacts.Count > 0)
+                        pendingWeatherImpactRepository.RemoveRange(pendingWeatherImpacts);
 
                     await unitOfWork.SaveChangesAsync(ct);
                 },

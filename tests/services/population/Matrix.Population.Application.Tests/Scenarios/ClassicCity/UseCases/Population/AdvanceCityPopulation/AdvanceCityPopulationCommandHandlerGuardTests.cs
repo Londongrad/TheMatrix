@@ -253,6 +253,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 residentMedicalStateOutboxWriter: new FakePopulationResidentMedicalStateOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
+                pendingWeatherImpactRepository: new FakeCityPopulationPendingWeatherImpactRepository(),
                 cityPopulationSummaryProjectionService: new FakeCityPopulationSummaryProjectionService(),
                 weatherExposureStateRepository: new FakeCityPopulationWeatherExposureStateRepository(),
                 householdWriteRepository: new FakeHouseholdWriteRepository(),
@@ -280,6 +281,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 livingConditionsPressurePolicy: new CityPopulationLivingConditionsPressurePolicy(),
                 participationPolicy: new CityPopulationParticipationPolicy(),
                 personNeedsProgressionPolicy: new PersonNeedsProgressionPolicy(),
+                weatherImpactPolicy: new CityPopulationWeatherImpactPolicy(
+                    new CityPopulationClimateAdaptationPolicy()),
                 weatherExposurePolicy: new CityPopulationWeatherExposurePolicy(
                     new CityPopulationClimateAdaptationPolicy()),
                 timeProvider: CreateTimeProvider(),

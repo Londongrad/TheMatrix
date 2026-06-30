@@ -208,6 +208,95 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
+        public async Task Handle_PendingWeatherImpact_JoinsHealthcareBatchAndIsDrainedAtomically()
+        {
+            Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            DateOnly currentDate = new(2048, 5, 6);
+            DateTimeOffset currentSimTimeUtc = new(2048, 5, 6, 9, 0, 0, TimeSpan.Zero);
+            Person resident = CreatePerson(
+                personId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                householdId: Guid.Parse("66666666-7777-8888-9999-aaaaaaaaaaaa"),
+                birthDate: new DateOnly(1960, 5, 6),
+                currentDate: currentDate,
+                health: 1);
+            Household household = Household.Create(
+                id: resident.HouseholdId,
+                size: HouseholdSize.From(1),
+                createdAtUtc: UtcNow);
+            var personReadRepository = new FakeCityPopulationPersonReadRepository
+            {
+                ListByCityResult = [resident]
+            };
+            var householdWriteRepository = new FakeHouseholdWriteRepository
+            {
+                HouseholdsByCityResult = [household],
+                PlacementsByCityResult =
+                [
+                    ClassicCityHouseholdPlacement.CreateHomeless(
+                        householdId: household.Id,
+                        cityId: CityId.From(cityId))
+                ]
+            };
+            var progressionStateRepository = new FakeCityPopulationProgressionStateRepository
+            {
+                State = CityPopulationProgressionState.Create(
+                    cityId: CityId.From(cityId),
+                    lastProcessedTickId: 40,
+                    lastProcessedDate: currentDate,
+                    updatedAtUtc: UtcNow)
+            };
+            var pendingWeatherImpactRepository = new FakeCityPopulationPendingWeatherImpactRepository();
+            pendingWeatherImpactRepository.Impacts.Add(
+                CityPopulationPendingWeatherImpact.Create(
+                    impactId: Guid.Parse("99999999-9999-9999-9999-999999999999"),
+                    cityId: CityId.From(cityId),
+                    currentDate: currentDate,
+                    previousWeather: new WeatherImpactProfile(
+                        Type: PopulationWeatherType.Clear,
+                        Severity: PopulationWeatherSeverity.Calm,
+                        PrecipitationKind: PopulationPrecipitationKind.None,
+                        TemperatureC: 22m,
+                        HumidityPercent: 45m,
+                        WindSpeedKph: 12m,
+                        CloudCoveragePercent: 35m,
+                        PressureHpa: 1012m),
+                    currentWeather: new WeatherImpactProfile(
+                        Type: PopulationWeatherType.Heatwave,
+                        Severity: PopulationWeatherSeverity.Extreme,
+                        PrecipitationKind: PopulationPrecipitationKind.None,
+                        TemperatureC: 39m,
+                        HumidityPercent: 45m,
+                        WindSpeedKph: 12m,
+                        CloudCoveragePercent: 35m,
+                        PressureHpa: 1012m),
+                    environment: null,
+                    occurredAtUtc: currentSimTimeUtc));
+            var healthRiskOutboxWriter = new FakePopulationResidentHealthRiskOutboxWriter();
+            AdvanceCityPopulationCommandHandler handler = CreateHandler(
+                personReadRepository: personReadRepository,
+                progressionStateRepository: progressionStateRepository,
+                pendingWeatherImpactRepository: pendingWeatherImpactRepository,
+                householdWriteRepository: householdWriteRepository,
+                residentHealthRiskOutboxWriter: healthRiskOutboxWriter);
+
+            AdvanceCityPopulationResult result = await handler.Handle(
+                request: new AdvanceCityPopulationCommand(
+                    CityId: cityId,
+                    FromSimTimeUtc: currentSimTimeUtc,
+                    ToSimTimeUtc: currentSimTimeUtc,
+                    TickId: 41),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(AdvanceCityPopulationStatus.Applied, result.Status);
+            Assert.Equal(1, result.AffectedPeopleCount);
+            Assert.True(resident.IsAlive);
+            var batch = Assert.Single(healthRiskOutboxWriter.Batches);
+            Assert.Equal(41, batch.SourceRevision);
+            Assert.True(Assert.Single(batch.Residents).ExternalHealthDelta < 0);
+            Assert.Empty(pendingWeatherImpactRepository.Impacts);
+        }
+
+        [Fact]
         public async Task Handle_WhenSameDayTickAdvancesOnlyState_MarksProgressWithoutResidentWork()
         {
             var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
@@ -487,6 +576,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         private static AdvanceCityPopulationCommandHandler CreateHandler(
             FakeCityPopulationPersonReadRepository? personReadRepository = null,
             FakeCityPopulationProgressionStateRepository? progressionStateRepository = null,
+            FakeCityPopulationPendingWeatherImpactRepository? pendingWeatherImpactRepository = null,
             FakeCityPopulationWeatherExposureStateRepository? weatherExposureStateRepository = null,
             FakeHouseholdWriteRepository? householdWriteRepository = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
@@ -532,6 +622,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                   new FakePopulationResidentMedicalStateOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
+                pendingWeatherImpactRepository: pendingWeatherImpactRepository ??
+                                                new FakeCityPopulationPendingWeatherImpactRepository(),
                 cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                         new FakeCityPopulationSummaryProjectionService(),
                 weatherExposureStateRepository: weatherExposureStateRepository ??
@@ -561,6 +653,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 livingConditionsPressurePolicy: new CityPopulationLivingConditionsPressurePolicy(),
                 participationPolicy: new CityPopulationParticipationPolicy(),
                 personNeedsProgressionPolicy: new PersonNeedsProgressionPolicy(),
+                weatherImpactPolicy: new CityPopulationWeatherImpactPolicy(
+                    new CityPopulationClimateAdaptationPolicy()),
                 weatherExposurePolicy: new CityPopulationWeatherExposurePolicy(
                     new CityPopulationClimateAdaptationPolicy()),
                 timeProvider: CreateTimeProvider(),
