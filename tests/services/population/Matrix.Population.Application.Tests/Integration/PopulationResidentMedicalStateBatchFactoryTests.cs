@@ -20,12 +20,15 @@ namespace Matrix.Population.Application.Tests.Integration
             Person second = CreatePerson(
                 personId: Guid.Parse("22222222-2222-2222-2222-222222222222"));
             DateOnly diagnosedOn = new(2048, 5, 1);
+            third.Die(diagnosedOn.AddDays(-2));
+            third.Resurrect();
             ApplyHealthcareProjection(
                 person: third,
                 currentDate: diagnosedOn,
                 illnessKind: IllnessKind.Infection,
                 illnessSeverity: IllnessSeverity.Moderate,
-                diagnosedOn: diagnosedOn);
+                diagnosedOn: diagnosedOn,
+                healthScore: 63);
             Guid hostId = Guid.NewGuid();
 
             PopulationResidentMedicalStateBatchV1[] batches =
@@ -55,6 +58,7 @@ namespace Matrix.Population.Application.Tests.Integration
             Assert.Equal("Infection", sick.CurrentIllnessKind);
             Assert.Equal("Moderate", sick.CurrentIllnessSeverity);
             Assert.Equal(diagnosedOn, sick.DiagnosedOn);
+            Assert.Equal(2, sick.LifecycleRevision);
         }
 
         [Fact]

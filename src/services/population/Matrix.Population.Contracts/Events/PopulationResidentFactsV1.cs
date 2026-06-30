@@ -8,5 +8,6 @@ namespace Matrix.Population.Contracts.Events
         DateOnly BirthDate,
         string Sex,
         bool IsAlive,
-        bool IsActive);
+        bool IsActive,
+        long LifecycleRevision = 0);
 }

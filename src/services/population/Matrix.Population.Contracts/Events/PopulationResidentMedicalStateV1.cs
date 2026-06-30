@@ -6,5 +6,6 @@ namespace Matrix.Population.Contracts.Events
         string? CurrentIllnessKind,
         string? CurrentIllnessSeverity,
         DateOnly? DiagnosedOn,
-        DateOnly? LastRecoveredOn);
+        DateOnly? LastRecoveredOn,
+        long LifecycleRevision = 0);
 }

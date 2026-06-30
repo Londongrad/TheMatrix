@@ -46,7 +46,8 @@ namespace Matrix.Population.Application.Integration
                     CurrentIllnessKind: resident.CurrentIllnessKind?.ToString(),
                     CurrentIllnessSeverity: resident.CurrentIllnessSeverity?.ToString(),
                     DiagnosedOn: resident.IllnessDiagnosedOn,
-                    LastRecoveredOn: resident.LastIllnessRecoveredOn))
+                    LastRecoveredOn: resident.LastIllnessRecoveredOn,
+                    LifecycleRevision: resident.LifecycleRevision))
                .ToArray();
 
             if (states.Length == 0)

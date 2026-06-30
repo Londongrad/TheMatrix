@@ -27,6 +27,8 @@ namespace Matrix.Population.Application.Tests.Integration
                 personId: Guid.Parse("22222222-2222-2222-2222-222222222222"),
                 sex: Sex.Female,
                 birthDate: new DateOnly(2029, 2, 3));
+            third.Resurrect();
+            third.Die(new DateOnly(2048, 5, 1));
 
             PopulationResidentFactsBatchV1[] batches = PopulationResidentFactsBatchFactory.Build(
                 simulationHostId: hostId,
@@ -57,6 +59,7 @@ namespace Matrix.Population.Application.Tests.Integration
             Assert.Equal(third.BirthDate, deceased.BirthDate);
             Assert.False(deceased.IsAlive);
             Assert.True(deceased.IsActive);
+            Assert.Equal(3, deceased.LifecycleRevision);
         }
 
         [Fact]
