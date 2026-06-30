@@ -168,6 +168,7 @@ namespace Matrix.Population.Domain.Tests.Entities
                 actual: person.Employment.Status);
             Assert.Null(person.Employment.Job);
             Assert.Null(person.Education.CurrentInstitutionId);
+            Assert.Equal(1, person.LifecycleRevision);
         }
 
         [Fact]

@@ -299,6 +299,7 @@ namespace Matrix.Population.Domain.Entities
                     newJob: null,
                     lifeStatus: LifeStatus,
                     ageGroup: GetAgeGroup(currentDate));
+                LifecycleRevision = checked(LifecycleRevision + 1);
             }
         }
 
