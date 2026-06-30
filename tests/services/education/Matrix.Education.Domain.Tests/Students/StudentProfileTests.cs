@@ -52,12 +52,36 @@ namespace Matrix.Education.Domain.Tests.Students
                 isAlive: false,
                 isActive: false,
                 sourceRevision: 11,
-                synchronizedAtUtc: SynchronizedAtUtc.AddMinutes(1));
+                synchronizedAtUtc: SynchronizedAtUtc.AddMinutes(1),
+                lifecycleRevision: 1);
 
             Assert.True(accepted);
             Assert.Equal(nextBirthDate, profile.BirthDate);
             Assert.False(profile.IsAlive);
             Assert.False(profile.IsActive);
+            Assert.Equal(1, profile.LastLifecycleRevision);
+        }
+
+        [Fact]
+        public void SynchronizeResidentFacts_AcceptsNewLifecycleWithStaleSourceRevision()
+        {
+            StudentProfile profile = CreateProfile();
+
+            bool accepted = profile.TrySynchronizeResidentFacts(
+                simulationHostId: profile.SimulationHostId,
+                birthDate: new DateOnly(2000, 1, 1),
+                isAlive: false,
+                isActive: false,
+                sourceRevision: 10,
+                synchronizedAtUtc: SynchronizedAtUtc.AddMinutes(1),
+                lifecycleRevision: 1);
+
+            Assert.True(accepted);
+            Assert.False(profile.IsAlive);
+            Assert.True(profile.IsActive);
+            Assert.Equal(new DateOnly(2010, 5, 12), profile.BirthDate);
+            Assert.Equal(10, profile.LastSourceRevision);
+            Assert.Equal(1, profile.LastLifecycleRevision);
         }
 
         [Fact]

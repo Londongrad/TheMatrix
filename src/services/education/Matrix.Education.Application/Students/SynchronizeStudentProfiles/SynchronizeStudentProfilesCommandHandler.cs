@@ -62,7 +62,8 @@ namespace Matrix.Education.Application.Students.SynchronizeStudentProfiles
                         isAlive: fact.IsAlive,
                         isActive: fact.IsActive,
                         sourceRevision: fact.SourceRevision,
-                        synchronizedAtUtc: batch.SynchronizedAtUtc);
+                        synchronizedAtUtc: batch.SynchronizedAtUtc,
+                        lifecycleRevision: fact.LifecycleRevision);
                     addedProfiles.Add(profile);
                     continue;
                 }
@@ -73,7 +74,8 @@ namespace Matrix.Education.Application.Students.SynchronizeStudentProfiles
                     isAlive: fact.IsAlive,
                     isActive: fact.IsActive,
                     sourceRevision: fact.SourceRevision,
-                    synchronizedAtUtc: batch.SynchronizedAtUtc);
+                    synchronizedAtUtc: batch.SynchronizedAtUtc,
+                    lifecycleRevision: fact.LifecycleRevision);
 
                 if (changed)
                     updatedProfiles++;
@@ -138,12 +140,18 @@ namespace Matrix.Education.Application.Students.SynchronizeStudentProfiles
                         paramName: nameof(request.Profiles),
                         message: "Profile source revisions cannot be negative.");
 
+                if (item.LifecycleRevision < 0)
+                    throw new ArgumentOutOfRangeException(
+                        paramName: nameof(request.Profiles),
+                        message: "Profile lifecycle revisions cannot be negative.");
+
                 facts[index] = new PreparedProfileFact(
                     ResidentId: residentId,
                     BirthDate: item.BirthDate,
                     IsAlive: item.IsAlive,
                     IsActive: item.IsActive,
-                    SourceRevision: item.SourceRevision);
+                    SourceRevision: item.SourceRevision,
+                    LifecycleRevision: item.LifecycleRevision);
             }
 
             return new PreparedBatch(
@@ -164,6 +172,7 @@ namespace Matrix.Education.Application.Students.SynchronizeStudentProfiles
             DateOnly BirthDate,
             bool IsAlive,
             bool IsActive,
-            long SourceRevision);
+            long SourceRevision,
+            long LifecycleRevision);
     }
 }

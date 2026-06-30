@@ -5,5 +5,6 @@ namespace Matrix.Education.Application.Students.SynchronizeStudentProfiles
         DateOnly BirthDate,
         bool IsAlive,
         bool IsActive,
-        long SourceRevision);
+        long SourceRevision,
+        long LifecycleRevision = 0);
 }

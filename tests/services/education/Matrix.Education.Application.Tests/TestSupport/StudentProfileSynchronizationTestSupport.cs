@@ -147,14 +147,16 @@ namespace Matrix.Education.Application.Tests.TestSupport
             long sourceRevision,
             DateOnly? birthDate = null,
             bool isAlive = true,
-            bool isActive = true)
+            bool isActive = true,
+            long lifecycleRevision = 0)
         {
             return new SynchronizeStudentProfileItem(
                 ResidentId: residentId,
                 BirthDate: birthDate ?? new DateOnly(2030, 5, 12),
                 IsAlive: isAlive,
                 IsActive: isActive,
-                SourceRevision: sourceRevision);
+                SourceRevision: sourceRevision,
+                LifecycleRevision: lifecycleRevision);
         }
 
         internal static SynchronizeStudentProfilesCommand CreateCommand(

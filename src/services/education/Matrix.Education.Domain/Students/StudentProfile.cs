@@ -16,6 +16,7 @@ namespace Matrix.Education.Domain.Students
             bool isAlive,
             bool isActive,
             long lastSourceRevision,
+            long lastLifecycleRevision,
             DateTimeOffset lastSynchronizedAtUtc)
             : base(residentId)
         {
@@ -24,6 +25,7 @@ namespace Matrix.Education.Domain.Students
             IsAlive = isAlive;
             IsActive = isActive;
             LastSourceRevision = EnsureRevision(lastSourceRevision);
+            LastLifecycleRevision = EnsureRevision(lastLifecycleRevision);
             LastSynchronizedAtUtc = EnsureUtc(lastSynchronizedAtUtc);
         }
 
@@ -38,6 +40,7 @@ namespace Matrix.Education.Domain.Students
         public bool IsAlive { get; private set; }
         public bool IsActive { get; private set; }
         public long LastSourceRevision { get; private set; }
+        public long LastLifecycleRevision { get; private set; }
         public DateTimeOffset LastSynchronizedAtUtc { get; private set; }
 
         public static StudentProfile Register(
@@ -47,7 +50,8 @@ namespace Matrix.Education.Domain.Students
             bool isAlive,
             bool isActive,
             long sourceRevision,
-            DateTimeOffset synchronizedAtUtc)
+            DateTimeOffset synchronizedAtUtc,
+            long lifecycleRevision = 0)
         {
             return new StudentProfile(
                 residentId: residentId,
@@ -56,6 +60,7 @@ namespace Matrix.Education.Domain.Students
                 isAlive: isAlive,
                 isActive: isActive,
                 lastSourceRevision: sourceRevision,
+                lastLifecycleRevision: lifecycleRevision,
                 lastSynchronizedAtUtc: synchronizedAtUtc);
         }
 
@@ -65,16 +70,34 @@ namespace Matrix.Education.Domain.Students
             bool isAlive,
             bool isActive,
             long sourceRevision,
-            DateTimeOffset synchronizedAtUtc)
+            DateTimeOffset synchronizedAtUtc,
+            long lifecycleRevision = 0)
         {
             EnsureSameSimulationHost(simulationHostId);
 
-            if (!TryAcceptSourceRevision(sourceRevision, synchronizedAtUtc))
+            long normalizedSourceRevision = EnsureRevision(sourceRevision);
+            long normalizedLifecycleRevision = EnsureRevision(lifecycleRevision);
+            DateTimeOffset normalizedTimestamp = EnsureUtc(synchronizedAtUtc);
+            bool sourceChanged = normalizedSourceRevision > LastSourceRevision;
+            bool lifecycleChanged = normalizedLifecycleRevision > LastLifecycleRevision;
+
+            if (!sourceChanged && !lifecycleChanged)
                 return false;
 
-            BirthDate = birthDate;
-            IsAlive = isAlive;
-            IsActive = isActive;
+            if (sourceChanged)
+            {
+                BirthDate = birthDate;
+                IsActive = isActive;
+                LastSourceRevision = normalizedSourceRevision;
+            }
+
+            if (lifecycleChanged)
+            {
+                IsAlive = isAlive;
+                LastLifecycleRevision = normalizedLifecycleRevision;
+            }
+
+            LastSynchronizedAtUtc = normalizedTimestamp;
 
             return true;
         }

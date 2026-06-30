@@ -31,7 +31,8 @@ namespace Matrix.Education.Application.Tests.Students.SynchronizeStudentProfiles
                         sourceRevision: 5,
                         birthDate: new DateOnly(2031, 2, 3),
                         isAlive: false,
-                        isActive: false),
+                        isActive: false,
+                        lifecycleRevision: 1),
                     StudentProfileSynchronizationTestData.CreateItem(
                         residentId: ignoredId,
                         sourceRevision: 7,
