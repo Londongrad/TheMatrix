@@ -3,7 +3,6 @@ using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
@@ -211,6 +210,39 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 actual: unitOfWork.SaveChangesCalls);
         }
 
+        [Fact]
+        public async Task Handle_WhenWeatherThreatensHealth_QueuesMedicalImpactWithoutChangingHealth()
+        {
+            Person resident = CreatePerson(
+                birthDate: new DateOnly(1960, 5, 3),
+                currentDate: new DateOnly(2048, 5, 3),
+                health: 1,
+                happiness: 50);
+            var personReadRepository = new FakeCityPopulationPersonReadRepository
+            {
+                ListByCityResult = [resident]
+            };
+            var pendingWeatherImpactRepository = new FakeCityPopulationPendingWeatherImpactRepository();
+            ApplyCityWeatherImpactCommandHandler handler = CreateHandler(
+                personReadRepository: personReadRepository,
+                pendingWeatherImpactRepository: pendingWeatherImpactRepository);
+
+            ApplyCityWeatherImpactResult result = await handler.Handle(
+                request: CreateCommand(),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(ApplyCityWeatherImpactStatus.Applied, result.Status);
+            Assert.Equal(1, result.AffectedPeopleCount);
+            Assert.Equal(1, resident.Health.Value);
+            Assert.True(resident.IsAlive);
+            CityPopulationPendingWeatherImpact pendingImpact =
+                Assert.Single(pendingWeatherImpactRepository.Impacts);
+            Assert.Equal(
+                Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                pendingImpact.ImpactId);
+            Assert.Equal(new DateOnly(2048, 5, 3), pendingImpact.CurrentDate);
+        }
+
         private static ApplyCityWeatherImpactCommandHandler CreateHandler(
             FakeCityPopulationPersonReadRepository? personReadRepository = null,
             FakeCityPopulationArchiveStateRepository? archiveStateRepository = null,
@@ -218,6 +250,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationEnvironmentRepository? environmentRepository = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakeCityPopulationWeatherImpactStateRepository? weatherImpactStateRepository = null,
+            FakeCityPopulationPendingWeatherImpactRepository? pendingWeatherImpactRepository = null,
             FakeProcessedIntegrationMessageRepository? processedRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
@@ -233,9 +266,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                         new FakeCityPopulationSummaryProjectionService(),
                 weatherImpactStateRepository: weatherImpactStateRepository ??
                                               new FakeCityPopulationWeatherImpactStateRepository(),
+                pendingWeatherImpactRepository: pendingWeatherImpactRepository ??
+                                                new FakeCityPopulationPendingWeatherImpactRepository(),
                 processedIntegrationMessageRepository: processedRepository ??
                                                        new FakeProcessedIntegrationMessageRepository(),
-                marriageDomainService: new MarriageDomainService(),
                 weatherImpactPolicy: new CityPopulationWeatherImpactPolicy(new CityPopulationClimateAdaptationPolicy()),
                 logger: NullLogger<ApplyCityWeatherImpactCommandHandler>.Instance,
                 timeProvider: CreateTimeProvider(),

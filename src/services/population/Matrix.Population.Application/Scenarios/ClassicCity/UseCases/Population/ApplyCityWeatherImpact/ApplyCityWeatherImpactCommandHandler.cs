@@ -1,15 +1,12 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.Services;
-using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
@@ -23,8 +20,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherImpactStateRepository weatherImpactStateRepository,
+        ICityPopulationPendingWeatherImpactRepository pendingWeatherImpactRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
-        MarriageDomainService marriageDomainService,
         CityPopulationWeatherImpactPolicy weatherImpactPolicy,
         ILogger<ApplyCityWeatherImpactCommandHandler> logger,
         TimeProvider timeProvider,
@@ -104,21 +101,33 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     IReadOnlyCollection<PersonEntity> persons = await personReadRepository.ListByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
-                    var personsById = persons.ToDictionary(
-                        keySelector: x => x.Id,
-                        elementSelector: x => x);
+                    bool hasPendingHealthImpact = false;
 
                     foreach (PersonEntity person in persons)
-                        if (ApplyWeatherImpact(
+                    {
+                        WeatherImpactApplicationResult application = ApplyWeatherImpact(
                                 person: person,
-                                residentsById: personsById,
                                 currentDate: currentDate,
                                 previousWeather: previousWeather,
                                 currentWeather: currentWeather,
                                 environment: environment,
-                                marriageDomainService: marriageDomainService,
-                                weatherImpactPolicy: weatherImpactPolicy))
+                                weatherImpactPolicy: weatherImpactPolicy);
+                        hasPendingHealthImpact |= application.HasHealthImpact;
+                        if (application.HasAnyEffect)
                             affectedPeopleCount++;
+                    }
+
+                    if (hasPendingHealthImpact)
+                        await pendingWeatherImpactRepository.AddAsync(
+                            impact: CityPopulationPendingWeatherImpact.Create(
+                                impactId: request.IntegrationMessageId,
+                                cityId: cityId,
+                                currentDate: currentDate,
+                                previousWeather: previousWeather,
+                                currentWeather: currentWeather,
+                                environment: environment,
+                                occurredAtUtc: occurredOnUtc),
+                            cancellationToken: ct);
 
                     DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
 
@@ -155,14 +164,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 cancellationToken: cancellationToken);
         }
 
-        private static bool ApplyWeatherImpact(
+        private static WeatherImpactApplicationResult ApplyWeatherImpact(
             PersonEntity person,
-            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
             DateOnly currentDate,
             WeatherImpactProfile previousWeather,
             WeatherImpactProfile currentWeather,
             CityPopulationEnvironment? environment,
-            MarriageDomainService marriageDomainService,
             CityPopulationWeatherImpactPolicy weatherImpactPolicy)
         {
             PersonWeatherImpact impact = weatherImpactPolicy.CalculateDifferential(
@@ -173,39 +180,21 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 environment: environment);
 
             if (!impact.HasEffect)
-                return false;
+                return WeatherImpactApplicationResult.None;
 
-            bool changed = false;
-
-            if (impact.HealthDelta != 0)
-            {
-                int previousHealth = person.Health.Value;
-                bool wasAlive = person.IsAlive;
-
-                person.ChangeHealth(
-                    delta: impact.HealthDelta,
-                    currentDate: currentDate);
-
-                changed = previousHealth != person.Health.Value || wasAlive != person.IsAlive;
-
-                if (wasAlive && !person.IsAlive)
-                    changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
-                                  deceased: person,
-                                  residentsById: residentsById,
-                                  marriageDomainService: marriageDomainService) ||
-                              changed;
-            }
-
+            bool populationChanged = false;
             if (impact.HappinessDelta != 0 && person.IsAlive)
             {
                 int previousHappiness = person.Happiness.Value;
 
                 person.ChangeHappiness(impact.HappinessDelta);
 
-                changed = changed || previousHappiness != person.Happiness.Value;
+                populationChanged = previousHappiness != person.Happiness.Value;
             }
 
-            return changed;
+            return new WeatherImpactApplicationResult(
+                PopulationChanged: populationChanged,
+                HasHealthImpact: impact.HealthDelta != 0);
         }
 
         private static WeatherImpactProfile CreateWeatherImpactProfile(WeatherImpactSnapshotInput snapshot)
@@ -277,6 +266,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 result: out PopulationPrecipitationKind parsed)
                 ? parsed
                 : PopulationPrecipitationKind.Unknown;
+        }
+
+        private readonly record struct WeatherImpactApplicationResult(
+            bool PopulationChanged,
+            bool HasHealthImpact)
+        {
+            public bool HasAnyEffect => PopulationChanged || HasHealthImpact;
+
+            public static WeatherImpactApplicationResult None => new(
+                PopulationChanged: false,
+                HasHealthImpact: false);
         }
     }
 }

@@ -911,6 +911,46 @@ namespace Matrix.Population.Application.Tests.TestSupport
             }
         }
 
+        internal sealed class FakeCityPopulationPendingWeatherImpactRepository
+            : ICityPopulationPendingWeatherImpactRepository
+        {
+            public List<CityPopulationPendingWeatherImpact> Impacts { get; } = [];
+            public CityId? RequestedCityId { get; private set; }
+            public int DeleteByCityCalls { get; private set; }
+
+            public Task<IReadOnlyList<CityPopulationPendingWeatherImpact>> ListByCityAsync(
+                CityId cityId,
+                CancellationToken cancellationToken = default)
+            {
+                RequestedCityId = cityId;
+                return Task.FromResult<IReadOnlyList<CityPopulationPendingWeatherImpact>>(
+                    Impacts.Where(impact => impact.CityId == cityId).ToArray());
+            }
+
+            public Task AddAsync(
+                CityPopulationPendingWeatherImpact impact,
+                CancellationToken cancellationToken = default)
+            {
+                Impacts.Add(impact);
+                return Task.CompletedTask;
+            }
+
+            public void RemoveRange(IReadOnlyCollection<CityPopulationPendingWeatherImpact> impacts)
+            {
+                foreach (CityPopulationPendingWeatherImpact impact in impacts)
+                    Impacts.Remove(impact);
+            }
+
+            public Task DeleteByCityAsync(
+                CityId cityId,
+                CancellationToken cancellationToken = default)
+            {
+                DeleteByCityCalls++;
+                Impacts.RemoveAll(impact => impact.CityId == cityId);
+                return Task.CompletedTask;
+            }
+        }
+
         internal sealed class FakeProcessedIntegrationMessageRepository : IProcessedIntegrationMessageRepository
         {
             public bool TryMarkProcessedResult { get; set; } = true;
