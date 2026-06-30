@@ -30,6 +30,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                .HasDefaultValue(-1L)
                .IsRequired();
 
+            builder.Property(p => p.LifecycleRevision)
+               .HasDefaultValue(0L)
+               .IsRequired();
+
             builder.Property(p => p.MotherId)
                .HasConversion(
                     convertToProviderExpression: id => id.HasValue

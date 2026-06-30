@@ -123,6 +123,11 @@ namespace Matrix.Population.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasDefaultValue(-1L);
 
+                    b.Property<long>("LifecycleRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
                     b.Property<Guid?>("MotherId")
                         .HasColumnType("uuid")
                         .HasColumnName("MotherId");
