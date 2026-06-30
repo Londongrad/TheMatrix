@@ -111,6 +111,7 @@ namespace Matrix.Population.Domain.Entities
         public PersonId? FatherId { get; private set; }
         public DateOnly? LastChildbirthDate { get; private set; }
         public long LastHealthcareRevision { get; private set; }
+        public long LifecycleRevision { get; private set; }
 
         #endregion [ Properties ]
 
@@ -198,6 +199,7 @@ namespace Matrix.Population.Domain.Entities
             FatherId = fatherId;
             LastChildbirthDate = lastChildbirthDate;
             LastHealthcareRevision = -1;
+            LifecycleRevision = 0;
         }
 
         #endregion [ Constructors ]
@@ -315,6 +317,7 @@ namespace Matrix.Population.Domain.Entities
                 ageGroup: GetAgeGroup(currentDate));
 
             ClearNeedsForDeath();
+            LifecycleRevision = checked(LifecycleRevision + 1);
         }
 
         public void Resurrect()
@@ -328,6 +331,7 @@ namespace Matrix.Population.Domain.Entities
             Stress = StressLevel.Default();
             SocialNeed = SocialNeedLevel.Default();
             Illness = Illness.ClearActive();
+            LifecycleRevision = checked(LifecycleRevision + 1);
         }
 
         public bool TryApplyHealthcareOutcome(

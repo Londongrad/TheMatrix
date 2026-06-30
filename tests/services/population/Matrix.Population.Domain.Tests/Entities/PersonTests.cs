@@ -41,6 +41,20 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.Equal(
                 expected: 80,
                 actual: person.Health.Value);
+            Assert.Equal(0, person.LifecycleRevision);
+        }
+
+        [Fact]
+        public void OperatorLifecycleChanges_WhenApplied_AdvanceLifecycleRevision()
+        {
+            Person person = PopulationTestData.CreateAdultPerson();
+
+            person.Die(new DateOnly(2048, 5, 2));
+            long deathRevision = person.LifecycleRevision;
+            person.Resurrect();
+
+            Assert.Equal(1, deathRevision);
+            Assert.Equal(2, person.LifecycleRevision);
         }
 
         [Fact]
