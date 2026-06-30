@@ -12,11 +12,15 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CityId cityId,
             CancellationToken cancellationToken = default)
         {
-            return await dbContext.CityPopulationPendingWeatherImpacts
+            CityPopulationPendingWeatherImpact[] impacts =
+                await dbContext.CityPopulationPendingWeatherImpacts
                .Where(impact => impact.CityId == cityId)
+               .ToArrayAsync(cancellationToken);
+
+            return impacts
                .OrderBy(impact => impact.OccurredAtUtc)
                .ThenBy(impact => impact.ImpactId)
-               .ToArrayAsync(cancellationToken);
+               .ToArray();
         }
 
         public async Task AddAsync(
