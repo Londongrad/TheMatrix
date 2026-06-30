@@ -111,10 +111,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
             IReadOnlyList<CityPopulationActivityWriteModel> entries = CollectAfter(
                 resident: resident,
-                mutate: person => person.DiagnoseIllness(
-                    kind: IllnessKind.Infection,
-                    severity: IllnessSeverity.Mild,
-                    currentDate: CurrentDate));
+                mutate: person => ApplyHealthcareProjection(
+                    person: person,
+                    currentDate: CurrentDate,
+                    illnessKind: IllnessKind.Infection,
+                    illnessSeverity: IllnessSeverity.Mild,
+                    diagnosedOn: CurrentDate));
 
             AssertSingleEvent(
                 entries: entries,
@@ -126,14 +128,21 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         public void Collect_WhenResidentRecoversFromIllness_AddsRecoveredEvent()
         {
             Person resident = CreatePerson();
-            resident.DiagnoseIllness(
-                kind: IllnessKind.Exposure,
-                severity: IllnessSeverity.Moderate,
-                currentDate: CurrentDate.AddDays(-1));
+            ApplyHealthcareProjection(
+                person: resident,
+                currentDate: CurrentDate,
+                illnessKind: IllnessKind.Exposure,
+                illnessSeverity: IllnessSeverity.Moderate,
+                diagnosedOn: CurrentDate.AddDays(-1));
 
             IReadOnlyList<CityPopulationActivityWriteModel> entries = CollectAfter(
                 resident: resident,
-                mutate: person => person.RecoverFromIllness(CurrentDate));
+                mutate: person => ApplyHealthcareProjection(
+                    person: person,
+                    currentDate: CurrentDate,
+                    illnessKind: null,
+                    illnessSeverity: null,
+                    lastRecoveredOn: CurrentDate));
 
             CityPopulationActivityWriteModel entry = AssertSingleEvent(
                 entries: entries,

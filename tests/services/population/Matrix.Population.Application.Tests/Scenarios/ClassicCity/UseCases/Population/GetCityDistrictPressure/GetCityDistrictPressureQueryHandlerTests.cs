@@ -109,13 +109,16 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 happiness: 42,
                 stress: 73,
                 health: 58);
-            higherPressureResident.DiagnoseIllness(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Severe,
-                currentDate: new DateOnly(
+            DateOnly diagnosedOn = new(
                     year: 2048,
                     month: 5,
-                    day: 4));
+                    day: 4);
+            ApplyHealthcareProjection(
+                person: higherPressureResident,
+                currentDate: diagnosedOn,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Severe,
+                diagnosedOn: diagnosedOn);
             Person lowerPressureResident = CreatePerson(
                 personId: Guid.Parse("11111111-9999-8888-7777-666666666666"),
                 householdId: secondHouseholdId.Value,

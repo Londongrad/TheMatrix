@@ -330,36 +330,6 @@ namespace Matrix.Population.Domain.Entities
             Illness = Illness.ClearActive();
         }
 
-        public void DiagnoseIllness(
-            IllnessKind kind,
-            IllnessSeverity severity,
-            DateOnly currentDate)
-        {
-            if (!IsAlive)
-                return;
-
-            Illness = Illness.Diagnose(
-                kind: kind,
-                severity: severity,
-                currentDate: currentDate);
-        }
-
-        public void ProgressIllness(IllnessSeverity severity)
-        {
-            if (!IsAlive || !HasActiveIllness)
-                return;
-
-            Illness = Illness.ProgressTo(severity);
-        }
-
-        public void RecoverFromIllness(DateOnly currentDate)
-        {
-            if (!HasActiveIllness)
-                return;
-
-            Illness = Illness.Recover(currentDate);
-        }
-
         public bool TryApplyHealthcareOutcome(
             long sourceRevision,
             int healthScore,

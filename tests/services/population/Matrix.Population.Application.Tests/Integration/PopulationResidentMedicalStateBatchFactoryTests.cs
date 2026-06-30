@@ -20,10 +20,12 @@ namespace Matrix.Population.Application.Tests.Integration
             Person second = CreatePerson(
                 personId: Guid.Parse("22222222-2222-2222-2222-222222222222"));
             DateOnly diagnosedOn = new(2048, 5, 1);
-            third.DiagnoseIllness(
-                IllnessKind.Infection,
-                IllnessSeverity.Moderate,
-                diagnosedOn);
+            ApplyHealthcareProjection(
+                person: third,
+                currentDate: diagnosedOn,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Moderate,
+                diagnosedOn: diagnosedOn);
             Guid hostId = Guid.NewGuid();
 
             PopulationResidentMedicalStateBatchV1[] batches =

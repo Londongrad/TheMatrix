@@ -31,10 +31,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 householdId: householdId,
                 birthDate: new DateOnly(1990, 1, 1),
                 currentDate: CurrentDate);
-            infectedResident.DiagnoseIllness(
-                IllnessKind.Infection,
-                IllnessSeverity.Mild,
-                CurrentDate.AddDays(-1));
+            ApplyHealthcareProjection(
+                person: infectedResident,
+                currentDate: CurrentDate,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Mild,
+                diagnosedOn: CurrentDate.AddDays(-1));
             Person familyMember = CreatePerson(
                 personId: Guid.NewGuid(),
                 householdId: householdId,

@@ -230,10 +230,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             PersonEntity severeResident = CreatePerson(
                 personId: Guid.Parse("11111111-2222-3333-4444-555555555552"),
                 currentDate: CurrentDate);
-            severeResident.DiagnoseIllness(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Severe,
-                currentDate: CurrentDate);
+            ApplyHealthcareProjection(
+                person: severeResident,
+                currentDate: CurrentDate,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Severe,
+                diagnosedOn: CurrentDate);
             var healthcarePressurePolicy = new CityPopulationHealthcarePressurePolicy();
             CityPopulationHealthcarePressureProfile expectedProfile = healthcarePressurePolicy.Evaluate(
                 residents:
