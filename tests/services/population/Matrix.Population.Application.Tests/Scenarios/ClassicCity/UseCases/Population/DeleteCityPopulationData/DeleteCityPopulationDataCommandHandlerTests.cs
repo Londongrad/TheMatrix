@@ -156,6 +156,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             };
             var activityJournalService = new FakeCityPopulationActivityJournalService();
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
+            var pendingWeatherImpactRepository = new FakeCityPopulationPendingWeatherImpactRepository();
             var weatherImpactStateRepository = new FakeCityPopulationWeatherImpactStateRepository();
             var weatherExposureStateRepository = new FakeCityPopulationWeatherExposureStateRepository();
             var deletionStateRepository = new FakeCityPopulationDeletionStateRepository();
@@ -173,6 +174,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 serviceQualityStateRepository: serviceQualityStateRepository,
                 activityJournalService: activityJournalService,
                 summaryProjectionService: summaryProjectionService,
+                pendingWeatherImpactRepository: pendingWeatherImpactRepository,
                 weatherImpactStateRepository: weatherImpactStateRepository,
                 weatherExposureStateRepository: weatherExposureStateRepository,
                 deletionStateRepository: deletionStateRepository,
@@ -215,6 +217,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: 1,
                 actual: serviceQualityStateRepository.DeleteByCityCalls);
+            Assert.Equal(
+                expected: 1,
+                actual: pendingWeatherImpactRepository.DeleteByCityCalls);
             Assert.Equal(
                 expected: 1,
                 actual: weatherImpactStateRepository.DeleteByCityCalls);
@@ -310,6 +315,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationServiceQualityStateRepository? serviceQualityStateRepository = null,
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
+            FakeCityPopulationPendingWeatherImpactRepository? pendingWeatherImpactRepository = null,
             FakeCityPopulationWeatherImpactStateRepository? weatherImpactStateRepository = null,
             FakeCityPopulationWeatherExposureStateRepository? weatherExposureStateRepository = null,
             FakeCityPopulationDeletionStateRepository? deletionStateRepository = null,
@@ -340,6 +346,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                       new FakeCityPopulationActivityJournalService(),
                 cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                         new FakeCityPopulationSummaryProjectionService(),
+                pendingWeatherImpactRepository: pendingWeatherImpactRepository ??
+                                                new FakeCityPopulationPendingWeatherImpactRepository(),
                 cityPopulationWeatherImpactStateRepository: weatherImpactStateRepository ??
                                                             new FakeCityPopulationWeatherImpactStateRepository(),
                 cityPopulationWeatherExposureStateRepository: weatherExposureStateRepository ??
