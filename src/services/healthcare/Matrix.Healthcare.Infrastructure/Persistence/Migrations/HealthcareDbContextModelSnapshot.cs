@@ -122,6 +122,12 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("last_source_revision");
 
+                    b.Property<long>("LastLifecycleRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("last_lifecycle_revision");
+
                     b.Property<DateTimeOffset>("LastSynchronizedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_synchronized_at_utc");
