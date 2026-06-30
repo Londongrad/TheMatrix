@@ -28,13 +28,15 @@ namespace Matrix.Education.Integration.Tests.Consumers
                         BirthDate: new DateOnly(2020, 5, 6),
                         Sex: "Female",
                         IsAlive: true,
-                        IsActive: true),
+                        IsActive: true,
+                        LifecycleRevision: 3),
                     new PopulationResidentFactsV1(
                         ResidentId: secondResidentId,
                         BirthDate: new DateOnly(2018, 4, 2),
                         Sex: "Male",
                         IsAlive: false,
-                        IsActive: false)
+                        IsActive: false,
+                        LifecycleRevision: 4)
                 ]);
 
             SynchronizeStudentProfilesCommand command = PopulationResidentFactsCommandMapper.Map(message);
@@ -53,7 +55,8 @@ namespace Matrix.Education.Integration.Tests.Consumers
                         BirthDate: new DateOnly(2020, 5, 6),
                         IsAlive: true,
                         IsActive: true,
-                        SourceRevision: 73),
+                        SourceRevision: 73,
+                        LifecycleRevision: 3),
                     actual: first),
                 second => Assert.Equal(
                     expected: new SynchronizeStudentProfileItem(
@@ -61,7 +64,8 @@ namespace Matrix.Education.Integration.Tests.Consumers
                         BirthDate: new DateOnly(2018, 4, 2),
                         IsAlive: false,
                         IsActive: false,
-                        SourceRevision: 73),
+                        SourceRevision: 73,
+                        LifecycleRevision: 4),
                     actual: second));
         }
 

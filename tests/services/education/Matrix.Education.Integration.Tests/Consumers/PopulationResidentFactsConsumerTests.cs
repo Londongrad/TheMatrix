@@ -37,7 +37,8 @@ namespace Matrix.Education.Integration.Tests.Consumers
                         BirthDate: new DateOnly(2027, 4, 3),
                         Sex: "Female",
                         IsAlive: true,
-                        IsActive: true)
+                        IsActive: true,
+                        LifecycleRevision: 6)
                 ]);
 
             await consumer.ConsumeAsync(
@@ -55,6 +56,9 @@ namespace Matrix.Education.Integration.Tests.Consumers
             Assert.Equal(
                 expected: message.SourceRevision,
                 actual: profile.SourceRevision);
+            Assert.Equal(
+                expected: 6,
+                actual: profile.LifecycleRevision);
         }
 
     }

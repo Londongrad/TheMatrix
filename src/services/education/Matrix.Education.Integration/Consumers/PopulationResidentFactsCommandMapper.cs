@@ -28,7 +28,8 @@ namespace Matrix.Education.Integration.Consumers
                     BirthDate: resident.BirthDate,
                     IsAlive: resident.IsAlive,
                     IsActive: resident.IsActive,
-                    SourceRevision: message.SourceRevision))
+                    SourceRevision: message.SourceRevision,
+                    LifecycleRevision: resident.LifecycleRevision))
                .ToArray();
 
             return new SynchronizeStudentProfilesCommand(
