@@ -73,10 +73,12 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             employedAdult.AssignJob(
                 currentDate: currentDate,
                 job: PopulationTestData.CreateJob("Architect"));
-            employedAdult.DiagnoseIllness(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Mild,
-                currentDate: currentDate);
+            PopulationTestData.ApplyHealthcareProjection(
+                person: employedAdult,
+                currentDate: currentDate,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Mild,
+                diagnosedOn: currentDate);
 
             Person adultStudent = PopulationTestData.CreateAdultPerson(
                 firstName: "Olga",

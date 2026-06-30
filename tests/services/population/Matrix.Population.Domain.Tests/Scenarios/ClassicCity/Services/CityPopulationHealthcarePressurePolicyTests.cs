@@ -51,20 +51,24 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 day: 2);
 
             Person mildCase = PopulationTestData.CreateAdultPerson();
-            mildCase.DiagnoseIllness(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Mild,
-                currentDate: currentDate);
+            PopulationTestData.ApplyHealthcareProjection(
+                person: mildCase,
+                currentDate: currentDate,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Mild,
+                diagnosedOn: currentDate);
 
             Person severeCase = PopulationTestData.CreateAdultPerson(
                 firstName: "Olga",
                 lastName: "Ivanova",
                 sex: Sex.Female,
                 personId: Guid.Parse("88888888-2222-2222-2222-222222222222"));
-            severeCase.DiagnoseIllness(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Severe,
-                currentDate: currentDate);
+            PopulationTestData.ApplyHealthcareProjection(
+                person: severeCase,
+                currentDate: currentDate,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Severe,
+                diagnosedOn: currentDate);
 
             Person healthyResident = PopulationTestData.CreateAdultPerson(
                 firstName: "Petr",
@@ -106,10 +110,12 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 day: 2);
 
             Person mildCase = PopulationTestData.CreateAdultPerson();
-            mildCase.DiagnoseIllness(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Mild,
-                currentDate: currentDate);
+            PopulationTestData.ApplyHealthcareProjection(
+                person: mildCase,
+                currentDate: currentDate,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Mild,
+                diagnosedOn: currentDate);
 
             Person healthyResident = PopulationTestData.CreateAdultPerson(
                 firstName: "Maria",

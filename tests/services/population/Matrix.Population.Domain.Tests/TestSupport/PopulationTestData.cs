@@ -9,6 +9,32 @@ namespace Matrix.Population.Domain.Tests.TestSupport
 {
     internal static class PopulationTestData
     {
+        internal static void ApplyHealthcareProjection(
+            Person person,
+            DateOnly currentDate,
+            IllnessKind? illnessKind,
+            IllnessSeverity? illnessSeverity,
+            DateOnly? diagnosedOn = null,
+            DateOnly? lastRecoveredOn = null,
+            int? healthScore = null)
+        {
+            bool applied = person.TryApplyHealthcareOutcome(
+                sourceRevision: person.LastHealthcareRevision + 1,
+                healthScore: healthScore ?? person.Health.Value,
+                illness: IllnessInfo.FromHealthcareSnapshot(
+                    currentKind: illnessKind,
+                    currentSeverity: illnessSeverity,
+                    diagnosedOn: diagnosedOn,
+                    lastRecoveredOn: lastRecoveredOn),
+                happinessDelta: 0,
+                energyDelta: 0,
+                stressDelta: 0,
+                currentDate: currentDate);
+
+            if (!applied)
+                throw new InvalidOperationException("The healthcare test projection was not accepted.");
+        }
+
         internal static Person CreateAdultPerson(
             string firstName = "Ivan",
             string lastName = "Ivanov",

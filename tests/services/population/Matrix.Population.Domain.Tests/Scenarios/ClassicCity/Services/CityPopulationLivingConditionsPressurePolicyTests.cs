@@ -75,10 +75,12 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     month: 5,
                     day: 1),
                 currentDate: currentDate);
-            child.DiagnoseIllness(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Mild,
-                currentDate: currentDate);
+            PopulationTestData.ApplyHealthcareProjection(
+                person: child,
+                currentDate: currentDate,
+                illnessKind: IllnessKind.Infection,
+                illnessSeverity: IllnessSeverity.Mild,
+                diagnosedOn: currentDate);
 
             CityPopulationLivingConditionsPressureEffect effect = policy.Calculate(
                 person: child,
