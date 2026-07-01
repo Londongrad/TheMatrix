@@ -30,7 +30,8 @@ namespace Matrix.Healthcare.Integration.Consumers
                     Sex: MapSex(resident.Sex),
                     IsAlive: resident.IsAlive,
                     IsActive: resident.IsActive,
-                    SourceRevision: message.SourceRevision))
+                    SourceRevision: message.SourceRevision,
+                    LifecycleRevision: resident.LifecycleRevision))
                .ToArray();
 
             return new SynchronizePatientProfilesCommand(

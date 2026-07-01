@@ -8,5 +8,6 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
         PatientSex Sex,
         bool IsAlive,
         bool IsActive,
-        long SourceRevision);
+        long SourceRevision,
+        long LifecycleRevision = 0);
 }

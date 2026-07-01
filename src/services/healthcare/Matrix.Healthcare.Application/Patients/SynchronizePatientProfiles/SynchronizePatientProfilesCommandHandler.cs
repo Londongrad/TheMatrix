@@ -63,7 +63,8 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
                         isAlive: fact.IsAlive,
                         isActive: fact.IsActive,
                         sourceRevision: fact.SourceRevision,
-                        synchronizedAtUtc: batch.SynchronizedAtUtc);
+                        synchronizedAtUtc: batch.SynchronizedAtUtc,
+                        lifecycleRevision: fact.LifecycleRevision);
                     addedProfiles.Add(profile);
                     continue;
                 }
@@ -75,7 +76,8 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
                     isAlive: fact.IsAlive,
                     isActive: fact.IsActive,
                     sourceRevision: fact.SourceRevision,
-                    synchronizedAtUtc: batch.SynchronizedAtUtc);
+                    synchronizedAtUtc: batch.SynchronizedAtUtc,
+                    lifecycleRevision: fact.LifecycleRevision);
 
                 if (changed)
                     updatedProfiles++;
@@ -145,13 +147,19 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
                         paramName: nameof(request.Profiles),
                         message: "Profile source revisions cannot be negative.");
 
+                if (item.LifecycleRevision < 0)
+                    throw new ArgumentOutOfRangeException(
+                        paramName: nameof(request.Profiles),
+                        message: "Profile lifecycle revisions cannot be negative.");
+
                 facts[index] = new PreparedProfileFact(
                     PatientId: patientId,
                     BirthDate: item.BirthDate,
                     Sex: item.Sex,
                     IsAlive: item.IsAlive,
                     IsActive: item.IsActive,
-                    SourceRevision: item.SourceRevision);
+                    SourceRevision: item.SourceRevision,
+                    LifecycleRevision: item.LifecycleRevision);
             }
 
             return new PreparedBatch(
@@ -173,6 +181,7 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
             PatientSex Sex,
             bool IsAlive,
             bool IsActive,
-            long SourceRevision);
+            long SourceRevision,
+            long LifecycleRevision);
     }
 }

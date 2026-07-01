@@ -31,7 +31,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.SynchronizePatientProfile
                         birthDate: new DateOnly(2031, 2, 3),
                         sex: PatientSex.Male,
                         isAlive: false,
-                        isActive: false),
+                        isActive: false,
+                        lifecycleRevision: 1),
                     PatientProfileSynchronizationTestData.CreateItem(
                         patientId: ignoredId,
                         sourceRevision: 7),
@@ -55,6 +56,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.SynchronizePatientProfile
             Assert.Equal(IsolationLevel.Serializable, context.UnitOfWork.LastIsolationLevel);
             Assert.Equal(PatientSex.Male, updatedProfile.Sex);
             Assert.False(updatedProfile.IsEligibleForCare);
+            Assert.Equal(1, updatedProfile.LastLifecycleRevision);
             Assert.Equal(8, ignoredProfile.LastSourceRevision);
         }
 

@@ -17,7 +17,8 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
                     BirthDate: new DateOnly(2027, 4, 3),
                     Sex: "female",
                     IsAlive: true,
-                    IsActive: false));
+                    IsActive: false,
+                    LifecycleRevision: 3));
 
             SynchronizePatientProfilesCommand command =
                 PopulationResidentFactsCommandMapper.Map(message);
@@ -31,6 +32,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             Assert.True(profile.IsAlive);
             Assert.False(profile.IsActive);
             Assert.Equal(message.SourceRevision, profile.SourceRevision);
+            Assert.Equal(3, profile.LifecycleRevision);
         }
 
         [Fact]
