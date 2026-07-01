@@ -39,6 +39,11 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Configurations
                .HasDefaultValue(-1L)
                .IsRequired();
 
+            builder.Property(record => record.LastLifecycleRevision)
+               .HasColumnName("last_lifecycle_revision")
+               .HasDefaultValue(0L)
+               .IsRequired();
+
             builder.OwnsOne(record => record.Illness, illness =>
             {
                 illness.Property(state => state.CurrentKind)

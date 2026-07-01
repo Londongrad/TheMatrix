@@ -88,6 +88,12 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(-1L)
                         .HasColumnName("last_progression_revision");
 
+                    b.Property<long>("LastLifecycleRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("last_lifecycle_revision");
+
                     b.Property<Guid>("SimulationHostId")
                         .HasColumnType("uuid")
                         .HasColumnName("simulation_host_id");
