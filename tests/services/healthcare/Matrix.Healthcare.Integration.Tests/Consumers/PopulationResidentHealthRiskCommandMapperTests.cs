@@ -27,7 +27,8 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
                     CaregiverSupportStrength: 0.1d,
                     HadAdverseWeatherExposure: true,
                     HealthcareSupportStrength: 0.2d,
-                    PublicHealthRiskStrength: 0.4d));
+                    PublicHealthRiskStrength: 0.4d,
+                    LifecycleRevision: 3));
 
             AdvancePatientHealthCommand command = PopulationResidentHealthRiskCommandMapper.Map(message);
 
@@ -37,6 +38,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             Assert.Equal(residentId, patient.PatientId);
             Assert.Equal(PatientHousingStability.Unhoused, patient.HousingStability);
             Assert.Equal(0.4d, patient.PublicHealthRiskStrength);
+            Assert.Equal(3, patient.LifecycleRevision);
         }
 
         [Fact]

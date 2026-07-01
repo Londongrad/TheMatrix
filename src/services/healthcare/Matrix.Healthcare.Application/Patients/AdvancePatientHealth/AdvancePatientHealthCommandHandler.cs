@@ -72,6 +72,13 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
 
                 EnsureSameSimulationHost(batch.SimulationHostId, profile, record);
 
+                if (patient.LifecycleRevision != profile.LastLifecycleRevision
+                    || patient.LifecycleRevision != record.LastLifecycleRevision)
+                {
+                    stalePatients++;
+                    continue;
+                }
+
                 if (!record.TryAcceptProgressionRevision(batch.SourceRevision))
                 {
                     stalePatients++;
@@ -86,7 +93,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     batch.CurrentDate);
 
                 if (outcome.HasAnyEffect)
-                    outcomes.Add(MapOutcome(record, outcome));
+                    outcomes.Add(MapOutcome(record, outcome, patient.LifecycleRevision));
             }
 
             if (processedPatients > 0)
@@ -127,7 +134,8 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
 
         private static PatientHealthProgressionResultItem MapOutcome(
             PatientMedicalRecord record,
-            PatientIllnessProgressionOutcome outcome)
+            PatientIllnessProgressionOutcome outcome,
+            long lifecycleRevision)
         {
             return new PatientHealthProgressionResultItem(
                 PatientId: record.PatientId.Value,
@@ -140,7 +148,8 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 HappinessDelta: outcome.HappinessDelta,
                 EnergyDelta: outcome.EnergyDelta,
                 StressDelta: outcome.StressDelta,
-                BecameCritical: outcome.BecameCritical);
+                BecameCritical: outcome.BecameCritical,
+                LifecycleRevision: lifecycleRevision);
         }
 
     }

@@ -57,9 +57,14 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     throw new ArgumentException(
                         message: $"Patient '{patientId}' occurs more than once in a progression batch.",
                         paramName: nameof(request.Patients));
+                if (item.LifecycleRevision < 0)
+                    throw new ArgumentOutOfRangeException(
+                        paramName: nameof(request.Patients),
+                        message: "Patient lifecycle revisions cannot be negative.");
 
                 patients[index] = new PreparedPatientHealthRisk(
                     patientId,
+                    item.LifecycleRevision,
                     new PatientHealthRiskFactors(
                         energyScore: item.EnergyScore,
                         happinessScore: item.HappinessScore,
@@ -105,5 +110,6 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
 
     internal sealed record PreparedPatientHealthRisk(
         PatientId PatientId,
+        long LifecycleRevision,
         PatientHealthRiskFactors RiskFactors);
 }

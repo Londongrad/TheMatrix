@@ -38,7 +38,8 @@ namespace Matrix.Healthcare.Integration.Consumers
                     HadAdverseWeatherExposure: resident.HadAdverseWeatherExposure,
                     HealthcareSupportStrength: resident.HealthcareSupportStrength,
                     PublicHealthRiskStrength: resident.PublicHealthRiskStrength,
-                    ExternalHealthDelta: resident.ExternalHealthDelta))
+                    ExternalHealthDelta: resident.ExternalHealthDelta,
+                    LifecycleRevision: resident.LifecycleRevision))
                .ToArray();
 
             return new AdvancePatientHealthCommand(

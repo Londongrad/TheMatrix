@@ -13,5 +13,6 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         int HappinessDelta,
         int EnergyDelta,
         int StressDelta,
-        bool BecameCritical);
+        bool BecameCritical,
+        long LifecycleRevision = 0);
 }

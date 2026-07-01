@@ -37,6 +37,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(0, result.StalePatients);
             Assert.Equal(-2, outcome.HealthDelta);
             Assert.True(outcome.BecameCritical);
+            Assert.Equal(0, outcome.LifecycleRevision);
             Assert.Equal(0, record.Health.Value);
             Assert.Equal(17, record.LastProgressionRevision);
             PatientHealthOutcomeBatch outboxBatch = Assert.Single(outboxWriter.Batches);
@@ -72,6 +73,30 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
         }
 
         [Fact]
+        public async Task Handle_StaleLifecycleRisk_DoesNotOverrideLifecycleSnapshot()
+        {
+            PatientMedicalRecord record = CreateMedicalRecord(health: 100, lifecycleRevision: 1);
+            var medicalRepository = new MedicalRecordRepositoryStub([record]);
+            var outboxWriter = new OutcomeOutboxWriterStub();
+            var unitOfWork = new HealthcareUnitOfWorkStub();
+            AdvancePatientHealthCommandHandler handler = CreateHandler(
+                medicalRepository,
+                outboxWriter,
+                unitOfWork: unitOfWork,
+                profile: CreateProfile(lifecycleRevision: 1));
+
+            AdvancePatientHealthResult result = await handler.Handle(
+                CreateCommand(sourceRevision: 17, lifecycleRevision: 0),
+                CancellationToken.None);
+
+            Assert.Equal(0, result.ProcessedPatients);
+            Assert.Equal(1, result.StalePatients);
+            Assert.Equal(100, record.Health.Value);
+            Assert.Empty(outboxWriter.Batches);
+            Assert.Equal(0, unitOfWork.SaveCount);
+        }
+
+        [Fact]
         public async Task Handle_DeletedSimulation_DoesNotLoadPatientData()
         {
             var medicalRepository = new MedicalRecordRepositoryStub();
@@ -94,10 +119,11 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             MedicalRecordRepositoryStub medicalRepository,
             OutcomeOutboxWriterStub outboxWriter,
             DateTimeOffset? deletedAtUtc = null,
-            HealthcareUnitOfWorkStub? unitOfWork = null)
+            HealthcareUnitOfWorkStub? unitOfWork = null,
+            PatientProfile? profile = null)
         {
             return new AdvancePatientHealthCommandHandler(
-                patientProfileRepository: new PatientProfileRepositoryStub([CreateProfile()]),
+                patientProfileRepository: new PatientProfileRepositoryStub([profile ?? CreateProfile()]),
                 medicalRecordRepository: medicalRepository,
                 deletionRepository: new HealthcareSimulationDeletionRepositoryStub(deletedAtUtc),
                 outcomeOutboxWriter: outboxWriter,
@@ -105,7 +131,9 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 unitOfWork: unitOfWork ?? new HealthcareUnitOfWorkStub());
         }
 
-        private static AdvancePatientHealthCommand CreateCommand(long sourceRevision)
+        private static AdvancePatientHealthCommand CreateCommand(
+            long sourceRevision,
+            long lifecycleRevision = 0)
         {
             return new AdvancePatientHealthCommand(
                 SimulationHostId: HostId,
@@ -132,11 +160,12 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                         CaregiverSupportStrength: 0d,
                         HadAdverseWeatherExposure: true,
                         HealthcareSupportStrength: 0d,
-                        PublicHealthRiskStrength: 1d)
+                        PublicHealthRiskStrength: 1d,
+                        LifecycleRevision: lifecycleRevision)
                 ]);
         }
 
-        private static PatientProfile CreateProfile()
+        private static PatientProfile CreateProfile(long lifecycleRevision = 0)
         {
             return PatientProfile.Register(
                 new PatientId(PatientGuid),
@@ -146,10 +175,13 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 isAlive: true,
                 isActive: true,
                 sourceRevision: 16,
-                synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T09:59:00+00:00"));
+                synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T09:59:00+00:00"),
+                lifecycleRevision: lifecycleRevision);
         }
 
-        private static PatientMedicalRecord CreateMedicalRecord(int health)
+        private static PatientMedicalRecord CreateMedicalRecord(
+            int health,
+            long lifecycleRevision = 0)
         {
             return PatientMedicalRecord.Register(
                 new PatientId(PatientGuid),
@@ -158,7 +190,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 PatientIllnessState.Active(
                     IllnessKind.Infection,
                     IllnessSeverity.Severe,
-                    CurrentDate.AddDays(-3)));
+                    CurrentDate.AddDays(-3)),
+                lifecycleRevision: lifecycleRevision);
         }
 
         private static PatientIllnessProgressionPolicy CreatePolicy()
