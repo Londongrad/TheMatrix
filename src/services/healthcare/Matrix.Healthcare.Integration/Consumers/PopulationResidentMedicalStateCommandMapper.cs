@@ -31,13 +31,15 @@ namespace Matrix.Healthcare.Integration.Consumers
                     CurrentIllnessKind: MapOptionalEnum<IllnessKind>(resident.CurrentIllnessKind),
                     CurrentIllnessSeverity: MapOptionalEnum<IllnessSeverity>(resident.CurrentIllnessSeverity),
                     DiagnosedOn: resident.DiagnosedOn,
-                    LastRecoveredOn: resident.LastRecoveredOn))
+                    LastRecoveredOn: resident.LastRecoveredOn,
+                    LifecycleRevision: resident.LifecycleRevision))
                .ToArray();
 
             return new InitializePatientMedicalRecordsCommand(
                 SimulationHostId: message.SimulationHostId,
                 ObservedAtUtc: message.ObservedAtUtc,
-                Records: records);
+                Records: records,
+                SourceRevision: message.SourceRevision);
         }
 
         private static TEnum? MapOptionalEnum<TEnum>(string? value)

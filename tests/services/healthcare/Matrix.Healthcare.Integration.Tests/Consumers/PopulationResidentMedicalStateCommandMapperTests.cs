@@ -20,7 +20,8 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
                     CurrentIllnessKind: "infection",
                     CurrentIllnessSeverity: "MODERATE",
                     DiagnosedOn: diagnosedOn,
-                    LastRecoveredOn: new DateOnly(2048, 4, 20)));
+                    LastRecoveredOn: new DateOnly(2048, 4, 20),
+                    LifecycleRevision: 4));
 
             InitializePatientMedicalRecordsCommand command =
                 PopulationResidentMedicalStateCommandMapper.Map(message);
@@ -28,11 +29,13 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             InitializePatientMedicalRecordItem record = Assert.Single(command.Records);
             Assert.Equal(message.SimulationHostId, command.SimulationHostId);
             Assert.Equal(message.ObservedAtUtc, command.ObservedAtUtc);
+            Assert.Equal(message.SourceRevision, command.SourceRevision);
             Assert.Equal(patientId, record.PatientId);
             Assert.Equal(63, record.HealthScore);
             Assert.Equal(IllnessKind.Infection, record.CurrentIllnessKind);
             Assert.Equal(IllnessSeverity.Moderate, record.CurrentIllnessSeverity);
             Assert.Equal(diagnosedOn, record.DiagnosedOn);
+            Assert.Equal(4, record.LifecycleRevision);
         }
 
         [Fact]

@@ -39,7 +39,8 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
                         CurrentIllnessKind: "Stress",
                         CurrentIllnessSeverity: "Mild",
                         DiagnosedOn: new DateOnly(2048, 5, 4),
-                        LastRecoveredOn: null)
+                        LastRecoveredOn: null,
+                        LifecycleRevision: 2)
                 ]);
 
             await consumer.ConsumeAsync(message, CancellationToken.None);
@@ -47,8 +48,10 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             InitializePatientMedicalRecordsCommand command = Assert.Single(mediator.MedicalCommands);
             InitializePatientMedicalRecordItem record = Assert.Single(command.Records);
             Assert.Equal(message.SimulationHostId, command.SimulationHostId);
+            Assert.Equal(message.SourceRevision, command.SourceRevision);
             Assert.Equal(residentId, record.PatientId);
             Assert.Equal(IllnessKind.Stress, record.CurrentIllnessKind);
+            Assert.Equal(2, record.LifecycleRevision);
         }
 
         [Fact]

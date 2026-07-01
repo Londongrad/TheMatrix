@@ -37,12 +37,13 @@ namespace Matrix.Healthcare.Integration.Consumers
             }
 
             logger.LogInformation(
-                message: "Initialized healthcare medical records for simulationHostId={SimulationHostId}, sourceRevision={SourceRevision}, batch={BatchNumber}/{TotalBatches}, added={AddedRecords}, ignored={IgnoredRecords}, correlationId={CorrelationId}.",
+                message: "Synchronized healthcare medical records for simulationHostId={SimulationHostId}, sourceRevision={SourceRevision}, batch={BatchNumber}/{TotalBatches}, added={AddedRecords}, updated={UpdatedRecords}, ignored={IgnoredRecords}, correlationId={CorrelationId}.",
                 message.SimulationHostId,
                 message.SourceRevision,
                 message.BatchNumber,
                 message.TotalBatches,
                 result.AddedRecords,
+                result.UpdatedRecords,
                 result.IgnoredRecords,
                 message.CorrelationId);
         }
