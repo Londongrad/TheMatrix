@@ -3,5 +3,6 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
     public sealed record InitializePatientMedicalRecordsResult(
         InitializePatientMedicalRecordsStatus Status,
         int AddedRecords,
-        int IgnoredRecords);
+        int IgnoredRecords,
+        int UpdatedRecords = 0);
 }

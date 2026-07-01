@@ -8,5 +8,6 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
         IllnessKind? CurrentIllnessKind,
         IllnessSeverity? CurrentIllnessSeverity,
         DateOnly? DiagnosedOn,
-        DateOnly? LastRecoveredOn);
+        DateOnly? LastRecoveredOn,
+        long LifecycleRevision = 0);
 }

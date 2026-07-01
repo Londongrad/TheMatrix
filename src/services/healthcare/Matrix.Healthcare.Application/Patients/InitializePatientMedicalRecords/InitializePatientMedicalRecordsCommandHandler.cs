@@ -38,7 +38,8 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                 return new InitializePatientMedicalRecordsResult(
                     Status: InitializePatientMedicalRecordsStatus.SimulationDeleted,
                     AddedRecords: 0,
-                    IgnoredRecords: batch.Records.Count);
+                    IgnoredRecords: batch.Records.Count,
+                    UpdatedRecords: 0);
 
             IReadOnlyList<PatientMedicalRecord> existingRecords =
                 await medicalRecordRepository.GetByIdsAsync(
@@ -47,6 +48,7 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
             Dictionary<PatientId, PatientMedicalRecord> existingById = existingRecords.ToDictionary(
                 record => record.PatientId);
             var addedRecords = new List<PatientMedicalRecord>();
+            int updatedRecords = 0;
 
             foreach (PreparedMedicalRecord prepared in batch.Records)
             {
@@ -56,6 +58,13 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                         throw new InvalidOperationException(
                             $"Patient '{prepared.PatientId}' already belongs to another simulation host.");
 
+                    if (existing.TrySynchronizeLifecycleState(
+                            lifecycleRevision: prepared.LifecycleRevision,
+                            sourceRevision: batch.SourceRevision,
+                            health: prepared.Health,
+                            illness: prepared.Illness))
+                        updatedRecords++;
+
                     continue;
                 }
 
@@ -63,7 +72,8 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                     patientId: prepared.PatientId,
                     simulationHostId: batch.SimulationHostId,
                     health: prepared.Health,
-                    illness: prepared.Illness));
+                    illness: prepared.Illness,
+                    lifecycleRevision: prepared.LifecycleRevision));
             }
 
             if (addedRecords.Count > 0)
@@ -71,13 +81,16 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                 await medicalRecordRepository.AddRangeAsync(
                     records: addedRecords,
                     cancellationToken: cancellationToken);
-                await unitOfWork.SaveChangesAsync(cancellationToken);
             }
+
+            if (addedRecords.Count > 0 || updatedRecords > 0)
+                await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new InitializePatientMedicalRecordsResult(
                 Status: InitializePatientMedicalRecordsStatus.Applied,
                 AddedRecords: addedRecords.Count,
-                IgnoredRecords: batch.Records.Count - addedRecords.Count);
+                IgnoredRecords: batch.Records.Count - addedRecords.Count - updatedRecords,
+                UpdatedRecords: updatedRecords);
         }
 
         private static PreparedBatch Prepare(InitializePatientMedicalRecordsCommand request)
@@ -100,6 +113,11 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                     message: "Medical state observation timestamps must be expressed in UTC.",
                     paramName: nameof(request.ObservedAtUtc));
 
+            if (request.SourceRevision < 0)
+                throw new ArgumentOutOfRangeException(
+                    paramName: nameof(request.SourceRevision),
+                    message: "Medical state source revisions cannot be negative.");
+
             var simulationHostId = new SimulationHostId(request.SimulationHostId);
             var patientIds = new HashSet<PatientId>();
             var preparedRecords = new PreparedMedicalRecord[request.Records.Count];
@@ -117,14 +135,21 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                         message: $"Patient '{patientId}' occurs more than once in an initialization batch.",
                         paramName: nameof(request.Records));
 
+                if (item.LifecycleRevision < 0)
+                    throw new ArgumentOutOfRangeException(
+                        paramName: nameof(request.Records),
+                        message: "Medical state lifecycle revisions cannot be negative.");
+
                 preparedRecords[index] = new PreparedMedicalRecord(
                     PatientId: patientId,
                     Health: new HealthScore(item.HealthScore),
-                    Illness: CreateIllnessState(item));
+                    Illness: CreateIllnessState(item),
+                    LifecycleRevision: item.LifecycleRevision);
             }
 
             return new PreparedBatch(
                 SimulationHostId: simulationHostId,
+                SourceRevision: request.SourceRevision,
                 PatientIds: patientIds.ToArray(),
                 Records: preparedRecords);
         }
@@ -152,12 +177,14 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
 
         private sealed record PreparedBatch(
             SimulationHostId SimulationHostId,
+            long SourceRevision,
             IReadOnlyCollection<PatientId> PatientIds,
             IReadOnlyList<PreparedMedicalRecord> Records);
 
         private sealed record PreparedMedicalRecord(
             PatientId PatientId,
             HealthScore Health,
-            PatientIllnessState Illness);
+            PatientIllnessState Illness,
+            long LifecycleRevision);
     }
 }
