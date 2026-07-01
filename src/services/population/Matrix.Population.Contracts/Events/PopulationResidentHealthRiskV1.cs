@@ -15,5 +15,6 @@ namespace Matrix.Population.Contracts.Events
         bool HadAdverseWeatherExposure,
         double HealthcareSupportStrength,
         double PublicHealthRiskStrength,
-        int ExternalHealthDelta = 0);
+        int ExternalHealthDelta = 0,
+        long LifecycleRevision = 0);
 }

@@ -19,7 +19,8 @@ namespace Matrix.Population.Application.Tests.Integration
             {
                 HousingStability = "Unhoused",
                 InfectiousHouseholdContacts = 2,
-                HealthcareSupportStrength = 0.42d
+                HealthcareSupportStrength = 0.42d,
+                LifecycleRevision = 5
             };
 
             PopulationResidentHealthRiskBatchV1[] batches =
@@ -42,6 +43,7 @@ namespace Matrix.Population.Application.Tests.Integration
             Assert.Equal("Unhoused", firstRisk.HousingStability);
             Assert.Equal(2, firstRisk.InfectiousHouseholdContacts);
             Assert.Equal(0.42d, firstRisk.HealthcareSupportStrength);
+            Assert.Equal(5, firstRisk.LifecycleRevision);
         }
 
         [Fact]
