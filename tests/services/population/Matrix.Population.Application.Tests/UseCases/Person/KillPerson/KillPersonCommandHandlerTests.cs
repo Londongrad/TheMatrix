@@ -131,13 +131,17 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.KillPerson
             var personWriteRepository = new FakePersonWriteRepository();
             var activityJournalService = new FakeCityPopulationActivityJournalService();
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
+            var factsWriter = new FakePopulationResidentFactsOutboxWriter();
+            var medicalStateWriter = new FakePopulationResidentMedicalStateOutboxWriter();
             KillPersonCommandHandler handler = CreateHandler(
                 personReadRepository: personReadRepository,
                 cityPopulationPersonReadRepository: cityPersonReadRepository,
                 progressionStateRepository: progressionStateRepository,
                 activityJournalService: activityJournalService,
                 summaryProjectionService: summaryProjectionService,
-                personWriteRepository: personWriteRepository);
+                personWriteRepository: personWriteRepository,
+                residentFactsOutboxWriter: factsWriter,
+                residentMedicalStateOutboxWriter: medicalStateWriter);
 
             PersonDto result = await handler.Handle(
                 request: new KillPersonCommand(person.Id.Value),
@@ -174,6 +178,10 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.KillPerson
             Assert.Contains(
                 collection: activityJournalService.Entries,
                 filter: x => x.EventType == CityPopulationActivityEventType.ResidentDied);
+            Assert.Equal(12, Assert.Single(factsWriter.Batches).SourceRevision);
+            Assert.Equal(person.LifecycleRevision, Assert.Single(factsWriter.Batches[0].Residents).LifecycleRevision);
+            Assert.Equal(12, Assert.Single(medicalStateWriter.Batches).SourceRevision);
+            Assert.Equal(0, Assert.Single(medicalStateWriter.Batches[0].Residents).HealthScore);
         }
 
         private static KillPersonCommandHandler CreateHandler(
@@ -183,7 +191,9 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.KillPerson
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakePersonWriteRepository? personWriteRepository = null,
-            FakeUnitOfWork? unitOfWork = null)
+            FakeUnitOfWork? unitOfWork = null,
+            FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
+            FakePopulationResidentMedicalStateOutboxWriter? residentMedicalStateOutboxWriter = null)
         {
             FakePersonReadRepository resolvedPersonReadRepository =
                 personReadRepository ?? new FakePersonReadRepository();
@@ -206,7 +216,11 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.KillPerson
                         cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                                 new FakeCityPopulationSummaryProjectionService(),
                         marriageDomainService: new MarriageDomainService(),
-                        personWriteRepository: resolvedPersonWriteRepository)
+                        personWriteRepository: resolvedPersonWriteRepository,
+                        residentFactsOutboxWriter: residentFactsOutboxWriter ??
+                                                   new FakePopulationResidentFactsOutboxWriter(),
+                        residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter ??
+                                                          new FakePopulationResidentMedicalStateOutboxWriter())
                 ],
                 timeProvider: new FakeTimeProvider(UtcNow),
                 unitOfWork: unitOfWork ?? new FakeUnitOfWork());

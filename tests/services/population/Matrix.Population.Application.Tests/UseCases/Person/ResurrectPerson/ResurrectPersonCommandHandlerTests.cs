@@ -112,12 +112,16 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
             };
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var activityJournalService = new FakeCityPopulationActivityJournalService();
+            var factsWriter = new FakePopulationResidentFactsOutboxWriter();
+            var medicalStateWriter = new FakePopulationResidentMedicalStateOutboxWriter();
             ResurrectPersonCommandHandler handler = CreateHandler(
                 personReadRepository: personReadRepository,
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
                 progressionStateRepository: progressionStateRepository,
                 summaryProjectionService: summaryProjectionService,
-                activityJournalService: activityJournalService);
+                activityJournalService: activityJournalService,
+                residentFactsOutboxWriter: factsWriter,
+                residentMedicalStateOutboxWriter: medicalStateWriter);
 
             PersonDto result = await handler.Handle(
                 request: new ResurrectPersonCommand(person.Id.Value),
@@ -143,6 +147,11 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
                     month: 4,
                     day: 30),
                 actual: activity.CurrentDate);
+            Assert.Equal(9, Assert.Single(factsWriter.Batches).SourceRevision);
+            Assert.True(Assert.Single(factsWriter.Batches[0].Residents).IsAlive);
+            Assert.Equal(100, Assert.Single(medicalStateWriter.Batches[0].Residents).HealthScore);
+            Assert.Equal(person.LifecycleRevision,
+                Assert.Single(medicalStateWriter.Batches[0].Residents).LifecycleRevision);
         }
 
         private static ResurrectPersonCommandHandler CreateHandler(
@@ -152,7 +161,9 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakePersonWriteRepository? personWriteRepository = null,
-            FakeUnitOfWork? unitOfWork = null)
+            FakeUnitOfWork? unitOfWork = null,
+            FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
+            FakePopulationResidentMedicalStateOutboxWriter? residentMedicalStateOutboxWriter = null)
         {
             FakePersonReadRepository resolvedPersonReadRepository =
                 personReadRepository ?? new FakePersonReadRepository();
@@ -175,7 +186,11 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
                         cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                                 new FakeCityPopulationSummaryProjectionService(),
                         marriageDomainService: new MarriageDomainService(),
-                        personWriteRepository: resolvedPersonWriteRepository)
+                        personWriteRepository: resolvedPersonWriteRepository,
+                        residentFactsOutboxWriter: residentFactsOutboxWriter ??
+                                                   new FakePopulationResidentFactsOutboxWriter(),
+                        residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter ??
+                                                          new FakePopulationResidentMedicalStateOutboxWriter())
                 ],
                 timeProvider: new FakeTimeProvider(UtcNow),
                 unitOfWork: unitOfWork ?? new FakeUnitOfWork());

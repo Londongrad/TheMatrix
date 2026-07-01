@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
@@ -16,7 +17,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         MarriageDomainService marriageDomainService,
-        IPersonWriteRepository personWriteRepository) : IPersonLifecycleExtension
+        IPersonWriteRepository personWriteRepository,
+        IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
+        IPopulationResidentMedicalStateOutboxWriter residentMedicalStateOutboxWriter) : IPersonLifecycleExtension
     {
         public async Task OnPersonDiedAsync(
             Person person,
@@ -30,15 +33,22 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services
             if (cityId is null)
                 return;
 
-            DateOnly currentDate = (await cityPopulationProgressionStateRepository.GetByCityAsync(
-                                       cityId: cityId.Value,
-                                       cancellationToken: cancellationToken))?.LastProcessedDate ??
-                                   fallbackCurrentDate;
+            var progressionState = await cityPopulationProgressionStateRepository.GetByCityAsync(
+                cityId: cityId.Value,
+                cancellationToken: cancellationToken);
+            DateOnly currentDate = progressionState?.LastProcessedDate ?? fallbackCurrentDate;
+            long sourceRevision = progressionState?.LastProcessedTickId ?? 0;
 
             await RegisterWidowhoodAsync(
                 deceased: person,
                 cityId: cityId.Value,
                 currentDate: currentDate,
+                occurredAtUtc: occurredAtUtc,
+                cancellationToken: cancellationToken);
+            await PublishResidentSnapshotsAsync(
+                cityId: cityId.Value,
+                person: person,
+                sourceRevision: sourceRevision,
                 occurredAtUtc: occurredAtUtc,
                 cancellationToken: cancellationToken);
             await cityPopulationSummaryProjectionService.RebuildAsync(
@@ -67,10 +77,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services
             if (cityId is null)
                 return;
 
-            DateOnly currentDate = (await cityPopulationProgressionStateRepository.GetByCityAsync(
-                                       cityId: cityId.Value,
-                                       cancellationToken: cancellationToken))?.LastProcessedDate ??
-                                   fallbackCurrentDate;
+            var progressionState = await cityPopulationProgressionStateRepository.GetByCityAsync(
+                cityId: cityId.Value,
+                cancellationToken: cancellationToken);
+            DateOnly currentDate = progressionState?.LastProcessedDate ?? fallbackCurrentDate;
+            long sourceRevision = progressionState?.LastProcessedTickId ?? 0;
+            await PublishResidentSnapshotsAsync(
+                cityId: cityId.Value,
+                person: person,
+                sourceRevision: sourceRevision,
+                occurredAtUtc: occurredAtUtc,
+                cancellationToken: cancellationToken);
             await cityPopulationSummaryProjectionService.RebuildAsync(
                 cityId: cityId.Value,
                 currentDate: currentDate,
@@ -83,6 +100,37 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services
                     source: CityPopulationActivitySource.Operator,
                     occurredAtUtc: occurredAtUtc),
                 cancellationToken: cancellationToken);
+        }
+
+        private async Task PublishResidentSnapshotsAsync(
+            CityId cityId,
+            Person person,
+            long sourceRevision,
+            DateTimeOffset occurredAtUtc,
+            CancellationToken cancellationToken)
+        {
+            string correlationPrefix =
+                $"population:{cityId.Value:N}:operator:resident:{person.Id.Value:N}:lifecycle:{person.LifecycleRevision}";
+
+            foreach (var batch in PopulationResidentFactsBatchFactory.Build(
+                         simulationHostId: cityId.Value,
+                         sourceRevision: sourceRevision,
+                         residents: new[] { person },
+                         correlationId: $"{correlationPrefix}:facts",
+                         synchronizedAtUtc: occurredAtUtc))
+                await residentFactsOutboxWriter.AddResidentFactsBatchAsync(
+                    batch: batch,
+                    cancellationToken: cancellationToken);
+
+            foreach (var batch in PopulationResidentMedicalStateBatchFactory.Build(
+                         simulationHostId: cityId.Value,
+                         sourceRevision: sourceRevision,
+                         residents: new[] { person },
+                         correlationId: $"{correlationPrefix}:medical-state",
+                         observedAtUtc: occurredAtUtc))
+                await residentMedicalStateOutboxWriter.AddResidentMedicalStateBatchAsync(
+                    batch: batch,
+                    cancellationToken: cancellationToken);
         }
 
         private async Task RegisterWidowhoodAsync(
