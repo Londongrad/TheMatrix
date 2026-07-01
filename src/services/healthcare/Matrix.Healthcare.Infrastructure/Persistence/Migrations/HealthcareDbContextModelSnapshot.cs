@@ -72,6 +72,65 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Migrations
                     b.ToTable("OutboxMessages", (string)null);
                 });
 
+            modelBuilder.Entity("Matrix.Healthcare.Domain.Facilities.CareFacility", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("care_facility_id");
+
+                    b.Property<int>("DailyPatientCapacity")
+                        .HasColumnType("integer")
+                        .HasColumnName("daily_patient_capacity");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("kind");
+
+                    b.Property<long>("LastSourceRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("last_source_revision");
+
+                    b.Property<DateTimeOffset>("LastSynchronizedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_synchronized_at_utc");
+
+                    b.Property<Guid?>("LocationAnchorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_anchor_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("SimulationHostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("simulation_host_id");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SimulationHostId", "IsActive", "Kind")
+                        .HasDatabaseName("ix_healthcare_care_facilities_capacity_candidates");
+
+                    b.ToTable("healthcare_care_facilities", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_healthcare_care_facilities_daily_capacity_positive", "daily_patient_capacity > 0");
+                        });
+                });
+
             modelBuilder.Entity("Matrix.Healthcare.Domain.Patients.PatientMedicalRecord", b =>
                 {
                     b.Property<Guid>("Id")
