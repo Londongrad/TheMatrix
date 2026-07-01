@@ -25,6 +25,9 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Repositories
         {
             if (dbContext.Database.IsRelational())
             {
+                await dbContext.CareFacilities
+                   .Where(facility => facility.SimulationHostId == simulationHostId)
+                   .ExecuteDeleteAsync(cancellationToken);
                 await dbContext.PatientMedicalRecords
                    .Where(record => record.SimulationHostId == simulationHostId)
                    .ExecuteDeleteAsync(cancellationToken);
@@ -34,6 +37,9 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Repositories
                 return;
             }
 
+            dbContext.CareFacilities.RemoveRange(
+                dbContext.CareFacilities.Where(facility =>
+                    facility.SimulationHostId == simulationHostId));
             dbContext.PatientMedicalRecords.RemoveRange(
                 dbContext.PatientMedicalRecords.Where(record =>
                     record.SimulationHostId == simulationHostId));

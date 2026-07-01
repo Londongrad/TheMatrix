@@ -1,3 +1,4 @@
+using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Domain.Simulation;
 using Matrix.Healthcare.Infrastructure.Persistence;
@@ -23,6 +24,9 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
             dbContext.PatientMedicalRecords.AddRange(
                 CreateMedicalRecord(deletedProfile.PatientId, deletedHostId),
                 CreateMedicalRecord(retainedProfile.PatientId, retainedHostId));
+            dbContext.CareFacilities.AddRange(
+                CreateFacility(deletedHostId),
+                CreateFacility(retainedHostId));
             await dbContext.SaveChangesAsync();
             var repository = new HealthcareSimulationDeletionRepository(dbContext);
             DateTimeOffset deletedAtUtc = DateTimeOffset.Parse("2048-05-06T10:00:00+00:00");
@@ -43,6 +47,10 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 record => record.SimulationHostId == deletedHostId));
             Assert.True(await dbContext.PatientMedicalRecords.AnyAsync(
                 record => record.SimulationHostId == retainedHostId));
+            Assert.False(await dbContext.CareFacilities.AnyAsync(
+                facility => facility.SimulationHostId == deletedHostId));
+            Assert.True(await dbContext.CareFacilities.AnyAsync(
+                facility => facility.SimulationHostId == retainedHostId));
             Assert.Equal(
                 deletedAtUtc,
                 await repository.GetDeletedAtUtcAsync(deletedHostId));
@@ -70,6 +78,20 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 simulationHostId,
                 HealthScore.Full,
                 PatientIllnessState.Healthy());
+        }
+
+        private static CareFacility CreateFacility(SimulationHostId simulationHostId)
+        {
+            return CareFacility.Register(
+                id: CareFacilityId.New(),
+                simulationHostId: simulationHostId,
+                name: "Central Hospital",
+                kind: new CareFacilityKindKey("Hospital"),
+                locationAnchorId: null,
+                dailyPatientCapacity: 240,
+                isActive: true,
+                sourceRevision: 1,
+                synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
         }
     }
 }
