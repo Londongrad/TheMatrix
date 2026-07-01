@@ -9,13 +9,15 @@ namespace Matrix.Healthcare.Domain.Patients
             PatientId patientId,
             SimulationHostId simulationHostId,
             HealthScore health,
-            PatientIllnessState illness)
+            PatientIllnessState illness,
+            long lifecycleRevision)
             : base(patientId)
         {
             SimulationHostId = simulationHostId;
             Health = health;
             Illness = illness ?? throw new ArgumentNullException(nameof(illness));
             LastProgressionRevision = -1;
+            LastLifecycleRevision = EnsureRevision(lifecycleRevision);
         }
 
         private PatientMedicalRecord()
@@ -29,6 +31,7 @@ namespace Matrix.Healthcare.Domain.Patients
         public HealthScore Health { get; private set; }
         public PatientIllnessState Illness { get; private set; }
         public long LastProgressionRevision { get; private set; } = -1;
+        public long LastLifecycleRevision { get; private set; }
 
         public bool HasActiveIllness => Illness.HasActiveIllness;
         public bool IsCritical => Health.Value == HealthScore.Minimum;
@@ -37,13 +40,36 @@ namespace Matrix.Healthcare.Domain.Patients
             PatientId patientId,
             SimulationHostId simulationHostId,
             HealthScore health,
-            PatientIllnessState illness)
+            PatientIllnessState illness,
+            long lifecycleRevision = 0)
         {
             return new PatientMedicalRecord(
                 patientId: patientId,
                 simulationHostId: simulationHostId,
                 health: health,
-                illness: illness);
+                illness: illness,
+                lifecycleRevision: lifecycleRevision);
+        }
+
+        public bool TrySynchronizeLifecycleState(
+            long lifecycleRevision,
+            long sourceRevision,
+            HealthScore health,
+            PatientIllnessState illness)
+        {
+            long normalizedLifecycleRevision = EnsureRevision(lifecycleRevision);
+            long normalizedSourceRevision = EnsureRevision(sourceRevision);
+            ArgumentNullException.ThrowIfNull(illness);
+
+            if (normalizedLifecycleRevision <= LastLifecycleRevision)
+                return false;
+
+            Health = health;
+            Illness = illness;
+            LastLifecycleRevision = normalizedLifecycleRevision;
+            LastProgressionRevision = Math.Max(LastProgressionRevision, normalizedSourceRevision);
+
+            return true;
         }
 
         public void ApplyHealthDelta(int delta)
@@ -78,6 +104,15 @@ namespace Matrix.Healthcare.Domain.Patients
         public void RecoverFromIllness(DateOnly currentDate)
         {
             Illness = Illness.Recover(currentDate);
+        }
+
+        private static long EnsureRevision(long value)
+        {
+            return value >= 0
+                ? value
+                : throw new ArgumentOutOfRangeException(
+                    paramName: nameof(value),
+                    message: "Lifecycle and source revisions cannot be negative.");
         }
     }
 }

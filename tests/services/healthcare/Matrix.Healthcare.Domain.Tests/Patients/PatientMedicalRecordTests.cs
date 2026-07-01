@@ -29,6 +29,52 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
             Assert.Same(illness, record.Illness);
             Assert.True(record.HasActiveIllness);
             Assert.Equal(-1, record.LastProgressionRevision);
+            Assert.Equal(0, record.LastLifecycleRevision);
+        }
+
+        [Fact]
+        public void SynchronizeLifecycleState_WhenRevisionAdvances_ReplacesMedicalStateAndProgressionBarrier()
+        {
+            PatientMedicalRecord record = CreateHealthyRecord(health: 40);
+            Assert.True(record.TryAcceptProgressionRevision(6));
+            PatientIllnessState illness = PatientIllnessState.Active(
+                IllnessKind.Exposure,
+                IllnessSeverity.Severe,
+                new DateOnly(2048, 5, 7));
+
+            bool synchronized = record.TrySynchronizeLifecycleState(
+                lifecycleRevision: 2,
+                sourceRevision: 8,
+                health: HealthScore.Full,
+                illness: illness);
+
+            Assert.True(synchronized);
+            Assert.Equal(HealthScore.Maximum, record.Health.Value);
+            Assert.Same(illness, record.Illness);
+            Assert.Equal(2, record.LastLifecycleRevision);
+            Assert.Equal(8, record.LastProgressionRevision);
+        }
+
+        [Fact]
+        public void SynchronizeLifecycleState_WhenRevisionIsStale_KeepsCurrentMedicalState()
+        {
+            PatientMedicalRecord record = PatientMedicalRecord.Register(
+                PatientId,
+                SimulationHostId,
+                new HealthScore(63),
+                PatientIllnessState.Healthy(),
+                lifecycleRevision: 3);
+
+            bool synchronized = record.TrySynchronizeLifecycleState(
+                lifecycleRevision: 2,
+                sourceRevision: 8,
+                health: HealthScore.Full,
+                illness: PatientIllnessState.Healthy());
+
+            Assert.False(synchronized);
+            Assert.Equal(63, record.Health.Value);
+            Assert.Equal(3, record.LastLifecycleRevision);
+            Assert.Equal(-1, record.LastProgressionRevision);
         }
 
         [Fact]
