@@ -41,7 +41,8 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Outbox
                         HappinessDelta: -2,
                         EnergyDelta: -2,
                         StressDelta: 2,
-                        BecameCritical: false)
+                        BecameCritical: false,
+                        LifecycleRevision: 3)
                 ]);
 
             await writer.AddAsync(batch);
@@ -60,6 +61,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Outbox
             Assert.Equal(patientId, patient.PatientId);
             Assert.Equal("Infection", patient.CurrentIllnessKind);
             Assert.Equal(-2, patient.HealthDelta);
+            Assert.Equal(3, patient.LifecycleRevision);
         }
     }
 }

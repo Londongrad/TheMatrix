@@ -39,7 +39,8 @@ namespace Matrix.Healthcare.Infrastructure.Outbox
                         HappinessDelta: patient.HappinessDelta,
                         EnergyDelta: patient.EnergyDelta,
                         StressDelta: patient.StressDelta,
-                        BecameCritical: patient.BecameCritical))
+                        BecameCritical: patient.BecameCritical,
+                        LifecycleRevision: patient.LifecycleRevision))
                    .ToArray());
 
             dbContext.OutboxMessages.Add(

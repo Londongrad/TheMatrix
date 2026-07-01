@@ -11,5 +11,6 @@ namespace Matrix.Healthcare.Contracts.Events
         int HappinessDelta,
         int EnergyDelta,
         int StressDelta,
-        bool BecameCritical);
+        bool BecameCritical,
+        long LifecycleRevision = 0);
 }
