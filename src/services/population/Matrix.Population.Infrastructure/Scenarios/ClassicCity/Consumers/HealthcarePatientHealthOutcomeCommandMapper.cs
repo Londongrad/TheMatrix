@@ -28,7 +28,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     LastRecoveredOn: patient.LastRecoveredOn,
                     HappinessDelta: patient.HappinessDelta,
                     EnergyDelta: patient.EnergyDelta,
-                    StressDelta: patient.StressDelta))
+                    StressDelta: patient.StressDelta,
+                    LifecycleRevision: patient.LifecycleRevision))
                .ToArray();
 
             if (patients.Any(patient =>

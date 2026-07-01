@@ -126,6 +126,41 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.False(patient.HasActiveIllness);
         }
 
+        [Fact]
+        public async Task Handle_OutcomeFromPreviousLifecycle_DoesNotOverrideResurrection()
+        {
+            Person patient = CreatePerson(
+                lifeStatus: LifeStatus.Deceased,
+                currentDate: CurrentDate);
+            long deceasedRevision = patient.LifecycleRevision;
+            patient.Resurrect();
+            var personRepository = new FakeCityPopulationPersonReadRepository
+            {
+                ListByCityResult = [patient]
+            };
+            ApplyPatientHealthOutcomesCommandHandler handler = CreateHandler(personRepository);
+
+            ApplyPatientHealthOutcomesResult result = await handler.Handle(
+                CreateCommand(
+                    new PatientHealthOutcomeInput(
+                        patient.Id.Value,
+                        0,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        0,
+                        0,
+                        LifecycleRevision: deceasedRevision)),
+                CancellationToken.None);
+
+            Assert.Equal(0, result.AppliedPatientCount);
+            Assert.Equal(1, result.StalePatientCount);
+            Assert.True(patient.IsAlive);
+            Assert.Equal(100, patient.Health.Value);
+        }
+
         private static ApplyPatientHealthOutcomesCommandHandler CreateHandler(
             FakeCityPopulationPersonReadRepository? personRepository = null,
             FakePopulationResidentFactsOutboxWriter? factsWriter = null,

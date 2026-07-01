@@ -11,5 +11,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         DateOnly? LastRecoveredOn,
         int HappinessDelta,
         int EnergyDelta,
-        int StressDelta);
+        int StressDelta,
+        long LifecycleRevision = 0);
 }

@@ -231,5 +231,30 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.Equal(63, person.Health.Value);
             Assert.False(person.HasActiveIllness);
         }
+
+        [Fact]
+        public void TryApplyHealthcareOutcome_WhenLifecycleChanged_RejectsEarlierOutcome()
+        {
+            DateOnly currentDate = new(2048, 5, 6);
+            Person person = PopulationTestData.CreateAdultPerson(currentDate: currentDate);
+            person.Die(currentDate.AddDays(-1));
+            long deceasedRevision = person.LifecycleRevision;
+            person.Resurrect();
+
+            bool applied = person.TryApplyHealthcareOutcome(
+                sourceRevision: 17,
+                healthScore: 10,
+                illness: IllnessInfo.Healthy(),
+                happinessDelta: -10,
+                energyDelta: -10,
+                stressDelta: 10,
+                currentDate: currentDate,
+                expectedLifecycleRevision: deceasedRevision);
+
+            Assert.False(applied);
+            Assert.True(person.IsAlive);
+            Assert.Equal(100, person.Health.Value);
+            Assert.Equal(-1, person.LastHealthcareRevision);
+        }
     }
 }

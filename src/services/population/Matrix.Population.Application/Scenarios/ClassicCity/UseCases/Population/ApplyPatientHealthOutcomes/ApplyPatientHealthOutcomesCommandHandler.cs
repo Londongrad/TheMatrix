@@ -90,7 +90,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             happinessDelta: outcome.HappinessDelta,
                             energyDelta: outcome.EnergyDelta,
                             stressDelta: outcome.StressDelta,
-                            currentDate: request.CurrentDate);
+                            currentDate: request.CurrentDate,
+                            expectedLifecycleRevision: outcome.LifecycleRevision);
                         if (!accepted)
                         {
                             stale++;
@@ -151,7 +152,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (request.Patients.Count > MaxBatchSize)
                 throw new ArgumentException($"Outcome batches cannot exceed {MaxBatchSize} patients.", nameof(request));
             if (request.Patients.Any(patient => patient.PatientId == Guid.Empty
-                                                || patient.HealthScore is < 0 or > 100))
+                                                || patient.HealthScore is < 0 or > 100
+                                                || patient.LifecycleRevision < 0))
                 throw new ArgumentException("Outcome patient data is invalid.", nameof(request));
             if (request.Patients.Select(patient => patient.PatientId).Distinct().Count() != request.Patients.Count)
                 throw new ArgumentException("Outcome batches cannot contain duplicate patients.", nameof(request));

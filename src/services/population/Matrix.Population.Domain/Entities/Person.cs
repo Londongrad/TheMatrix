@@ -342,17 +342,23 @@ namespace Matrix.Population.Domain.Entities
             int happinessDelta,
             int energyDelta,
             int stressDelta,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            long? expectedLifecycleRevision = null)
         {
             if (sourceRevision < 0)
                 throw new ArgumentOutOfRangeException(nameof(sourceRevision));
             if (healthScore is < 0 or > 100)
                 throw new ArgumentOutOfRangeException(nameof(healthScore));
+            if (expectedLifecycleRevision < 0)
+                throw new ArgumentOutOfRangeException(nameof(expectedLifecycleRevision));
 
             illness = GuardHelper.AgainstNull(
                 value: illness,
                 propertyName: nameof(illness));
 
+            if (expectedLifecycleRevision.HasValue
+                && expectedLifecycleRevision.Value != LifecycleRevision)
+                return false;
             if (sourceRevision <= LastHealthcareRevision)
                 return false;
 
