@@ -1,5 +1,6 @@
 using System.Data;
 using Matrix.BuildingBlocks.Domain.Events;
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
@@ -88,6 +89,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             Assert.Null(factory.RequestedCommand);
             Assert.Empty(outboxWriter.CityEvents);
             Assert.Empty(outboxWriter.WeatherEvents);
+            Assert.Empty(outboxWriter.CareFacilityProvisioningBatches);
             Assert.Equal(
                 expected: 0,
                 actual: unitOfWork.ExecuteInTransactionCallCount);
@@ -247,6 +249,13 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             Assert.Equal(
                 expected: city.Id,
                 actual: weatherCreatedEvent.CityId);
+            CareFacilityProvisioningBatch facilityBatch =
+                Assert.Single(outboxWriter.CareFacilityProvisioningBatches);
+            Assert.Equal(city.Id.Value, facilityBatch.SimulationHostId);
+            Assert.Equal(city.CreatedAtUtc, facilityBatch.SynchronizedAtUtc);
+            CareFacilityProvisioning facility = Assert.Single(facilityBatch.Facilities);
+            Assert.Equal(cityAnchor.Id.Value, facility.FacilityId);
+            Assert.Equal(cityAnchor.Capacity, facility.DailyPatientCapacity);
             Assert.Equal(
                 expected: city.Id.Value,
                 actual: result.CityId);
