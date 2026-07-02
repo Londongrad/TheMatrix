@@ -1,5 +1,6 @@
 using System.Data;
 using Matrix.Healthcare.Application.Abstractions;
+using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Domain.Progression;
 using Matrix.Healthcare.Domain.Simulation;
@@ -10,9 +11,11 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
     public sealed class AdvancePatientHealthCommandHandler(
         IPatientProfileRepository patientProfileRepository,
         IPatientMedicalRecordRepository medicalRecordRepository,
+        IPatientCareNeedRepository patientCareNeedRepository,
         IHealthcareSimulationDeletionRepository deletionRepository,
         IPatientHealthOutcomeOutboxWriter outcomeOutboxWriter,
         PatientIllnessProgressionPolicy progressionPolicy,
+        PatientCareNeedAssessmentPolicy careNeedAssessmentPolicy,
         IHealthcareUnitOfWork unitOfWork)
         : IRequestHandler<AdvancePatientHealthCommand, AdvancePatientHealthResult>
     {
@@ -51,10 +54,16 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
             IReadOnlyList<PatientMedicalRecord> records = await medicalRecordRepository.GetByIdsAsync(
                 batch.PatientIds,
                 cancellationToken);
+            IReadOnlyList<PatientCareNeed> careNeeds = await patientCareNeedRepository.GetByPatientIdsAsync(
+                batch.PatientIds,
+                cancellationToken);
             Dictionary<PatientId, PatientProfile> profilesById = profiles.ToDictionary(
                 profile => profile.PatientId);
             Dictionary<PatientId, PatientMedicalRecord> recordsById = records.ToDictionary(
                 record => record.PatientId);
+            Dictionary<PatientId, PatientCareNeed> careNeedsByPatientId = careNeeds.ToDictionary(
+                careNeed => careNeed.PatientId);
+            var addedCareNeeds = new List<PatientCareNeed>();
             var outcomes = new List<PatientHealthProgressionResultItem>();
             int processedPatients = 0;
             int ignoredPatients = 0;
@@ -94,10 +103,38 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
 
                 if (outcome.HasAnyEffect)
                     outcomes.Add(MapOutcome(record, outcome, patient.LifecycleRevision));
+
+                PatientCareNeedAssessment assessment = careNeedAssessmentPolicy.Assess(record);
+                if (careNeedsByPatientId.TryGetValue(patient.PatientId, out PatientCareNeed? careNeed))
+                {
+                    careNeed.TrySynchronizeAssessment(
+                        simulationHostId: batch.SimulationHostId,
+                        urgency: assessment.Urgency,
+                        assessmentDate: batch.CurrentDate,
+                        assessmentRevision: batch.SourceRevision,
+                        lifecycleRevision: patient.LifecycleRevision,
+                        assessedAtUtc: batch.ObservedAtUtc);
+                }
+                else if (assessment.Urgency.HasValue)
+                {
+                    addedCareNeeds.Add(PatientCareNeed.Register(
+                        patientId: patient.PatientId,
+                        simulationHostId: batch.SimulationHostId,
+                        urgency: assessment.Urgency.Value,
+                        requestedOn: batch.CurrentDate,
+                        assessmentRevision: batch.SourceRevision,
+                        lifecycleRevision: patient.LifecycleRevision,
+                        assessedAtUtc: batch.ObservedAtUtc));
+                }
             }
 
             if (processedPatients > 0)
             {
+                if (addedCareNeeds.Count > 0)
+                    await patientCareNeedRepository.AddRangeAsync(
+                        careNeeds: addedCareNeeds,
+                        cancellationToken: cancellationToken);
+
                 if (outcomes.Count > 0)
                     await outcomeOutboxWriter.AddAsync(
                         new PatientHealthOutcomeBatch(
