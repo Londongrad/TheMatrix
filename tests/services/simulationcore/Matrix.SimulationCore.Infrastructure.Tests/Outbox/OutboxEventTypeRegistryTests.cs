@@ -18,7 +18,7 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             ]);
 
             Assert.Equal(
-                expected: 12,
+                expected: 13,
                 actual: registry.Count);
             Assert.Equal(
                 expected: typeof(SimulationCreatedV1),
@@ -32,6 +32,10 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Outbox
             Assert.Equal(
                 expected: typeof(SimulationTickPhaseReachedV1),
                 actual: registry.Resolve(SimulationCoreEventTypes.SimulationTickPhaseReachedV1));
+            Assert.Equal(
+                expected: typeof(SimulationCareFacilityProvisioningBatchV1),
+                actual: registry.Resolve(
+                    SimulationCoreEventTypes.SimulationCareFacilityProvisioningBatchV1));
             Assert.Equal(
                 expected: typeof(ClassicCityCreatedV1),
                 actual: registry.Resolve(ClassicCityEventTypes.ClassicCityCreatedV1));
