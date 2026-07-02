@@ -56,6 +56,7 @@ namespace Matrix.Healthcare.Infrastructure
 
             services.AddScoped<IPatientProfileRepository, PatientProfileRepository>();
             services.AddScoped<IPatientMedicalRecordRepository, PatientMedicalRecordRepository>();
+            services.AddScoped<IPatientCareNeedRepository, PatientCareNeedRepository>();
             services.AddScoped<ICareFacilityRepository, CareFacilityRepository>();
             services.AddScoped<IPatientHealthOutcomeOutboxWriter, PatientHealthOutcomeOutboxWriter>();
             services.AddScoped<IHealthcareSimulationDeletionRepository,
