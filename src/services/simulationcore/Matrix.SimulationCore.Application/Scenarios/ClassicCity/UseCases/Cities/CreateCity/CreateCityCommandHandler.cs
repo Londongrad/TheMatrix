@@ -6,6 +6,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Outbo
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Facilities;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
@@ -95,6 +96,11 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                                 source: bootstrapPlan.Weather,
                                 publish: classicCityOutboxWriter.AddWeatherEventsAsync,
                                 cancellationToken: ct);
+                        await simulationOutboxWriter.AddCareFacilityProvisioningAsync(
+                            batch: ClassicCityCareFacilityProvisioningFactory.Create(
+                                city: city,
+                                anchors: topology.Anchors),
+                            cancellationToken: ct);
                         await unitOfWork.SaveChangesAsync(ct);
                     },
                     cancellationToken: cancellationToken);
