@@ -2,6 +2,7 @@ using System.Data;
 using Matrix.Healthcare.Application.Abstractions;
 using Matrix.Healthcare.Application.Patients.AdvancePatientHealth;
 using Matrix.Healthcare.Application.Tests.TestSupport;
+using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Domain.Progression;
 using Matrix.Healthcare.Domain.Simulation;
@@ -21,10 +22,12 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             PatientMedicalRecord record = CreateMedicalRecord(health: 2);
             var medicalRepository = new MedicalRecordRepositoryStub([record]);
             var outboxWriter = new OutcomeOutboxWriterStub();
+            var careNeedRepository = new CareNeedRepositoryStub();
             var unitOfWork = new HealthcareUnitOfWorkStub();
             AdvancePatientHealthCommandHandler handler = CreateHandler(
                 medicalRepository,
                 outboxWriter,
+                careNeedRepository,
                 unitOfWork: unitOfWork);
 
             AdvancePatientHealthResult result = await handler.Handle(
@@ -43,6 +46,10 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             PatientHealthOutcomeBatch outboxBatch = Assert.Single(outboxWriter.Batches);
             Assert.Equal(17, outboxBatch.SourceRevision);
             Assert.Equal(CurrentDate, outboxBatch.CurrentDate);
+            PatientCareNeed careNeed = Assert.Single(careNeedRepository.AddedCareNeeds);
+            Assert.Equal(new PatientId(PatientGuid), careNeed.PatientId);
+            Assert.Equal(CareNeedUrgency.Emergency, careNeed.Urgency);
+            Assert.Equal(17, careNeed.LastAssessmentRevision);
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
             Assert.Equal(1, unitOfWork.SaveCount);
         }
@@ -118,6 +125,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
         private static AdvancePatientHealthCommandHandler CreateHandler(
             MedicalRecordRepositoryStub medicalRepository,
             OutcomeOutboxWriterStub outboxWriter,
+            CareNeedRepositoryStub? careNeedRepository = null,
             DateTimeOffset? deletedAtUtc = null,
             HealthcareUnitOfWorkStub? unitOfWork = null,
             PatientProfile? profile = null)
@@ -125,9 +133,11 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             return new AdvancePatientHealthCommandHandler(
                 patientProfileRepository: new PatientProfileRepositoryStub([profile ?? CreateProfile()]),
                 medicalRecordRepository: medicalRepository,
+                patientCareNeedRepository: careNeedRepository ?? new CareNeedRepositoryStub(),
                 deletionRepository: new HealthcareSimulationDeletionRepositoryStub(deletedAtUtc),
                 outcomeOutboxWriter: outboxWriter,
                 progressionPolicy: CreatePolicy(),
+                careNeedAssessmentPolicy: new PatientCareNeedAssessmentPolicy(),
                 unitOfWork: unitOfWork ?? new HealthcareUnitOfWorkStub());
         }
 
@@ -237,6 +247,32 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 CancellationToken cancellationToken = default)
             {
                 Batches.Add(batch);
+                return Task.CompletedTask;
+            }
+        }
+
+        private sealed class CareNeedRepositoryStub(
+            IReadOnlyList<PatientCareNeed>? careNeeds = null) : IPatientCareNeedRepository
+        {
+            private readonly IReadOnlyList<PatientCareNeed> _careNeeds =
+                careNeeds ?? Array.Empty<PatientCareNeed>();
+
+            internal List<PatientCareNeed> AddedCareNeeds { get; } = [];
+            internal int GetCallCount { get; private set; }
+
+            public Task<IReadOnlyList<PatientCareNeed>> GetByPatientIdsAsync(
+                IReadOnlyCollection<PatientId> patientIds,
+                CancellationToken cancellationToken = default)
+            {
+                GetCallCount++;
+                return Task.FromResult(_careNeeds);
+            }
+
+            public Task AddRangeAsync(
+                IReadOnlyCollection<PatientCareNeed> careNeedsToAdd,
+                CancellationToken cancellationToken = default)
+            {
+                AddedCareNeeds.AddRange(careNeedsToAdd);
                 return Task.CompletedTask;
             }
         }
