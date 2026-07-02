@@ -68,6 +68,7 @@ public sealed class PatientCareNeedConfiguration : IEntityTypeConfiguration<Pati
                    careNeed.Urgency,
                    careNeed.RequestedOn
                })
+           .IsDescending(false, false, true, false)
            .HasDatabaseName("ix_healthcare_patient_care_needs_allocation_candidates");
     }
 }

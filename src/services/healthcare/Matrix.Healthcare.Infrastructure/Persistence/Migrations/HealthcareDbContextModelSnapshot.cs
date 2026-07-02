@@ -72,6 +72,59 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Migrations
                     b.ToTable("OutboxMessages", (string)null);
                 });
 
+            modelBuilder.Entity("Matrix.Healthcare.Domain.Care.PatientCareNeed", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<long>("LastAssessmentRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("last_assessment_revision");
+
+                    b.Property<DateTimeOffset>("LastAssessedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_assessed_at_utc");
+
+                    b.Property<long>("LastLifecycleRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("last_lifecycle_revision");
+
+                    b.Property<DateTime>("RequestedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("requested_on");
+
+                    b.Property<DateTime?>("ResolvedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("resolved_on");
+
+                    b.Property<Guid>("SimulationHostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("simulation_host_id");
+
+                    b.Property<int>("Urgency")
+                        .HasColumnType("integer")
+                        .HasColumnName("urgency");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SimulationHostId", "IsActive", "Urgency", "RequestedOn")
+                        .IsDescending(false, false, true, false)
+                        .HasDatabaseName("ix_healthcare_patient_care_needs_allocation_candidates");
+
+                    b.ToTable("healthcare_patient_care_needs", (string)null);
+                });
+
             modelBuilder.Entity("Matrix.Healthcare.Domain.Facilities.CareFacility", b =>
                 {
                     b.Property<Guid>("Id")
