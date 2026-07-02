@@ -1,4 +1,5 @@
 using Matrix.Healthcare.Application.Lifecycle.DeleteHealthcareSimulation;
+using Matrix.Healthcare.Application.Facilities.SynchronizeCareFacilities;
 using Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords;
 using Matrix.Healthcare.Application.Patients.AdvancePatientHealth;
 using Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles;
@@ -12,6 +13,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
         internal List<InitializePatientMedicalRecordsCommand> MedicalCommands { get; } = [];
         internal List<AdvancePatientHealthCommand> HealthProgressionCommands { get; } = [];
         internal List<DeleteHealthcareSimulationCommand> DeletionCommands { get; } = [];
+        internal List<SynchronizeCareFacilitiesCommand> FacilityCommands { get; } = [];
 
         internal SynchronizePatientProfilesResult Result { get; set; } = new(
             Status: SynchronizePatientProfilesStatus.Applied,
@@ -21,6 +23,12 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
 
         internal DeleteHealthcareSimulationResult DeletionResult { get; set; } =
             new(DeleteHealthcareSimulationStatus.Applied);
+
+        internal SynchronizeCareFacilitiesResult FacilityResult { get; set; } = new(
+            Status: SynchronizeCareFacilitiesStatus.Applied,
+            AddedFacilities: 0,
+            UpdatedFacilities: 0,
+            IgnoredFacilities: 0);
 
         internal InitializePatientMedicalRecordsResult MedicalResult { get; set; } = new(
             Status: InitializePatientMedicalRecordsStatus.Applied,
@@ -44,6 +52,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
                 InitializePatientMedicalRecordsCommand command => RecordMedical(command),
                 AdvancePatientHealthCommand command => RecordHealthProgression(command),
                 DeleteHealthcareSimulationCommand command => RecordDeletion(command),
+                SynchronizeCareFacilitiesCommand command => RecordFacilitySynchronization(command),
                 _ => throw new NotSupportedException(request.GetType().FullName)
             };
 
@@ -111,6 +120,13 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
         {
             MedicalCommands.Add(command);
             return MedicalResult;
+        }
+
+        private SynchronizeCareFacilitiesResult RecordFacilitySynchronization(
+            SynchronizeCareFacilitiesCommand command)
+        {
+            FacilityCommands.Add(command);
+            return FacilityResult;
         }
 
         private AdvancePatientHealthResult RecordHealthProgression(AdvancePatientHealthCommand command)
