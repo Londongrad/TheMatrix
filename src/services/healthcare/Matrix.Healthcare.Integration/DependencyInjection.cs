@@ -12,6 +12,8 @@ namespace Matrix.Healthcare.Integration
                 PopulationResidentMedicalStateConsumerDefinition>();
             configurator.AddConsumer<PopulationResidentHealthRiskConsumer,
                 PopulationResidentHealthRiskConsumerDefinition>();
+            configurator.AddConsumer<SimulationCareFacilityProvisioningConsumer,
+                SimulationCareFacilityProvisioningConsumerDefinition>();
             configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
         }
     }
