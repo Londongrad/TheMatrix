@@ -105,5 +105,40 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 
             return Task.CompletedTask;
         }
+
+        public Task AddCareFacilityProvisioningAsync(
+            CareFacilityProvisioningBatch batch,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(batch);
+
+            if (batch.Facilities.Count == 0)
+                return Task.CompletedTask;
+
+            var integrationEvent = new SimulationCareFacilityProvisioningBatchV1(
+                SimulationHostId: batch.SimulationHostId,
+                SourceRevision: batch.SourceRevision,
+                SynchronizedAtUtc: batch.SynchronizedAtUtc,
+                CorrelationId: batch.CorrelationId,
+                BatchNumber: 1,
+                TotalBatches: 1,
+                Facilities: batch.Facilities
+                   .Select(facility => new SimulationCareFacilityProvisioningV1(
+                        FacilityId: facility.FacilityId,
+                        Name: facility.Name,
+                        Kind: facility.Kind,
+                        LocationAnchorId: facility.LocationAnchorId,
+                        DailyPatientCapacity: facility.DailyPatientCapacity,
+                        IsActive: facility.IsActive))
+                   .ToArray());
+
+            dbContext.OutboxMessages.Add(
+                OutboxMessage.Create(
+                    type: SimulationCoreEventTypes.SimulationCareFacilityProvisioningBatchV1,
+                    occurredOnUtc: timeProvider.GetUtcNow().UtcDateTime,
+                    payload: integrationEvent));
+
+            return Task.CompletedTask;
+        }
     }
 }

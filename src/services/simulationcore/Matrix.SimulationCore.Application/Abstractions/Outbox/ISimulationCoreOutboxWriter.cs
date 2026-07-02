@@ -19,5 +19,9 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
             SimulationPhaseKey phaseKey,
             CancellationToken cancellationToken);
 
+        Task AddCareFacilityProvisioningAsync(
+            CareFacilityProvisioningBatch batch,
+            CancellationToken cancellationToken);
+
     }
 }
