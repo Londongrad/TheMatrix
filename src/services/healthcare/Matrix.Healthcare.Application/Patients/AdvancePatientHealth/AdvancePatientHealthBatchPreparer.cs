@@ -41,6 +41,10 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 throw new ArgumentException(
                     message: "Patient health progression batch position metadata is invalid.",
                     paramName: nameof(request.BatchNumber));
+            if (request.TotalBatches > PatientHealthProgressionBatchSet.MaxTotalBatches)
+                throw new ArgumentOutOfRangeException(
+                    paramName: nameof(request.TotalBatches),
+                    message: $"A patient health progression set cannot exceed {PatientHealthProgressionBatchSet.MaxTotalBatches} batches.");
 
             var simulationHostId = new SimulationHostId(request.SimulationHostId);
             var patientIds = new HashSet<PatientId>();
