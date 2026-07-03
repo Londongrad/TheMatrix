@@ -5,5 +5,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         int ProcessedPatients,
         int IgnoredPatients,
         int StalePatients,
-        IReadOnlyList<PatientHealthProgressionResultItem> Outcomes);
+        IReadOnlyList<PatientHealthProgressionResultItem> Outcomes,
+        bool IsBatchSetComplete = false,
+        bool CompletedBatchSetNow = false);
 }

@@ -12,6 +12,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         IPatientProfileRepository patientProfileRepository,
         IPatientMedicalRecordRepository medicalRecordRepository,
         IPatientCareNeedRepository patientCareNeedRepository,
+        IPatientHealthProgressionBatchSetRepository batchSetRepository,
         IHealthcareSimulationDeletionRepository deletionRepository,
         IPatientHealthOutcomeOutboxWriter outcomeOutboxWriter,
         PatientIllnessProgressionPolicy progressionPolicy,
@@ -47,6 +48,44 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     IgnoredPatients: batch.Patients.Count,
                     StalePatients: 0,
                     Outcomes: Array.Empty<PatientHealthProgressionResultItem>());
+
+            PatientHealthProgressionBatchSet? batchSet = await batchSetRepository.GetAsync(
+                batch.SimulationHostId,
+                batch.SourceRevision,
+                cancellationToken);
+            PatientHealthProgressionBatchRegistrationStatus registration;
+            if (batchSet is null)
+            {
+                batchSet = PatientHealthProgressionBatchSet.Start(
+                    simulationHostId: batch.SimulationHostId,
+                    sourceRevision: batch.SourceRevision,
+                    correlationId: batch.CorrelationId,
+                    totalBatches: batch.TotalBatches,
+                    batchNumber: batch.BatchNumber,
+                    receivedAtUtc: batch.ObservedAtUtc);
+                await batchSetRepository.AddAsync(batchSet, cancellationToken);
+                registration = batchSet.IsComplete
+                    ? PatientHealthProgressionBatchRegistrationStatus.Completed
+                    : PatientHealthProgressionBatchRegistrationStatus.Accepted;
+            }
+            else
+            {
+                registration = batchSet.RegisterBatch(
+                    correlationId: batch.CorrelationId,
+                    totalBatches: batch.TotalBatches,
+                    batchNumber: batch.BatchNumber,
+                    receivedAtUtc: batch.ObservedAtUtc);
+            }
+
+            if (registration == PatientHealthProgressionBatchRegistrationStatus.Duplicate)
+                return new AdvancePatientHealthResult(
+                    AdvancePatientHealthStatus.Applied,
+                    ProcessedPatients: 0,
+                    IgnoredPatients: 0,
+                    StalePatients: 0,
+                    Outcomes: Array.Empty<PatientHealthProgressionResultItem>(),
+                    IsBatchSetComplete: batchSet.IsComplete,
+                    CompletedBatchSetNow: false);
 
             IReadOnlyList<PatientProfile> profiles = await patientProfileRepository.GetByIdsAsync(
                 batch.PatientIds,
@@ -148,15 +187,19 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                             Patients: outcomes),
                         cancellationToken);
 
-                await unitOfWork.SaveChangesAsync(cancellationToken);
             }
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new AdvancePatientHealthResult(
                 AdvancePatientHealthStatus.Applied,
                 ProcessedPatients: processedPatients,
                 IgnoredPatients: ignoredPatients,
                 StalePatients: stalePatients,
-                Outcomes: outcomes);
+                Outcomes: outcomes,
+                IsBatchSetComplete: batchSet.IsComplete,
+                CompletedBatchSetNow:
+                    registration == PatientHealthProgressionBatchRegistrationStatus.Completed);
         }
 
         private static void EnsureSameSimulationHost(

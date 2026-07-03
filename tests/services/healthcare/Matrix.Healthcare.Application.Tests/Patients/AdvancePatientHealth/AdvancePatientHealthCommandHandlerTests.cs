@@ -23,11 +23,13 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             var medicalRepository = new MedicalRecordRepositoryStub([record]);
             var outboxWriter = new OutcomeOutboxWriterStub();
             var careNeedRepository = new CareNeedRepositoryStub();
+            var batchSetRepository = new BatchSetRepositoryStub();
             var unitOfWork = new HealthcareUnitOfWorkStub();
             AdvancePatientHealthCommandHandler handler = CreateHandler(
                 medicalRepository,
                 outboxWriter,
                 careNeedRepository,
+                batchSetRepository,
                 unitOfWork: unitOfWork);
 
             AdvancePatientHealthResult result = await handler.Handle(
@@ -50,6 +52,10 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(new PatientId(PatientGuid), careNeed.PatientId);
             Assert.Equal(CareNeedUrgency.Emergency, careNeed.Urgency);
             Assert.Equal(17, careNeed.LastAssessmentRevision);
+            Assert.True(result.IsBatchSetComplete);
+            Assert.True(result.CompletedBatchSetNow);
+            Assert.Equal(1, batchSetRepository.AddCallCount);
+            Assert.True(batchSetRepository.BatchSet!.HasReceivedBatch(1));
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
             Assert.Equal(1, unitOfWork.SaveCount);
         }
@@ -75,7 +81,9 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(1, result.StalePatients);
             Assert.Empty(result.Outcomes);
             Assert.Empty(outboxWriter.Batches);
-            Assert.Equal(0, unitOfWork.SaveCount);
+            Assert.True(result.IsBatchSetComplete);
+            Assert.True(result.CompletedBatchSetNow);
+            Assert.Equal(1, unitOfWork.SaveCount);
             Assert.Equal(70, record.Health.Value);
         }
 
@@ -100,7 +108,9 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(1, result.StalePatients);
             Assert.Equal(100, record.Health.Value);
             Assert.Empty(outboxWriter.Batches);
-            Assert.Equal(0, unitOfWork.SaveCount);
+            Assert.True(result.IsBatchSetComplete);
+            Assert.True(result.CompletedBatchSetNow);
+            Assert.Equal(1, unitOfWork.SaveCount);
         }
 
         [Fact]
@@ -126,6 +136,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             MedicalRecordRepositoryStub medicalRepository,
             OutcomeOutboxWriterStub outboxWriter,
             CareNeedRepositoryStub? careNeedRepository = null,
+            BatchSetRepositoryStub? batchSetRepository = null,
             DateTimeOffset? deletedAtUtc = null,
             HealthcareUnitOfWorkStub? unitOfWork = null,
             PatientProfile? profile = null)
@@ -134,6 +145,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 patientProfileRepository: new PatientProfileRepositoryStub([profile ?? CreateProfile()]),
                 medicalRecordRepository: medicalRepository,
                 patientCareNeedRepository: careNeedRepository ?? new CareNeedRepositoryStub(),
+                batchSetRepository: batchSetRepository ?? new BatchSetRepositoryStub(),
                 deletionRepository: new HealthcareSimulationDeletionRepositoryStub(deletedAtUtc),
                 outcomeOutboxWriter: outboxWriter,
                 progressionPolicy: CreatePolicy(),
@@ -273,6 +285,38 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 CancellationToken cancellationToken = default)
             {
                 AddedCareNeeds.AddRange(careNeedsToAdd);
+                return Task.CompletedTask;
+            }
+        }
+
+        private sealed class BatchSetRepositoryStub(
+            PatientHealthProgressionBatchSet? batchSet = null)
+            : IPatientHealthProgressionBatchSetRepository
+        {
+            internal PatientHealthProgressionBatchSet? BatchSet { get; private set; } = batchSet;
+            internal int GetCallCount { get; private set; }
+            internal int AddCallCount { get; private set; }
+
+            public Task<PatientHealthProgressionBatchSet?> GetAsync(
+                SimulationHostId simulationHostId,
+                long sourceRevision,
+                CancellationToken cancellationToken = default)
+            {
+                GetCallCount++;
+                return Task.FromResult(
+                    BatchSet is not null
+                    && BatchSet.SimulationHostId == simulationHostId
+                    && BatchSet.SourceRevision == sourceRevision
+                        ? BatchSet
+                        : null);
+            }
+
+            public Task AddAsync(
+                PatientHealthProgressionBatchSet batchSetToAdd,
+                CancellationToken cancellationToken = default)
+            {
+                AddCallCount++;
+                BatchSet = batchSetToAdd;
                 return Task.CompletedTask;
             }
         }
