@@ -61,6 +61,7 @@ namespace Matrix.Healthcare.Api.Tests.Configurations
             Assert.NotNull(scopedServices.GetRequiredService<IPatientProfileRepository>());
             Assert.NotNull(scopedServices.GetRequiredService<IPatientMedicalRecordRepository>());
             Assert.NotNull(scopedServices.GetRequiredService<IPatientCareNeedRepository>());
+            Assert.NotNull(scopedServices.GetRequiredService<IPatientHealthProgressionBatchSetRepository>());
             Assert.NotNull(scopedServices.GetRequiredService<ICareFacilityRepository>());
             Assert.NotNull(scopedServices.GetRequiredService<IPatientHealthOutcomeOutboxWriter>());
             Assert.NotNull(scopedServices.GetRequiredService<IHealthcareSimulationDeletionRepository>());
