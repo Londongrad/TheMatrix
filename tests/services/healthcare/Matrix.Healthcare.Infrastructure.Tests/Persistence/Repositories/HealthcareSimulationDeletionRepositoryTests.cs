@@ -1,6 +1,7 @@
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
+using Matrix.Healthcare.Domain.Progression;
 using Matrix.Healthcare.Domain.Simulation;
 using Matrix.Healthcare.Infrastructure.Persistence;
 using Matrix.Healthcare.Infrastructure.Persistence.Repositories;
@@ -31,6 +32,9 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
             dbContext.CareFacilities.AddRange(
                 CreateFacility(deletedHostId),
                 CreateFacility(retainedHostId));
+            dbContext.PatientHealthProgressionBatchSets.AddRange(
+                CreateBatchSet(deletedHostId),
+                CreateBatchSet(retainedHostId));
             await dbContext.SaveChangesAsync();
             var repository = new HealthcareSimulationDeletionRepository(dbContext);
             DateTimeOffset deletedAtUtc = DateTimeOffset.Parse("2048-05-06T10:00:00+00:00");
@@ -59,6 +63,10 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 facility => facility.SimulationHostId == deletedHostId));
             Assert.True(await dbContext.CareFacilities.AnyAsync(
                 facility => facility.SimulationHostId == retainedHostId));
+            Assert.False(await dbContext.PatientHealthProgressionBatchSets.AnyAsync(
+                batchSet => batchSet.SimulationHostId == deletedHostId));
+            Assert.True(await dbContext.PatientHealthProgressionBatchSets.AnyAsync(
+                batchSet => batchSet.SimulationHostId == retainedHostId));
             Assert.Equal(
                 deletedAtUtc,
                 await repository.GetDeletedAtUtcAsync(deletedHostId));
@@ -114,6 +122,18 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 assessmentRevision: 1,
                 lifecycleRevision: 0,
                 assessedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
+        }
+
+        private static PatientHealthProgressionBatchSet CreateBatchSet(
+            SimulationHostId simulationHostId)
+        {
+            return PatientHealthProgressionBatchSet.Start(
+                simulationHostId: simulationHostId,
+                sourceRevision: 17,
+                correlationId: "health-risk:17",
+                totalBatches: 2,
+                batchNumber: 1,
+                receivedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
         }
     }
 }
