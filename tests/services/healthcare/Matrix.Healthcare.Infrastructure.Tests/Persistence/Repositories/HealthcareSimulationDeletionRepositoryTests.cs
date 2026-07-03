@@ -1,3 +1,4 @@
+using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Domain.Simulation;
@@ -24,6 +25,9 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
             dbContext.PatientMedicalRecords.AddRange(
                 CreateMedicalRecord(deletedProfile.PatientId, deletedHostId),
                 CreateMedicalRecord(retainedProfile.PatientId, retainedHostId));
+            dbContext.PatientCareNeeds.AddRange(
+                CreateCareNeed(deletedProfile.PatientId, deletedHostId),
+                CreateCareNeed(retainedProfile.PatientId, retainedHostId));
             dbContext.CareFacilities.AddRange(
                 CreateFacility(deletedHostId),
                 CreateFacility(retainedHostId));
@@ -47,6 +51,10 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 record => record.SimulationHostId == deletedHostId));
             Assert.True(await dbContext.PatientMedicalRecords.AnyAsync(
                 record => record.SimulationHostId == retainedHostId));
+            Assert.False(await dbContext.PatientCareNeeds.AnyAsync(
+                careNeed => careNeed.SimulationHostId == deletedHostId));
+            Assert.True(await dbContext.PatientCareNeeds.AnyAsync(
+                careNeed => careNeed.SimulationHostId == retainedHostId));
             Assert.False(await dbContext.CareFacilities.AnyAsync(
                 facility => facility.SimulationHostId == deletedHostId));
             Assert.True(await dbContext.CareFacilities.AnyAsync(
@@ -92,6 +100,20 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 isActive: true,
                 sourceRevision: 1,
                 synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
+        }
+
+        private static PatientCareNeed CreateCareNeed(
+            PatientId patientId,
+            SimulationHostId simulationHostId)
+        {
+            return PatientCareNeed.Register(
+                patientId: patientId,
+                simulationHostId: simulationHostId,
+                urgency: CareNeedUrgency.Urgent,
+                requestedOn: new DateOnly(2048, 5, 6),
+                assessmentRevision: 1,
+                lifecycleRevision: 0,
+                assessedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
         }
     }
 }
