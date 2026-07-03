@@ -132,6 +132,114 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Empty(outboxWriter.Batches);
         }
 
+        [Fact]
+        public async Task Handle_DuplicateBatch_SkipsPatientQueriesAndPersistence()
+        {
+            PatientHealthProgressionBatchSet batchSet = CreateBatchSet(
+                totalBatches: 2,
+                batchNumber: 1);
+            var medicalRepository = new MedicalRecordRepositoryStub();
+            var outboxWriter = new OutcomeOutboxWriterStub();
+            var careNeedRepository = new CareNeedRepositoryStub();
+            var unitOfWork = new HealthcareUnitOfWorkStub();
+            AdvancePatientHealthCommandHandler handler = CreateHandler(
+                medicalRepository,
+                outboxWriter,
+                careNeedRepository,
+                new BatchSetRepositoryStub(batchSet),
+                unitOfWork: unitOfWork);
+
+            AdvancePatientHealthResult result = await handler.Handle(
+                CreateCommand(sourceRevision: 17, batchNumber: 1, totalBatches: 2),
+                CancellationToken.None);
+
+            Assert.Equal(AdvancePatientHealthStatus.Applied, result.Status);
+            Assert.Equal(0, result.ProcessedPatients);
+            Assert.Equal(0, result.IgnoredPatients);
+            Assert.Equal(0, result.StalePatients);
+            Assert.False(result.IsBatchSetComplete);
+            Assert.False(result.CompletedBatchSetNow);
+            Assert.Equal(0, medicalRepository.GetCallCount);
+            Assert.Equal(0, careNeedRepository.GetCallCount);
+            Assert.Equal(0, unitOfWork.SaveCount);
+        }
+
+        [Fact]
+        public async Task Handle_OutOfOrderLastBatch_CompletesExistingSet()
+        {
+            PatientHealthProgressionBatchSet batchSet = CreateBatchSet(
+                totalBatches: 3,
+                batchNumber: 2);
+            var medicalRepository = new MedicalRecordRepositoryStub();
+            var outboxWriter = new OutcomeOutboxWriterStub();
+            var batchSetRepository = new BatchSetRepositoryStub(batchSet);
+            var unitOfWork = new HealthcareUnitOfWorkStub();
+            AdvancePatientHealthCommandHandler handler = CreateHandler(
+                medicalRepository,
+                outboxWriter,
+                batchSetRepository: batchSetRepository,
+                unitOfWork: unitOfWork);
+
+            AdvancePatientHealthResult first = await handler.Handle(
+                CreateCommand(sourceRevision: 17, batchNumber: 3, totalBatches: 3),
+                CancellationToken.None);
+            AdvancePatientHealthResult completed = await handler.Handle(
+                CreateCommand(sourceRevision: 17, batchNumber: 1, totalBatches: 3),
+                CancellationToken.None);
+
+            Assert.False(first.IsBatchSetComplete);
+            Assert.False(first.CompletedBatchSetNow);
+            Assert.True(completed.IsBatchSetComplete);
+            Assert.True(completed.CompletedBatchSetNow);
+            Assert.Equal(3, batchSet.ReceivedBatchCount);
+            Assert.Equal(2, unitOfWork.SaveCount);
+        }
+
+        [Fact]
+        public async Task Handle_DuplicatePositionWithChangedMetadata_RejectsBeforePatientQueries()
+        {
+            PatientHealthProgressionBatchSet batchSet = CreateBatchSet(
+                totalBatches: 2,
+                batchNumber: 1);
+            var medicalRepository = new MedicalRecordRepositoryStub();
+            var outboxWriter = new OutcomeOutboxWriterStub();
+            var unitOfWork = new HealthcareUnitOfWorkStub();
+            AdvancePatientHealthCommandHandler handler = CreateHandler(
+                medicalRepository,
+                outboxWriter,
+                batchSetRepository: new BatchSetRepositoryStub(batchSet),
+                unitOfWork: unitOfWork);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(
+                CreateCommand(
+                    sourceRevision: 17,
+                    batchNumber: 1,
+                    totalBatches: 2,
+                    correlationId: "changed"),
+                CancellationToken.None));
+
+            Assert.Equal(0, medicalRepository.GetCallCount);
+            Assert.Equal(0, unitOfWork.SaveCount);
+        }
+
+        [Fact]
+        public async Task Handle_ExcessiveBatchSet_DoesNotOpenTransaction()
+        {
+            var unitOfWork = new HealthcareUnitOfWorkStub();
+            AdvancePatientHealthCommandHandler handler = CreateHandler(
+                new MedicalRecordRepositoryStub(),
+                new OutcomeOutboxWriterStub(),
+                unitOfWork: unitOfWork);
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => handler.Handle(
+                CreateCommand(
+                    sourceRevision: 17,
+                    totalBatches: PatientHealthProgressionBatchSet.MaxTotalBatches + 1),
+                CancellationToken.None));
+
+            Assert.Equal(0, unitOfWork.TransactionCount);
+        }
+
         private static AdvancePatientHealthCommandHandler CreateHandler(
             MedicalRecordRepositoryStub medicalRepository,
             OutcomeOutboxWriterStub outboxWriter,
@@ -155,7 +263,10 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
 
         private static AdvancePatientHealthCommand CreateCommand(
             long sourceRevision,
-            long lifecycleRevision = 0)
+            long lifecycleRevision = 0,
+            int batchNumber = 1,
+            int totalBatches = 1,
+            string? correlationId = null)
         {
             return new AdvancePatientHealthCommand(
                 SimulationHostId: HostId,
@@ -163,9 +274,9 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 PreviousDate: CurrentDate.AddDays(-1),
                 CurrentDate: CurrentDate,
                 ObservedAtUtc: DateTimeOffset.Parse("2048-05-06T10:00:00+00:00"),
-                CorrelationId: $"health-risk:{sourceRevision}",
-                BatchNumber: 1,
-                TotalBatches: 1,
+                CorrelationId: correlationId ?? $"health-risk:{sourceRevision}",
+                BatchNumber: batchNumber,
+                TotalBatches: totalBatches,
                 Patients:
                 [
                     new AdvancePatientHealthRiskItem(
@@ -185,6 +296,19 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                         PublicHealthRiskStrength: 1d,
                         LifecycleRevision: lifecycleRevision)
                 ]);
+        }
+
+        private static PatientHealthProgressionBatchSet CreateBatchSet(
+            int totalBatches,
+            int batchNumber)
+        {
+            return PatientHealthProgressionBatchSet.Start(
+                simulationHostId: new SimulationHostId(HostId),
+                sourceRevision: 17,
+                correlationId: "health-risk:17",
+                totalBatches: totalBatches,
+                batchNumber: batchNumber,
+                receivedAtUtc: DateTimeOffset.Parse("2048-05-06T09:59:00+00:00"));
         }
 
         private static PatientProfile CreateProfile(long lifecycleRevision = 0)
