@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Domain;
 
 namespace Matrix.Healthcare.Domain.Patients
 {
-    public readonly record struct PatientId
+    public readonly record struct PatientId : IComparable<PatientId>
     {
         public PatientId(Guid value)
         {
@@ -12,6 +12,8 @@ namespace Matrix.Healthcare.Domain.Patients
         }
 
         public Guid Value { get; }
+
+        public int CompareTo(PatientId other) => Value.CompareTo(other.Value);
 
         public override string ToString() => Value.ToString();
     }

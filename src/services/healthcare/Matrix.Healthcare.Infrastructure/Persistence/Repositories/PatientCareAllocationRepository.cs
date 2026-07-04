@@ -19,7 +19,6 @@ public sealed class PatientCareAllocationRepository(HealthcareDbContext dbContex
            .Where(facility =>
                 facility.SimulationHostId == simulationHostId
                 && facility.IsActive)
-           .OrderBy(facility => facility.Id)
            .ToListAsync(cancellationToken);
     }
 
