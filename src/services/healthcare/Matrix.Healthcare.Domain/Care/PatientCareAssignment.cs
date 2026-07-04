@@ -27,6 +27,7 @@ public sealed class PatientCareAssignment : AggregateRoot<PatientCareAssignmentI
         AssessmentRevision = EnsureRevision(assessmentRevision, nameof(assessmentRevision));
         LifecycleRevision = EnsureRevision(lifecycleRevision, nameof(lifecycleRevision));
         AssignedAtUtc = EnsureUtc(assignedAtUtc);
+        Status = PatientCareAssignmentStatus.Scheduled;
     }
 
     private PatientCareAssignment()
@@ -43,6 +44,12 @@ public sealed class PatientCareAssignment : AggregateRoot<PatientCareAssignmentI
     public long AssessmentRevision { get; private set; }
     public long LifecycleRevision { get; private set; }
     public DateTimeOffset AssignedAtUtc { get; private set; }
+    public PatientCareAssignmentStatus Status { get; private set; }
+    public DateOnly? ClosedOn { get; private set; }
+    public DateTimeOffset? ClosedAtUtc { get; private set; }
+    public PatientCareAssignmentCancellationReason? CancellationReason { get; private set; }
+    public int? TreatmentHealthDelta { get; private set; }
+    public bool? TreatmentMedicalStateChanged { get; private set; }
 
     public static PatientCareAssignment Assign(
         PatientCareAssignmentId id,
@@ -67,6 +74,46 @@ public sealed class PatientCareAssignment : AggregateRoot<PatientCareAssignmentI
             assignedAtUtc);
     }
 
+    public bool TryMarkDelivered(
+        DateOnly deliveredOn,
+        DateTimeOffset deliveredAtUtc,
+        int treatmentHealthDelta,
+        bool treatmentMedicalStateChanged)
+    {
+        DateTimeOffset normalizedTimestamp = EnsureClosure(
+            deliveredOn,
+            deliveredAtUtc);
+        if (Status != PatientCareAssignmentStatus.Scheduled)
+            return false;
+
+        Status = PatientCareAssignmentStatus.Delivered;
+        ClosedOn = deliveredOn;
+        ClosedAtUtc = normalizedTimestamp;
+        TreatmentHealthDelta = treatmentHealthDelta;
+        TreatmentMedicalStateChanged = treatmentMedicalStateChanged;
+        return true;
+    }
+
+    public bool TryCancel(
+        DateOnly cancelledOn,
+        DateTimeOffset cancelledAtUtc,
+        PatientCareAssignmentCancellationReason reason)
+    {
+        DateTimeOffset normalizedTimestamp = EnsureClosure(
+            cancelledOn,
+            cancelledAtUtc);
+        if (!Enum.IsDefined(reason))
+            throw new ArgumentOutOfRangeException(nameof(reason));
+        if (Status != PatientCareAssignmentStatus.Scheduled)
+            return false;
+
+        Status = PatientCareAssignmentStatus.Cancelled;
+        ClosedOn = cancelledOn;
+        ClosedAtUtc = normalizedTimestamp;
+        CancellationReason = reason;
+        return true;
+    }
+
     private static CareNeedUrgency EnsureUrgency(CareNeedUrgency urgency)
     {
         return Enum.IsDefined(urgency)
@@ -88,5 +135,22 @@ public sealed class PatientCareAssignment : AggregateRoot<PatientCareAssignmentI
             : throw new ArgumentException(
                 message: "Patient care assignment timestamps must be expressed in UTC.",
                 paramName: nameof(value));
+    }
+
+    private DateTimeOffset EnsureClosure(
+        DateOnly closedOn,
+        DateTimeOffset closedAtUtc)
+    {
+        DateTimeOffset normalizedTimestamp = EnsureUtc(closedAtUtc);
+        if (closedOn < CareDate)
+            throw new ArgumentOutOfRangeException(
+                paramName: nameof(closedOn),
+                message: "A patient care assignment cannot close before its scheduled date.");
+        if (normalizedTimestamp < AssignedAtUtc)
+            throw new ArgumentOutOfRangeException(
+                paramName: nameof(closedAtUtc),
+                message: "A patient care assignment cannot close before it was assigned.");
+
+        return normalizedTimestamp;
     }
 }
