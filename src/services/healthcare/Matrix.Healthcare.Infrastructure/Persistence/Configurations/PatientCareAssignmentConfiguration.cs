@@ -22,6 +22,23 @@ public sealed class PatientCareAssignmentConfiguration
                 table.HasCheckConstraint(
                     "ck_healthcare_patient_care_assignments_lifecycle_revision",
                     "lifecycle_revision >= 0");
+                table.HasCheckConstraint(
+                    "ck_healthcare_patient_care_assignments_status",
+                    "status BETWEEN 0 AND 2");
+                table.HasCheckConstraint(
+                    "ck_healthcare_patient_care_assignments_cancellation_reason",
+                    "cancellation_reason IS NULL OR cancellation_reason BETWEEN 0 AND 4");
+                table.HasCheckConstraint(
+                    "ck_healthcare_patient_care_assignments_closure",
+                    "(status = 0 AND closed_on IS NULL AND closed_at_utc IS NULL " +
+                    "AND cancellation_reason IS NULL AND treatment_health_delta IS NULL " +
+                    "AND treatment_medical_state_changed IS NULL) OR " +
+                    "(status = 1 AND closed_on IS NOT NULL AND closed_at_utc IS NOT NULL " +
+                    "AND cancellation_reason IS NULL AND treatment_health_delta IS NOT NULL " +
+                    "AND treatment_medical_state_changed IS NOT NULL) OR " +
+                    "(status = 2 AND closed_on IS NOT NULL AND closed_at_utc IS NOT NULL " +
+                    "AND cancellation_reason IS NOT NULL AND treatment_health_delta IS NULL " +
+                    "AND treatment_medical_state_changed IS NULL)");
             });
 
         builder.HasKey(assignment => assignment.Id);
@@ -75,6 +92,29 @@ public sealed class PatientCareAssignmentConfiguration
            .HasColumnName("assigned_at_utc")
            .IsRequired();
 
+        builder.Property(assignment => assignment.Status)
+           .HasConversion<int>()
+           .HasColumnName("status")
+           .HasDefaultValue(PatientCareAssignmentStatus.Scheduled)
+           .IsRequired();
+
+        builder.Property(assignment => assignment.ClosedOn)
+           .HasColumnType("date")
+           .HasColumnName("closed_on");
+
+        builder.Property(assignment => assignment.ClosedAtUtc)
+           .HasColumnName("closed_at_utc");
+
+        builder.Property(assignment => assignment.CancellationReason)
+           .HasConversion<int?>()
+           .HasColumnName("cancellation_reason");
+
+        builder.Property(assignment => assignment.TreatmentHealthDelta)
+           .HasColumnName("treatment_health_delta");
+
+        builder.Property(assignment => assignment.TreatmentMedicalStateChanged)
+           .HasColumnName("treatment_medical_state_changed");
+
         builder.HasIndex(assignment => new
                {
                    assignment.SimulationHostId,
@@ -91,6 +131,15 @@ public sealed class PatientCareAssignmentConfiguration
                    assignment.CareFacilityId
                })
            .HasDatabaseName("ix_healthcare_patient_care_assignments_capacity_usage");
+
+        builder.HasIndex(assignment => new
+               {
+                   assignment.SimulationHostId,
+                   assignment.Status,
+                   assignment.PatientId,
+                   assignment.CareDate
+               })
+           .HasDatabaseName("ix_healthcare_patient_care_assignments_due_lookup");
 
         builder.HasOne<CareFacility>()
            .WithMany()
