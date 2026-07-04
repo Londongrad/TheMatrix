@@ -13,6 +13,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         IPatientMedicalRecordRepository medicalRecordRepository,
         IPatientCareNeedRepository patientCareNeedRepository,
         IPatientHealthProgressionBatchSetRepository batchSetRepository,
+        IPatientCareAllocator careAllocator,
         IHealthcareSimulationDeletionRepository deletionRepository,
         IPatientHealthOutcomeOutboxWriter outcomeOutboxWriter,
         PatientIllnessProgressionPolicy progressionPolicy,
@@ -191,6 +192,18 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
+            int careAssignmentsCreated = 0;
+            if (registration == PatientHealthProgressionBatchRegistrationStatus.Completed)
+            {
+                careAssignmentsCreated = await careAllocator.AllocateAsync(
+                    batch.SimulationHostId,
+                    batch.CurrentDate,
+                    batch.ObservedAtUtc,
+                    cancellationToken);
+                if (careAssignmentsCreated > 0)
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+
             return new AdvancePatientHealthResult(
                 AdvancePatientHealthStatus.Applied,
                 ProcessedPatients: processedPatients,
@@ -199,7 +212,8 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 Outcomes: outcomes,
                 IsBatchSetComplete: batchSet.IsComplete,
                 CompletedBatchSetNow:
-                    registration == PatientHealthProgressionBatchRegistrationStatus.Completed);
+                    registration == PatientHealthProgressionBatchRegistrationStatus.Completed,
+                CareAssignmentsCreated: careAssignmentsCreated);
         }
 
         private static void EnsureSameSimulationHost(

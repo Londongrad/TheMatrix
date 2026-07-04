@@ -88,6 +88,30 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
         }
 
         [Fact]
+        public async Task Handle_CompletedBatch_AllocatesCareAfterProgressionIsPersisted()
+        {
+            PatientMedicalRecord record = CreateMedicalRecord(health: 2);
+            var unitOfWork = new HealthcareUnitOfWorkStub();
+            var careAllocator = new CareAllocatorStub(
+                assignmentsCreated: 2,
+                saveCount: () => unitOfWork.SaveCount);
+            AdvancePatientHealthCommandHandler handler = CreateHandler(
+                new MedicalRecordRepositoryStub([record]),
+                new OutcomeOutboxWriterStub(),
+                careAllocator: careAllocator,
+                unitOfWork: unitOfWork);
+
+            AdvancePatientHealthResult result = await handler.Handle(
+                CreateCommand(sourceRevision: 17),
+                CancellationToken.None);
+
+            Assert.Equal(1, careAllocator.CallCount);
+            Assert.Equal(1, careAllocator.SaveCountAtCall);
+            Assert.Equal(2, result.CareAssignmentsCreated);
+            Assert.Equal(2, unitOfWork.SaveCount);
+        }
+
+        [Fact]
         public async Task Handle_StaleLifecycleRisk_DoesNotOverrideLifecycleSnapshot()
         {
             PatientMedicalRecord record = CreateMedicalRecord(health: 100, lifecycleRevision: 1);
@@ -173,11 +197,13 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             var medicalRepository = new MedicalRecordRepositoryStub();
             var outboxWriter = new OutcomeOutboxWriterStub();
             var batchSetRepository = new BatchSetRepositoryStub(batchSet);
+            var careAllocator = new CareAllocatorStub();
             var unitOfWork = new HealthcareUnitOfWorkStub();
             AdvancePatientHealthCommandHandler handler = CreateHandler(
                 medicalRepository,
                 outboxWriter,
                 batchSetRepository: batchSetRepository,
+                careAllocator: careAllocator,
                 unitOfWork: unitOfWork);
 
             AdvancePatientHealthResult first = await handler.Handle(
@@ -192,6 +218,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.True(completed.IsBatchSetComplete);
             Assert.True(completed.CompletedBatchSetNow);
             Assert.Equal(3, batchSet.ReceivedBatchCount);
+            Assert.Equal(1, careAllocator.CallCount);
             Assert.Equal(2, unitOfWork.SaveCount);
         }
 
@@ -245,6 +272,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             OutcomeOutboxWriterStub outboxWriter,
             CareNeedRepositoryStub? careNeedRepository = null,
             BatchSetRepositoryStub? batchSetRepository = null,
+            CareAllocatorStub? careAllocator = null,
             DateTimeOffset? deletedAtUtc = null,
             HealthcareUnitOfWorkStub? unitOfWork = null,
             PatientProfile? profile = null)
@@ -254,6 +282,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 medicalRecordRepository: medicalRepository,
                 patientCareNeedRepository: careNeedRepository ?? new CareNeedRepositoryStub(),
                 batchSetRepository: batchSetRepository ?? new BatchSetRepositoryStub(),
+                careAllocator: careAllocator ?? new CareAllocatorStub(),
                 deletionRepository: new HealthcareSimulationDeletionRepositoryStub(deletedAtUtc),
                 outcomeOutboxWriter: outboxWriter,
                 progressionPolicy: CreatePolicy(),
@@ -442,6 +471,25 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 AddCallCount++;
                 BatchSet = batchSetToAdd;
                 return Task.CompletedTask;
+            }
+        }
+
+        private sealed class CareAllocatorStub(
+            int assignmentsCreated = 0,
+            Func<int>? saveCount = null) : IPatientCareAllocator
+        {
+            internal int CallCount { get; private set; }
+            internal int? SaveCountAtCall { get; private set; }
+
+            public Task<int> AllocateAsync(
+                SimulationHostId simulationHostId,
+                DateOnly careDate,
+                DateTimeOffset assignedAtUtc,
+                CancellationToken cancellationToken = default)
+            {
+                CallCount++;
+                SaveCountAtCall = saveCount?.Invoke();
+                return Task.FromResult(assignmentsCreated);
             }
         }
     }
