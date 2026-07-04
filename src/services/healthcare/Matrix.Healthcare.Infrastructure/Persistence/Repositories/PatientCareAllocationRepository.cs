@@ -52,10 +52,22 @@ public sealed class PatientCareAllocationRepository(HealthcareDbContext dbContex
         int maximumCount,
         CancellationToken cancellationToken = default)
     {
+        return await BuildUnassignedCareNeedsQuery(
+                simulationHostId,
+                careDate,
+                maximumCount)
+           .ToListAsync(cancellationToken);
+    }
+
+    internal IQueryable<PatientCareNeed> BuildUnassignedCareNeedsQuery(
+        SimulationHostId simulationHostId,
+        DateOnly careDate,
+        int maximumCount)
+    {
         if (maximumCount <= 0)
             throw new ArgumentOutOfRangeException(nameof(maximumCount));
 
-        return await dbContext.PatientCareNeeds
+        return dbContext.PatientCareNeeds
            .AsNoTracking()
            .Where(careNeed =>
                 careNeed.SimulationHostId == simulationHostId
@@ -67,8 +79,7 @@ public sealed class PatientCareAllocationRepository(HealthcareDbContext dbContex
            .OrderByDescending(careNeed => careNeed.Urgency)
            .ThenBy(careNeed => careNeed.RequestedOn)
            .ThenBy(careNeed => careNeed.Id)
-           .Take(maximumCount)
-           .ToListAsync(cancellationToken);
+           .Take(maximumCount);
     }
 
     public Task AddRangeAsync(

@@ -191,6 +191,29 @@ public sealed class PatientCareAllocationRepositoryTests
         Assert.Equal(facility.CareFacilityId, persisted.CareFacilityId);
     }
 
+    [Fact]
+    public void UnassignedCareNeedsQuery_TranslatesFilteringOrderingAndLimitToPostgreSql()
+    {
+        DbContextOptions<HealthcareDbContext> options =
+            new DbContextOptionsBuilder<HealthcareDbContext>()
+               .UseNpgsql("Host=localhost;Database=healthcare_translation_test;Username=test;Password=test")
+               .Options;
+        using var dbContext = new HealthcareDbContext(options);
+        var repository = new PatientCareAllocationRepository(dbContext);
+
+        string sql = repository.BuildUnassignedCareNeedsQuery(
+                SimulationHostId,
+                CareDate,
+                maximumCount: 250)
+           .ToQueryString();
+
+        Assert.Contains("NOT EXISTS", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ORDER BY", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("urgency", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("requested_on", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LIMIT", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static CareFacility CreateFacility(
         SimulationHostId simulationHostId,
         string facilityId,
