@@ -8,5 +8,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         IReadOnlyList<PatientHealthProgressionResultItem> Outcomes,
         bool IsBatchSetComplete = false,
         bool CompletedBatchSetNow = false,
-        int CareAssignmentsCreated = 0);
+        int CareAssignmentsCreated = 0,
+        int CareAssignmentsDelivered = 0,
+        int CareAssignmentsCancelled = 0);
 }

@@ -1,8 +1,10 @@
 using System.Data;
 using Matrix.Healthcare.Application.Abstractions;
+using Matrix.Healthcare.Application.Care.DeliverPatientCare;
 using Matrix.Healthcare.Application.Patients.AdvancePatientHealth;
 using Matrix.Healthcare.Application.Tests.TestSupport;
 using Matrix.Healthcare.Domain.Care;
+using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Domain.Progression;
 using Matrix.Healthcare.Domain.Simulation;
@@ -109,6 +111,62 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(1, careAllocator.SaveCountAtCall);
             Assert.Equal(2, result.CareAssignmentsCreated);
             Assert.Equal(2, unitOfWork.SaveCount);
+        }
+
+        [Fact]
+        public async Task Handle_DueAssignment_DeliversCareAndPublishesConsolidatedOutcome()
+        {
+            PatientMedicalRecord record = CreateMedicalRecord(health: 50);
+            PatientCareNeed careNeed = PatientCareNeed.Register(
+                new PatientId(PatientGuid),
+                new SimulationHostId(HostId),
+                CareNeedUrgency.Acute,
+                requestedOn: CurrentDate.AddDays(-1),
+                assessmentRevision: 16,
+                lifecycleRevision: 0,
+                assessedAtUtc: DateTimeOffset.Parse("2048-05-05T10:00:00+00:00"));
+            var facilityId = new CareFacilityId(
+                Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff"));
+            CareFacility facility = CareFacility.Register(
+                facilityId,
+                new SimulationHostId(HostId),
+                "Central Hospital",
+                new CareFacilityKindKey("Hospital"),
+                locationAnchorId: null,
+                dailyPatientCapacity: 20,
+                isActive: true,
+                sourceRevision: 7,
+                synchronizedAtUtc: DateTimeOffset.Parse("2048-05-05T10:00:00+00:00"));
+            PatientCareAssignment assignment = PatientCareAssignment.Assign(
+                PatientCareAssignmentId.New(),
+                new SimulationHostId(HostId),
+                new PatientId(PatientGuid),
+                facilityId,
+                CurrentDate,
+                CareNeedUrgency.Acute,
+                assessmentRevision: 16,
+                lifecycleRevision: 0,
+                assignedAtUtc: DateTimeOffset.Parse("2048-05-05T10:00:00+00:00"));
+            var outboxWriter = new OutcomeOutboxWriterStub();
+            AdvancePatientHealthCommandHandler handler = CreateHandler(
+                new MedicalRecordRepositoryStub([record]),
+                outboxWriter,
+                careNeedRepository: new CareNeedRepositoryStub([careNeed]),
+                careAssignmentRepository: new CareAssignmentRepositoryStub([assignment]),
+                careFacilityRepository: new CareFacilityRepositoryStub([facility]));
+
+            AdvancePatientHealthResult result = await handler.Handle(
+                CreateCommand(sourceRevision: 17),
+                CancellationToken.None);
+
+            PatientHealthProgressionResultItem outcome = Assert.Single(result.Outcomes);
+            Assert.Equal(1, result.CareAssignmentsDelivered);
+            Assert.Equal(0, result.CareAssignmentsCancelled);
+            Assert.Equal(PatientCareAssignmentStatus.Delivered, assignment.Status);
+            Assert.Equal(6, assignment.TreatmentHealthDelta);
+            Assert.Equal(record.Health.Value - 50, outcome.HealthDelta);
+            Assert.Equal(IllnessSeverity.Moderate, outcome.CurrentIllnessSeverity);
+            Assert.Single(outboxWriter.Batches);
         }
 
         [Fact]
@@ -273,6 +331,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             CareNeedRepositoryStub? careNeedRepository = null,
             BatchSetRepositoryStub? batchSetRepository = null,
             CareAllocatorStub? careAllocator = null,
+            CareAssignmentRepositoryStub? careAssignmentRepository = null,
+            CareFacilityRepositoryStub? careFacilityRepository = null,
             DateTimeOffset? deletedAtUtc = null,
             HealthcareUnitOfWorkStub? unitOfWork = null,
             PatientProfile? profile = null)
@@ -281,12 +341,18 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 patientProfileRepository: new PatientProfileRepositoryStub([profile ?? CreateProfile()]),
                 medicalRecordRepository: medicalRepository,
                 patientCareNeedRepository: careNeedRepository ?? new CareNeedRepositoryStub(),
+                patientCareAssignmentRepository: careAssignmentRepository
+                                                 ?? new CareAssignmentRepositoryStub(),
+                careFacilityRepository: careFacilityRepository
+                                        ?? new CareFacilityRepositoryStub(),
                 batchSetRepository: batchSetRepository ?? new BatchSetRepositoryStub(),
                 careAllocator: careAllocator ?? new CareAllocatorStub(),
                 deletionRepository: new HealthcareSimulationDeletionRepositoryStub(deletedAtUtc),
                 outcomeOutboxWriter: outboxWriter,
                 progressionPolicy: CreatePolicy(),
                 careNeedAssessmentPolicy: new PatientCareNeedAssessmentPolicy(),
+                careDeliveryService: new PatientCareDeliveryService(
+                    new PatientCareTreatmentPolicy()),
                 unitOfWork: unitOfWork ?? new HealthcareUnitOfWorkStub());
         }
 
@@ -471,6 +537,44 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 AddCallCount++;
                 BatchSet = batchSetToAdd;
                 return Task.CompletedTask;
+            }
+        }
+
+        private sealed class CareAssignmentRepositoryStub(
+            IReadOnlyList<PatientCareAssignment>? assignments = null)
+            : IPatientCareAssignmentRepository
+        {
+            private readonly IReadOnlyList<PatientCareAssignment> _assignments =
+                assignments ?? Array.Empty<PatientCareAssignment>();
+
+            public Task<IReadOnlyList<PatientCareAssignment>> GetDueScheduledByPatientIdsAsync(
+                SimulationHostId simulationHostId,
+                IReadOnlyCollection<PatientId> patientIds,
+                DateOnly dueThroughDate,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(_assignments);
+            }
+        }
+
+        private sealed class CareFacilityRepositoryStub(
+            IReadOnlyList<CareFacility>? facilities = null) : ICareFacilityRepository
+        {
+            private readonly IReadOnlyList<CareFacility> _facilities =
+                facilities ?? Array.Empty<CareFacility>();
+
+            public Task<IReadOnlyList<CareFacility>> GetByIdsAsync(
+                IReadOnlyCollection<CareFacilityId> facilityIds,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(_facilities);
+            }
+
+            public Task AddRangeAsync(
+                IReadOnlyCollection<CareFacility> facilities,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
             }
         }
 

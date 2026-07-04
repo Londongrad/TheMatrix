@@ -1,6 +1,8 @@
 using System.Data;
 using Matrix.Healthcare.Application.Abstractions;
+using Matrix.Healthcare.Application.Care.DeliverPatientCare;
 using Matrix.Healthcare.Domain.Care;
+using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Domain.Progression;
 using Matrix.Healthcare.Domain.Simulation;
@@ -12,12 +14,15 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         IPatientProfileRepository patientProfileRepository,
         IPatientMedicalRecordRepository medicalRecordRepository,
         IPatientCareNeedRepository patientCareNeedRepository,
+        IPatientCareAssignmentRepository patientCareAssignmentRepository,
+        ICareFacilityRepository careFacilityRepository,
         IPatientHealthProgressionBatchSetRepository batchSetRepository,
         IPatientCareAllocator careAllocator,
         IHealthcareSimulationDeletionRepository deletionRepository,
         IPatientHealthOutcomeOutboxWriter outcomeOutboxWriter,
         PatientIllnessProgressionPolicy progressionPolicy,
         PatientCareNeedAssessmentPolicy careNeedAssessmentPolicy,
+        PatientCareDeliveryService careDeliveryService,
         IHealthcareUnitOfWork unitOfWork)
         : IRequestHandler<AdvancePatientHealthCommand, AdvancePatientHealthResult>
     {
@@ -97,23 +102,46 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
             IReadOnlyList<PatientCareNeed> careNeeds = await patientCareNeedRepository.GetByPatientIdsAsync(
                 batch.PatientIds,
                 cancellationToken);
+            IReadOnlyList<PatientCareAssignment> careAssignments =
+                await patientCareAssignmentRepository.GetDueScheduledByPatientIdsAsync(
+                    batch.SimulationHostId,
+                    batch.PatientIds,
+                    batch.CurrentDate,
+                    cancellationToken);
+            IReadOnlyList<CareFacility> careFacilities = careAssignments.Count == 0
+                ? []
+                : await careFacilityRepository.GetByIdsAsync(
+                    careAssignments
+                       .Select(assignment => assignment.CareFacilityId)
+                       .Distinct()
+                       .ToArray(),
+                    cancellationToken);
             Dictionary<PatientId, PatientProfile> profilesById = profiles.ToDictionary(
                 profile => profile.PatientId);
             Dictionary<PatientId, PatientMedicalRecord> recordsById = records.ToDictionary(
                 record => record.PatientId);
             Dictionary<PatientId, PatientCareNeed> careNeedsByPatientId = careNeeds.ToDictionary(
                 careNeed => careNeed.PatientId);
+            Dictionary<PatientId, PatientCareAssignment> careAssignmentsByPatientId =
+                careAssignments.ToDictionary(assignment => assignment.PatientId);
+            Dictionary<CareFacilityId, CareFacility> careFacilitiesById = careFacilities.ToDictionary(
+                facility => facility.CareFacilityId);
             var addedCareNeeds = new List<PatientCareNeed>();
             var outcomes = new List<PatientHealthProgressionResultItem>();
             int processedPatients = 0;
             int ignoredPatients = 0;
             int stalePatients = 0;
+            int careAssignmentsDelivered = 0;
+            int careAssignmentsCancelled = 0;
 
             foreach (PreparedPatientHealthRisk patient in batch.Patients)
             {
+                careAssignmentsByPatientId.TryGetValue(
+                    patient.PatientId,
+                    out PatientCareAssignment? careAssignment);
+
                 if (!profilesById.TryGetValue(patient.PatientId, out PatientProfile? profile)
-                    || !recordsById.TryGetValue(patient.PatientId, out PatientMedicalRecord? record)
-                    || !profile.IsEligibleForCare)
+                    || !recordsById.TryGetValue(patient.PatientId, out PatientMedicalRecord? record))
                 {
                     ignoredPatients++;
                     continue;
@@ -121,9 +149,29 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
 
                 EnsureSameSimulationHost(batch.SimulationHostId, profile, record);
 
+                if (!profile.IsEligibleForCare)
+                {
+                    if (TryCancelAssignment(
+                            careAssignment,
+                            batch.CurrentDate,
+                            batch.ObservedAtUtc,
+                            PatientCareAssignmentCancellationReason.PatientIneligible))
+                        careAssignmentsCancelled++;
+
+                    ignoredPatients++;
+                    continue;
+                }
+
                 if (patient.LifecycleRevision != profile.LastLifecycleRevision
                     || patient.LifecycleRevision != record.LastLifecycleRevision)
                 {
+                    if (TryCancelAssignment(
+                            careAssignment,
+                            batch.CurrentDate,
+                            batch.ObservedAtUtc,
+                            PatientCareAssignmentCancellationReason.PatientLifecycleChanged))
+                        careAssignmentsCancelled++;
+
                     stalePatients++;
                     continue;
                 }
@@ -141,8 +189,37 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     batch.PreviousDate,
                     batch.CurrentDate);
 
-                if (outcome.HasAnyEffect)
-                    outcomes.Add(MapOutcome(record, outcome, patient.LifecycleRevision));
+                PatientCareTreatmentOutcome? treatmentOutcome = null;
+                if (careAssignment is not null)
+                {
+                    careNeedsByPatientId.TryGetValue(
+                        patient.PatientId,
+                        out PatientCareNeed? careNeedForDelivery);
+                    careFacilitiesById.TryGetValue(
+                        careAssignment.CareFacilityId,
+                        out CareFacility? careFacility);
+                    PatientCareDeliveryResult delivery = careDeliveryService.Deliver(
+                        careAssignment,
+                        batch.SimulationHostId,
+                        patient.LifecycleRevision,
+                        record,
+                        careNeedForDelivery,
+                        careFacility,
+                        batch.CurrentDate,
+                        batch.ObservedAtUtc);
+                    treatmentOutcome = delivery.TreatmentOutcome;
+                    if (delivery.Delivered)
+                        careAssignmentsDelivered++;
+                    else if (delivery.Cancelled)
+                        careAssignmentsCancelled++;
+                }
+
+                if (outcome.HasAnyEffect || treatmentOutcome?.HasAnyEffect == true)
+                    outcomes.Add(MapOutcome(
+                        record,
+                        outcome,
+                        treatmentOutcome,
+                        patient.LifecycleRevision));
 
                 PatientCareNeedAssessment assessment = careNeedAssessmentPolicy.Assess(record);
                 if (careNeedsByPatientId.TryGetValue(patient.PatientId, out PatientCareNeed? careNeed))
@@ -213,7 +290,9 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 IsBatchSetComplete: batchSet.IsComplete,
                 CompletedBatchSetNow:
                     registration == PatientHealthProgressionBatchRegistrationStatus.Completed,
-                CareAssignmentsCreated: careAssignmentsCreated);
+                CareAssignmentsCreated: careAssignmentsCreated,
+                CareAssignmentsDelivered: careAssignmentsDelivered,
+                CareAssignmentsCancelled: careAssignmentsCancelled);
         }
 
         private static void EnsureSameSimulationHost(
@@ -229,6 +308,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         private static PatientHealthProgressionResultItem MapOutcome(
             PatientMedicalRecord record,
             PatientIllnessProgressionOutcome outcome,
+            PatientCareTreatmentOutcome? treatmentOutcome,
             long lifecycleRevision)
         {
             return new PatientHealthProgressionResultItem(
@@ -238,12 +318,24 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 CurrentIllnessSeverity: record.Illness.CurrentSeverity,
                 DiagnosedOn: record.Illness.DiagnosedOn,
                 LastRecoveredOn: record.Illness.LastRecoveredOn,
-                HealthDelta: outcome.HealthDelta,
+                HealthDelta: checked(outcome.HealthDelta + (treatmentOutcome?.HealthDelta ?? 0)),
                 HappinessDelta: outcome.HappinessDelta,
                 EnergyDelta: outcome.EnergyDelta,
                 StressDelta: outcome.StressDelta,
                 BecameCritical: outcome.BecameCritical,
                 LifecycleRevision: lifecycleRevision);
+        }
+
+        private static bool TryCancelAssignment(
+            PatientCareAssignment? assignment,
+            DateOnly cancelledOn,
+            DateTimeOffset cancelledAtUtc,
+            PatientCareAssignmentCancellationReason reason)
+        {
+            return assignment?.TryCancel(
+                cancelledOn,
+                cancelledAtUtc,
+                reason) == true;
         }
 
     }
