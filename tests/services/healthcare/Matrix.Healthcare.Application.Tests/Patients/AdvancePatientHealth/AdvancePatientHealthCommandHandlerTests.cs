@@ -109,6 +109,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
 
             Assert.Equal(1, careAllocator.CallCount);
             Assert.Equal(1, careAllocator.SaveCountAtCall);
+            Assert.Equal(CurrentDate.AddDays(1), careAllocator.CareDateAtCall);
             Assert.Equal(2, result.CareAssignmentsCreated);
             Assert.Equal(2, unitOfWork.SaveCount);
         }
@@ -584,6 +585,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
         {
             internal int CallCount { get; private set; }
             internal int? SaveCountAtCall { get; private set; }
+            internal DateOnly? CareDateAtCall { get; private set; }
 
             public Task<int> AllocateAsync(
                 SimulationHostId simulationHostId,
@@ -593,6 +595,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             {
                 CallCount++;
                 SaveCountAtCall = saveCount?.Invoke();
+                CareDateAtCall = careDate;
                 return Task.FromResult(assignmentsCreated);
             }
         }

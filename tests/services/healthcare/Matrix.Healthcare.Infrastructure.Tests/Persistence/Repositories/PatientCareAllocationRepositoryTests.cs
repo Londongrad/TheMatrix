@@ -111,6 +111,11 @@ public sealed class PatientCareAllocationRepositoryTests
             "20000000-0000-0000-0000-000000000003",
             CareNeedUrgency.Urgent,
             CareDate.AddDays(-2));
+        PatientCareNeed scheduledForTomorrow = CreateCareNeed(
+            SimulationHostId,
+            "20000000-0000-0000-0000-000000000007",
+            CareNeedUrgency.Emergency,
+            CareDate);
         PatientCareNeed newerUrgent = CreateCareNeed(
             SimulationHostId,
             "20000000-0000-0000-0000-000000000004",
@@ -138,6 +143,7 @@ public sealed class PatientCareAllocationRepositoryTests
             newerUrgent,
             resolved,
             assignedEmergency,
+            scheduledForTomorrow,
             foreign,
             oldestUrgent,
             emergency);
@@ -146,6 +152,11 @@ public sealed class PatientCareAllocationRepositoryTests
             facility.CareFacilityId,
             assignedEmergency.PatientId.Value,
             CareDate));
+        dbContext.PatientCareAssignments.Add(CreateAssignment(
+            SimulationHostId,
+            facility.CareFacilityId,
+            scheduledForTomorrow.PatientId.Value,
+            CareDate.AddDays(1)));
         await dbContext.SaveChangesAsync();
         dbContext.ChangeTracker.Clear();
         var repository = new PatientCareAllocationRepository(dbContext);
@@ -208,6 +219,7 @@ public sealed class PatientCareAllocationRepositoryTests
            .ToQueryString();
 
         Assert.Contains("NOT EXISTS", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("status", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("ORDER BY", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("urgency", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("requested_on", sql, StringComparison.OrdinalIgnoreCase);

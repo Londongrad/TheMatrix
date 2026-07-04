@@ -72,10 +72,11 @@ public sealed class PatientCareAllocationRepository(HealthcareDbContext dbContex
            .Where(careNeed =>
                 careNeed.SimulationHostId == simulationHostId
                 && careNeed.IsActive
+                && careNeed.RequestedOn <= careDate
                 && !dbContext.PatientCareAssignments.Any(assignment =>
                     assignment.SimulationHostId == simulationHostId
                     && assignment.PatientId == careNeed.Id
-                    && assignment.CareDate == careDate))
+                    && assignment.Status == PatientCareAssignmentStatus.Scheduled))
            .OrderByDescending(careNeed => careNeed.Urgency)
            .ThenBy(careNeed => careNeed.RequestedOn)
            .ThenBy(careNeed => careNeed.Id)

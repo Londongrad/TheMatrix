@@ -274,7 +274,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
             {
                 careAssignmentsCreated = await careAllocator.AllocateAsync(
                     batch.SimulationHostId,
-                    batch.CurrentDate,
+                    batch.CurrentDate.AddDays(1),
                     batch.ObservedAtUtc,
                     cancellationToken);
                 if (careAssignmentsCreated > 0)
