@@ -1,4 +1,6 @@
 using System.Reflection;
+using Matrix.Healthcare.Application.Abstractions;
+using Matrix.Healthcare.Application.Care.AllocatePatientCare;
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Progression;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +20,8 @@ namespace Matrix.Healthcare.Application
             services.AddSingleton<PatientIllnessBurdenPolicy>();
             services.AddSingleton<PatientIllnessProgressionPolicy>();
             services.AddSingleton<PatientCareNeedAssessmentPolicy>();
+            services.AddSingleton<PatientCareAllocationPolicy>();
+            services.AddScoped<IPatientCareAllocator, PatientCareAllocator>();
         }
     }
 }
