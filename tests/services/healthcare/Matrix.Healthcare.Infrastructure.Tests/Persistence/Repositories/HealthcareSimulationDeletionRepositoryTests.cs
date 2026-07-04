@@ -29,9 +29,12 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
             dbContext.PatientCareNeeds.AddRange(
                 CreateCareNeed(deletedProfile.PatientId, deletedHostId),
                 CreateCareNeed(retainedProfile.PatientId, retainedHostId));
-            dbContext.CareFacilities.AddRange(
-                CreateFacility(deletedHostId),
-                CreateFacility(retainedHostId));
+            CareFacility deletedFacility = CreateFacility(deletedHostId);
+            CareFacility retainedFacility = CreateFacility(retainedHostId);
+            dbContext.CareFacilities.AddRange(deletedFacility, retainedFacility);
+            dbContext.PatientCareAssignments.AddRange(
+                CreateAssignment(deletedProfile.PatientId, deletedHostId, deletedFacility.CareFacilityId),
+                CreateAssignment(retainedProfile.PatientId, retainedHostId, retainedFacility.CareFacilityId));
             dbContext.PatientHealthProgressionBatchSets.AddRange(
                 CreateBatchSet(deletedHostId),
                 CreateBatchSet(retainedHostId));
@@ -63,6 +66,10 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 facility => facility.SimulationHostId == deletedHostId));
             Assert.True(await dbContext.CareFacilities.AnyAsync(
                 facility => facility.SimulationHostId == retainedHostId));
+            Assert.False(await dbContext.PatientCareAssignments.AnyAsync(
+                assignment => assignment.SimulationHostId == deletedHostId));
+            Assert.True(await dbContext.PatientCareAssignments.AnyAsync(
+                assignment => assignment.SimulationHostId == retainedHostId));
             Assert.False(await dbContext.PatientHealthProgressionBatchSets.AnyAsync(
                 batchSet => batchSet.SimulationHostId == deletedHostId));
             Assert.True(await dbContext.PatientHealthProgressionBatchSets.AnyAsync(
@@ -134,6 +141,23 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 totalBatches: 2,
                 batchNumber: 1,
                 receivedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
+        }
+
+        private static PatientCareAssignment CreateAssignment(
+            PatientId patientId,
+            SimulationHostId simulationHostId,
+            CareFacilityId careFacilityId)
+        {
+            return PatientCareAssignment.Assign(
+                id: PatientCareAssignmentId.New(),
+                simulationHostId: simulationHostId,
+                patientId: patientId,
+                careFacilityId: careFacilityId,
+                careDate: new DateOnly(2048, 5, 6),
+                urgency: CareNeedUrgency.Urgent,
+                assessmentRevision: 17,
+                lifecycleRevision: 0,
+                assignedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
         }
     }
 }

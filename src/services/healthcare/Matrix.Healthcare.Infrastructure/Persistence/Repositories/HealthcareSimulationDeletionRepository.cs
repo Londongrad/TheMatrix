@@ -25,6 +25,9 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Repositories
         {
             if (dbContext.Database.IsRelational())
             {
+                await dbContext.PatientCareAssignments
+                   .Where(assignment => assignment.SimulationHostId == simulationHostId)
+                   .ExecuteDeleteAsync(cancellationToken);
                 await dbContext.PatientHealthProgressionBatchSets
                    .Where(batchSet => batchSet.SimulationHostId == simulationHostId)
                    .ExecuteDeleteAsync(cancellationToken);
@@ -43,6 +46,9 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Repositories
                 return;
             }
 
+            dbContext.PatientCareAssignments.RemoveRange(
+                dbContext.PatientCareAssignments.Where(assignment =>
+                    assignment.SimulationHostId == simulationHostId));
             dbContext.PatientHealthProgressionBatchSets.RemoveRange(
                 dbContext.PatientHealthProgressionBatchSets.Where(batchSet =>
                     batchSet.SimulationHostId == simulationHostId));
