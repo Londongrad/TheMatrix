@@ -92,6 +92,24 @@ namespace Matrix.Healthcare.Domain.Patients
                 lastRecoveredOn: LastRecoveredOn);
         }
 
+        public PatientIllnessState ImproveTo(IllnessSeverity severity)
+        {
+            EnsureDefined(severity, nameof(severity));
+
+            if (!HasActiveIllness)
+                return this;
+
+            IllnessSeverity resolvedSeverity = CurrentSeverity!.Value < severity
+                ? CurrentSeverity.Value
+                : severity;
+
+            return Active(
+                kind: CurrentKind!.Value,
+                severity: resolvedSeverity,
+                diagnosedOn: DiagnosedOn!.Value,
+                lastRecoveredOn: LastRecoveredOn);
+        }
+
         public PatientIllnessState Recover(DateOnly currentDate)
         {
             if (DiagnosedOn.HasValue && currentDate < DiagnosedOn.Value)

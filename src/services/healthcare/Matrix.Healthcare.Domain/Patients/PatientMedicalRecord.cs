@@ -101,6 +101,11 @@ namespace Matrix.Healthcare.Domain.Patients
             Illness = Illness.ProgressTo(severity);
         }
 
+        public void ImproveIllness(IllnessSeverity severity)
+        {
+            Illness = Illness.ImproveTo(severity);
+        }
+
         public void RecoverFromIllness(DateOnly currentDate)
         {
             Illness = Illness.Recover(currentDate);
