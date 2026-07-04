@@ -15,6 +15,8 @@ namespace Matrix.Healthcare.Infrastructure.Persistence
         public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
         public DbSet<PatientMedicalRecord> PatientMedicalRecords => Set<PatientMedicalRecord>();
         public DbSet<PatientCareNeed> PatientCareNeeds => Set<PatientCareNeed>();
+        public DbSet<PatientCareAssignment> PatientCareAssignments =>
+            Set<PatientCareAssignment>();
         public DbSet<PatientHealthProgressionBatchSet> PatientHealthProgressionBatchSets =>
             Set<PatientHealthProgressionBatchSet>();
         public DbSet<CareFacility> CareFacilities => Set<CareFacility>();
