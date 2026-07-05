@@ -2,6 +2,7 @@ using Matrix.Healthcare.Application.Care.DeliverPatientCare;
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
+using Matrix.Healthcare.Domain.Operations;
 using Matrix.Healthcare.Domain.Simulation;
 using Xunit;
 
@@ -115,6 +116,34 @@ public sealed class PatientCareDeliveryServiceTests
         Assert.Equal(
             PatientCareAssignmentCancellationReason.FacilityUnavailable,
             assignment.CancellationReason);
+    }
+
+    [Fact]
+    public void Deliver_DegradedOperations_AuditsReducedTreatmentEffect()
+    {
+        PatientCareAssignment assignment = CreateAssignment();
+        PatientMedicalRecord record = CreateMedicalRecord();
+        var profile = new CareOperationalProfile(
+            new CareQualityMultiplier(0.45m),
+            CareAvailabilityIndex.None,
+            CareAvailabilityIndex.Full);
+
+        PatientCareDeliveryResult result = _service.Deliver(
+            assignment,
+            HostId,
+            patientLifecycleRevision: 2,
+            record,
+            CreateCareNeed(),
+            CreateFacility(),
+            CareDate,
+            DeliveredAtUtc,
+            profile);
+
+        Assert.True(result.Delivered);
+        Assert.Equal(0, assignment.TreatmentHealthDelta);
+        Assert.False(assignment.TreatmentMedicalStateChanged);
+        Assert.Equal(50, record.Health.Value);
+        Assert.Equal(IllnessSeverity.Severe, record.Illness.CurrentSeverity);
     }
 
     private static PatientCareAssignment CreateAssignment()

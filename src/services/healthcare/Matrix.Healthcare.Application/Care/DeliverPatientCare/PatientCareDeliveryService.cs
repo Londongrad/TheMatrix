@@ -1,6 +1,7 @@
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
+using Matrix.Healthcare.Domain.Operations;
 using Matrix.Healthcare.Domain.Simulation;
 
 namespace Matrix.Healthcare.Application.Care.DeliverPatientCare;
@@ -16,7 +17,8 @@ public sealed class PatientCareDeliveryService(
         PatientCareNeed? careNeed,
         CareFacility? facility,
         DateOnly currentDate,
-        DateTimeOffset deliveredAtUtc)
+        DateTimeOffset deliveredAtUtc,
+        CareOperationalProfile? operationalProfile = null)
     {
         ArgumentNullException.ThrowIfNull(assignment);
         ArgumentNullException.ThrowIfNull(medicalRecord);
@@ -58,7 +60,8 @@ public sealed class PatientCareDeliveryService(
         PatientCareTreatmentOutcome treatment = treatmentPolicy.Apply(
             medicalRecord,
             assignment.Urgency,
-            currentDate);
+            currentDate,
+            operationalProfile);
         assignment.TryMarkDelivered(
             currentDate,
             deliveredAtUtc,

@@ -4,6 +4,7 @@ using Matrix.Healthcare.Application.Care.DeliverPatientCare;
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
+using Matrix.Healthcare.Domain.Operations;
 using Matrix.Healthcare.Domain.Progression;
 using Matrix.Healthcare.Domain.Simulation;
 using MediatR;
@@ -23,6 +24,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         PatientIllnessProgressionPolicy progressionPolicy,
         PatientCareNeedAssessmentPolicy careNeedAssessmentPolicy,
         PatientCareDeliveryService careDeliveryService,
+        ICareOperationalProfileProvider careOperationalProfileProvider,
         IHealthcareUnitOfWork unitOfWork)
         : IRequestHandler<AdvancePatientHealthCommand, AdvancePatientHealthResult>
     {
@@ -116,6 +118,11 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                        .Distinct()
                        .ToArray(),
                     cancellationToken);
+            CareOperationalProfile careOperationalProfile = careAssignments.Count == 0
+                ? CareOperationalProfile.Baseline
+                : await careOperationalProfileProvider.GetAsync(
+                    batch.SimulationHostId,
+                    cancellationToken);
             Dictionary<PatientId, PatientProfile> profilesById = profiles.ToDictionary(
                 profile => profile.PatientId);
             Dictionary<PatientId, PatientMedicalRecord> recordsById = records.ToDictionary(
@@ -206,7 +213,8 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                         careNeedForDelivery,
                         careFacility,
                         batch.CurrentDate,
-                        batch.ObservedAtUtc);
+                        batch.ObservedAtUtc,
+                        careOperationalProfile);
                     treatmentOutcome = delivery.TreatmentOutcome;
                     if (delivery.Delivered)
                         careAssignmentsDelivered++;

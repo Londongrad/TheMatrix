@@ -6,6 +6,7 @@ using Matrix.Healthcare.Application.Tests.TestSupport;
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
+using Matrix.Healthcare.Domain.Operations;
 using Matrix.Healthcare.Domain.Progression;
 using Matrix.Healthcare.Domain.Simulation;
 using Xunit;
@@ -149,12 +150,14 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 lifecycleRevision: 0,
                 assignedAtUtc: DateTimeOffset.Parse("2048-05-05T10:00:00+00:00"));
             var outboxWriter = new OutcomeOutboxWriterStub();
+            var operationalProfileProvider = new CareOperationalProfileProviderStub();
             AdvancePatientHealthCommandHandler handler = CreateHandler(
                 new MedicalRecordRepositoryStub([record]),
                 outboxWriter,
                 careNeedRepository: new CareNeedRepositoryStub([careNeed]),
                 careAssignmentRepository: new CareAssignmentRepositoryStub([assignment]),
-                careFacilityRepository: new CareFacilityRepositoryStub([facility]));
+                careFacilityRepository: new CareFacilityRepositoryStub([facility]),
+                careOperationalProfileProvider: operationalProfileProvider);
 
             AdvancePatientHealthResult result = await handler.Handle(
                 CreateCommand(sourceRevision: 17),
@@ -168,6 +171,23 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(record.Health.Value - 50, outcome.HealthDelta);
             Assert.Equal(IllnessSeverity.Moderate, outcome.CurrentIllnessSeverity);
             Assert.Single(outboxWriter.Batches);
+            Assert.Equal(1, operationalProfileProvider.CallCount);
+        }
+
+        [Fact]
+        public async Task Handle_WithoutDueAssignments_DoesNotLoadOperationalProfile()
+        {
+            var operationalProfileProvider = new CareOperationalProfileProviderStub();
+            AdvancePatientHealthCommandHandler handler = CreateHandler(
+                new MedicalRecordRepositoryStub([CreateMedicalRecord(health: 70)]),
+                new OutcomeOutboxWriterStub(),
+                careOperationalProfileProvider: operationalProfileProvider);
+
+            await handler.Handle(
+                CreateCommand(sourceRevision: 17),
+                CancellationToken.None);
+
+            Assert.Equal(0, operationalProfileProvider.CallCount);
         }
 
         [Fact]
@@ -334,6 +354,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             CareAllocatorStub? careAllocator = null,
             CareAssignmentRepositoryStub? careAssignmentRepository = null,
             CareFacilityRepositoryStub? careFacilityRepository = null,
+            CareOperationalProfileProviderStub? careOperationalProfileProvider = null,
             DateTimeOffset? deletedAtUtc = null,
             HealthcareUnitOfWorkStub? unitOfWork = null,
             PatientProfile? profile = null)
@@ -354,6 +375,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 careNeedAssessmentPolicy: new PatientCareNeedAssessmentPolicy(),
                 careDeliveryService: new PatientCareDeliveryService(
                     new PatientCareTreatmentPolicy()),
+                careOperationalProfileProvider: careOperationalProfileProvider
+                                                ?? new CareOperationalProfileProviderStub(),
                 unitOfWork: unitOfWork ?? new HealthcareUnitOfWorkStub());
         }
 
@@ -576,6 +599,20 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 CancellationToken cancellationToken = default)
             {
                 throw new NotSupportedException();
+            }
+        }
+
+        private sealed class CareOperationalProfileProviderStub(
+            CareOperationalProfile? profile = null) : ICareOperationalProfileProvider
+        {
+            internal int CallCount { get; private set; }
+
+            public Task<CareOperationalProfile> GetAsync(
+                SimulationHostId simulationHostId,
+                CancellationToken cancellationToken = default)
+            {
+                CallCount++;
+                return Task.FromResult(profile ?? CareOperationalProfile.Baseline);
             }
         }
 
