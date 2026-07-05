@@ -73,6 +73,27 @@ public sealed class CareOperationalStateTests
         Assert.Equal(17, state.LastSourceRevision);
     }
 
+    [Fact]
+    public void MedicineSupplyState_SameTickNewerObservation_ReplacesSupply()
+    {
+        CareMedicineSupplyState state = CareMedicineSupplyState.Register(
+            HostId,
+            new CareAvailabilityIndex(0.7m),
+            new CareAvailabilityIndex(0.2m),
+            sourceRevision: 17,
+            ObservedAtUtc);
+
+        bool changed = state.TrySynchronize(
+            new CareAvailabilityIndex(0.8m),
+            new CareAvailabilityIndex(0.1m),
+            sourceRevision: 17,
+            ObservedAtUtc.AddMinutes(1));
+
+        Assert.True(changed);
+        Assert.Equal(0.8m, state.StockLevel.Value);
+        Assert.Equal(ObservedAtUtc.AddMinutes(1), state.LastObservedAtUtc);
+    }
+
     [Theory]
     [InlineData(-0.01)]
     [InlineData(1.01)]

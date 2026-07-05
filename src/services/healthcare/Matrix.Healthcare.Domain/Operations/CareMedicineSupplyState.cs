@@ -53,15 +53,16 @@ public sealed class CareMedicineSupplyState : AggregateRoot<SimulationHostId>
     {
         long normalizedRevision = EnsureRevision(sourceRevision);
         DateTimeOffset normalizedTimestamp = EnsureUtc(observedAtUtc);
-        if (normalizedRevision < LastSourceRevision)
+        if (normalizedRevision < LastSourceRevision
+            || normalizedTimestamp < LastObservedAtUtc)
             return false;
-        if (normalizedRevision == LastSourceRevision)
+        if (normalizedTimestamp == LastObservedAtUtc)
         {
             if (stockLevel != StockLevel
                 || shortageRisk != ShortageRisk
-                || normalizedTimestamp != LastObservedAtUtc)
+                || normalizedRevision != LastSourceRevision)
                 throw new InvalidOperationException(
-                    "A medicine supply revision cannot identify conflicting values.");
+                    "A medicine supply observation timestamp cannot identify conflicting values.");
 
             return false;
         }
