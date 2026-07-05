@@ -14,6 +14,7 @@ namespace Matrix.Healthcare.Integration.Tests.Architecture
                 "Matrix.Healthcare.Application",
                 "Matrix.Healthcare.Domain",
                 "Matrix.Population.Contracts",
+                "Matrix.ScenarioContracts.ClassicCity",
                 "Matrix.SimulationCore.Contracts");
         }
     }

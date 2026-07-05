@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\scenarios\classic-city\Matrix.ScenarioContracts.ClassicCity\Matrix.ScenarioContracts.ClassicCity.csproj"/>
     <ProjectReference Include="..\Matrix.Healthcare.Application\Matrix.Healthcare.Application.csproj"/>
     <ProjectReference Include="..\..\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj"/>
     <ProjectReference Include="..\..\simulationcore\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>

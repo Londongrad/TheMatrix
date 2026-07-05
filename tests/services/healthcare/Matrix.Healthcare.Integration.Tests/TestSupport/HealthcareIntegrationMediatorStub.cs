@@ -3,6 +3,7 @@ using Matrix.Healthcare.Application.Facilities.SynchronizeCareFacilities;
 using Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords;
 using Matrix.Healthcare.Application.Patients.AdvancePatientHealth;
 using Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles;
+using Matrix.Healthcare.Application.Operations.SynchronizeCareServiceQuality;
 using MediatR;
 
 namespace Matrix.Healthcare.Integration.Tests.TestSupport
@@ -14,6 +15,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
         internal List<AdvancePatientHealthCommand> HealthProgressionCommands { get; } = [];
         internal List<DeleteHealthcareSimulationCommand> DeletionCommands { get; } = [];
         internal List<SynchronizeCareFacilitiesCommand> FacilityCommands { get; } = [];
+        internal List<SynchronizeCareServiceQualityCommand> CareQualityCommands { get; } = [];
 
         internal SynchronizePatientProfilesResult Result { get; set; } = new(
             Status: SynchronizePatientProfilesStatus.Applied,
@@ -42,6 +44,11 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
             StalePatients: 0,
             Outcomes: Array.Empty<PatientHealthProgressionResultItem>());
 
+        internal SynchronizeCareServiceQualityResult CareQualityResult { get; set; } = new(
+            SynchronizeCareServiceQualityStatus.Applied,
+            StateCreated: false,
+            StateUpdated: false);
+
         public Task<TResponse> Send<TResponse>(
             IRequest<TResponse> request,
             CancellationToken cancellationToken = default)
@@ -53,6 +60,7 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
                 AdvancePatientHealthCommand command => RecordHealthProgression(command),
                 DeleteHealthcareSimulationCommand command => RecordDeletion(command),
                 SynchronizeCareFacilitiesCommand command => RecordFacilitySynchronization(command),
+                SynchronizeCareServiceQualityCommand command => RecordCareQuality(command),
                 _ => throw new NotSupportedException(request.GetType().FullName)
             };
 
@@ -133,6 +141,13 @@ namespace Matrix.Healthcare.Integration.Tests.TestSupport
         {
             HealthProgressionCommands.Add(command);
             return HealthProgressionResult;
+        }
+
+        private SynchronizeCareServiceQualityResult RecordCareQuality(
+            SynchronizeCareServiceQualityCommand command)
+        {
+            CareQualityCommands.Add(command);
+            return CareQualityResult;
         }
     }
 }

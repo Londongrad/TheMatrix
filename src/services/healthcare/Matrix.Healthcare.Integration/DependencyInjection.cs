@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.Healthcare.Integration.Consumers;
+using Matrix.Healthcare.Integration.Scenarios.ClassicCity.Consumers;
 
 namespace Matrix.Healthcare.Integration
 {
@@ -14,6 +15,8 @@ namespace Matrix.Healthcare.Integration
                 PopulationResidentHealthRiskConsumerDefinition>();
             configurator.AddConsumer<SimulationCareFacilityProvisioningConsumer,
                 SimulationCareFacilityProvisioningConsumerDefinition>();
+            configurator.AddConsumer<ClassicCityServiceQualityConsumer,
+                ClassicCityServiceQualityConsumerDefinition>();
             configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
         }
     }
