@@ -1,5 +1,6 @@
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
+using Matrix.Healthcare.Domain.Operations;
 using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Domain.Progression;
 using Matrix.Healthcare.Domain.Simulation;
@@ -38,6 +39,12 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
             dbContext.PatientHealthProgressionBatchSets.AddRange(
                 CreateBatchSet(deletedHostId),
                 CreateBatchSet(retainedHostId));
+            dbContext.CareServiceQualityStates.AddRange(
+                CreateQualityState(deletedHostId),
+                CreateQualityState(retainedHostId));
+            dbContext.CareMedicineSupplyStates.AddRange(
+                CreateMedicineState(deletedHostId),
+                CreateMedicineState(retainedHostId));
             await dbContext.SaveChangesAsync();
             var repository = new HealthcareSimulationDeletionRepository(dbContext);
             DateTimeOffset deletedAtUtc = DateTimeOffset.Parse("2048-05-06T10:00:00+00:00");
@@ -74,6 +81,14 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 batchSet => batchSet.SimulationHostId == deletedHostId));
             Assert.True(await dbContext.PatientHealthProgressionBatchSets.AnyAsync(
                 batchSet => batchSet.SimulationHostId == retainedHostId));
+            Assert.False(await dbContext.CareServiceQualityStates.AnyAsync(
+                state => state.Id == deletedHostId));
+            Assert.True(await dbContext.CareServiceQualityStates.AnyAsync(
+                state => state.Id == retainedHostId));
+            Assert.False(await dbContext.CareMedicineSupplyStates.AnyAsync(
+                state => state.Id == deletedHostId));
+            Assert.True(await dbContext.CareMedicineSupplyStates.AnyAsync(
+                state => state.Id == retainedHostId));
             Assert.Equal(
                 deletedAtUtc,
                 await repository.GetDeletedAtUtcAsync(deletedHostId));
@@ -158,6 +173,26 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 assessmentRevision: 17,
                 lifecycleRevision: 0,
                 assignedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
+        }
+
+        private static CareServiceQualityState CreateQualityState(
+            SimulationHostId simulationHostId)
+        {
+            return CareServiceQualityState.Register(
+                simulationHostId,
+                new CareQualityMultiplier(0.82m),
+                DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
+        }
+
+        private static CareMedicineSupplyState CreateMedicineState(
+            SimulationHostId simulationHostId)
+        {
+            return CareMedicineSupplyState.Register(
+                simulationHostId,
+                new CareAvailabilityIndex(0.63m),
+                new CareAvailabilityIndex(0.31m),
+                sourceRevision: 17,
+                DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
         }
     }
 }
