@@ -34,7 +34,7 @@ namespace Matrix.Healthcare.Integration.Consumers
             }
 
             logger.LogInformation(
-                "Advanced healthcare patients for simulationHostId={SimulationHostId}, sourceRevision={SourceRevision}, batch={BatchNumber}/{TotalBatches}, processed={ProcessedPatients}, ignored={IgnoredPatients}, stale={StalePatients}, outcomes={OutcomeCount}, batchSetComplete={BatchSetComplete}, completedBatchSetNow={CompletedBatchSetNow}, careAssignments={CareAssignmentsCreated}, correlationId={CorrelationId}.",
+                "Advanced healthcare patients for simulationHostId={SimulationHostId}, sourceRevision={SourceRevision}, batch={BatchNumber}/{TotalBatches}, processed={ProcessedPatients}, ignored={IgnoredPatients}, stale={StalePatients}, outcomes={OutcomeCount}, batchSetComplete={BatchSetComplete}, completedBatchSetNow={CompletedBatchSetNow}, careAssignmentsCreated={CareAssignmentsCreated}, careAssignmentsDelivered={CareAssignmentsDelivered}, careAssignmentsCancelled={CareAssignmentsCancelled}, correlationId={CorrelationId}.",
                 message.SimulationHostId,
                 message.SourceRevision,
                 message.BatchNumber,
@@ -46,6 +46,8 @@ namespace Matrix.Healthcare.Integration.Consumers
                 result.IsBatchSetComplete,
                 result.CompletedBatchSetNow,
                 result.CareAssignmentsCreated,
+                result.CareAssignmentsDelivered,
+                result.CareAssignmentsCancelled,
                 message.CorrelationId);
         }
     }
