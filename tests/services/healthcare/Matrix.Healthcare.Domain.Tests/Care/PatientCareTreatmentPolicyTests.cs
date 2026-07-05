@@ -1,4 +1,5 @@
 using Matrix.Healthcare.Domain.Care;
+using Matrix.Healthcare.Domain.Operations;
 using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Domain.Simulation;
 using Xunit;
@@ -71,6 +72,50 @@ public sealed class PatientCareTreatmentPolicyTests
 
         Assert.False(outcome.HasAnyEffect);
         Assert.Equal(0, outcome.HealthDelta);
+    }
+
+    [Fact]
+    public void Apply_DegradedOperations_ReducesHealthGainAndCannotImproveSevereIllness()
+    {
+        PatientMedicalRecord record = CreateRecord(
+            health: 50,
+            severity: IllnessSeverity.Severe);
+        var profile = new CareOperationalProfile(
+            new CareQualityMultiplier(0.45m),
+            CareAvailabilityIndex.None,
+            CareAvailabilityIndex.Full);
+
+        PatientCareTreatmentOutcome outcome = _policy.Apply(
+            record,
+            CareNeedUrgency.Acute,
+            TreatmentDate,
+            profile);
+
+        Assert.Equal(0, outcome.HealthDelta);
+        Assert.False(outcome.MedicalStateChanged);
+        Assert.Equal(IllnessSeverity.Severe, record.Illness.CurrentSeverity);
+    }
+
+    [Fact]
+    public void Apply_StrongOperations_ImprovesTwoIllnessStages()
+    {
+        PatientMedicalRecord record = CreateRecord(
+            health: 50,
+            severity: IllnessSeverity.Severe);
+        var profile = new CareOperationalProfile(
+            new CareQualityMultiplier(1.5m),
+            CareAvailabilityIndex.Full,
+            CareAvailabilityIndex.None);
+
+        PatientCareTreatmentOutcome outcome = _policy.Apply(
+            record,
+            CareNeedUrgency.Acute,
+            TreatmentDate,
+            profile);
+
+        Assert.Equal(9, outcome.HealthDelta);
+        Assert.True(outcome.MedicalStateChanged);
+        Assert.Equal(IllnessSeverity.Mild, record.Illness.CurrentSeverity);
     }
 
     private static PatientMedicalRecord CreateRecord(
