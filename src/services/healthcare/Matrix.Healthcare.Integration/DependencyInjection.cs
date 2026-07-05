@@ -17,6 +17,8 @@ namespace Matrix.Healthcare.Integration
                 SimulationCareFacilityProvisioningConsumerDefinition>();
             configurator.AddConsumer<ClassicCityServiceQualityConsumer,
                 ClassicCityServiceQualityConsumerDefinition>();
+            configurator.AddConsumer<ClassicCityMedicineSupplyConsumer,
+                ClassicCityMedicineSupplyConsumerDefinition>();
             configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
         }
     }
