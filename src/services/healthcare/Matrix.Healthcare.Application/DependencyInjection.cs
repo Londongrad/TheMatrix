@@ -2,6 +2,7 @@ using System.Reflection;
 using Matrix.Healthcare.Application.Abstractions;
 using Matrix.Healthcare.Application.Care.AllocatePatientCare;
 using Matrix.Healthcare.Application.Care.DeliverPatientCare;
+using Matrix.Healthcare.Application.Operations;
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Progression;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,7 @@ namespace Matrix.Healthcare.Application
             services.AddSingleton<PatientCareTreatmentPolicy>();
             services.AddSingleton<PatientCareDeliveryService>();
             services.AddScoped<IPatientCareAllocator, PatientCareAllocator>();
+            services.AddScoped<ICareOperationalProfileProvider, CareOperationalProfileProvider>();
         }
     }
 }
