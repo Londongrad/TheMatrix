@@ -427,6 +427,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 correlationId: "health-risk:17",
                 totalBatches: totalBatches,
                 batchNumber: batchNumber,
+                currentDate: CurrentDate,
                 receivedAtUtc: DateTimeOffset.Parse("2048-05-06T09:59:00+00:00"));
         }
 

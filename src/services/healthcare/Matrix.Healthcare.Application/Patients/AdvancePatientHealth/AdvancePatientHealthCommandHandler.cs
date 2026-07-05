@@ -70,6 +70,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     correlationId: batch.CorrelationId,
                     totalBatches: batch.TotalBatches,
                     batchNumber: batch.BatchNumber,
+                    currentDate: batch.CurrentDate,
                     receivedAtUtc: batch.ObservedAtUtc);
                 await batchSetRepository.AddAsync(batchSet, cancellationToken);
                 registration = batchSet.IsComplete
@@ -82,6 +83,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     correlationId: batch.CorrelationId,
                     totalBatches: batch.TotalBatches,
                     batchNumber: batch.BatchNumber,
+                    currentDate: batch.CurrentDate,
                     receivedAtUtc: batch.ObservedAtUtc);
             }
 

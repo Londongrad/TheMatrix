@@ -63,11 +63,13 @@ public sealed class PatientHealthProgressionBatchSetRepositoryTests
                 "health-risk:17",
                 totalBatches: 3,
                 batchNumber: 1,
+                currentDate: new DateOnly(2048, 5, 6),
                 receivedAtUtc: ReceivedAtUtc.AddSeconds(1));
             PatientHealthProgressionBatchRegistrationStatus completion = loaded.RegisterBatch(
                 "health-risk:17",
                 totalBatches: 3,
                 batchNumber: 2,
+                currentDate: new DateOnly(2048, 5, 6),
                 receivedAtUtc: ReceivedAtUtc.AddSeconds(2));
             await dbContext.SaveChangesAsync();
 
@@ -122,6 +124,7 @@ public sealed class PatientHealthProgressionBatchSetRepositoryTests
             correlationId: "health-risk:17",
             totalBatches: totalBatches,
             batchNumber: batchNumber,
+            currentDate: new DateOnly(2048, 5, 6),
             receivedAtUtc: ReceivedAtUtc);
     }
 }

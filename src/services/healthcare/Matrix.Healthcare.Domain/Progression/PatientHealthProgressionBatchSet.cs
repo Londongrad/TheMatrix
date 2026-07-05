@@ -14,12 +14,14 @@ public sealed class PatientHealthProgressionBatchSet
         long sourceRevision,
         string correlationId,
         int totalBatches,
+        DateOnly currentDate,
         DateTimeOffset firstReceivedAtUtc)
     {
         SimulationHostId = simulationHostId;
         SourceRevision = EnsureRevision(sourceRevision);
         CorrelationId = EnsureCorrelationId(correlationId);
         TotalBatches = EnsureTotalBatches(totalBatches);
+        CurrentDate = currentDate;
         _receivedBatchMap = new byte[(totalBatches + 7) / 8];
         FirstReceivedAtUtc = EnsureUtc(firstReceivedAtUtc);
         LastReceivedAtUtc = FirstReceivedAtUtc;
@@ -35,6 +37,13 @@ public sealed class PatientHealthProgressionBatchSet
     public string CorrelationId { get; private set; }
     public int TotalBatches { get; private set; }
     public int ReceivedBatchCount { get; private set; }
+    public int RecordedCareDeliveryBatchCount { get; private set; }
+    public int ProcessedPatientCount { get; private set; }
+    public int RoutineCareDeliveryCount { get; private set; }
+    public int UrgentCareDeliveryCount { get; private set; }
+    public int AcuteCareDeliveryCount { get; private set; }
+    public int EmergencyCareDeliveryCount { get; private set; }
+    public DateOnly CurrentDate { get; private set; }
     public bool IsComplete { get; private set; }
     public DateTimeOffset FirstReceivedAtUtc { get; private set; }
     public DateTimeOffset LastReceivedAtUtc { get; private set; }
@@ -46,6 +55,7 @@ public sealed class PatientHealthProgressionBatchSet
         string correlationId,
         int totalBatches,
         int batchNumber,
+        DateOnly currentDate,
         DateTimeOffset receivedAtUtc)
     {
         var batchSet = new PatientHealthProgressionBatchSet(
@@ -53,11 +63,13 @@ public sealed class PatientHealthProgressionBatchSet
             sourceRevision,
             correlationId,
             totalBatches,
+            currentDate,
             receivedAtUtc);
         batchSet.RegisterBatch(
             correlationId,
             totalBatches,
             batchNumber,
+            currentDate,
             receivedAtUtc);
         return batchSet;
     }
@@ -66,9 +78,10 @@ public sealed class PatientHealthProgressionBatchSet
         string correlationId,
         int totalBatches,
         int batchNumber,
+        DateOnly currentDate,
         DateTimeOffset receivedAtUtc)
     {
-        EnsureMatchingSet(correlationId, totalBatches);
+        EnsureMatchingSet(correlationId, totalBatches, currentDate);
         EnsureBatchNumber(batchNumber, TotalBatches);
         DateTimeOffset normalizedReceivedAtUtc = EnsureUtc(receivedAtUtc);
 
@@ -92,6 +105,35 @@ public sealed class PatientHealthProgressionBatchSet
         return PatientHealthProgressionBatchRegistrationStatus.Completed;
     }
 
+    public void RecordCareDeliveryBatch(
+        int processedPatientCount,
+        int routineCareDeliveryCount,
+        int urgentCareDeliveryCount,
+        int acuteCareDeliveryCount,
+        int emergencyCareDeliveryCount)
+    {
+        if (RecordedCareDeliveryBatchCount >= ReceivedBatchCount)
+            throw new InvalidOperationException(
+                "Care delivery activity can only be recorded once for each received progression batch.");
+
+        int processed = EnsureCount(processedPatientCount, nameof(processedPatientCount));
+        int routine = EnsureCount(routineCareDeliveryCount, nameof(routineCareDeliveryCount));
+        int urgent = EnsureCount(urgentCareDeliveryCount, nameof(urgentCareDeliveryCount));
+        int acute = EnsureCount(acuteCareDeliveryCount, nameof(acuteCareDeliveryCount));
+        int emergency = EnsureCount(emergencyCareDeliveryCount, nameof(emergencyCareDeliveryCount));
+        int delivered = checked(routine + urgent + acute + emergency);
+        if (delivered > processed)
+            throw new ArgumentException(
+                "Delivered care count cannot exceed the processed patient count.");
+
+        RecordedCareDeliveryBatchCount++;
+        ProcessedPatientCount = checked(ProcessedPatientCount + processed);
+        RoutineCareDeliveryCount = checked(RoutineCareDeliveryCount + routine);
+        UrgentCareDeliveryCount = checked(UrgentCareDeliveryCount + urgent);
+        AcuteCareDeliveryCount = checked(AcuteCareDeliveryCount + acute);
+        EmergencyCareDeliveryCount = checked(EmergencyCareDeliveryCount + emergency);
+    }
+
     public bool HasReceivedBatch(int batchNumber)
     {
         EnsureBatchNumber(batchNumber, TotalBatches);
@@ -101,7 +143,10 @@ public sealed class PatientHealthProgressionBatchSet
         return (_receivedBatchMap[byteIndex] & (1 << bitIndex)) != 0;
     }
 
-    private void EnsureMatchingSet(string correlationId, int totalBatches)
+    private void EnsureMatchingSet(
+        string correlationId,
+        int totalBatches,
+        DateOnly currentDate)
     {
         string normalizedCorrelationId = EnsureCorrelationId(correlationId);
         if (!string.Equals(normalizedCorrelationId, CorrelationId, StringComparison.Ordinal))
@@ -110,6 +155,9 @@ public sealed class PatientHealthProgressionBatchSet
         if (EnsureTotalBatches(totalBatches) != TotalBatches)
             throw new InvalidOperationException(
                 "A health progression revision cannot change its total batch count.");
+        if (currentDate != CurrentDate)
+            throw new InvalidOperationException(
+                "A health progression revision cannot change its current date.");
     }
 
     private static long EnsureRevision(long value)
@@ -139,6 +187,13 @@ public sealed class PatientHealthProgressionBatchSet
         return value is > 0 and <= MaxTotalBatches
             ? value
             : throw new ArgumentOutOfRangeException(nameof(value));
+    }
+
+    private static int EnsureCount(int value, string paramName)
+    {
+        return value >= 0
+            ? value
+            : throw new ArgumentOutOfRangeException(paramName);
     }
 
     private static void EnsureBatchNumber(int value, int totalBatches)

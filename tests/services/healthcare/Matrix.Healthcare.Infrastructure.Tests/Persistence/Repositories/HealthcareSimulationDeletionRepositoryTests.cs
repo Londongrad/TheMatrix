@@ -155,6 +155,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 correlationId: "health-risk:17",
                 totalBatches: 2,
                 batchNumber: 1,
+                currentDate: new DateOnly(2048, 5, 6),
                 receivedAtUtc: DateTimeOffset.Parse("2048-05-06T09:00:00+00:00"));
         }
 
