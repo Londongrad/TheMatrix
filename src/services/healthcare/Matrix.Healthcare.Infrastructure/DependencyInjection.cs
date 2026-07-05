@@ -62,6 +62,10 @@ namespace Matrix.Healthcare.Infrastructure
             services.AddScoped<IPatientHealthProgressionBatchSetRepository,
                 PatientHealthProgressionBatchSetRepository>();
             services.AddScoped<ICareFacilityRepository, CareFacilityRepository>();
+            services.AddScoped<ICareServiceQualityStateRepository,
+                CareServiceQualityStateRepository>();
+            services.AddScoped<ICareMedicineSupplyStateRepository,
+                CareMedicineSupplyStateRepository>();
             services.AddScoped<IPatientHealthOutcomeOutboxWriter, PatientHealthOutcomeOutboxWriter>();
             services.AddScoped<IHealthcareSimulationDeletionRepository,
                 HealthcareSimulationDeletionRepository>();
