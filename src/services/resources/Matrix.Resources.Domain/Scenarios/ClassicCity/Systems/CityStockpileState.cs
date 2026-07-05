@@ -22,6 +22,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             CityResourceStockLineState emergencyWater,
             CityPendingResupplyState pendingResupply,
             CitySystemsResourceDemandState systemsDemand,
+            CityHealthcareMedicineDemandState healthcareMedicineDemand,
             CityOperationalBudgetPressureState operationalBudgetPressure,
             decimal supplyStressIndex,
             bool emergencyRationingEnabled,
@@ -37,6 +38,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             EmergencyWater = emergencyWater;
             PendingResupply = pendingResupply;
             SystemsDemand = systemsDemand;
+            HealthcareMedicineDemand = healthcareMedicineDemand;
             OperationalBudgetPressure = operationalBudgetPressure;
             SupplyStressIndex = EnsureIndex(
                 value: supplyStressIndex,
@@ -61,6 +63,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             EmergencyWater = null!;
             PendingResupply = null!;
             SystemsDemand = null!;
+            HealthcareMedicineDemand = null!;
             OperationalBudgetPressure = null!;
         }
 
@@ -73,6 +76,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         public CityResourceStockLineState EmergencyWater { get; }
         public CityPendingResupplyState PendingResupply { get; }
         public CitySystemsResourceDemandState SystemsDemand { get; }
+        public CityHealthcareMedicineDemandState HealthcareMedicineDemand { get; }
         public CityOperationalBudgetPressureState OperationalBudgetPressure { get; }
         public decimal SupplyStressIndex { get; private set; }
         public bool EmergencyRationingEnabled { get; private set; }
@@ -97,6 +101,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 emergencyWater: CityResourceStockLineState.Create(seed.EmergencyWater),
                 pendingResupply: CityPendingResupplyState.None(),
                 systemsDemand: CitySystemsResourceDemandState.Create(seed.SystemsDemand),
+                healthcareMedicineDemand: CityHealthcareMedicineDemandState.None(),
                 operationalBudgetPressure: CityOperationalBudgetPressureState.Create(seed.OperationalBudgetPressure),
                 supplyStressIndex: seed.SupplyStressIndex,
                 emergencyRationingEnabled: seed.EmergencyRationingEnabled,
@@ -120,6 +125,15 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 propertyName: nameof(snapshot));
 
             OperationalBudgetPressure.ApplySnapshot(snapshot);
+        }
+
+        public void ApplyHealthcareMedicineDemand(CityHealthcareMedicineDemandSnapshot snapshot)
+        {
+            GuardHelper.AgainstNull(
+                value: snapshot,
+                propertyName: nameof(snapshot));
+
+            HealthcareMedicineDemand.ApplySnapshot(snapshot);
         }
 
         public void ApplySnapshot(CityStockpileSnapshot snapshot)
