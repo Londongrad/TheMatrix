@@ -22,6 +22,12 @@ public sealed class PatientHealthProgressionBatchSetRepositoryTests
         PatientHealthProgressionBatchSet batchSet = CreateBatchSet(
             totalBatches: 3,
             batchNumber: 2);
+        batchSet.RecordCareDeliveryBatch(
+            processedPatientCount: 100,
+            routineCareDeliveryCount: 4,
+            urgentCareDeliveryCount: 3,
+            acuteCareDeliveryCount: 2,
+            emergencyCareDeliveryCount: 1);
 
         await repository.AddAsync(batchSet);
         await dbContext.SaveChangesAsync();
@@ -35,6 +41,13 @@ public sealed class PatientHealthProgressionBatchSetRepositoryTests
         Assert.Equal("health-risk:17", loaded.CorrelationId);
         Assert.Equal(3, loaded.TotalBatches);
         Assert.Equal(1, loaded.ReceivedBatchCount);
+        Assert.Equal(new DateOnly(2048, 5, 6), loaded.CurrentDate);
+        Assert.Equal(1, loaded.RecordedCareDeliveryBatchCount);
+        Assert.Equal(100, loaded.ProcessedPatientCount);
+        Assert.Equal(4, loaded.RoutineCareDeliveryCount);
+        Assert.Equal(3, loaded.UrgentCareDeliveryCount);
+        Assert.Equal(2, loaded.AcuteCareDeliveryCount);
+        Assert.Equal(1, loaded.EmergencyCareDeliveryCount);
         Assert.True(loaded.HasReceivedBatch(2));
         Assert.False(loaded.HasReceivedBatch(1));
         Assert.False(loaded.IsComplete);

@@ -42,6 +42,34 @@ public sealed class PatientHealthProgressionBatchSetConfiguration
            .HasColumnName("received_batch_count")
            .IsRequired();
 
+        builder.Property(batchSet => batchSet.RecordedCareDeliveryBatchCount)
+           .HasColumnName("recorded_care_delivery_batch_count")
+           .IsRequired();
+
+        builder.Property(batchSet => batchSet.ProcessedPatientCount)
+           .HasColumnName("processed_patient_count")
+           .IsRequired();
+
+        builder.Property(batchSet => batchSet.RoutineCareDeliveryCount)
+           .HasColumnName("routine_care_delivery_count")
+           .IsRequired();
+
+        builder.Property(batchSet => batchSet.UrgentCareDeliveryCount)
+           .HasColumnName("urgent_care_delivery_count")
+           .IsRequired();
+
+        builder.Property(batchSet => batchSet.AcuteCareDeliveryCount)
+           .HasColumnName("acute_care_delivery_count")
+           .IsRequired();
+
+        builder.Property(batchSet => batchSet.EmergencyCareDeliveryCount)
+           .HasColumnName("emergency_care_delivery_count")
+           .IsRequired();
+
+        builder.Property(batchSet => batchSet.CurrentDate)
+           .HasColumnName("current_date")
+           .IsRequired();
+
         builder.Property(batchSet => batchSet.IsComplete)
            .HasColumnName("is_complete")
            .IsRequired();
