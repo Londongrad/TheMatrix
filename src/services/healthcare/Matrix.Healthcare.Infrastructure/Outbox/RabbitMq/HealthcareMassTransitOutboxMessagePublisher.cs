@@ -17,18 +17,26 @@ namespace Matrix.Healthcare.Infrastructure.Outbox.RabbitMq
             string payloadJson,
             CancellationToken cancellationToken)
         {
-            if (!string.Equals(
-                    type,
-                    HealthcareOutboxEventTypes.PatientHealthOutcomeBatchV1,
-                    StringComparison.Ordinal))
-                throw new NotSupportedException($"Healthcare outbox message type '{type}' is not supported.");
+            return type switch
+            {
+                HealthcareOutboxEventTypes.PatientHealthOutcomeBatchV1 =>
+                    PublishAsync<HealthcarePatientHealthOutcomeBatchV1>(payloadJson, cancellationToken),
+                HealthcareOutboxEventTypes.CareDeliveryActivityV1 =>
+                    PublishAsync<HealthcareCareDeliveryActivityV1>(payloadJson, cancellationToken),
+                _ => throw new NotSupportedException(
+                    $"Healthcare outbox message type '{type}' is not supported.")
+            };
+        }
 
-            HealthcarePatientHealthOutcomeBatchV1 integrationEvent =
-                JsonSerializer.Deserialize<HealthcarePatientHealthOutcomeBatchV1>(
-                    payloadJson,
-                    JsonOptions) ??
-                throw new InvalidOperationException(
-                    $"Failed to deserialize healthcare outbox payload for type '{type}'.");
+        private Task PublishAsync<TEvent>(
+            string payloadJson,
+            CancellationToken cancellationToken)
+            where TEvent : class
+        {
+            TEvent integrationEvent = JsonSerializer.Deserialize<TEvent>(
+                payloadJson,
+                JsonOptions) ?? throw new InvalidOperationException(
+                $"Failed to deserialize healthcare outbox payload as '{typeof(TEvent).Name}'.");
 
             return publishEndpoint.Publish(
                 message: integrationEvent,
