@@ -1,5 +1,6 @@
 using System.Data;
 using Matrix.Healthcare.Application.Abstractions;
+using Matrix.Healthcare.Application.Care;
 using Matrix.Healthcare.Application.Care.DeliverPatientCare;
 using Matrix.Healthcare.Application.Patients.AdvancePatientHealth;
 using Matrix.Healthcare.Application.Tests.TestSupport;
@@ -25,6 +26,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             PatientMedicalRecord record = CreateMedicalRecord(health: 2);
             var medicalRepository = new MedicalRecordRepositoryStub([record]);
             var outboxWriter = new OutcomeOutboxWriterStub();
+            var careActivityWriter = new CareDeliveryActivityOutboxWriterStub();
             var careNeedRepository = new CareNeedRepositoryStub();
             var batchSetRepository = new BatchSetRepositoryStub();
             var unitOfWork = new HealthcareUnitOfWorkStub();
@@ -33,6 +35,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 outboxWriter,
                 careNeedRepository,
                 batchSetRepository,
+                careDeliveryActivityOutboxWriter: careActivityWriter,
                 unitOfWork: unitOfWork);
 
             AdvancePatientHealthResult result = await handler.Handle(
@@ -59,6 +62,12 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.True(result.CompletedBatchSetNow);
             Assert.Equal(1, batchSetRepository.AddCallCount);
             Assert.True(batchSetRepository.BatchSet!.HasReceivedBatch(1));
+            CareDeliveryActivitySnapshot activity = Assert.Single(careActivityWriter.Activities);
+            Assert.Equal(1, activity.ProcessedPatientCount);
+            Assert.Equal(0, activity.RoutineCareDeliveryCount);
+            Assert.Equal(0, activity.UrgentCareDeliveryCount);
+            Assert.Equal(0, activity.AcuteCareDeliveryCount);
+            Assert.Equal(0, activity.EmergencyCareDeliveryCount);
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
             Assert.Equal(1, unitOfWork.SaveCount);
         }
@@ -150,6 +159,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 lifecycleRevision: 0,
                 assignedAtUtc: DateTimeOffset.Parse("2048-05-05T10:00:00+00:00"));
             var outboxWriter = new OutcomeOutboxWriterStub();
+            var careActivityWriter = new CareDeliveryActivityOutboxWriterStub();
             var operationalProfileProvider = new CareOperationalProfileProviderStub();
             AdvancePatientHealthCommandHandler handler = CreateHandler(
                 new MedicalRecordRepositoryStub([record]),
@@ -157,6 +167,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 careNeedRepository: new CareNeedRepositoryStub([careNeed]),
                 careAssignmentRepository: new CareAssignmentRepositoryStub([assignment]),
                 careFacilityRepository: new CareFacilityRepositoryStub([facility]),
+                careDeliveryActivityOutboxWriter: careActivityWriter,
                 careOperationalProfileProvider: operationalProfileProvider);
 
             AdvancePatientHealthResult result = await handler.Handle(
@@ -171,6 +182,9 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(record.Health.Value - 50, outcome.HealthDelta);
             Assert.Equal(IllnessSeverity.Moderate, outcome.CurrentIllnessSeverity);
             Assert.Single(outboxWriter.Batches);
+            CareDeliveryActivitySnapshot activity = Assert.Single(careActivityWriter.Activities);
+            Assert.Equal(1, activity.ProcessedPatientCount);
+            Assert.Equal(1, activity.AcuteCareDeliveryCount);
             Assert.Equal(1, operationalProfileProvider.CallCount);
         }
 
@@ -354,6 +368,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             CareAllocatorStub? careAllocator = null,
             CareAssignmentRepositoryStub? careAssignmentRepository = null,
             CareFacilityRepositoryStub? careFacilityRepository = null,
+            CareDeliveryActivityOutboxWriterStub? careDeliveryActivityOutboxWriter = null,
             CareOperationalProfileProviderStub? careOperationalProfileProvider = null,
             DateTimeOffset? deletedAtUtc = null,
             HealthcareUnitOfWorkStub? unitOfWork = null,
@@ -371,6 +386,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 careAllocator: careAllocator ?? new CareAllocatorStub(),
                 deletionRepository: new HealthcareSimulationDeletionRepositoryStub(deletedAtUtc),
                 outcomeOutboxWriter: outboxWriter,
+                careDeliveryActivityOutboxWriter: careDeliveryActivityOutboxWriter
+                                                  ?? new CareDeliveryActivityOutboxWriterStub(),
                 progressionPolicy: CreatePolicy(),
                 careNeedAssessmentPolicy: new PatientCareNeedAssessmentPolicy(),
                 careDeliveryService: new PatientCareDeliveryService(
@@ -421,7 +438,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             int totalBatches,
             int batchNumber)
         {
-            return PatientHealthProgressionBatchSet.Start(
+            PatientHealthProgressionBatchSet batchSet = PatientHealthProgressionBatchSet.Start(
                 simulationHostId: new SimulationHostId(HostId),
                 sourceRevision: 17,
                 correlationId: "health-risk:17",
@@ -429,6 +446,13 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 batchNumber: batchNumber,
                 currentDate: CurrentDate,
                 receivedAtUtc: DateTimeOffset.Parse("2048-05-06T09:59:00+00:00"));
+            batchSet.RecordCareDeliveryBatch(
+                processedPatientCount: 0,
+                routineCareDeliveryCount: 0,
+                urgentCareDeliveryCount: 0,
+                acuteCareDeliveryCount: 0,
+                emergencyCareDeliveryCount: 0);
+            return batchSet;
         }
 
         private static PatientProfile CreateProfile(long lifecycleRevision = 0)
@@ -503,6 +527,19 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 CancellationToken cancellationToken = default)
             {
                 Batches.Add(batch);
+                return Task.CompletedTask;
+            }
+        }
+
+        private sealed class CareDeliveryActivityOutboxWriterStub : ICareDeliveryActivityOutboxWriter
+        {
+            internal List<CareDeliveryActivitySnapshot> Activities { get; } = [];
+
+            public Task AddAsync(
+                CareDeliveryActivitySnapshot activity,
+                CancellationToken cancellationToken = default)
+            {
+                Activities.Add(activity);
                 return Task.CompletedTask;
             }
         }

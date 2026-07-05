@@ -1,5 +1,6 @@
 using System.Data;
 using Matrix.Healthcare.Application.Abstractions;
+using Matrix.Healthcare.Application.Care;
 using Matrix.Healthcare.Application.Care.DeliverPatientCare;
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
@@ -21,6 +22,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         IPatientCareAllocator careAllocator,
         IHealthcareSimulationDeletionRepository deletionRepository,
         IPatientHealthOutcomeOutboxWriter outcomeOutboxWriter,
+        ICareDeliveryActivityOutboxWriter careDeliveryActivityOutboxWriter,
         PatientIllnessProgressionPolicy progressionPolicy,
         PatientCareNeedAssessmentPolicy careNeedAssessmentPolicy,
         PatientCareDeliveryService careDeliveryService,
@@ -142,6 +144,10 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
             int stalePatients = 0;
             int careAssignmentsDelivered = 0;
             int careAssignmentsCancelled = 0;
+            int routineCareDeliveries = 0;
+            int urgentCareDeliveries = 0;
+            int acuteCareDeliveries = 0;
+            int emergencyCareDeliveries = 0;
 
             foreach (PreparedPatientHealthRisk patient in batch.Patients)
             {
@@ -219,7 +225,26 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                         careOperationalProfile);
                     treatmentOutcome = delivery.TreatmentOutcome;
                     if (delivery.Delivered)
+                    {
                         careAssignmentsDelivered++;
+                        switch (careAssignment.Urgency)
+                        {
+                            case CareNeedUrgency.Routine:
+                                routineCareDeliveries++;
+                                break;
+                            case CareNeedUrgency.Urgent:
+                                urgentCareDeliveries++;
+                                break;
+                            case CareNeedUrgency.Acute:
+                                acuteCareDeliveries++;
+                                break;
+                            case CareNeedUrgency.Emergency:
+                                emergencyCareDeliveries++;
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException(nameof(careAssignment));
+                        }
+                    }
                     else if (delivery.Cancelled)
                         careAssignmentsCancelled++;
                 }
@@ -255,6 +280,13 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 }
             }
 
+            batchSet.RecordCareDeliveryBatch(
+                processedPatientCount: processedPatients,
+                routineCareDeliveryCount: routineCareDeliveries,
+                urgentCareDeliveryCount: urgentCareDeliveries,
+                acuteCareDeliveryCount: acuteCareDeliveries,
+                emergencyCareDeliveryCount: emergencyCareDeliveries);
+
             if (processedPatients > 0)
             {
                 if (addedCareNeeds.Count > 0)
@@ -274,7 +306,27 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                             TotalBatches: batch.TotalBatches,
                             Patients: outcomes),
                         cancellationToken);
+            }
 
+            if (registration == PatientHealthProgressionBatchRegistrationStatus.Completed)
+            {
+                if (batchSet.RecordedCareDeliveryBatchCount != batchSet.TotalBatches)
+                    throw new InvalidOperationException(
+                        "A completed progression batch set must contain care delivery activity for every batch.");
+
+                await careDeliveryActivityOutboxWriter.AddAsync(
+                    new CareDeliveryActivitySnapshot(
+                        SimulationHostId: batch.SimulationHostId.Value,
+                        SourceRevision: batchSet.SourceRevision,
+                        CareDate: batchSet.CurrentDate,
+                        ProcessedPatientCount: batchSet.ProcessedPatientCount,
+                        RoutineCareDeliveryCount: batchSet.RoutineCareDeliveryCount,
+                        UrgentCareDeliveryCount: batchSet.UrgentCareDeliveryCount,
+                        AcuteCareDeliveryCount: batchSet.AcuteCareDeliveryCount,
+                        EmergencyCareDeliveryCount: batchSet.EmergencyCareDeliveryCount,
+                        OccurredAtUtc: batch.ObservedAtUtc,
+                        CorrelationId: $"{batchSet.CorrelationId}:care-delivery"),
+                    cancellationToken);
             }
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
