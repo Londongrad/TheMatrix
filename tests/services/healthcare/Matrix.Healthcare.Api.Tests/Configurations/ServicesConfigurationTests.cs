@@ -70,7 +70,7 @@ namespace Matrix.Healthcare.Api.Tests.Configurations
             Assert.NotNull(scopedServices.GetRequiredService<IHealthcareUnitOfWork>());
             Assert.NotNull(scopedServices.GetRequiredService<IMediator>());
             Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentFactsConsumer>());
-            Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentMedicalStateConsumer>());
+            Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentVitalStateConsumer>());
             Assert.NotNull(scopedServices.GetRequiredService<PopulationResidentHealthRiskConsumer>());
             Assert.NotNull(scopedServices.GetRequiredService<SimulationCareFacilityProvisioningConsumer>());
             Assert.NotNull(scopedServices.GetRequiredService<SimulationDeletedConsumer>());
