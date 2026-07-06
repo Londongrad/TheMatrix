@@ -48,6 +48,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(0, result.StalePatients);
             Assert.Equal(-2, outcome.HealthDelta);
             Assert.True(outcome.BecameCritical);
+            Assert.Equal(0, outcome.FunctionalCapacityScore);
             Assert.Equal(0, outcome.LifecycleRevision);
             Assert.Equal(0, record.Health.Value);
             Assert.Equal(17, record.LastProgressionRevision);
@@ -389,6 +390,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 careDeliveryActivityOutboxWriter: careDeliveryActivityOutboxWriter
                                                   ?? new CareDeliveryActivityOutboxWriterStub(),
                 progressionPolicy: CreatePolicy(),
+                functionalCapacityPolicy: new PatientFunctionalCapacityPolicy(),
                 careNeedAssessmentPolicy: new PatientCareNeedAssessmentPolicy(),
                 careDeliveryService: new PatientCareDeliveryService(
                     new PatientCareTreatmentPolicy()),

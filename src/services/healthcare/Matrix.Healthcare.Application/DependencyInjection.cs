@@ -21,6 +21,7 @@ namespace Matrix.Healthcare.Application
             services.AddSingleton<PatientIllnessCoursePolicy>();
             services.AddSingleton<PatientIllnessBurdenPolicy>();
             services.AddSingleton<PatientIllnessProgressionPolicy>();
+            services.AddSingleton<PatientFunctionalCapacityPolicy>();
             services.AddSingleton<PatientCareNeedAssessmentPolicy>();
             services.AddSingleton<PatientCareAllocationPolicy>();
             services.AddSingleton<PatientCareTreatmentPolicy>();

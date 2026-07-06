@@ -33,6 +33,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Outbox
                     new PatientHealthProgressionResultItem(
                         PatientId: patientId,
                         HealthScore: 64,
+                        FunctionalCapacityScore: 60,
                         CurrentIllnessKind: IllnessKind.Infection,
                         CurrentIllnessSeverity: IllnessSeverity.Moderate,
                         DiagnosedOn: new DateOnly(2048, 5, 4),

@@ -75,6 +75,7 @@ namespace Matrix.Healthcare.Api.Tests.Configurations
             Assert.NotNull(scopedServices.GetRequiredService<SimulationCareFacilityProvisioningConsumer>());
             Assert.NotNull(scopedServices.GetRequiredService<SimulationDeletedConsumer>());
             Assert.NotNull(provider.GetRequiredService<PatientIllnessProgressionPolicy>());
+            Assert.NotNull(provider.GetRequiredService<PatientFunctionalCapacityPolicy>());
             Assert.NotNull(provider.GetRequiredService<PatientCareNeedAssessmentPolicy>());
             Assert.NotNull(provider.GetRequiredService<PatientCareAllocationPolicy>());
             Assert.Same(

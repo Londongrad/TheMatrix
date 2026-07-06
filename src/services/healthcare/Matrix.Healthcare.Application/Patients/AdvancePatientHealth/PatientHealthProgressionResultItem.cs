@@ -5,6 +5,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
     public sealed record PatientHealthProgressionResultItem(
         Guid PatientId,
         int HealthScore,
+        int FunctionalCapacityScore,
         IllnessKind? CurrentIllnessKind,
         IllnessSeverity? CurrentIllnessSeverity,
         DateOnly? DiagnosedOn,

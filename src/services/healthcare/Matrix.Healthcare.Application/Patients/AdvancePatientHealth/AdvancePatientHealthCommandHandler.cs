@@ -24,6 +24,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         IPatientHealthOutcomeOutboxWriter outcomeOutboxWriter,
         ICareDeliveryActivityOutboxWriter careDeliveryActivityOutboxWriter,
         PatientIllnessProgressionPolicy progressionPolicy,
+        PatientFunctionalCapacityPolicy functionalCapacityPolicy,
         PatientCareNeedAssessmentPolicy careNeedAssessmentPolicy,
         PatientCareDeliveryService careDeliveryService,
         ICareOperationalProfileProvider careOperationalProfileProvider,
@@ -367,7 +368,7 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     $"Patient '{record.PatientId}' does not belong to the requested simulation host.");
         }
 
-        private static PatientHealthProgressionResultItem MapOutcome(
+        private PatientHealthProgressionResultItem MapOutcome(
             PatientMedicalRecord record,
             PatientIllnessProgressionOutcome outcome,
             PatientCareTreatmentOutcome? treatmentOutcome,
@@ -376,6 +377,9 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
             return new PatientHealthProgressionResultItem(
                 PatientId: record.PatientId.Value,
                 HealthScore: record.Health.Value,
+                FunctionalCapacityScore: functionalCapacityPolicy.Assess(
+                    record.Health,
+                    record.Illness).Value,
                 CurrentIllnessKind: record.Illness.CurrentKind,
                 CurrentIllnessSeverity: record.Illness.CurrentSeverity,
                 DiagnosedOn: record.Illness.DiagnosedOn,
