@@ -73,6 +73,8 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity
             configurator
                .AddConsumer<CityOperationalBudgetPressureConsumer, CityOperationalBudgetPressureConsumerDefinition>();
             configurator.AddConsumer<CitySystemsResourceDemandConsumer, CitySystemsResourceDemandConsumerDefinition>();
+            configurator.AddConsumer<HealthcareCareDeliveryActivityConsumer,
+                HealthcareCareDeliveryActivityConsumerDefinition>();
         }
     }
 }
