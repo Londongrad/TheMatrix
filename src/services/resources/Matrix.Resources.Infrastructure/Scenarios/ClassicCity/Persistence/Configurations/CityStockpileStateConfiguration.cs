@@ -198,6 +198,50 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Conf
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.HealthcareMedicineDemand,
+                buildAction: demand =>
+                {
+                    demand.Property(x => x.ProcessedPatientCount)
+                       .HasColumnName("HealthcareDemandProcessedPatientCount")
+                       .IsRequired();
+
+                    demand.Property(x => x.RoutineCareDeliveryCount)
+                       .HasColumnName("HealthcareDemandRoutineCareDeliveryCount")
+                       .IsRequired();
+
+                    demand.Property(x => x.UrgentCareDeliveryCount)
+                       .HasColumnName("HealthcareDemandUrgentCareDeliveryCount")
+                       .IsRequired();
+
+                    demand.Property(x => x.AcuteCareDeliveryCount)
+                       .HasColumnName("HealthcareDemandAcuteCareDeliveryCount")
+                       .IsRequired();
+
+                    demand.Property(x => x.EmergencyCareDeliveryCount)
+                       .HasColumnName("HealthcareDemandEmergencyCareDeliveryCount")
+                       .IsRequired();
+
+                    demand.Property(x => x.MedicineLoadIndex)
+                       .HasPrecision(5, 4)
+                       .HasColumnName("HealthcareDemandMedicineLoadIndex")
+                       .IsRequired();
+
+                    demand.Property(x => x.SourceRevision)
+                       .HasColumnName("HealthcareDemandSourceRevision")
+                       .IsRequired(false);
+
+                    demand.Property(x => x.CareDate)
+                       .HasColumnName("HealthcareDemandCareDate")
+                       .IsRequired(false);
+
+                    demand.Property(x => x.ObservedAtUtc)
+                       .HasColumnName("HealthcareDemandObservedAtUtc")
+                       .IsRequired(false);
+                });
+            builder.Navigation(x => x.HealthcareMedicineDemand)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.Fuel,
                 buildAction: stock => ConfigureLine(
                     builder: stock,

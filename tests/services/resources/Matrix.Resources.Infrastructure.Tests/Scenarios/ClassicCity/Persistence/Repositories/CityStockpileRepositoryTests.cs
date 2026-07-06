@@ -1,3 +1,4 @@
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Infrastructure.Persistence;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Persistence.Repositories;
@@ -14,11 +15,22 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Persistenc
             await using ResourcesDbContext dbContext = CreateDbContext();
             var repository = new CityStockpileRepository(dbContext);
             CityStockpileState state = CreateState();
+            state.ApplyHealthcareMedicineDemand(
+                new CityHealthcareMedicineDemandPolicy().CreateDemand(
+                    processedPatientCount: 100,
+                    routineCareDeliveryCount: 4,
+                    urgentCareDeliveryCount: 3,
+                    acuteCareDeliveryCount: 2,
+                    emergencyCareDeliveryCount: 1,
+                    sourceRevision: 17,
+                    careDate: new DateOnly(2048, 5, 6),
+                    observedAtUtc: CreatedAtUtc));
 
             await repository.AddAsync(
                 state: state,
                 cancellationToken: CancellationToken.None);
             await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
 
             CityStockpileState? loaded = await repository.GetBySimulationHostIdAsync(
                 simulationHostId: CreateHostId(),
@@ -34,6 +46,9 @@ namespace Matrix.Resources.Infrastructure.Tests.Scenarios.ClassicCity.Persistenc
             Assert.Equal(
                 expected: state.SupplyStressIndex,
                 actual: loaded.SupplyStressIndex);
+            Assert.Equal(17, loaded.HealthcareMedicineDemand.SourceRevision);
+            Assert.Equal(0.0500m, loaded.HealthcareMedicineDemand.MedicineLoadIndex);
+            Assert.Equal(100, loaded.HealthcareMedicineDemand.ProcessedPatientCount);
         }
 
         [Fact]
