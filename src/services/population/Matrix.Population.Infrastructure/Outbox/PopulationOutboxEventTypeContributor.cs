@@ -11,8 +11,6 @@ namespace Matrix.Population.Infrastructure.Outbox
                     typeof(PopulationResidentFactsBatchV1),
                 [PopulationOutboxEventTypes.PopulationResidentHealthRiskBatchV1] =
                     typeof(PopulationResidentHealthRiskBatchV1),
-                [PopulationOutboxEventTypes.PopulationResidentMedicalStateBatchV1] =
-                    typeof(PopulationResidentMedicalStateBatchV1),
                 [PopulationOutboxEventTypes.PopulationResidentVitalStateBatchV1] =
                     typeof(PopulationResidentVitalStateBatchV1)
             };
