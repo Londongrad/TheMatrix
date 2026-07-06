@@ -19,7 +19,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services
         MarriageDomainService marriageDomainService,
         IPersonWriteRepository personWriteRepository,
         IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
-        IPopulationResidentMedicalStateOutboxWriter residentMedicalStateOutboxWriter) : IPersonLifecycleExtension
+        IPopulationResidentVitalStateOutboxWriter residentVitalStateOutboxWriter) : IPersonLifecycleExtension
     {
         public async Task OnPersonDiedAsync(
             Person person,
@@ -122,13 +122,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services
                     batch: batch,
                     cancellationToken: cancellationToken);
 
-            foreach (var batch in PopulationResidentMedicalStateBatchFactory.Build(
+            foreach (var batch in PopulationResidentVitalStateBatchFactory.Build(
                          simulationHostId: cityId.Value,
                          sourceRevision: sourceRevision,
                          residents: new[] { person },
-                         correlationId: $"{correlationPrefix}:medical-state",
+                         correlationId: $"{correlationPrefix}:vital-state",
                          observedAtUtc: occurredAtUtc))
-                await residentMedicalStateOutboxWriter.AddResidentMedicalStateBatchAsync(
+                await residentVitalStateOutboxWriter.AddResidentVitalStateBatchAsync(
                     batch: batch,
                     cancellationToken: cancellationToken);
         }

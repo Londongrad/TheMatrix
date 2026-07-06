@@ -584,7 +584,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
             FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
             FakePopulationResidentHealthRiskOutboxWriter? residentHealthRiskOutboxWriter = null,
-            FakePopulationResidentMedicalStateOutboxWriter? residentMedicalStateOutboxWriter = null,
+            FakePopulationResidentVitalStateOutboxWriter? residentVitalStateOutboxWriter = null,
             FakeCityPopulationCommuteTripSyncService? commuteTripSyncService = null,
             FakeUnitOfWork? unitOfWork = null)
         {
@@ -618,8 +618,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                            new FakePopulationResidentFactsOutboxWriter(),
                 residentHealthRiskOutboxWriter: residentHealthRiskOutboxWriter ??
                                                 new FakePopulationResidentHealthRiskOutboxWriter(),
-                residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter ??
-                                                  new FakePopulationResidentMedicalStateOutboxWriter(),
+                residentVitalStateOutboxWriter: residentVitalStateOutboxWriter ??
+                                                new FakePopulationResidentVitalStateOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
                 pendingWeatherImpactRepository: pendingWeatherImpactRepository ??

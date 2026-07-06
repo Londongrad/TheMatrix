@@ -28,7 +28,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
             var residentFactsOutboxWriter = new FakePopulationResidentFactsOutboxWriter();
-            var residentMedicalStateOutboxWriter = new FakePopulationResidentMedicalStateOutboxWriter();
+            var residentVitalStateOutboxWriter = new FakePopulationResidentVitalStateOutboxWriter();
             var unitOfWork = new FakeUnitOfWork();
             InitializeCityPopulationCommandHandler handler = CreateHandler(
                 personWriteRepository: personWriteRepository,
@@ -39,7 +39,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 summaryProjectionService: summaryProjectionService,
                 outboxWriter: outboxWriter,
                 residentFactsOutboxWriter: residentFactsOutboxWriter,
-                residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter,
+                residentVitalStateOutboxWriter: residentVitalStateOutboxWriter,
                 unitOfWork: unitOfWork);
 
             CityPopulationBootstrapSummaryDto result = await handler.Handle(
@@ -142,12 +142,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 });
 
             var residentFactsBatch = Assert.Single(residentFactsOutboxWriter.Batches);
-            var medicalStateBatch = Assert.Single(residentMedicalStateOutboxWriter.Batches);
+            var vitalStateBatch = Assert.Single(residentVitalStateOutboxWriter.Batches);
             Assert.Equal(cityId, residentFactsBatch.SimulationHostId);
             Assert.Equal(0, residentFactsBatch.SourceRevision);
             Assert.Equal(result.GeneratedPeopleCount, residentFactsBatch.Residents.Count);
-            Assert.Equal(result.GeneratedPeopleCount, medicalStateBatch.Residents.Count);
-            Assert.All(medicalStateBatch.Residents, state => Assert.InRange(state.HealthScore, 0, 100));
+            Assert.Equal(result.GeneratedPeopleCount, vitalStateBatch.Residents.Count);
+            Assert.All(vitalStateBatch.Residents, state => Assert.InRange(state.HealthScore, 0, 100));
             Assert.Equal(UtcNow, residentFactsBatch.SynchronizedAtUtc);
 
             Assert.Equal(
@@ -232,7 +232,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakeCityEconomySettlementOutboxWriter? outboxWriter = null,
             FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
-            FakePopulationResidentMedicalStateOutboxWriter? residentMedicalStateOutboxWriter = null,
+            FakePopulationResidentVitalStateOutboxWriter? residentVitalStateOutboxWriter = null,
             FakeUnitOfWork? unitOfWork = null)
         {
             return new InitializeCityPopulationCommandHandler(
@@ -251,8 +251,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
                 residentFactsOutboxWriter: residentFactsOutboxWriter ??
                                            new FakePopulationResidentFactsOutboxWriter(),
-                residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter ??
-                                                  new FakePopulationResidentMedicalStateOutboxWriter(),
+                residentVitalStateOutboxWriter: residentVitalStateOutboxWriter ??
+                                                new FakePopulationResidentVitalStateOutboxWriter(),
                 generator: new CityPopulationBootstrapGenerator(
                     contentCatalog: new TestPopulationGenerationContentCatalog(),
                     anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy()),

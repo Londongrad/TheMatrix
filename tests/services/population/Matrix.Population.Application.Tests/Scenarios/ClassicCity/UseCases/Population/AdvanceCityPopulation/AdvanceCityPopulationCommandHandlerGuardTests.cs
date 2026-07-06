@@ -250,7 +250,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityEconomySettlementOutboxWriter: new FakeCityEconomySettlementOutboxWriter(),
                 residentFactsOutboxWriter: new FakePopulationResidentFactsOutboxWriter(),
                 residentHealthRiskOutboxWriter: new FakePopulationResidentHealthRiskOutboxWriter(),
-                residentMedicalStateOutboxWriter: new FakePopulationResidentMedicalStateOutboxWriter(),
+                residentVitalStateOutboxWriter: new FakePopulationResidentVitalStateOutboxWriter(),
                 progressionStateRepository: progressionStateRepository ??
                                             new FakeCityPopulationProgressionStateRepository(),
                 pendingWeatherImpactRepository: new FakeCityPopulationPendingWeatherImpactRepository(),

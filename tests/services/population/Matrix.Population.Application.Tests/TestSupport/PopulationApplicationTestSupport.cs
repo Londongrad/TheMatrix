@@ -874,13 +874,13 @@ namespace Matrix.Population.Application.Tests.TestSupport
             }
         }
 
-        internal sealed class FakePopulationResidentMedicalStateOutboxWriter
-            : IPopulationResidentMedicalStateOutboxWriter
+        internal sealed class FakePopulationResidentVitalStateOutboxWriter
+            : IPopulationResidentVitalStateOutboxWriter
         {
-            public List<PopulationResidentMedicalStateBatchV1> Batches { get; } = [];
+            public List<PopulationResidentVitalStateBatchV1> Batches { get; } = [];
 
-            public Task AddResidentMedicalStateBatchAsync(
-                PopulationResidentMedicalStateBatchV1 batch,
+            public Task AddResidentVitalStateBatchAsync(
+                PopulationResidentVitalStateBatchV1 batch,
                 CancellationToken cancellationToken = default)
             {
                 Batches.Add(batch);

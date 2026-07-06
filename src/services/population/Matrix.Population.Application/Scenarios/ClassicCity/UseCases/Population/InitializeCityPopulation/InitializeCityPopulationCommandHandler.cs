@@ -28,7 +28,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
-        IPopulationResidentMedicalStateOutboxWriter residentMedicalStateOutboxWriter,
+        IPopulationResidentVitalStateOutboxWriter residentVitalStateOutboxWriter,
         CityPopulationBootstrapGenerator generator,
         IUnitOfWork unitOfWork)
         : IRequestHandler<InitializeCityPopulationCommand, CityPopulationBootstrapSummaryDto>
@@ -115,12 +115,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     residents: result.Persons,
                     correlationId: $"{syncCorrelationId}:resident-facts",
                     synchronizedAtUtc: syncOccurredAtUtc);
-            PopulationResidentMedicalStateBatchV1[] residentMedicalStateBatches =
-                PopulationResidentMedicalStateBatchFactory.Build(
+            PopulationResidentVitalStateBatchV1[] residentVitalStateBatches =
+                PopulationResidentVitalStateBatchFactory.Build(
                     simulationHostId: request.CityId,
                     sourceRevision: 0,
                     residents: result.Persons,
-                    correlationId: $"{syncCorrelationId}:medical-state",
+                    correlationId: $"{syncCorrelationId}:vital-state",
                     observedAtUtc: syncOccurredAtUtc);
 
             await unitOfWork.ExecuteInTransactionAsync(
@@ -191,8 +191,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             batch: batch,
                             cancellationToken: ct);
 
-                    foreach (PopulationResidentMedicalStateBatchV1 batch in residentMedicalStateBatches)
-                        await residentMedicalStateOutboxWriter.AddResidentMedicalStateBatchAsync(
+                    foreach (PopulationResidentVitalStateBatchV1 batch in residentVitalStateBatches)
+                        await residentVitalStateOutboxWriter.AddResidentVitalStateBatchAsync(
                             batch: batch,
                             cancellationToken: ct);
 

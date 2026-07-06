@@ -50,7 +50,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPopulationResidentFactsOutboxWriter residentFactsOutboxWriter,
         IPopulationResidentHealthRiskOutboxWriter residentHealthRiskOutboxWriter,
-        IPopulationResidentMedicalStateOutboxWriter residentMedicalStateOutboxWriter,
+        IPopulationResidentVitalStateOutboxWriter residentVitalStateOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationPendingWeatherImpactRepository pendingWeatherImpactRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
@@ -591,15 +591,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     }
 
                     if (registeredResidents.Count > 0)
-                        foreach (PopulationResidentMedicalStateBatchV1 batch in
-                                 PopulationResidentMedicalStateBatchFactory.Build(
+                        foreach (PopulationResidentVitalStateBatchV1 batch in
+                                 PopulationResidentVitalStateBatchFactory.Build(
                                      simulationHostId: request.CityId,
                                      sourceRevision: request.TickId,
                                      residents: registeredResidents,
                                      correlationId:
-                                     $"population:{request.CityId:N}:tick:{request.TickId}:medical-state",
+                                     $"population:{request.CityId:N}:tick:{request.TickId}:vital-state",
                                      observedAtUtc: updatedAtUtc))
-                            await residentMedicalStateOutboxWriter.AddResidentMedicalStateBatchAsync(
+                            await residentVitalStateOutboxWriter.AddResidentVitalStateBatchAsync(
                                 batch: batch,
                                 cancellationToken: ct);
 

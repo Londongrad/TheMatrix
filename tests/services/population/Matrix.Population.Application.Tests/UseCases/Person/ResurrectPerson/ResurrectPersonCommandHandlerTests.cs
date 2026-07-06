@@ -113,7 +113,7 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var activityJournalService = new FakeCityPopulationActivityJournalService();
             var factsWriter = new FakePopulationResidentFactsOutboxWriter();
-            var medicalStateWriter = new FakePopulationResidentMedicalStateOutboxWriter();
+            var vitalStateWriter = new FakePopulationResidentVitalStateOutboxWriter();
             ResurrectPersonCommandHandler handler = CreateHandler(
                 personReadRepository: personReadRepository,
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
@@ -121,7 +121,7 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
                 summaryProjectionService: summaryProjectionService,
                 activityJournalService: activityJournalService,
                 residentFactsOutboxWriter: factsWriter,
-                residentMedicalStateOutboxWriter: medicalStateWriter);
+                residentVitalStateOutboxWriter: vitalStateWriter);
 
             PersonDto result = await handler.Handle(
                 request: new ResurrectPersonCommand(person.Id.Value),
@@ -149,9 +149,9 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
                 actual: activity.CurrentDate);
             Assert.Equal(9, Assert.Single(factsWriter.Batches).SourceRevision);
             Assert.True(Assert.Single(factsWriter.Batches[0].Residents).IsAlive);
-            Assert.Equal(100, Assert.Single(medicalStateWriter.Batches[0].Residents).HealthScore);
+            Assert.Equal(100, Assert.Single(vitalStateWriter.Batches[0].Residents).HealthScore);
             Assert.Equal(person.LifecycleRevision,
-                Assert.Single(medicalStateWriter.Batches[0].Residents).LifecycleRevision);
+                Assert.Single(vitalStateWriter.Batches[0].Residents).LifecycleRevision);
         }
 
         private static ResurrectPersonCommandHandler CreateHandler(
@@ -163,7 +163,7 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
             FakePersonWriteRepository? personWriteRepository = null,
             FakeUnitOfWork? unitOfWork = null,
             FakePopulationResidentFactsOutboxWriter? residentFactsOutboxWriter = null,
-            FakePopulationResidentMedicalStateOutboxWriter? residentMedicalStateOutboxWriter = null)
+            FakePopulationResidentVitalStateOutboxWriter? residentVitalStateOutboxWriter = null)
         {
             FakePersonReadRepository resolvedPersonReadRepository =
                 personReadRepository ?? new FakePersonReadRepository();
@@ -189,8 +189,8 @@ namespace Matrix.Population.Application.Tests.UseCases.Person.ResurrectPerson
                         personWriteRepository: resolvedPersonWriteRepository,
                         residentFactsOutboxWriter: residentFactsOutboxWriter ??
                                                    new FakePopulationResidentFactsOutboxWriter(),
-                        residentMedicalStateOutboxWriter: residentMedicalStateOutboxWriter ??
-                                                          new FakePopulationResidentMedicalStateOutboxWriter())
+                        residentVitalStateOutboxWriter: residentVitalStateOutboxWriter ??
+                                                        new FakePopulationResidentVitalStateOutboxWriter())
                 ],
                 timeProvider: new FakeTimeProvider(UtcNow),
                 unitOfWork: unitOfWork ?? new FakeUnitOfWork());
