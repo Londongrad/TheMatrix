@@ -10,5 +10,8 @@ namespace Matrix.Population.Infrastructure.Outbox
 
         public const string PopulationResidentMedicalStateBatchV1 =
             "population.resident-medical-state-batch.v1";
+
+        public const string PopulationResidentVitalStateBatchV1 =
+            "population.resident-vital-state-batch.v1";
     }
 }

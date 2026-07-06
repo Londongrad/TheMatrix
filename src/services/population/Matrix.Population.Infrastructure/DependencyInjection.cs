@@ -68,6 +68,8 @@ namespace Matrix.Population.Infrastructure
                 PopulationResidentHealthRiskOutboxWriter>();
             services.AddScoped<IPopulationResidentMedicalStateOutboxWriter,
                 PopulationResidentMedicalStateOutboxWriter>();
+            services.AddScoped<IPopulationResidentVitalStateOutboxWriter,
+                PopulationResidentVitalStateOutboxWriter>();
             services.AddScoped<IProcessedIntegrationMessageRepository, ProcessedIntegrationMessageRepository>();
             services.AddScoped<ProcessedIntegrationMessageCleaner>();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<PopulationDbContext>>();
