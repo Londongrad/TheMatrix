@@ -72,6 +72,25 @@ namespace Matrix.Healthcare.Domain.Patients
             return true;
         }
 
+        public bool TrySynchronizeVitalState(
+            long lifecycleRevision,
+            long sourceRevision,
+            HealthScore health)
+        {
+            long normalizedLifecycleRevision = EnsureRevision(lifecycleRevision);
+            long normalizedSourceRevision = EnsureRevision(sourceRevision);
+
+            if (normalizedLifecycleRevision <= LastLifecycleRevision)
+                return false;
+
+            Health = health;
+            Illness = PatientIllnessState.Healthy(Illness.LastRecoveredOn);
+            LastLifecycleRevision = normalizedLifecycleRevision;
+            LastProgressionRevision = Math.Max(LastProgressionRevision, normalizedSourceRevision);
+
+            return true;
+        }
+
         public void ApplyHealthDelta(int delta)
         {
             Health = Health.ApplyDelta(delta);

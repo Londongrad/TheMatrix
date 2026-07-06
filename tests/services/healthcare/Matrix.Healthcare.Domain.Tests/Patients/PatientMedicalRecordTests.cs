@@ -78,6 +78,57 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
         }
 
         [Fact]
+        public void SynchronizeVitalState_WhenLifecycleAdvances_ResetsHealthcareOwnedIllness()
+        {
+            DateOnly diagnosedOn = new(2048, 5, 7);
+            PatientMedicalRecord record = PatientMedicalRecord.Register(
+                PatientId,
+                SimulationHostId,
+                new HealthScore(40),
+                PatientIllnessState.Active(
+                    IllnessKind.Exposure,
+                    IllnessSeverity.Severe,
+                    diagnosedOn));
+            Assert.True(record.TryAcceptProgressionRevision(6));
+
+            bool synchronized = record.TrySynchronizeVitalState(
+                lifecycleRevision: 2,
+                sourceRevision: 8,
+                health: HealthScore.Full);
+
+            Assert.True(synchronized);
+            Assert.Equal(HealthScore.Maximum, record.Health.Value);
+            Assert.False(record.HasActiveIllness);
+            Assert.Equal(2, record.LastLifecycleRevision);
+            Assert.Equal(8, record.LastProgressionRevision);
+        }
+
+        [Fact]
+        public void SynchronizeVitalState_WhenLifecycleRevisionIsStale_KeepsMedicalState()
+        {
+            PatientMedicalRecord record = PatientMedicalRecord.Register(
+                PatientId,
+                SimulationHostId,
+                new HealthScore(63),
+                PatientIllnessState.Active(
+                    IllnessKind.Infection,
+                    IllnessSeverity.Moderate,
+                    new DateOnly(2048, 5, 7)),
+                lifecycleRevision: 3);
+
+            bool synchronized = record.TrySynchronizeVitalState(
+                lifecycleRevision: 2,
+                sourceRevision: 8,
+                health: HealthScore.Full);
+
+            Assert.False(synchronized);
+            Assert.Equal(63, record.Health.Value);
+            Assert.True(record.HasActiveIllness);
+            Assert.Equal(3, record.LastLifecycleRevision);
+            Assert.Equal(-1, record.LastProgressionRevision);
+        }
+
+        [Fact]
         public void ApplyHealthDelta_WhenHealthReachesMinimum_MarksRecordCritical()
         {
             PatientMedicalRecord record = CreateHealthyRecord(health: 12);
