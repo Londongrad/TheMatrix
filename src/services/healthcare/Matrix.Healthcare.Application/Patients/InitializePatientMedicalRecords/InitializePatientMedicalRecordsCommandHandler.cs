@@ -58,11 +58,10 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                         throw new InvalidOperationException(
                             $"Patient '{prepared.PatientId}' already belongs to another simulation host.");
 
-                    if (existing.TrySynchronizeLifecycleState(
+                    if (existing.TrySynchronizeVitalState(
                             lifecycleRevision: prepared.LifecycleRevision,
                             sourceRevision: batch.SourceRevision,
-                            health: prepared.Health,
-                            illness: prepared.Illness))
+                            health: prepared.Health))
                         updatedRecords++;
 
                     continue;
@@ -72,7 +71,7 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                     patientId: prepared.PatientId,
                     simulationHostId: batch.SimulationHostId,
                     health: prepared.Health,
-                    illness: prepared.Illness,
+                    illness: PatientIllnessState.Healthy(),
                     lifecycleRevision: prepared.LifecycleRevision));
             }
 
@@ -143,7 +142,6 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                 preparedRecords[index] = new PreparedMedicalRecord(
                     PatientId: patientId,
                     Health: new HealthScore(item.HealthScore),
-                    Illness: CreateIllnessState(item),
                     LifecycleRevision: item.LifecycleRevision);
             }
 
@@ -152,27 +150,6 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
                 SourceRevision: request.SourceRevision,
                 PatientIds: patientIds.ToArray(),
                 Records: preparedRecords);
-        }
-
-        private static PatientIllnessState CreateIllnessState(InitializePatientMedicalRecordItem item)
-        {
-            if (item.CurrentIllnessKind is null
-                && item.CurrentIllnessSeverity is null
-                && item.DiagnosedOn is null)
-                return PatientIllnessState.Healthy(item.LastRecoveredOn);
-
-            if (item.CurrentIllnessKind.HasValue
-                && item.CurrentIllnessSeverity.HasValue
-                && item.DiagnosedOn.HasValue)
-                return PatientIllnessState.Active(
-                    kind: item.CurrentIllnessKind.Value,
-                    severity: item.CurrentIllnessSeverity.Value,
-                    diagnosedOn: item.DiagnosedOn.Value,
-                    lastRecoveredOn: item.LastRecoveredOn);
-
-            throw new ArgumentException(
-                message: "Illness kind, severity, and diagnosis date must be present together.",
-                paramName: nameof(item));
         }
 
         private sealed record PreparedBatch(
@@ -184,7 +161,6 @@ namespace Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords
         private sealed record PreparedMedicalRecord(
             PatientId PatientId,
             HealthScore Health,
-            PatientIllnessState Illness,
             long LifecycleRevision);
     }
 }

@@ -1,5 +1,4 @@
 using Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords;
-using Matrix.Healthcare.Domain.Patients;
 using Matrix.Healthcare.Integration.Consumers;
 using Matrix.Healthcare.Integration.Tests.TestSupport;
 using Matrix.Population.Contracts.Events;
@@ -50,7 +49,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             Assert.Equal(message.SimulationHostId, command.SimulationHostId);
             Assert.Equal(message.SourceRevision, command.SourceRevision);
             Assert.Equal(residentId, record.PatientId);
-            Assert.Equal(IllnessKind.Stress, record.CurrentIllnessKind);
+            Assert.Equal(70, record.HealthScore);
             Assert.Equal(2, record.LifecycleRevision);
         }
 

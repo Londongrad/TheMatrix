@@ -1,5 +1,4 @@
 using Matrix.Healthcare.Application.Patients.InitializePatientMedicalRecords;
-using Matrix.Healthcare.Domain.Patients;
 using Matrix.Population.Contracts.Events;
 
 namespace Matrix.Healthcare.Integration.Consumers
@@ -25,13 +24,9 @@ namespace Matrix.Healthcare.Integration.Consumers
                     paramName: nameof(message));
 
             InitializePatientMedicalRecordItem[] records = message.Residents
-               .Select(resident => new InitializePatientMedicalRecordItem(
+                .Select(resident => new InitializePatientMedicalRecordItem(
                     PatientId: resident.ResidentId,
                     HealthScore: resident.HealthScore,
-                    CurrentIllnessKind: MapOptionalEnum<IllnessKind>(resident.CurrentIllnessKind),
-                    CurrentIllnessSeverity: MapOptionalEnum<IllnessSeverity>(resident.CurrentIllnessSeverity),
-                    DiagnosedOn: resident.DiagnosedOn,
-                    LastRecoveredOn: resident.LastRecoveredOn,
                     LifecycleRevision: resident.LifecycleRevision))
                .ToArray();
 
@@ -42,18 +37,5 @@ namespace Matrix.Healthcare.Integration.Consumers
                 SourceRevision: message.SourceRevision);
         }
 
-        private static TEnum? MapOptionalEnum<TEnum>(string? value)
-            where TEnum : struct, Enum
-        {
-            if (value is null)
-                return null;
-
-            if (Enum.TryParse(value, ignoreCase: true, out TEnum result) && Enum.IsDefined(result))
-                return result;
-
-            throw new ArgumentException(
-                message: $"Population medical value '{value}' is not a supported {typeof(TEnum).Name}.",
-                paramName: nameof(value));
-        }
     }
 }

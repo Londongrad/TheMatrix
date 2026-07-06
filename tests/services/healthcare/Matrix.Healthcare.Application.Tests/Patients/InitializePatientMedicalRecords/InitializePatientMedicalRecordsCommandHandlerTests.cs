@@ -15,7 +15,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.InitializePatientMedicalR
             new(2048, 5, 6, 10, 0, 0, TimeSpan.Zero);
 
         [Fact]
-        public async Task Handle_NewRecords_PreservesTransferredMedicalStateInSingleSave()
+        public async Task Handle_NewRecords_CreatesHealthcareOwnedHealthyStateInSingleSave()
         {
             var repository = new MedicalRecordRepositoryStub();
             var unitOfWork = new HealthcareUnitOfWorkStub();
@@ -23,8 +23,6 @@ namespace Matrix.Healthcare.Application.Tests.Patients.InitializePatientMedicalR
                 repository,
                 new HealthcareSimulationDeletionRepositoryStub(),
                 unitOfWork);
-            DateOnly diagnosedOn = new(2048, 5, 3);
-
             InitializePatientMedicalRecordsResult result = await handler.Handle(
                 new InitializePatientMedicalRecordsCommand(
                     HostId,
@@ -32,11 +30,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.InitializePatientMedicalR
                     [
                         new InitializePatientMedicalRecordItem(
                             PatientId: Guid.NewGuid(),
-                            HealthScore: 61,
-                            CurrentIllnessKind: IllnessKind.Infection,
-                            CurrentIllnessSeverity: IllnessSeverity.Moderate,
-                            DiagnosedOn: diagnosedOn,
-                            LastRecoveredOn: new DateOnly(2048, 4, 20))
+                            HealthScore: 61)
                     ]),
                 CancellationToken.None);
 
@@ -44,8 +38,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.InitializePatientMedicalR
             Assert.Equal(InitializePatientMedicalRecordsStatus.Applied, result.Status);
             Assert.Equal(1, result.AddedRecords);
             Assert.Equal(61, added.Health.Value);
-            Assert.Equal(IllnessKind.Infection, added.Illness.CurrentKind);
-            Assert.Equal(diagnosedOn, added.Illness.DiagnosedOn);
+            Assert.False(added.HasActiveIllness);
             Assert.Equal(1, unitOfWork.SaveCount);
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
         }
@@ -146,10 +139,6 @@ namespace Matrix.Healthcare.Application.Tests.Patients.InitializePatientMedicalR
                     new InitializePatientMedicalRecordItem(
                         PatientId: patientId,
                         HealthScore: healthScore,
-                        CurrentIllnessKind: null,
-                        CurrentIllnessSeverity: null,
-                        DiagnosedOn: null,
-                        LastRecoveredOn: null,
                         LifecycleRevision: lifecycleRevision)
                 ],
                 SourceRevision: sourceRevision);
