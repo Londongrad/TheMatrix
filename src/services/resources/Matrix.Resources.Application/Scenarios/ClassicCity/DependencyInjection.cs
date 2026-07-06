@@ -9,6 +9,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity
         public static IServiceCollection AddClassicCityScenarioApplication(this IServiceCollection services)
         {
             services.AddSingleton<CityStockpilePolicy>();
+            services.AddSingleton<CityHealthcareMedicineDemandPolicy>();
             services.AddSingleton<CityStockpileBudgetGuard>();
             return services;
         }
