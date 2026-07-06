@@ -40,7 +40,8 @@ namespace Matrix.Healthcare.Infrastructure.Outbox
                         EnergyDelta: patient.EnergyDelta,
                         StressDelta: patient.StressDelta,
                         BecameCritical: patient.BecameCritical,
-                        LifecycleRevision: patient.LifecycleRevision))
+                        LifecycleRevision: patient.LifecycleRevision,
+                        FunctionalCapacityScore: patient.FunctionalCapacityScore))
                    .ToArray());
 
             dbContext.OutboxMessages.Add(

@@ -60,6 +60,7 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Outbox
             Assert.Equal(new DateOnly(2048, 5, 6), payload.CurrentDate);
             HealthcarePatientHealthOutcomeV1 patient = Assert.Single(payload.Patients);
             Assert.Equal(patientId, patient.PatientId);
+            Assert.Equal(60, patient.FunctionalCapacityScore);
             Assert.Equal("Infection", patient.CurrentIllnessKind);
             Assert.Equal(-2, patient.HealthDelta);
             Assert.Equal(3, patient.LifecycleRevision);

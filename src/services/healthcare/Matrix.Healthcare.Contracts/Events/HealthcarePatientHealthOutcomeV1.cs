@@ -12,5 +12,6 @@ namespace Matrix.Healthcare.Contracts.Events
         int EnergyDelta,
         int StressDelta,
         bool BecameCritical,
-        long LifecycleRevision = 0);
+        long LifecycleRevision = 0,
+        int FunctionalCapacityScore = 100);
 }
