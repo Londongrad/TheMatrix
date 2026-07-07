@@ -189,14 +189,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     }
                 };
 
-                if (resident.HasActiveIllness)
-                    reserve -= resident.CurrentIllnessSeverity switch
-                    {
-                        IllnessSeverity.Mild => 8m,
-                        IllnessSeverity.Moderate => 16m,
-                        IllnessSeverity.Severe => 28m,
-                        _ => 10m
-                    };
             }
 
             reserve += random.Next(
