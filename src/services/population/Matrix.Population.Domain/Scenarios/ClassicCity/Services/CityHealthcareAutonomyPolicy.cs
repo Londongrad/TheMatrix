@@ -45,7 +45,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior)
                 access += 0.03d;
 
-            if (resident.CurrentIllnessSeverity == IllnessSeverity.Severe)
+            if (HasSevereFunctionalLimitation(resident))
                 access += 0.03d;
 
             if (resident.Employment.Status == EmploymentStatus.Employed)
@@ -93,7 +93,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     ResolveDistrictMedicalAccessStability(districtUtilityConditions);
                 access *= 0.70d + (districtMedicalAccessStability * 0.35d);
 
-                if (resident.CurrentIllnessSeverity == IllnessSeverity.Severe &&
+                if (HasSevereFunctionalLimitation(resident) &&
                     districtMedicalAccessStability < 0.40d)
                     access *= 0.88d;
             }
@@ -117,10 +117,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
                 access *= recoverySupportMultiplier;
 
-                if (resident.CurrentIllnessSeverity == IllnessSeverity.Severe)
+                if (HasSevereFunctionalLimitation(resident))
                     access += triagePressure * 0.05d;
                 else
-                    if (resident.CurrentIllnessSeverity == IllnessSeverity.Moderate)
+                    if (HasModerateFunctionalLimitation(resident))
                     access -= triagePressure * 0.01d;
                 else
                     access -= triagePressure * 0.04d;
@@ -131,6 +131,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 min: 0d,
                 max: 0.48d);
         }
+
+        private static bool HasSevereFunctionalLimitation(Person resident) =>
+            resident.FunctionalCapacity.Value < 50;
+
+        private static bool HasModerateFunctionalLimitation(Person resident) =>
+            resident.FunctionalCapacity.Value is >= 50 and < 80;
 
         private static double ResolveDistrictMedicalAccessStability(
             CityDistrictUtilityConditionsSnapshot districtUtilityConditions)
