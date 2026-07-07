@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Population.Domain.ValueObjects;
 using Xunit;
 
@@ -19,9 +20,9 @@ namespace Matrix.Population.Domain.Tests.ValueObjects
         [Theory]
         [InlineData(-1)]
         [InlineData(101)]
-        public void From_OutOfRangeScore_ThrowsArgumentOutOfRangeException(int score)
+        public void From_OutOfRangeScore_ThrowsDomainException(int score)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Assert.Throws<DomainException>(() =>
                 FunctionalCapacityLevel.From(score));
         }
     }
