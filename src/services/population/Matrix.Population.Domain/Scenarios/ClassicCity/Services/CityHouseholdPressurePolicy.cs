@@ -87,7 +87,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int infantCount = householdResidents.Count(x => x.GetAge(currentDate)
                                                                .Years ==
                                                             0);
-            int activeIllnessCount = householdResidents.Count(x => x.HasActiveIllness);
+            int functionallyLimitedResidentCount = householdResidents.Count(
+                resident => resident.FunctionalCapacity.Value < 100);
             int employedAdults = householdResidents.Count(x =>
                 x.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior &&
                 x.Employment.Status == EmploymentStatus.Employed);
@@ -144,7 +145,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     val2: supportShortfall);
             }
 
-            if (activeIllnessCount > 0)
+            if (functionallyLimitedResidentCount > 0)
                 stressDelta += 1;
 
             if (isolatedSingle)
@@ -172,7 +173,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 happinessDelta += 1;
             }
 
-            if (resident.HasActiveIllness)
+            if (resident.FunctionalCapacity.Value < 100)
             {
                 energyDelta -= 1;
                 happinessDelta -= 1;
@@ -205,7 +206,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 }
 
                 if (commutePressureProfile.BlockedRouteCount > 0 &&
-                    (resident.HasActiveIllness ||
+                    (resident.FunctionalCapacity.Value < 100 ||
                      resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior))
                 {
                     stressDelta += 1;
