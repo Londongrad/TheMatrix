@@ -79,10 +79,9 @@ namespace Matrix.Population.Domain.Entities
                 socialNeed: socialNeedLevel,
                 personality: personality,
                 weight: weight,
-                functionalCapacity: functionalCapacity ?? FunctionalCapacityLevel.From(
-                    lifeStatus == LifeStatus.Alive
-                        ? healthLevel.Value
-                        : FunctionalCapacityLevel.Minimum),
+                functionalCapacity: functionalCapacity ?? (lifeStatus == LifeStatus.Alive
+                    ? FunctionalCapacityLevel.Full
+                    : FunctionalCapacityLevel.From(FunctionalCapacityLevel.Minimum)),
                 illness: illness ?? IllnessInfo.Healthy(),
                 motherId: motherId,
                 fatherId: fatherId,

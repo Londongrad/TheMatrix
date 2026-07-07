@@ -41,7 +41,7 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.Equal(
                 expected: 80,
                 actual: person.Health.Value);
-            Assert.Equal(80, person.FunctionalCapacity.Value);
+            Assert.Equal(100, person.FunctionalCapacity.Value);
             Assert.Equal(0, person.LifecycleRevision);
         }
 

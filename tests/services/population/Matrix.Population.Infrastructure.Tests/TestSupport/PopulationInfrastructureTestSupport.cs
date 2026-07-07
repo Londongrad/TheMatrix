@@ -33,7 +33,7 @@ namespace Matrix.Population.Infrastructure.Tests.TestSupport
             string lastName = "Ivanov",
             DateOnly? birthDate = null,
             DateOnly? currentDate = null,
-            int functionalCapacity = 90)
+            int functionalCapacity = 100)
         {
             DateOnly resolvedCurrentDate = currentDate ??
             new DateOnly(
