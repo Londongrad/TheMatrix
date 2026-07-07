@@ -91,7 +91,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             energyDelta: outcome.EnergyDelta,
                             stressDelta: outcome.StressDelta,
                             currentDate: request.CurrentDate,
-                            expectedLifecycleRevision: outcome.LifecycleRevision);
+                            expectedLifecycleRevision: outcome.LifecycleRevision,
+                            functionalCapacityScore: outcome.FunctionalCapacityScore);
                         if (!accepted)
                         {
                             stale++;
@@ -153,6 +154,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 throw new ArgumentException($"Outcome batches cannot exceed {MaxBatchSize} patients.", nameof(request));
             if (request.Patients.Any(patient => patient.PatientId == Guid.Empty
                                                 || patient.HealthScore is < 0 or > 100
+                                                || patient.FunctionalCapacityScore is < 0 or > 100
                                                 || patient.LifecycleRevision < 0))
                 throw new ArgumentException("Outcome patient data is invalid.", nameof(request));
             if (request.Patients.Select(patient => patient.PatientId).Distinct().Count() != request.Patients.Count)

@@ -12,5 +12,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         int HappinessDelta,
         int EnergyDelta,
         int StressDelta,
-        long LifecycleRevision = 0);
+        long LifecycleRevision = 0,
+        int FunctionalCapacityScore = 100);
 }

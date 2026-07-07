@@ -26,7 +26,8 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     EnergyDelta: -2,
                     StressDelta: 2,
                     BecameCritical: false,
-                    LifecycleRevision: 3));
+                    LifecycleRevision: 3,
+                    FunctionalCapacityScore: 60));
 
             ApplyPatientHealthOutcomesCommand command =
                 HealthcarePatientHealthOutcomeCommandMapper.Map(
@@ -42,6 +43,7 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
             Assert.Equal(patientId, patient.PatientId);
             Assert.Equal(IllnessKind.Infection, patient.CurrentIllnessKind);
             Assert.Equal(IllnessSeverity.Moderate, patient.CurrentIllnessSeverity);
+            Assert.Equal(60, patient.FunctionalCapacityScore);
             Assert.Equal(3, patient.LifecycleRevision);
         }
 

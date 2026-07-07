@@ -29,7 +29,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     HappinessDelta: patient.HappinessDelta,
                     EnergyDelta: patient.EnergyDelta,
                     StressDelta: patient.StressDelta,
-                    LifecycleRevision: patient.LifecycleRevision))
+                    LifecycleRevision: patient.LifecycleRevision,
+                    FunctionalCapacityScore: patient.FunctionalCapacityScore))
                .ToArray();
 
             if (patients.Any(patient =>
