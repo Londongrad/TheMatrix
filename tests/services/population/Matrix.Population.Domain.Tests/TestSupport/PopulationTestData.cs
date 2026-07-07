@@ -16,7 +16,8 @@ namespace Matrix.Population.Domain.Tests.TestSupport
             IllnessSeverity? illnessSeverity,
             DateOnly? diagnosedOn = null,
             DateOnly? lastRecoveredOn = null,
-            int? healthScore = null)
+            int? healthScore = null,
+            int? functionalCapacityScore = null)
         {
             bool applied = person.TryApplyHealthcareOutcome(
                 sourceRevision: person.LastHealthcareRevision + 1,
@@ -29,7 +30,15 @@ namespace Matrix.Population.Domain.Tests.TestSupport
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,
-                currentDate: currentDate);
+                currentDate: currentDate,
+                functionalCapacityScore: functionalCapacityScore ?? illnessSeverity switch
+                {
+                    null => 100,
+                    IllnessSeverity.Mild => 85,
+                    IllnessSeverity.Moderate => 60,
+                    IllnessSeverity.Severe => 30,
+                    _ => throw new ArgumentOutOfRangeException(nameof(illnessSeverity))
+                });
 
             if (!applied)
                 throw new InvalidOperationException("The healthcare test projection was not accepted.");

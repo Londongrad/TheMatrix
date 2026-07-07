@@ -9,7 +9,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         int AdultStudentCount,
         int DependentCount,
         int InfantCount,
-        int ActiveIllnessCount,
+        int FunctionalLimitationCount,
         double AverageHealth,
         double AverageEnergy,
         double AverageStress,

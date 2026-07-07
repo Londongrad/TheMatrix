@@ -69,7 +69,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double livingCostUnits = (double)(cashflow.DailyExpenses.Amount / 26m) +
                                      (livelihood.DependentCount * 0.06d) +
                                      (livelihood.InfantCount * 0.08d) +
-                                     (livelihood.ActiveIllnessCount * 0.08d) +
+                                     (livelihood.FunctionalLimitationCount * 0.08d) +
                                      (costOfLivingPressure * 0.40d) +
                                      (affordabilityPressure * 0.55d);
 
@@ -88,7 +88,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             (netUnits * 0.22d) -
                             (livelihood.StabilityScore * 0.24d) +
                             (livelihood.DependentCount * 0.03d) +
-                            (livelihood.ActiveIllnessCount * 0.04d) +
+                            (livelihood.FunctionalLimitationCount * 0.04d) +
                             (costOfLivingPressure * 0.14d) +
                             (affordabilityPressure * 0.18d);
 

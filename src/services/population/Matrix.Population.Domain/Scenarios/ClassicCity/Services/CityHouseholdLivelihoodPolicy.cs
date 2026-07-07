@@ -26,7 +26,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     AdultStudentCount: 0,
                     DependentCount: 0,
                     InfantCount: 0,
-                    ActiveIllnessCount: 0,
+                    FunctionalLimitationCount: 0,
                     AverageHealth: 0d,
                     AverageEnergy: 0d,
                     AverageStress: 0d,
@@ -36,7 +36,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int adultStudentCount = 0;
             int dependentCount = 0;
             int infantCount = 0;
-            int activeIllnessCount = 0;
+            int functionalLimitationCount = 0;
             double healthTotal = 0d;
             double energyTotal = 0d;
             double stressTotal = 0d;
@@ -63,8 +63,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             break;
                     }
 
-                if (resident.HasActiveIllness)
-                    activeIllnessCount++;
+                if (resident.FunctionalCapacity.Value < 100)
+                    functionalLimitationCount++;
 
                 healthTotal += resident.Health.Value;
                 energyTotal += resident.Energy.Value;
@@ -82,7 +82,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                            val2: dependencyLoad + (activeResidents.Length * 0.5d)),
                 min: 0d,
                 max: 1d);
-            double illnessBurden = activeIllnessCount / (double)activeResidents.Length;
+            double functionalBurden = functionalLimitationCount / (double)activeResidents.Length;
             double crowdingBurden = Math.Clamp(
                 value: (activeResidents.Length - 4) * 0.08d,
                 min: 0d,
@@ -96,7 +96,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                (Normalize(averageHealth) * 0.12d) +
                                (Normalize(averageEnergy) * 0.10d) -
                                (Normalize(averageStress) * 0.14d) -
-                               (illnessBurden * 0.12d) -
+                               (functionalBurden * 0.12d) -
                                crowdingBurden -
                                (dependencyLoad * 0.03d);
 
@@ -110,7 +110,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 AdultStudentCount: adultStudentCount,
                 DependentCount: dependentCount,
                 InfantCount: infantCount,
-                ActiveIllnessCount: activeIllnessCount,
+                FunctionalLimitationCount: functionalLimitationCount,
                 AverageHealth: averageHealth,
                 AverageEnergy: averageEnergy,
                 AverageStress: averageStress,

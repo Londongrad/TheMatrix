@@ -51,7 +51,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 actual: profile.InfantCount);
             Assert.Equal(
                 expected: 0,
-                actual: profile.ActiveIllnessCount);
+                actual: profile.FunctionalLimitationCount);
             Assert.Equal(
                 expected: 0d,
                 actual: profile.StabilityScore);
@@ -146,7 +146,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 actual: profile.InfantCount);
             Assert.Equal(
                 expected: 1,
-                actual: profile.ActiveIllnessCount);
+                actual: profile.FunctionalLimitationCount);
             Assert.InRange(
                 actual: profile.AverageHealth,
                 low: 70d,
