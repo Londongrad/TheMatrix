@@ -83,7 +83,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             bool hasInfant = false;
             int childCount = 0;
             int employedAdults = 0;
-            int activeIllnessCount = 0;
+            int functionalLimitationCount = 0;
             double averageStress = 0d;
             double averageHappiness = 0d;
 
@@ -101,8 +101,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     member.Employment.Status == EmploymentStatus.Employed)
                     employedAdults++;
 
-                if (member.HasActiveIllness)
-                    activeIllnessCount++;
+                if (member.FunctionalCapacity.Value < 100)
+                    functionalLimitationCount++;
 
                 averageStress += member.Stress.Value;
                 averageHappiness += member.Happiness.Value;
@@ -136,7 +136,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 Size: members.Count,
                 ChildCount: childCount,
                 EmployedAdults: employedAdults,
-                ActiveIllnessCount: activeIllnessCount,
+                FunctionalLimitationCount: functionalLimitationCount,
                 HasInfant: hasInfant,
                 AverageStress: averageStress,
                 AverageHappiness: averageHappiness,
@@ -211,7 +211,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             (profile.HasInfant
                                 ? 0.008d
                                 : 0d) -
-                            (profile.ActiveIllnessCount > 0
+                            (profile.FunctionalLimitationCount > 0
                                 ? 0.006d
                                 : 0d);
 
@@ -367,7 +367,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int Size,
             int ChildCount,
             int EmployedAdults,
-            int ActiveIllnessCount,
+            int FunctionalLimitationCount,
             bool HasInfant,
             double AverageStress,
             double AverageHappiness,
