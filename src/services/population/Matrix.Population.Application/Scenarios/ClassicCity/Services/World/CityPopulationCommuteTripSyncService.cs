@@ -296,13 +296,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             decimal healthFactor = 0.52m + (resident.Health.Value / 100m * 0.58m);
             decimal energyFactor = 0.58m + (resident.Energy.Value / 100m * 0.52m);
             decimal stressFactor = 1.04m - (resident.Stress.Value / 100m * 0.22m);
-            decimal illnessFactor = resident.CurrentIllnessSeverity switch
-            {
-                IllnessSeverity.Severe => 0.58m,
-                IllnessSeverity.Moderate => 0.78m,
-                IllnessSeverity.Mild => 0.90m,
-                _ => 1m
-            };
+            decimal functionalCapacityFactor = 0.55m +
+                                               (resident.FunctionalCapacity.Value / 100m * 0.45m);
             decimal weightFactor = resident.Weight.Kilograms switch
             {
                 > 120m => 0.88m,
@@ -320,7 +315,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
 
             return decimal.Round(
                 d: Math.Clamp(
-                    value: healthFactor * energyFactor * stressFactor * illnessFactor * weightFactor * purposeFactor,
+                    value: healthFactor * energyFactor * stressFactor * functionalCapacityFactor * weightFactor *
+                           purposeFactor,
                     min: 0.35m,
                     max: 1.65m),
                 decimals: 4,
