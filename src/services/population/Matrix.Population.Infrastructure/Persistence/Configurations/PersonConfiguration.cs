@@ -103,6 +103,14 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                .HasColumnName("SocialNeed")
                .IsRequired();
 
+            builder.Property(p => p.FunctionalCapacity)
+               .HasConversion(
+                    convertToProviderExpression: value => value.Value,
+                    convertFromProviderExpression: value => FunctionalCapacityLevel.From(value))
+               .HasColumnName("FunctionalCapacity")
+               .HasDefaultValue(FunctionalCapacityLevel.Full)
+               .IsRequired();
+
             builder.Property(p => p.Weight)
                .HasConversion(
                     convertToProviderExpression: w => w.Kilograms,

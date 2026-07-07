@@ -18,15 +18,17 @@ namespace Matrix.Population.Infrastructure.Tests.Persistence.Repositories
             var repository = new PersonWriteRepository(dbContext);
             Person person = CreatePerson(
                 personId: Guid.Parse("44444444-4444-4444-4444-444444444444"),
-                firstName: "Pavel");
+                firstName: "Pavel",
+                functionalCapacity: 58);
             dbContext.Households.Add(CreateHousehold(householdId: person.HouseholdId.Value));
 
             await repository.AddAsync(person);
             await dbContext.SaveChangesAsync();
 
-            Assert.Contains(
-                collection: dbContext.Persons,
-                filter: x => x.Id == person.Id);
+            dbContext.ChangeTracker.Clear();
+            Person stored = Assert.Single(dbContext.Persons);
+            Assert.Equal(person.Id, stored.Id);
+            Assert.Equal(58, stored.FunctionalCapacity.Value);
         }
 
         [Fact]

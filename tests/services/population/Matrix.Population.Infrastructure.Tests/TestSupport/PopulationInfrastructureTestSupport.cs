@@ -32,7 +32,8 @@ namespace Matrix.Population.Infrastructure.Tests.TestSupport
             string firstName = "Ivan",
             string lastName = "Ivanov",
             DateOnly? birthDate = null,
-            DateOnly? currentDate = null)
+            DateOnly? currentDate = null,
+            int functionalCapacity = 90)
         {
             DateOnly resolvedCurrentDate = currentDate ??
             new DateOnly(
@@ -68,7 +69,8 @@ namespace Matrix.Population.Infrastructure.Tests.TestSupport
                 weight: BodyWeight.FromKilograms(72m),
                 job: null,
                 currentDate: resolvedCurrentDate,
-                illness: IllnessInfo.Healthy());
+                illness: IllnessInfo.Healthy(),
+                functionalCapacity: FunctionalCapacityLevel.From(functionalCapacity));
         }
 
         internal static Household CreateHousehold(
