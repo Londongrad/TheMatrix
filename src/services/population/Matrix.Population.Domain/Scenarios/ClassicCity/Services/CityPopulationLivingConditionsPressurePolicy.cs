@@ -51,9 +51,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 person.Employment.Status is EmploymentStatus.Employed or EmploymentStatus.Student
                     ? 1.15d
                     : 0.75d;
-            double illnessVulnerability = person.HasActiveIllness
-                ? 1.20d
-                : 1.00d;
+            double functionalVulnerability = 1d +
+                                             (((100d - person.FunctionalCapacity.Value) / 100d) * 0.20d);
 
             double healthLoss = daysElapsed *
                                 (
@@ -63,7 +62,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                     (floodingPressure * 0.70d) +
                                     (foodShortage * 1.40d * ageVulnerability) +
                                     (emergencyWaterShortage * 1.00d) +
-                                    (medicineShortage * 0.45d * illnessVulnerability));
+                                    (medicineShortage * 0.45d * functionalVulnerability));
 
             double energyLoss = daysElapsed *
                                 (
