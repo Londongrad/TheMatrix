@@ -148,7 +148,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int childCount = 0;
             int employedAdults = 0;
             int studentResidents = 0;
-            int activeIllnessCount = 0;
+            int functionalLimitationCount = 0;
             bool hasInfant = false;
             double healthTotal = 0d;
             double happinessTotal = 0d;
@@ -180,8 +180,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 if (member.Employment.Status == EmploymentStatus.Student)
                     studentResidents++;
 
-                if (member.HasActiveIllness)
-                    activeIllnessCount++;
+                if (member.FunctionalCapacity.Value < 100)
+                    functionalLimitationCount++;
 
                 if (member.GetAge(currentDate)
                        .Years ==
@@ -203,7 +203,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 ChildCount: childCount,
                 EmployedAdults: employedAdults,
                 StudentResidents: studentResidents,
-                ActiveIllnessCount: activeIllnessCount,
+                FunctionalLimitationCount: functionalLimitationCount,
                 HasInfant: hasInfant,
                 AverageHealth: healthTotal / size,
                 AverageHappiness: happinessTotal / size,
@@ -330,8 +330,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double employmentStrength = profile.AdultCount + profile.SeniorCount > 0
                 ? profile.EmployedAdults / (double)(profile.AdultCount + profile.SeniorCount)
                 : 0d;
-            double illnessBurden = profile.Size > 0
-                ? profile.ActiveIllnessCount / (double)profile.Size
+            double functionalBurden = profile.Size > 0
+                ? profile.FunctionalLimitationCount / (double)profile.Size
                 : 0d;
 
             double chance = 0.003d +
@@ -346,7 +346,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 ? 0.008d
                                 : 0d) -
                             (averageStress * 0.014d) -
-                            (illnessBurden * 0.012d) -
+                            (functionalBurden * 0.012d) -
                             (Math.Max(
                                  val1: 0,
                                  val2: profile.Size - 3) *
@@ -435,8 +435,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double lowHappiness = 1d - Normalize(profile.AverageHappiness);
             double lowEnergy = 1d - Normalize(profile.AverageEnergy);
             double stress = Normalize(profile.AverageStress);
-            double illnessBurden = profile.Size > 0
-                ? profile.ActiveIllnessCount / (double)profile.Size
+            double functionalBurden = profile.Size > 0
+                ? profile.FunctionalLimitationCount / (double)profile.Size
                 : 0d;
             double unemploymentBurden = profile.AdultCount + profile.SeniorCount > 0
                 ? (profile.AdultCount + profile.SeniorCount - profile.EmployedAdults) /
@@ -449,7 +449,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             (lowHealth * 0.012d) +
                             (lowHappiness * 0.010d) +
                             (lowEnergy * 0.008d) +
-                            (illnessBurden * 0.010d) +
+                            (functionalBurden * 0.010d) +
                             (Math.Max(
                                  val1: 0,
                                  val2: profile.Size - 4) *
@@ -779,7 +779,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int ChildCount,
             int EmployedAdults,
             int StudentResidents,
-            int ActiveIllnessCount,
+            int FunctionalLimitationCount,
             bool HasInfant,
             double AverageHealth,
             double AverageHappiness,
