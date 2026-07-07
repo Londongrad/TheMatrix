@@ -59,7 +59,8 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,
-                currentDate: currentDate);
+                currentDate: currentDate,
+                functionalCapacityScore: 60);
 
             CityPopulationParticipationProfile profile = policy.ResolveEmploymentProfile(
                 person: employedResident,
@@ -123,7 +124,8 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,
-                currentDate: currentDate);
+                currentDate: currentDate,
+                functionalCapacityScore: 60);
 
             decimal attendanceIndex = policy.ResolveStudentAttendanceIndex(
                 person: student,

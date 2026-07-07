@@ -38,17 +38,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double energyPenalty = ResolveLowValuePenalty(
                 currentValue: person.Energy.Value,
                 healthyThreshold: 35d);
-            double healthPenalty = ResolveLowValuePenalty(
-                currentValue: person.Health.Value,
-                healthyThreshold: 45d);
+            double functionalCapacityDeficit = ResolveFunctionalCapacityDeficit(person);
             double happinessPenalty = ResolveLowValuePenalty(
                 currentValue: person.Happiness.Value,
                 healthyThreshold: 35d);
             double stressPenalty = ResolveHighValuePenalty(
                 currentValue: person.Stress.Value,
                 toleranceThreshold: 55d);
-            double illnessAttendancePenalty = ResolveIllnessAttendancePenalty(person);
-            double illnessProductivityPenalty = ResolveIllnessProductivityPenalty(person);
             double housingPenalty = housingStatus == HousingStatus.Homeless
                 ? 0.12d
                 : 0d;
@@ -69,10 +65,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 (rationingPressure * 0.05d) -
                                 (energyPenalty * 0.22d) -
                                 (stressPenalty * 0.16d) -
-                                (healthPenalty * 0.18d) -
+                                (functionalCapacityDeficit * 0.50d) -
                                 (commutePenalty * 0.30d) -
                                 commuteAccessPenalty -
-                                illnessAttendancePenalty -
                                 housingPenalty -
                                 agePenalty;
 
@@ -86,11 +81,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                   (emergencyWaterShortage * 0.05d) -
                                   (energyPenalty * 0.28d) -
                                   (stressPenalty * 0.22d) -
-                                  (healthPenalty * 0.18d) -
+                                  (functionalCapacityDeficit * 0.55d) -
                                   (happinessPenalty * 0.10d) -
                                   (commutePenalty * 0.12d) -
                                   (commuteAccessPenalty * 0.35d) -
-                                  illnessProductivityPenalty -
                                   (housingPenalty * 0.50d);
 
             decimal attendanceIndex = RoundIndex(
@@ -142,13 +136,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double energyPenalty = ResolveLowValuePenalty(
                 currentValue: person.Energy.Value,
                 healthyThreshold: 35d);
-            double healthPenalty = ResolveLowValuePenalty(
-                currentValue: person.Health.Value,
-                healthyThreshold: 45d);
+            double functionalCapacityDeficit = ResolveFunctionalCapacityDeficit(person);
             double stressPenalty = ResolveHighValuePenalty(
                 currentValue: person.Stress.Value,
                 toleranceThreshold: 50d);
-            double illnessAttendancePenalty = ResolveIllnessAttendancePenalty(person);
             double housingPenalty = housingStatus == HousingStatus.Homeless
                 ? 0.12d
                 : 0d;
@@ -169,10 +160,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 (rationingPressure * 0.05d) -
                                 (energyPenalty * 0.24d) -
                                 (stressPenalty * 0.18d) -
-                                (healthPenalty * 0.14d) -
+                                (functionalCapacityDeficit * 0.45d) -
                                 (commutePenalty * 0.34d) -
                                 commuteAccessPenalty -
-                                illnessAttendancePenalty -
                                 housingPenalty -
                                 agePenalty;
 
@@ -223,26 +213,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     max: 1d);
         }
 
-        private static double ResolveIllnessAttendancePenalty(Person person)
+        private static double ResolveFunctionalCapacityDeficit(Person person)
         {
-            return person.CurrentIllnessSeverity switch
-            {
-                IllnessSeverity.Mild => 0.08d,
-                IllnessSeverity.Moderate => 0.18d,
-                IllnessSeverity.Severe => 0.35d,
-                _ => 0d
-            };
-        }
-
-        private static double ResolveIllnessProductivityPenalty(Person person)
-        {
-            return person.CurrentIllnessSeverity switch
-            {
-                IllnessSeverity.Mild => 0.10d,
-                IllnessSeverity.Moderate => 0.22d,
-                IllnessSeverity.Severe => 0.40d,
-                _ => 0d
-            };
+            return Math.Clamp(
+                value: (100d - person.FunctionalCapacity.Value) / 100d,
+                min: 0d,
+                max: 1d);
         }
 
         private static decimal RoundIndex(double value)
