@@ -105,56 +105,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public void Collect_WhenResidentBecomesIll_AddsBecameIllEvent()
-        {
-            Person resident = CreatePerson();
-
-            IReadOnlyList<CityPopulationActivityWriteModel> entries = CollectAfter(
-                resident: resident,
-                mutate: person => ApplyHealthcareProjection(
-                    person: person,
-                    currentDate: CurrentDate,
-                    illnessKind: IllnessKind.Infection,
-                    illnessSeverity: IllnessSeverity.Mild,
-                    diagnosedOn: CurrentDate));
-
-            AssertSingleEvent(
-                entries: entries,
-                eventType: CityPopulationActivityEventType.ResidentBecameIll,
-                resident: resident);
-        }
-
-        [Fact]
-        public void Collect_WhenResidentRecoversFromIllness_AddsRecoveredEvent()
-        {
-            Person resident = CreatePerson();
-            ApplyHealthcareProjection(
-                person: resident,
-                currentDate: CurrentDate,
-                illnessKind: IllnessKind.Exposure,
-                illnessSeverity: IllnessSeverity.Moderate,
-                diagnosedOn: CurrentDate.AddDays(-1));
-
-            IReadOnlyList<CityPopulationActivityWriteModel> entries = CollectAfter(
-                resident: resident,
-                mutate: person => ApplyHealthcareProjection(
-                    person: person,
-                    currentDate: CurrentDate,
-                    illnessKind: null,
-                    illnessSeverity: null,
-                    lastRecoveredOn: CurrentDate));
-
-            CityPopulationActivityWriteModel entry = AssertSingleEvent(
-                entries: entries,
-                eventType: CityPopulationActivityEventType.ResidentRecoveredFromIllness,
-                resident: resident);
-            Assert.Contains(
-                expectedSubstring: "exposure",
-                actualString: entry.Summary,
-                comparisonType: StringComparison.OrdinalIgnoreCase);
-        }
-
-        [Fact]
         public void Collect_WhenResidentStartsStudying_AddsEnrolledEvent()
         {
             Person resident = CreatePerson();

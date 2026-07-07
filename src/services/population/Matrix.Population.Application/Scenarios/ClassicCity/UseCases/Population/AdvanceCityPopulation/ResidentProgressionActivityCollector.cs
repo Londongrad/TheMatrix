@@ -18,9 +18,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 SpouseId: person.SpouseId,
                 EmploymentStatus: person.Employment.Status,
                 JobTitle: person.Employment.Job?.Title,
-                EducationLevel: person.EducationLevel,
-                IllnessKind: person.CurrentIllnessKind?.ToString(),
-                IllnessSeverity: person.CurrentIllnessSeverity?.ToString());
+                EducationLevel: person.EducationLevel);
         }
 
         internal static void Collect(
@@ -66,25 +64,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId.Value,
                         currentDate: currentDate,
                         resident: resident,
-                        source: CityPopulationActivitySource.Autonomy,
-                        occurredAtUtc: occurredAtUtc));
-
-            if (before.IllnessKind is null && resident.CurrentIllnessKind is not null)
-                activityEntries.Add(
-                    ClassicCityActivityFactory.ResidentBecameIll(
-                        cityId: cityId.Value,
-                        currentDate: currentDate,
-                        resident: resident,
-                        source: CityPopulationActivitySource.Autonomy,
-                        occurredAtUtc: occurredAtUtc));
-            else
-                if (before.IllnessKind is not null && resident.CurrentIllnessKind is null)
-                activityEntries.Add(
-                    ClassicCityActivityFactory.ResidentRecoveredFromIllness(
-                        cityId: cityId.Value,
-                        currentDate: currentDate,
-                        resident: resident,
-                        previousIllnessKind: before.IllnessKind,
                         source: CityPopulationActivitySource.Autonomy,
                         occurredAtUtc: occurredAtUtc));
 
@@ -146,8 +125,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             PersonId? SpouseId,
             EmploymentStatus EmploymentStatus,
             string? JobTitle,
-            EducationLevel EducationLevel,
-            string? IllnessKind,
-            string? IllnessSeverity);
+            EducationLevel EducationLevel);
     }
 }
