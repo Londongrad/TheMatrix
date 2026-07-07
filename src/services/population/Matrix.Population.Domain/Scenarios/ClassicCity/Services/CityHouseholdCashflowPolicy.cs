@@ -254,13 +254,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 0)
                 amount += 2m;
 
-            if (resident.HasActiveIllness)
-                amount += resident.CurrentIllnessSeverity switch
+            if (resident.FunctionalCapacity.Value < 100)
+                amount += resident.FunctionalCapacity.Value switch
                 {
-                    IllnessSeverity.Mild => 3m,
-                    IllnessSeverity.Moderate => 7m,
-                    IllnessSeverity.Severe => 14m,
-                    _ => 4m
+                    >= 80 => 3m,
+                    >= 50 => 7m,
+                    _ => 14m
                 };
 
             decimal totalAmount = decimal.Round(
@@ -359,19 +358,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     break;
             }
 
-            if (resident.HasActiveIllness)
+            if (resident.FunctionalCapacity.Value < 100)
             {
                 retailStoreShare -= 0.12m;
-                serviceShare += resident.CurrentIllnessSeverity switch
+                serviceShare += resident.FunctionalCapacity.Value switch
                 {
-                    IllnessSeverity.Severe => 0.10m,
-                    IllnessSeverity.Moderate => 0.08m,
+                    < 50 => 0.10m,
+                    < 80 => 0.08m,
                     _ => 0.06m
                 };
-                municipalShare += resident.CurrentIllnessSeverity switch
+                municipalShare += resident.FunctionalCapacity.Value switch
                 {
-                    IllnessSeverity.Severe => 0.02m,
-                    IllnessSeverity.Moderate => 0.03m,
+                    < 50 => 0.02m,
+                    < 80 => 0.03m,
                     _ => 0.06m
                 };
             }
