@@ -154,9 +154,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                                 DestinationAnchorId: institutionAnchorId,
                                 Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
 
-                    bool needsHealthcarePriority = resident.HasActiveIllness ||
+                    bool needsCareAccessPriority = resident.FunctionalCapacity.Value < 80 ||
                                                    resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
-                    if (!needsHealthcarePriority)
+                    if (!needsCareAccessPriority)
                         continue;
 
                     CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
@@ -225,9 +225,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                     totalWeight += 1.00m;
                 }
 
-                bool needsHealthcarePriority = resident.HasActiveIllness ||
+                bool needsCareAccessPriority = resident.FunctionalCapacity.Value < 80 ||
                                                resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
-                if (!needsHealthcarePriority)
+                if (!needsCareAccessPriority)
                     continue;
 
                 CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
@@ -242,11 +242,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                     residentialBuildingId: residentialBuildingId,
                     destinationAnchorId: primaryCareAnchor.CityAnchorId,
                     cancellationToken: cancellationToken);
-                decimal healthcareWeight = resident.CurrentIllnessSeverity == IllnessSeverity.Severe
-                    ? 1.10m
-                    : resident.HasActiveIllness
-                        ? 0.80m
-                        : 0.45m;
+                decimal healthcareWeight = resident.FunctionalCapacity.Value switch
+                {
+                    < 50 => 1.10m,
+                    < 80 => 0.80m,
+                    _ => 0.45m
+                };
                 weightedScoreTotal += ResolveHousingOpportunityContribution(
                     commute: healthcareCommute,
                     weight: healthcareWeight);
