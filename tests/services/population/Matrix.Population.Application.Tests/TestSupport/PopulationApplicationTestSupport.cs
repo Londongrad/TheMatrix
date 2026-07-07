@@ -1486,12 +1486,9 @@ namespace Matrix.Population.Application.Tests.TestSupport
             public Task SyncAsync(
                 Guid cityId,
                 long tickId,
-                DateOnly currentDate,
                 DateTimeOffset currentSimTimeUtc,
                 IReadOnlyCollection<Person> residents,
                 IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
-                IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
-                CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
                 CancellationToken cancellationToken)
             {
                 SyncCalls++;

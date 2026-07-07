@@ -630,15 +630,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     await commuteTripSyncService.SyncAsync(
                         cityId: cityId.Value,
                         tickId: request.TickId,
-                        currentDate: toDate,
                         currentSimTimeUtc: request.ToSimTimeUtc,
                         residents: personsSnapshot,
                         householdPlacements: placementsSnapshot,
-                        hospitalAnchors: await cityPopulationAnchorCatalogRepository.ListByCityAsync(
-                            cityId: cityId,
-                            type: CityAnchorType.Hospital,
-                            cancellationToken: cancellationToken),
-                        anchorSelectionPolicy: anchorSelectionPolicy,
                         cancellationToken: cancellationToken);
                 }
                 catch (Exception ex)

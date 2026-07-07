@@ -1,6 +1,5 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions
 {
@@ -9,12 +8,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abs
         Task SyncAsync(
             Guid cityId,
             long tickId,
-            DateOnly currentDate,
             DateTimeOffset currentSimTimeUtc,
             IReadOnlyCollection<Person> residents,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
-            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             CancellationToken cancellationToken);
     }
 }
