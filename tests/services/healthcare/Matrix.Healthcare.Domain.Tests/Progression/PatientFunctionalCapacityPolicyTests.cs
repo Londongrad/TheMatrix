@@ -10,6 +10,8 @@ namespace Matrix.Healthcare.Domain.Tests.Progression
 
         [Theory]
         [InlineData(100, null, 100)]
+        [InlineData(80, null, 100)]
+        [InlineData(60, null, 80)]
         [InlineData(47, null, 47)]
         [InlineData(100, IllnessSeverity.Mild, 85)]
         [InlineData(80, IllnessSeverity.Moderate, 60)]

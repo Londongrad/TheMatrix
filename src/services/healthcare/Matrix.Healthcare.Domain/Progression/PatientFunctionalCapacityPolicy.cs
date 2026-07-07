@@ -10,6 +10,13 @@ namespace Matrix.Healthcare.Domain.Progression
         {
             ArgumentNullException.ThrowIfNull(illness);
 
+            int generalHealthCapacity = health.Value switch
+            {
+                >= 70 => FunctionalCapacityScore.Maximum,
+                >= 50 => 80,
+                _ => health.Value
+            };
+
             int illnessCeiling = illness.CurrentSeverity switch
             {
                 null => FunctionalCapacityScore.Maximum,
@@ -19,7 +26,7 @@ namespace Matrix.Healthcare.Domain.Progression
                 _ => throw new ArgumentOutOfRangeException(nameof(illness))
             };
 
-            return new FunctionalCapacityScore(Math.Min(health.Value, illnessCeiling));
+            return new FunctionalCapacityScore(Math.Min(generalHealthCapacity, illnessCeiling));
         }
     }
 }
