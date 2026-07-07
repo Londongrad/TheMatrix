@@ -38,7 +38,8 @@ namespace Matrix.Population.Domain.Entities
             IllnessInfo? illness = null,
             PersonId? motherId = null,
             PersonId? fatherId = null,
-            DateOnly? lastChildbirthDate = null)
+            DateOnly? lastChildbirthDate = null,
+            FunctionalCapacityLevel? functionalCapacity = null)
         {
             var lifeSpan = LifeSpan.FromBirthDate(birthDate);
             var life = LifeState.Create(
@@ -78,6 +79,10 @@ namespace Matrix.Population.Domain.Entities
                 socialNeed: socialNeedLevel,
                 personality: personality,
                 weight: weight,
+                functionalCapacity: functionalCapacity ?? FunctionalCapacityLevel.From(
+                    lifeStatus == LifeStatus.Alive
+                        ? healthLevel.Value
+                        : FunctionalCapacityLevel.Minimum),
                 illness: illness ?? IllnessInfo.Healthy(),
                 motherId: motherId,
                 fatherId: fatherId,
@@ -106,6 +111,7 @@ namespace Matrix.Population.Domain.Entities
         public StressLevel Stress { get; private set; }
         public SocialNeedLevel SocialNeed { get; private set; }
         public Personality Personality { get; } = null!;
+        public FunctionalCapacityLevel FunctionalCapacity { get; private set; }
         public IllnessInfo Illness { get; private set; } = null!;
         public PersonId? MotherId { get; private set; }
         public PersonId? FatherId { get; private set; }
@@ -154,6 +160,7 @@ namespace Matrix.Population.Domain.Entities
             SocialNeedLevel socialNeed,
             Personality personality,
             BodyWeight weight,
+            FunctionalCapacityLevel functionalCapacity,
             IllnessInfo illness,
             PersonId? motherId,
             PersonId? fatherId,
@@ -192,6 +199,7 @@ namespace Matrix.Population.Domain.Entities
             Weight = GuardHelper.AgainstNull(
                 value: weight,
                 propertyName: nameof(Weight));
+            FunctionalCapacity = functionalCapacity;
             Illness = GuardHelper.AgainstNull(
                 value: illness,
                 propertyName: nameof(Illness));
@@ -292,6 +300,7 @@ namespace Matrix.Population.Domain.Entities
 
             if (wasAlive && !IsAlive)
             {
+                FunctionalCapacity = FunctionalCapacityLevel.From(FunctionalCapacityLevel.Minimum);
                 ClearNeedsForDeath();
                 Education = Education.ClearInstitution();
                 Employment = Employment.Change(
@@ -309,6 +318,7 @@ namespace Matrix.Population.Domain.Entities
                 newStatus: LifeStatus.Deceased,
                 newHealth: HealthLevel.From(0),
                 newDeathDate: currentDate);
+            FunctionalCapacity = FunctionalCapacityLevel.From(FunctionalCapacityLevel.Minimum);
 
             Education = Education.ClearInstitution();
             Employment = Employment.Change(
@@ -327,6 +337,7 @@ namespace Matrix.Population.Domain.Entities
                 newStatus: LifeStatus.Alive,
                 newHealth: HealthLevel.From(100),
                 newDeathDate: null);
+            FunctionalCapacity = FunctionalCapacityLevel.Full;
 
             Energy = EnergyLevel.Default();
             Stress = StressLevel.Default();
@@ -343,7 +354,8 @@ namespace Matrix.Population.Domain.Entities
             int energyDelta,
             int stressDelta,
             DateOnly currentDate,
-            long? expectedLifecycleRevision = null)
+            long? expectedLifecycleRevision = null,
+            int? functionalCapacityScore = null)
         {
             if (sourceRevision < 0)
                 throw new ArgumentOutOfRangeException(nameof(sourceRevision));
@@ -351,6 +363,9 @@ namespace Matrix.Population.Domain.Entities
                 throw new ArgumentOutOfRangeException(nameof(healthScore));
             if (expectedLifecycleRevision < 0)
                 throw new ArgumentOutOfRangeException(nameof(expectedLifecycleRevision));
+            if (functionalCapacityScore is < FunctionalCapacityLevel.Minimum
+                or > FunctionalCapacityLevel.Maximum)
+                throw new ArgumentOutOfRangeException(nameof(functionalCapacityScore));
 
             illness = GuardHelper.AgainstNull(
                 value: illness,
@@ -367,6 +382,8 @@ namespace Matrix.Population.Domain.Entities
                 return true;
 
             Illness = illness;
+            if (functionalCapacityScore.HasValue)
+                FunctionalCapacity = FunctionalCapacityLevel.From(functionalCapacityScore.Value);
             if (healthScore != Health.Value)
                 ChangeHealth(
                     delta: healthScore - Health.Value,

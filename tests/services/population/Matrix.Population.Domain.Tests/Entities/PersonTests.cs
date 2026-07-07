@@ -41,6 +41,7 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.Equal(
                 expected: 80,
                 actual: person.Health.Value);
+            Assert.Equal(80, person.FunctionalCapacity.Value);
             Assert.Equal(0, person.LifecycleRevision);
         }
 
@@ -154,6 +155,7 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.Equal(
                 expected: 0,
                 actual: person.Health.Value);
+            Assert.Equal(0, person.FunctionalCapacity.Value);
             Assert.Equal(
                 expected: 0,
                 actual: person.Energy.Value);
@@ -190,11 +192,13 @@ namespace Matrix.Population.Domain.Tests.Entities
                 happinessDelta: -2,
                 energyDelta: -3,
                 stressDelta: 2,
-                currentDate: currentDate);
+                currentDate: currentDate,
+                functionalCapacityScore: 60);
 
             Assert.True(applied);
             Assert.Equal(17, person.LastHealthcareRevision);
             Assert.Equal(63, person.Health.Value);
+            Assert.Equal(60, person.FunctionalCapacity.Value);
             Assert.Equal(IllnessKind.Infection, person.CurrentIllnessKind);
             Assert.Equal(IllnessSeverity.Moderate, person.CurrentIllnessSeverity);
             Assert.Equal(diagnosedOn, person.IllnessDiagnosedOn);
