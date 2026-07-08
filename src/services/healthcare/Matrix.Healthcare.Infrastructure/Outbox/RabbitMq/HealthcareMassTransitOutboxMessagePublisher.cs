@@ -23,6 +23,8 @@ namespace Matrix.Healthcare.Infrastructure.Outbox.RabbitMq
                     PublishAsync<HealthcarePatientHealthOutcomeBatchV1>(payloadJson, cancellationToken),
                 HealthcareOutboxEventTypes.CareDeliveryActivityV1 =>
                     PublishAsync<HealthcareCareDeliveryActivityV1>(payloadJson, cancellationToken),
+                HealthcareOutboxEventTypes.PopulationHealthSnapshotV1 =>
+                    PublishAsync<HealthcarePopulationHealthSnapshotV1>(payloadJson, cancellationToken),
                 _ => throw new NotSupportedException(
                     $"Healthcare outbox message type '{type}' is not supported.")
             };
