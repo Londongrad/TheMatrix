@@ -124,6 +124,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
                 ClassicCityHouseholdFinancialStressConsumerDefinition>();
             configurator.AddConsumer<HealthcarePatientHealthOutcomeConsumer,
                 HealthcarePatientHealthOutcomeConsumerDefinition>();
+            configurator.AddConsumer<HealthcarePopulationHealthSnapshotConsumer,
+                HealthcarePopulationHealthSnapshotConsumerDefinition>();
             configurator.AddConsumer<CityArchivedConsumer, CityArchivedConsumerDefinition>();
             configurator.AddConsumer<CityDeletedConsumer, CityDeletedConsumerDefinition>();
             configurator.AddConsumer<CityEnvironmentChangedConsumer, CityEnvironmentChangedConsumerDefinition>();
