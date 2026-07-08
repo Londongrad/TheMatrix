@@ -1,4 +1,5 @@
 using Matrix.Healthcare.Domain.Patients;
+using Matrix.Healthcare.Domain.Simulation;
 
 namespace Matrix.Healthcare.Application.Abstractions
 {
@@ -6,6 +7,10 @@ namespace Matrix.Healthcare.Application.Abstractions
     {
         Task<IReadOnlyList<PatientMedicalRecord>> GetByIdsAsync(
             IReadOnlyCollection<PatientId> patientIds,
+            CancellationToken cancellationToken = default);
+
+        Task<PatientPopulationHealthBurden> GetPopulationHealthBurdenAsync(
+            SimulationHostId simulationHostId,
             CancellationToken cancellationToken = default);
 
         Task AddRangeAsync(

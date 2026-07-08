@@ -1,5 +1,6 @@
 using Matrix.Healthcare.Application.Abstractions;
 using Matrix.Healthcare.Domain.Patients;
+using Matrix.Healthcare.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Healthcare.Infrastructure.Persistence.Repositories
@@ -17,6 +18,34 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Repositories
             return await dbContext.PatientMedicalRecords
                .Where(record => patientIds.Contains(record.Id))
                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<PatientPopulationHealthBurden> GetPopulationHealthBurdenAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            var aggregate = await dbContext.PatientMedicalRecords
+               .Where(record => record.SimulationHostId == simulationHostId)
+               .GroupBy(_ => 1)
+               .Select(records => new
+                {
+                    PatientCount = records.Count(),
+                    MildIllnessCount = records.Count(record =>
+                        record.Illness.CurrentSeverity == IllnessSeverity.Mild),
+                    ModerateIllnessCount = records.Count(record =>
+                        record.Illness.CurrentSeverity == IllnessSeverity.Moderate),
+                    SevereIllnessCount = records.Count(record =>
+                        record.Illness.CurrentSeverity == IllnessSeverity.Severe)
+                })
+               .SingleOrDefaultAsync(cancellationToken);
+
+            return aggregate is null
+                ? PatientPopulationHealthBurden.Empty
+                : new PatientPopulationHealthBurden(
+                    aggregate.PatientCount,
+                    aggregate.MildIllnessCount,
+                    aggregate.ModerateIllnessCount,
+                    aggregate.SevereIllnessCount);
         }
 
         public Task AddRangeAsync(

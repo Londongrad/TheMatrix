@@ -512,6 +512,13 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 return Task.FromResult(_records);
             }
 
+            public Task<PatientPopulationHealthBurden> GetPopulationHealthBurdenAsync(
+                SimulationHostId simulationHostId,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(PatientPopulationHealthBurden.Empty);
+            }
+
             public Task AddRangeAsync(
                 IReadOnlyCollection<PatientMedicalRecord> recordsToAdd,
                 CancellationToken cancellationToken = default)
