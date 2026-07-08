@@ -24,6 +24,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
         [Fact]
         public async Task Handle_EligiblePatient_AdvancesOnceAndWritesOutcomeAtomically()
         {
+            Guid communityId = Guid.NewGuid();
             PatientMedicalRecord record = CreateMedicalRecord(health: 2);
             var medicalRepository = new MedicalRecordRepositoryStub([record]);
             var outboxWriter = new OutcomeOutboxWriterStub();
@@ -42,7 +43,9 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 unitOfWork: unitOfWork);
 
             AdvancePatientHealthResult result = await handler.Handle(
-                CreateCommand(sourceRevision: 17),
+                CreateCommand(
+                    sourceRevision: 17,
+                    communityId: communityId),
                 CancellationToken.None);
 
             PatientHealthProgressionResultItem outcome = Assert.Single(result.Outcomes);
@@ -55,6 +58,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(0, outcome.LifecycleRevision);
             Assert.Equal(0, record.Health.Value);
             Assert.Equal(17, record.LastProgressionRevision);
+            Assert.Equal(new PatientCommunityId(communityId), record.CommunityId);
             PatientHealthOutcomeBatch outboxBatch = Assert.Single(outboxWriter.Batches);
             Assert.Equal(17, outboxBatch.SourceRevision);
             Assert.Equal(CurrentDate, outboxBatch.CurrentDate);
@@ -415,7 +419,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             long lifecycleRevision = 0,
             int batchNumber = 1,
             int totalBatches = 1,
-            string? correlationId = null)
+            string? correlationId = null,
+            Guid? communityId = null)
         {
             return new AdvancePatientHealthCommand(
                 SimulationHostId: HostId,
@@ -443,7 +448,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                         HadAdverseWeatherExposure: true,
                         HealthcareSupportStrength: 0d,
                         PublicHealthRiskStrength: 1d,
-                        LifecycleRevision: lifecycleRevision)
+                        LifecycleRevision: lifecycleRevision,
+                        CommunityId: communityId)
                 ]);
         }
 

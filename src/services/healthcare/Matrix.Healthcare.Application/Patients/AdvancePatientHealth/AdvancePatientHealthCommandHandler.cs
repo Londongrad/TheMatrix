@@ -195,7 +195,9 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     continue;
                 }
 
-                if (!record.TryAcceptProgressionRevision(batch.SourceRevision))
+                if (!record.TryAcceptProgressionRevision(
+                        batch.SourceRevision,
+                        patient.CommunityId))
                 {
                     stalePatients++;
                     continue;

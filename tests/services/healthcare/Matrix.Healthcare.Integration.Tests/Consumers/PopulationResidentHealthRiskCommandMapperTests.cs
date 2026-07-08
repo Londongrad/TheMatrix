@@ -12,6 +12,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
         public void Map_ResidentRisk_MapsScenarioNeutralProgressionCommand()
         {
             Guid residentId = Guid.NewGuid();
+            Guid communityId = Guid.NewGuid();
             PopulationResidentHealthRiskBatchV1 message = CreateMessage(
                 new PopulationResidentHealthRiskV1(
                     ResidentId: residentId,
@@ -28,7 +29,8 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
                     HadAdverseWeatherExposure: true,
                     HealthcareSupportStrength: 0.2d,
                     PublicHealthRiskStrength: 0.4d,
-                    LifecycleRevision: 3));
+                    LifecycleRevision: 3,
+                    CommunityId: communityId));
 
             AdvancePatientHealthCommand command = PopulationResidentHealthRiskCommandMapper.Map(message);
 
@@ -39,6 +41,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             Assert.Equal(PatientHousingStability.Unhoused, patient.HousingStability);
             Assert.Equal(0.4d, patient.PublicHealthRiskStrength);
             Assert.Equal(3, patient.LifecycleRevision);
+            Assert.Equal(communityId, patient.CommunityId);
         }
 
         [Fact]

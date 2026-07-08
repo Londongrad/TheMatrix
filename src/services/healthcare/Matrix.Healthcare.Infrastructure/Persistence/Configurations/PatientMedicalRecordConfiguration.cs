@@ -34,6 +34,16 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Configurations
                .HasColumnName("health_score")
                .IsRequired();
 
+            builder.Property(record => record.CommunityId)
+               .HasConversion(
+                    convertToProviderExpression: id => id.HasValue
+                        ? id.Value.Value
+                        : (Guid?)null,
+                    convertFromProviderExpression: value => value.HasValue
+                        ? new PatientCommunityId(value.Value)
+                        : null)
+               .HasColumnName("community_id");
+
             builder.Property(record => record.LastProgressionRevision)
                .HasColumnName("last_progression_revision")
                .HasDefaultValue(-1L)
@@ -67,6 +77,13 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(record => record.SimulationHostId)
                .HasDatabaseName("ix_healthcare_medical_records_simulation_host");
+
+            builder.HasIndex(record => new
+                {
+                    record.SimulationHostId,
+                    record.CommunityId
+                })
+               .HasDatabaseName("ix_healthcare_medical_records_host_community");
         }
     }
 }

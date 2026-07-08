@@ -69,6 +69,9 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 patients[index] = new PreparedPatientHealthRisk(
                     patientId,
                     item.LifecycleRevision,
+                    item.CommunityId.HasValue
+                        ? new PatientCommunityId(item.CommunityId.Value)
+                        : null,
                     new PatientHealthRiskFactors(
                         energyScore: item.EnergyScore,
                         happinessScore: item.HappinessScore,
@@ -115,5 +118,6 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
     internal sealed record PreparedPatientHealthRisk(
         PatientId PatientId,
         long LifecycleRevision,
+        PatientCommunityId? CommunityId,
         PatientHealthRiskFactors RiskFactors);
 }

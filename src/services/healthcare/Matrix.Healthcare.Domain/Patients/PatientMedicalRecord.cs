@@ -30,6 +30,7 @@ namespace Matrix.Healthcare.Domain.Patients
         public SimulationHostId SimulationHostId { get; private set; }
         public HealthScore Health { get; private set; }
         public PatientIllnessState Illness { get; private set; }
+        public PatientCommunityId? CommunityId { get; private set; }
         public long LastProgressionRevision { get; private set; } = -1;
         public long LastLifecycleRevision { get; private set; }
 
@@ -96,7 +97,9 @@ namespace Matrix.Healthcare.Domain.Patients
             Health = Health.ApplyDelta(delta);
         }
 
-        public bool TryAcceptProgressionRevision(long revision)
+        public bool TryAcceptProgressionRevision(
+            long revision,
+            PatientCommunityId? communityId = null)
         {
             if (revision < 0)
                 throw new ArgumentOutOfRangeException(nameof(revision));
@@ -104,6 +107,7 @@ namespace Matrix.Healthcare.Domain.Patients
                 return false;
 
             LastProgressionRevision = revision;
+            CommunityId = communityId;
             return true;
         }
 

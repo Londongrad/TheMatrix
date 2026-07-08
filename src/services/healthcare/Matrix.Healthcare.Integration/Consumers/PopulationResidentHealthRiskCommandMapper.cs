@@ -39,7 +39,8 @@ namespace Matrix.Healthcare.Integration.Consumers
                     HealthcareSupportStrength: resident.HealthcareSupportStrength,
                     PublicHealthRiskStrength: resident.PublicHealthRiskStrength,
                     ExternalHealthDelta: resident.ExternalHealthDelta,
-                    LifecycleRevision: resident.LifecycleRevision))
+                    LifecycleRevision: resident.LifecycleRevision,
+                    CommunityId: resident.CommunityId))
                .ToArray();
 
             return new AdvancePatientHealthCommand(

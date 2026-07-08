@@ -158,17 +158,20 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
         public void TryAcceptProgressionRevision_AcceptsOnlyMonotonicRevision()
         {
             PatientMedicalRecord record = CreateHealthyRecord();
+            var firstCommunityId = new PatientCommunityId(Guid.NewGuid());
+            var nextCommunityId = new PatientCommunityId(Guid.NewGuid());
 
-            bool first = record.TryAcceptProgressionRevision(7);
-            bool duplicate = record.TryAcceptProgressionRevision(7);
-            bool stale = record.TryAcceptProgressionRevision(6);
-            bool next = record.TryAcceptProgressionRevision(8);
+            bool first = record.TryAcceptProgressionRevision(7, firstCommunityId);
+            bool duplicate = record.TryAcceptProgressionRevision(7, nextCommunityId);
+            bool stale = record.TryAcceptProgressionRevision(6, nextCommunityId);
+            bool next = record.TryAcceptProgressionRevision(8, nextCommunityId);
 
             Assert.True(first);
             Assert.False(duplicate);
             Assert.False(stale);
             Assert.True(next);
             Assert.Equal(8, record.LastProgressionRevision);
+            Assert.Equal(nextCommunityId, record.CommunityId);
         }
 
         [Fact]
