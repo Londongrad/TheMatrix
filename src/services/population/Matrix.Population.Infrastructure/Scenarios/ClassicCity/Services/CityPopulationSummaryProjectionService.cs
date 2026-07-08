@@ -8,6 +8,7 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Infrastructure.Persistence;
+using Matrix.Population.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -17,7 +18,6 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         PopulationDbContext dbContext,
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
         CityPopulationParticipationPolicy participationPolicy,
-        CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
         TimeProvider timeProvider,
         ICityPopulationCommuteRoutingService commuteRoutingService,
         ILogger<CityPopulationSummaryProjectionService> logger)
@@ -26,7 +26,6 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
         private readonly PopulationDbContext _dbContext = dbContext;
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
-        private readonly CityPopulationHealthcarePressurePolicy _healthcarePressurePolicy = healthcarePressurePolicy;
         private readonly ILogger<CityPopulationSummaryProjectionService> _logger = logger;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
         private readonly TimeProvider _timeProvider = timeProvider;
@@ -218,6 +217,21 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                .SingleOrDefaultAsync(
                     predicate: x => x.CityId == cityId,
                     cancellationToken: cancellationToken);
+            CityHealthcarePressureSnapshotEntity? healthcarePressureSnapshot =
+                await _dbContext.CityHealthcarePressureSnapshots
+                   .AsNoTracking()
+                   .SingleOrDefaultAsync(
+                        snapshot => snapshot.CityId == cityId.Value,
+                        cancellationToken);
+            CityPopulationHealthcarePressureProfile healthcarePressureProfile =
+                healthcarePressureSnapshot is null
+                    ? CityPopulationHealthcarePressureProfile.Baseline
+                    : new CityPopulationHealthcarePressureProfile(
+                        healthcarePressureSnapshot.ActiveIllnessCount,
+                        healthcarePressureSnapshot.SevereIllnessCount,
+                        healthcarePressureSnapshot.MedicalLoadIndex,
+                        healthcarePressureSnapshot.TriagePressureIndex,
+                        healthcarePressureSnapshot.RecoverySupportIndex);
 
             CityPopulationSummarySnapshotValues snapshotValues = await BuildSnapshotValuesAsync(
                 cityId: cityId,
@@ -229,7 +243,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 essentialsState: essentialsState,
                 districtImpactPolicy: _districtImpactPolicy,
                 participationPolicy: _participationPolicy,
-                healthcarePressurePolicy: _healthcarePressurePolicy,
+                healthcarePressureProfile: healthcarePressureProfile,
                 timeProvider: _timeProvider,
                 commuteRoutingService: _commuteRoutingService,
                 includeCommuteMetrics: includeCommuteMetrics,
@@ -322,7 +336,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CityPopulationEssentialsState? essentialsState,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationParticipationPolicy participationPolicy,
-            CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
+            CityPopulationHealthcarePressureProfile healthcarePressureProfile,
             TimeProvider timeProvider,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             bool includeCommuteMetrics,
@@ -351,12 +365,6 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             Person[] studentResidents = aliveResidents
                .Where(x => x.Employment.Status == EmploymentStatus.Student)
                .ToArray();
-            CityPopulationHealthcarePressureProfile healthcarePressureProfile =
-                healthcarePressurePolicy.Evaluate(
-                    residents: aliveResidents,
-                    serviceQualityState: serviceQualityState,
-                    livingConditionsState: livingConditionsState,
-                    essentialsState: essentialsState);
             List<decimal> workforceAttendanceSamples = [];
             List<decimal> workforceProductivitySamples = [];
             List<decimal> workforceCommuteAccessibilitySamples = [];
