@@ -15,12 +15,14 @@ namespace Matrix.Population.Application.Tests.Integration
             Guid firstId = Guid.Parse("11111111-1111-1111-1111-111111111111");
             Guid secondId = Guid.Parse("22222222-2222-2222-2222-222222222222");
             Guid thirdId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+            Guid communityId = Guid.NewGuid();
             PopulationResidentHealthRiskSnapshot first = Create(firstId) with
             {
                 HousingStability = "Unhoused",
                 InfectiousHouseholdContacts = 2,
                 HealthcareSupportStrength = 0.42d,
-                LifecycleRevision = 5
+                LifecycleRevision = 5,
+                CommunityId = communityId
             };
 
             PopulationResidentHealthRiskBatchV1[] batches =
@@ -44,6 +46,7 @@ namespace Matrix.Population.Application.Tests.Integration
             Assert.Equal(2, firstRisk.InfectiousHouseholdContacts);
             Assert.Equal(0.42d, firstRisk.HealthcareSupportStrength);
             Assert.Equal(5, firstRisk.LifecycleRevision);
+            Assert.Equal(communityId, firstRisk.CommunityId);
         }
 
         [Fact]

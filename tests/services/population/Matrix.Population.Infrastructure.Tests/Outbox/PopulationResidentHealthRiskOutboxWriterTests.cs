@@ -46,7 +46,8 @@ namespace Matrix.Population.Infrastructure.Tests.Outbox
                         CaregiverSupportStrength: 0.12d,
                         HadAdverseWeatherExposure: false,
                         HealthcareSupportStrength: 0.51d,
-                        PublicHealthRiskStrength: 0.17d)
+                        PublicHealthRiskStrength: 0.17d,
+                        CommunityId: Guid.NewGuid())
                 ]);
 
             await writer.AddResidentHealthRiskBatchAsync(batch);

@@ -139,7 +139,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         livingConditionsPressurePolicy.ResolvePublicHealthRiskStrength(
                             livingConditions: districtLivingConditions,
                             essentials: districtEssentials),
-                        LifecycleRevision: resident.LifecycleRevision));
+                        LifecycleRevision: resident.LifecycleRevision,
+                        CommunityId: prepared.DistrictId?.Value));
             }
 
             return snapshots;

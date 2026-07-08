@@ -101,7 +101,8 @@ namespace Matrix.Population.Application.Integration
                 HealthcareSupportStrength: resident.HealthcareSupportStrength,
                 PublicHealthRiskStrength: resident.PublicHealthRiskStrength,
                 ExternalHealthDelta: resident.ExternalHealthDelta,
-                LifecycleRevision: resident.LifecycleRevision);
+                LifecycleRevision: resident.LifecycleRevision,
+                CommunityId: resident.CommunityId);
         }
     }
 }

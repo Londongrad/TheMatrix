@@ -98,6 +98,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(2, exposed.HouseholdSize);
             Assert.Equal("Housed", exposed.HousingStability);
             Assert.True(exposed.HadAdverseWeatherExposure);
+            Assert.Equal(DistrictId.Value, exposed.CommunityId);
         }
 
         private static CityPopulationAnchorCatalogItem CreateHospitalAnchor() =>

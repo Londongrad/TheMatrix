@@ -16,5 +16,6 @@ namespace Matrix.Population.Contracts.Events
         double HealthcareSupportStrength,
         double PublicHealthRiskStrength,
         int ExternalHealthDelta = 0,
-        long LifecycleRevision = 0);
+        long LifecycleRevision = 0,
+        Guid? CommunityId = null);
 }
