@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
@@ -20,10 +21,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
             ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
             ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
-            CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
-            CityPopulationServiceQualityState? serviceQualityState,
-            CityPopulationLivingConditionsState? livingConditionsState,
-            CityPopulationEssentialsState? essentialsState,
+            ICityHealthcarePressureSnapshotRepository healthcarePressureSnapshotRepository,
             CancellationToken cancellationToken)
         {
             var residents = (await personReadRepository.ListByCityAsync(
@@ -80,12 +78,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cityId: cityId,
                     type: CityAnchorType.Hospital,
                     cancellationToken: cancellationToken);
+            ClassicCityHealthcarePressureSnapshot? healthcarePressureSnapshot =
+                await healthcarePressureSnapshotRepository.GetByCityAsync(
+                    cityId,
+                    cancellationToken);
             CityPopulationHealthcarePressureProfile healthcarePressureProfile =
-                healthcarePressurePolicy.Evaluate(
-                    residents: residents,
-                    serviceQualityState: serviceQualityState,
-                    livingConditionsState: livingConditionsState,
-                    essentialsState: essentialsState);
+                healthcarePressureSnapshot?.Pressure ?? CityPopulationHealthcarePressureProfile.Baseline;
             IReadOnlyCollection<HouseholdEntity> households =
                 await householdWriteRepository.ListByCityAsync(
                     cityId: cityId,

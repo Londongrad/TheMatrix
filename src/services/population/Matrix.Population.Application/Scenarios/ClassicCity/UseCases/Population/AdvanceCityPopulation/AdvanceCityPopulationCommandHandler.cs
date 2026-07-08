@@ -38,6 +38,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
         ICityPopulationEssentialsStateRepository cityPopulationEssentialsStateRepository,
         ICityPopulationServiceQualityStateRepository cityPopulationServiceQualityStateRepository,
+        ICityHealthcarePressureSnapshotRepository healthcarePressureSnapshotRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
@@ -70,7 +71,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
         CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
-        CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
         CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
         CityPopulationParticipationPolicy participationPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
@@ -221,10 +221,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 householdFinancialStressStateRepository: householdFinancialStressStateRepository,
                                 employerFinancialStressStateRepository: employerFinancialStressStateRepository,
                                 cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
-                                healthcarePressurePolicy: healthcarePressurePolicy,
-                                serviceQualityState: serviceQualityState,
-                                livingConditionsState: livingConditionsState,
-                                essentialsState: essentialsState,
+                                healthcarePressureSnapshotRepository: healthcarePressureSnapshotRepository,
                                 cancellationToken: ct);
                         List<PersonEntity> residents = workingSet.Residents;
                         personsSnapshot = residents;

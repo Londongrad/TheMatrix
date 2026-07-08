@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
@@ -222,39 +223,28 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public async Task LoadAsync_EvaluatesHealthcarePressureFromLoadedResidents()
+        public async Task LoadAsync_UsesHealthcareOwnedPressureProjection()
         {
-            PersonEntity healthyResident = CreatePerson(
-                personId: Guid.Parse("11111111-2222-3333-4444-555555555551"),
-                currentDate: CurrentDate);
-            PersonEntity severeResident = CreatePerson(
-                personId: Guid.Parse("11111111-2222-3333-4444-555555555552"),
-                currentDate: CurrentDate);
-            ApplyHealthcareProjection(
-                person: severeResident,
-                currentDate: CurrentDate,
-                illnessKind: IllnessKind.Infection,
-                illnessSeverity: IllnessSeverity.Severe,
-                diagnosedOn: CurrentDate);
-            var healthcarePressurePolicy = new CityPopulationHealthcarePressurePolicy();
-            CityPopulationHealthcarePressureProfile expectedProfile = healthcarePressurePolicy.Evaluate(
-                residents:
-                [
-                    healthyResident,
-                    severeResident
-                ]);
-            var personReadRepository = new FakeCityPopulationPersonReadRepository
+            var expectedProfile = new CityPopulationHealthcarePressureProfile(
+                ActiveIllnessCount: 8,
+                SevereIllnessCount: 2,
+                MedicalLoadIndex: 0.82m,
+                TriagePressureIndex: 0.34m,
+                RecoverySupportIndex: 1.12m);
+            var snapshotRepository = new FakeCityHealthcarePressureSnapshotRepository
             {
-                ListByCityResult =
-                [
-                    healthyResident,
-                    severeResident
-                ]
+                Snapshot = new ClassicCityHealthcarePressureSnapshot(
+                    CityId: TestCityId,
+                    SourceRevision: 17,
+                    CurrentDate: CurrentDate,
+                    PatientCount: 100,
+                    Pressure: expectedProfile,
+                    OccurredAtUtc: EvaluatedAtUtc,
+                    UpdatedAtUtc: EvaluatedAtUtc)
             };
 
             AdvanceCityPopulationWorkingSet workingSet = await LoadAsync(
-                personReadRepository: personReadRepository,
-                healthcarePressurePolicy: healthcarePressurePolicy);
+                healthcarePressureSnapshotRepository: snapshotRepository);
 
             Assert.Equal(
                 expected: expectedProfile,
@@ -312,7 +302,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationHouseholdFinancialStressStateRepository? householdStressRepository = null,
             FakeCityPopulationEmployerFinancialStressStateRepository? employerStressRepository = null,
             FakeCityPopulationAnchorCatalogRepository? anchorRepository = null,
-            CityPopulationHealthcarePressurePolicy? healthcarePressurePolicy = null)
+            FakeCityHealthcarePressureSnapshotRepository? healthcarePressureSnapshotRepository = null)
         {
             return AdvanceCityPopulationWorkingSetLoader.LoadAsync(
                 cityId: TestCityId,
@@ -324,10 +314,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                         new FakeCityPopulationEmployerFinancialStressStateRepository(),
                 cityPopulationAnchorCatalogRepository: anchorRepository ??
                                                        new FakeCityPopulationAnchorCatalogRepository(),
-                healthcarePressurePolicy: healthcarePressurePolicy ?? new CityPopulationHealthcarePressurePolicy(),
-                serviceQualityState: null,
-                livingConditionsState: null,
-                essentialsState: null,
+                healthcarePressureSnapshotRepository: healthcarePressureSnapshotRepository ??
+                                                      new FakeCityHealthcarePressureSnapshotRepository(),
                 cancellationToken: CancellationToken.None);
         }
 

@@ -236,6 +236,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationCostOfLivingStateRepository: new FakeCityPopulationCostOfLivingStateRepository(),
                 cityPopulationEssentialsStateRepository: new FakeCityPopulationEssentialsStateRepository(),
                 cityPopulationServiceQualityStateRepository: new FakeCityPopulationServiceQualityStateRepository(),
+                healthcarePressureSnapshotRepository: new FakeCityHealthcarePressureSnapshotRepository(),
                 cityPopulationDeletionStateRepository: deletionStateRepository ??
                                                        new FakeCityPopulationDeletionStateRepository(),
                 employerFinancialStressStateRepository: new FakeCityPopulationEmployerFinancialStressStateRepository(),
@@ -277,7 +278,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     householdLivelihoodPolicy),
                 anchorSelectionPolicy: anchorSelectionPolicy,
                 districtImpactPolicy: new CityPopulationDistrictImpactPolicy(),
-                healthcarePressurePolicy: new CityPopulationHealthcarePressurePolicy(),
                 livingConditionsPressurePolicy: new CityPopulationLivingConditionsPressurePolicy(),
                 participationPolicy: new CityPopulationParticipationPolicy(),
                 personNeedsProgressionPolicy: new PersonNeedsProgressionPolicy(),
