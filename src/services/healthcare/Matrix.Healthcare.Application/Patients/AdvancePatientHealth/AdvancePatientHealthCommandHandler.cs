@@ -2,6 +2,7 @@ using System.Data;
 using Matrix.Healthcare.Application.Abstractions;
 using Matrix.Healthcare.Application.Care;
 using Matrix.Healthcare.Application.Care.DeliverPatientCare;
+using Matrix.Healthcare.Application.Operations;
 using Matrix.Healthcare.Domain.Care;
 using Matrix.Healthcare.Domain.Facilities;
 using Matrix.Healthcare.Domain.Patients;
@@ -23,10 +24,12 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
         IHealthcareSimulationDeletionRepository deletionRepository,
         IPatientHealthOutcomeOutboxWriter outcomeOutboxWriter,
         ICareDeliveryActivityOutboxWriter careDeliveryActivityOutboxWriter,
+        IPopulationHealthSnapshotOutboxWriter populationHealthSnapshotOutboxWriter,
         PatientIllnessProgressionPolicy progressionPolicy,
         PatientFunctionalCapacityPolicy functionalCapacityPolicy,
         PatientCareNeedAssessmentPolicy careNeedAssessmentPolicy,
         PatientCareDeliveryService careDeliveryService,
+        CareSystemPressurePolicy careSystemPressurePolicy,
         ICareOperationalProfileProvider careOperationalProfileProvider,
         IHealthcareUnitOfWork unitOfWork)
         : IRequestHandler<AdvancePatientHealthCommand, AdvancePatientHealthResult>
@@ -335,13 +338,34 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
             int careAssignmentsCreated = 0;
             if (registration == PatientHealthProgressionBatchRegistrationStatus.Completed)
             {
+                PatientPopulationHealthBurden healthBurden =
+                    await medicalRecordRepository.GetPopulationHealthBurdenAsync(
+                        batch.SimulationHostId,
+                        cancellationToken);
+                CareOperationalProfile snapshotOperationalProfile = careAssignments.Count == 0
+                    ? await careOperationalProfileProvider.GetAsync(
+                        batch.SimulationHostId,
+                        cancellationToken)
+                    : careOperationalProfile;
+                CareSystemPressureProfile pressure = careSystemPressurePolicy.Assess(
+                    healthBurden,
+                    snapshotOperationalProfile);
+                await populationHealthSnapshotOutboxWriter.AddAsync(
+                    new PopulationHealthSnapshot(
+                        SimulationHostId: batch.SimulationHostId.Value,
+                        SourceRevision: batchSet.SourceRevision,
+                        CurrentDate: batchSet.CurrentDate,
+                        Pressure: pressure,
+                        OccurredAtUtc: batch.ObservedAtUtc,
+                        CorrelationId: $"{batchSet.CorrelationId}:population-health"),
+                    cancellationToken);
+
                 careAssignmentsCreated = await careAllocator.AllocateAsync(
                     batch.SimulationHostId,
                     batch.CurrentDate.AddDays(1),
                     batch.ObservedAtUtc,
                     cancellationToken);
-                if (careAssignmentsCreated > 0)
-                    await unitOfWork.SaveChangesAsync(cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
             return new AdvancePatientHealthResult(
