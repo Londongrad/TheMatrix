@@ -1170,6 +1170,38 @@ namespace Matrix.Population.Application.Tests.TestSupport
             }
         }
 
+        internal sealed class FakeCityHealthcarePressureSnapshotRepository
+            : ICityHealthcarePressureSnapshotRepository
+        {
+            public ClassicCityHealthcarePressureSnapshot? Snapshot { get; set; }
+            public int DeleteByCityCalls { get; private set; }
+
+            public Task<ClassicCityHealthcarePressureSnapshot?> GetByCityAsync(
+                CityId cityId,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(Snapshot?.CityId == cityId ? Snapshot : null);
+            }
+
+            public Task UpsertAsync(
+                ClassicCityHealthcarePressureSnapshot snapshot,
+                CancellationToken cancellationToken = default)
+            {
+                Snapshot = snapshot;
+                return Task.CompletedTask;
+            }
+
+            public Task DeleteByCityAsync(
+                CityId cityId,
+                CancellationToken cancellationToken = default)
+            {
+                DeleteByCityCalls++;
+                if (Snapshot?.CityId == cityId)
+                    Snapshot = null;
+                return Task.CompletedTask;
+            }
+        }
+
         internal sealed class
             FakeCityPopulationEmployerFinancialStressStateRepository :
             ICityPopulationEmployerFinancialStressStateRepository
