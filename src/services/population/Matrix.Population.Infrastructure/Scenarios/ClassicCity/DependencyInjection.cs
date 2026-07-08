@@ -23,6 +23,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
         public static IServiceCollection AddClassicCityScenarioInfrastructure(this IServiceCollection services)
         {
             services.AddScoped<ICityPopulationPersonReadRepository, CityPopulationPersonReadRepository>();
+            services.AddScoped<ICityHealthcarePressureSnapshotRepository,
+                CityHealthcarePressureSnapshotRepository>();
             services.AddScoped<ICityEconomySettlementOutboxWriter, CityEconomySettlementOutboxWriter>();
             services.AddHttpClient<ICityRouteResolutionClient, CityRouteResolutionClient>((
                     sp,
