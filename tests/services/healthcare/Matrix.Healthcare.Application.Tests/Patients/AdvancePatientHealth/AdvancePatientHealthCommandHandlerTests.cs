@@ -80,6 +80,11 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(1, healthSnapshot.Pressure.PatientCount);
             Assert.Equal(1, healthSnapshot.Pressure.ActiveIllnessCount);
             Assert.Equal(17, healthSnapshot.SourceRevision);
+            CommunityHealthSnapshot community = Assert.Single(healthSnapshot.Communities);
+            Assert.Equal(communityId, community.CommunityId);
+            Assert.Equal(1, community.PatientCount);
+            Assert.Equal(1, community.ActiveIllnessCount);
+            Assert.Equal(1, community.SevereIllnessCount);
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
             Assert.Equal(2, unitOfWork.SaveCount);
         }

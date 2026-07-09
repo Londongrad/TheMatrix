@@ -7,5 +7,6 @@ public sealed record PopulationHealthSnapshot(
     long SourceRevision,
     DateOnly CurrentDate,
     CareSystemPressureProfile Pressure,
+    IReadOnlyList<CommunityHealthSnapshot> Communities,
     DateTimeOffset OccurredAtUtc,
     string CorrelationId);

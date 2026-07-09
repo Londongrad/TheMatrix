@@ -19,6 +19,7 @@ public sealed class PopulationHealthSnapshotOutboxWriter(HealthcareDbContext dbC
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(snapshot.Pressure);
+        ArgumentNullException.ThrowIfNull(snapshot.Communities);
 
         var integrationEvent = new HealthcarePopulationHealthSnapshotV1(
             SimulationHostId: snapshot.SimulationHostId,
@@ -31,7 +32,14 @@ public sealed class PopulationHealthSnapshotOutboxWriter(HealthcareDbContext dbC
             TriagePressureIndex: snapshot.Pressure.TriagePressureIndex,
             RecoverySupportIndex: snapshot.Pressure.RecoverySupportIndex,
             OccurredAtUtc: snapshot.OccurredAtUtc,
-            CorrelationId: snapshot.CorrelationId);
+            CorrelationId: snapshot.CorrelationId,
+            Communities: snapshot.Communities
+               .Select(community => new HealthcareCommunityHealthSnapshotV1(
+                    CommunityId: community.CommunityId,
+                    PatientCount: community.PatientCount,
+                    ActiveIllnessCount: community.ActiveIllnessCount,
+                    SevereIllnessCount: community.SevereIllnessCount))
+               .ToArray());
 
         dbContext.OutboxMessages.Add(
             OutboxMessage.Create(

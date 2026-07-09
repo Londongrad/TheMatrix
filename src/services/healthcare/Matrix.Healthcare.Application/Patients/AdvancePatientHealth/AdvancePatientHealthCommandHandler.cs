@@ -344,6 +344,10 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                     await medicalRecordRepository.GetPopulationHealthBurdenAsync(
                         batch.SimulationHostId,
                         cancellationToken);
+                IReadOnlyList<PatientCommunityHealthBurden> communityHealthBurdens =
+                    await medicalRecordRepository.GetCommunityHealthBurdensAsync(
+                        batch.SimulationHostId,
+                        cancellationToken);
                 CareOperationalProfile snapshotOperationalProfile = careAssignments.Count == 0
                     ? await careOperationalProfileProvider.GetAsync(
                         batch.SimulationHostId,
@@ -358,6 +362,13 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                         SourceRevision: batchSet.SourceRevision,
                         CurrentDate: batchSet.CurrentDate,
                         Pressure: pressure,
+                        Communities: communityHealthBurdens
+                           .Select(burden => new CommunityHealthSnapshot(
+                                CommunityId: burden.CommunityId.Value,
+                                PatientCount: burden.Burden.PatientCount,
+                                ActiveIllnessCount: burden.Burden.ActiveIllnessCount,
+                                SevereIllnessCount: burden.Burden.SevereIllnessCount))
+                           .ToArray(),
                         OccurredAtUtc: batch.ObservedAtUtc,
                         CorrelationId: $"{batchSet.CorrelationId}:population-health"),
                     cancellationToken);

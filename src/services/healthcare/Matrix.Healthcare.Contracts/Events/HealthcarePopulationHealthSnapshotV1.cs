@@ -11,4 +11,11 @@ public sealed record HealthcarePopulationHealthSnapshotV1(
     decimal TriagePressureIndex,
     decimal RecoverySupportIndex,
     DateTimeOffset OccurredAtUtc,
-    string CorrelationId);
+    string CorrelationId,
+    IReadOnlyList<HealthcareCommunityHealthSnapshotV1>? Communities = null);
+
+public sealed record HealthcareCommunityHealthSnapshotV1(
+    Guid CommunityId,
+    int PatientCount,
+    int ActiveIllnessCount,
+    int SevereIllnessCount);

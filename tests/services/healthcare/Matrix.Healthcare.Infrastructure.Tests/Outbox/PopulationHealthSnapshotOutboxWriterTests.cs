@@ -20,6 +20,7 @@ public sealed class PopulationHealthSnapshotOutboxWriterTests
         var writer = new PopulationHealthSnapshotOutboxWriter(dbContext);
         DateTimeOffset occurredAtUtc =
             DateTimeOffset.Parse("2048-05-06T10:00:00+00:00");
+        Guid communityId = Guid.NewGuid();
         var snapshot = new PopulationHealthSnapshot(
             SimulationHostId: Guid.NewGuid(),
             SourceRevision: 17,
@@ -31,6 +32,14 @@ public sealed class PopulationHealthSnapshotOutboxWriterTests
                 MedicalLoadIndex: 0.82m,
                 TriagePressureIndex: 0.34m,
                 RecoverySupportIndex: 1.12m),
+            Communities:
+            [
+                new CommunityHealthSnapshot(
+                    CommunityId: communityId,
+                    PatientCount: 40,
+                    ActiveIllnessCount: 5,
+                    SevereIllnessCount: 1)
+            ],
             OccurredAtUtc: occurredAtUtc,
             CorrelationId: "health-risk:17:population-health");
 
@@ -49,5 +58,10 @@ public sealed class PopulationHealthSnapshotOutboxWriterTests
         Assert.Equal(8, payload.ActiveIllnessCount);
         Assert.Equal(2, payload.SevereIllnessCount);
         Assert.Equal(0.82m, payload.MedicalLoadIndex);
+        HealthcareCommunityHealthSnapshotV1 community = Assert.Single(payload.Communities!);
+        Assert.Equal(communityId, community.CommunityId);
+        Assert.Equal(40, community.PatientCount);
+        Assert.Equal(5, community.ActiveIllnessCount);
+        Assert.Equal(1, community.SevereIllnessCount);
     }
 }
