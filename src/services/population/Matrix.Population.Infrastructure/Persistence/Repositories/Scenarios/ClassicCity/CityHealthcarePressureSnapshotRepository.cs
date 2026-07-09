@@ -17,6 +17,7 @@ public sealed class CityHealthcarePressureSnapshotRepository(PopulationDbContext
         CityHealthcarePressureSnapshotEntity? entity =
             await dbContext.CityHealthcarePressureSnapshots
                .AsNoTracking()
+               .Include(snapshot => snapshot.Districts)
                .SingleOrDefaultAsync(snapshot => snapshot.CityId == cityId.Value, cancellationToken);
 
         return entity is null ? null : Map(entity);
@@ -30,6 +31,7 @@ public sealed class CityHealthcarePressureSnapshotRepository(PopulationDbContext
 
         CityHealthcarePressureSnapshotEntity? entity =
             await dbContext.CityHealthcarePressureSnapshots
+               .Include(item => item.Districts)
                .SingleOrDefaultAsync(item => item.CityId == snapshot.CityId.Value, cancellationToken);
         if (entity is null)
         {
@@ -47,7 +49,8 @@ public sealed class CityHealthcarePressureSnapshotRepository(PopulationDbContext
             snapshot.Pressure.TriagePressureIndex,
             snapshot.Pressure.RecoverySupportIndex,
             snapshot.OccurredAtUtc,
-            snapshot.UpdatedAtUtc);
+            snapshot.UpdatedAtUtc,
+            MapDistricts(snapshot));
     }
 
     public async Task DeleteByCityAsync(
@@ -73,7 +76,8 @@ public sealed class CityHealthcarePressureSnapshotRepository(PopulationDbContext
             snapshot.Pressure.TriagePressureIndex,
             snapshot.Pressure.RecoverySupportIndex,
             snapshot.OccurredAtUtc,
-            snapshot.UpdatedAtUtc);
+            snapshot.UpdatedAtUtc,
+            MapDistricts(snapshot));
     }
 
     private static ClassicCityHealthcarePressureSnapshot Map(
@@ -91,6 +95,27 @@ public sealed class CityHealthcarePressureSnapshotRepository(PopulationDbContext
                 entity.TriagePressureIndex,
                 entity.RecoverySupportIndex),
             entity.OccurredAtUtc,
-            entity.UpdatedAtUtc);
+            entity.UpdatedAtUtc,
+            entity.Districts
+               .OrderBy(district => district.DistrictId)
+               .Select(district => new ClassicCityHealthcareDistrictHealthSnapshot(
+                    DistrictId.From(district.DistrictId),
+                    district.PatientCount,
+                    district.ActiveIllnessCount,
+                    district.SevereIllnessCount))
+               .ToArray());
+    }
+
+    private static CityHealthcareDistrictHealthSnapshotEntity[] MapDistricts(
+        ClassicCityHealthcarePressureSnapshot snapshot)
+    {
+        return snapshot.Districts
+           .Select(district => new CityHealthcareDistrictHealthSnapshotEntity(
+                snapshot.CityId.Value,
+                district.DistrictId.Value,
+                district.PatientCount,
+                district.ActiveIllnessCount,
+                district.SevereIllnessCount))
+           .ToArray();
     }
 }

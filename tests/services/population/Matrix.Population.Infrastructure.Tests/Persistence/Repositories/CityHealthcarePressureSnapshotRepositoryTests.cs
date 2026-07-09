@@ -30,7 +30,15 @@ public sealed class CityHealthcarePressureSnapshotRepositoryTests
         Assert.Equal(18, stored.SourceRevision);
         Assert.Equal(6, stored.Pressure.ActiveIllnessCount);
         Assert.Equal(100, stored.PatientCount);
+        ClassicCityHealthcareDistrictHealthSnapshot district = Assert.Single(stored.Districts);
+        Assert.Equal(SecondDistrictId, district.DistrictId);
+        Assert.Equal(45, district.PatientCount);
+        Assert.Equal(4, district.ActiveIllnessCount);
+        Assert.Equal(1, district.SevereIllnessCount);
     }
+
+    private static readonly DistrictId FirstDistrictId = DistrictId.From(Guid.NewGuid());
+    private static readonly DistrictId SecondDistrictId = DistrictId.From(Guid.NewGuid());
 
     private static ClassicCityHealthcarePressureSnapshot CreateSnapshot(
         CityId cityId,
@@ -49,6 +57,28 @@ public sealed class CityHealthcarePressureSnapshotRepositoryTests
                 TriagePressureIndex: 0.34m,
                 RecoverySupportIndex: 1.12m),
             OccurredAtUtc: new DateTimeOffset(2048, 5, 6, 10, 0, 0, TimeSpan.Zero),
-            UpdatedAtUtc: new DateTimeOffset(2048, 5, 6, 10, 1, 0, TimeSpan.Zero));
+            UpdatedAtUtc: new DateTimeOffset(2048, 5, 6, 10, 1, 0, TimeSpan.Zero),
+            Districts: sourceRevision == 17
+                ?
+                [
+                    new ClassicCityHealthcareDistrictHealthSnapshot(
+                        FirstDistrictId,
+                        PatientCount: 55,
+                        ActiveIllnessCount: 5,
+                        SevereIllnessCount: 1),
+                    new ClassicCityHealthcareDistrictHealthSnapshot(
+                        SecondDistrictId,
+                        PatientCount: 45,
+                        ActiveIllnessCount: 3,
+                        SevereIllnessCount: 1)
+                ]
+                :
+                [
+                    new ClassicCityHealthcareDistrictHealthSnapshot(
+                        SecondDistrictId,
+                        PatientCount: 45,
+                        ActiveIllnessCount: 4,
+                        SevereIllnessCount: 1)
+                ]);
     }
 }

@@ -17,7 +17,8 @@ public sealed class CityHealthcarePressureSnapshotEntity
         decimal triagePressureIndex,
         decimal recoverySupportIndex,
         DateTimeOffset occurredAtUtc,
-        DateTimeOffset updatedAtUtc)
+        DateTimeOffset updatedAtUtc,
+        IReadOnlyCollection<CityHealthcareDistrictHealthSnapshotEntity> districts)
     {
         CityId = cityId;
         Apply(
@@ -30,7 +31,8 @@ public sealed class CityHealthcarePressureSnapshotEntity
             triagePressureIndex,
             recoverySupportIndex,
             occurredAtUtc,
-            updatedAtUtc);
+            updatedAtUtc,
+            districts);
     }
 
     public Guid CityId { get; private set; }
@@ -44,6 +46,8 @@ public sealed class CityHealthcarePressureSnapshotEntity
     public decimal RecoverySupportIndex { get; private set; }
     public DateTimeOffset OccurredAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
+    public ICollection<CityHealthcareDistrictHealthSnapshotEntity> Districts { get; private set; } =
+        new List<CityHealthcareDistrictHealthSnapshotEntity>();
 
     public void Apply(
         long sourceRevision,
@@ -55,7 +59,8 @@ public sealed class CityHealthcarePressureSnapshotEntity
         decimal triagePressureIndex,
         decimal recoverySupportIndex,
         DateTimeOffset occurredAtUtc,
-        DateTimeOffset updatedAtUtc)
+        DateTimeOffset updatedAtUtc,
+        IReadOnlyCollection<CityHealthcareDistrictHealthSnapshotEntity> districts)
     {
         SourceRevision = sourceRevision;
         CurrentDate = currentDate;
@@ -67,5 +72,36 @@ public sealed class CityHealthcarePressureSnapshotEntity
         RecoverySupportIndex = recoverySupportIndex;
         OccurredAtUtc = occurredAtUtc;
         UpdatedAtUtc = updatedAtUtc;
+        SynchronizeDistricts(districts);
+    }
+
+    private void SynchronizeDistricts(
+        IReadOnlyCollection<CityHealthcareDistrictHealthSnapshotEntity> districts)
+    {
+        ArgumentNullException.ThrowIfNull(districts);
+        HashSet<Guid> incomingDistrictIds = districts
+           .Select(district => district.DistrictId)
+           .ToHashSet();
+
+        foreach (CityHealthcareDistrictHealthSnapshotEntity obsolete in Districts
+                    .Where(district => !incomingDistrictIds.Contains(district.DistrictId))
+                    .ToArray())
+            Districts.Remove(obsolete);
+
+        foreach (CityHealthcareDistrictHealthSnapshotEntity incoming in districts)
+        {
+            CityHealthcareDistrictHealthSnapshotEntity? existing = Districts
+               .SingleOrDefault(district => district.DistrictId == incoming.DistrictId);
+            if (existing is null)
+            {
+                Districts.Add(incoming);
+                continue;
+            }
+
+            existing.Apply(
+                incoming.PatientCount,
+                incoming.ActiveIllnessCount,
+                incoming.SevereIllnessCount);
+        }
     }
 }

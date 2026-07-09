@@ -17,5 +17,9 @@ public sealed class CityHealthcarePressureSnapshotEntityConfiguration
         builder.Property(snapshot => snapshot.RecoverySupportIndex).HasPrecision(8, 4);
         builder.HasIndex(snapshot => snapshot.SourceRevision);
         builder.HasIndex(snapshot => snapshot.UpdatedAtUtc);
+        builder.HasMany(snapshot => snapshot.Districts)
+           .WithOne()
+           .HasForeignKey(district => district.CityId)
+           .OnDelete(DeleteBehavior.Cascade);
     }
 }
