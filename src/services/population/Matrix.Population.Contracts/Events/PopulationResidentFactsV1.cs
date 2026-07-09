@@ -9,5 +9,6 @@ namespace Matrix.Population.Contracts.Events
         string Sex,
         bool IsAlive,
         bool IsActive,
-        long LifecycleRevision = 0);
+        long LifecycleRevision = 0,
+        Guid? HouseholdId = null);
 }

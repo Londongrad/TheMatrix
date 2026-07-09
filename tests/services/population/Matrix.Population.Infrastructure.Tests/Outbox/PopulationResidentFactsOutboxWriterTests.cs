@@ -36,7 +36,8 @@ namespace Matrix.Population.Infrastructure.Tests.Outbox
                         BirthDate: new DateOnly(2030, 4, 2),
                         Sex: "Female",
                         IsAlive: true,
-                        IsActive: true)
+                        IsActive: true,
+                        HouseholdId: Guid.NewGuid())
                 ]);
 
             await writer.AddResidentFactsBatchAsync(batch);

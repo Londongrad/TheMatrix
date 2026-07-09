@@ -46,7 +46,8 @@ namespace Matrix.Population.Application.Integration
                     Sex: resident.Sex.ToString(),
                     IsAlive: resident.IsAlive,
                     IsActive: true,
-                    LifecycleRevision: resident.LifecycleRevision))
+                    LifecycleRevision: resident.LifecycleRevision,
+                    HouseholdId: resident.HouseholdId.Value))
                .ToArray();
 
             if (facts.Length == 0)

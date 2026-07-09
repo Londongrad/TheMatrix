@@ -60,6 +60,7 @@ namespace Matrix.Population.Application.Tests.Integration
             Assert.False(deceased.IsAlive);
             Assert.True(deceased.IsActive);
             Assert.Equal(3, deceased.LifecycleRevision);
+            Assert.Equal(third.HouseholdId.Value, deceased.HouseholdId);
         }
 
         [Fact]
