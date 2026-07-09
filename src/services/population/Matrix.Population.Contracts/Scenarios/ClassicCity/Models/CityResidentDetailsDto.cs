@@ -39,11 +39,6 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         string FromName,
         string ToName);
 
-    public sealed record class CityResidentIllnessDto(
-        string Kind,
-        string Severity,
-        string DiagnosedOn);
-
     public sealed record class CityResidentDetailsDto(
         Guid Id,
         string FullName,
@@ -67,8 +62,6 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         PersonReferenceDto? Father,
         IReadOnlyCollection<PersonReferenceDto> Children,
         string? LastChildbirthDate,
-        CityResidentIllnessDto? CurrentIllness,
-        string? LastIllnessRecoveredOn,
         CityResidentHousingDto CurrentHousing,
         CityResidentWorkplaceDto? CurrentWorkplace,
         CityResidentEducationInstitutionDto? CurrentEducationInstitution,

@@ -56,23 +56,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Mapping
                .ToString(
                     format: "dd MMMM yyyy",
                     provider: CultureInfo.InvariantCulture);
-            CityResidentIllnessDto? currentIllness = person.CurrentIllnessKind is not
-            { } illnessKind ||
-                                                     person.CurrentIllnessSeverity is not
-                                                     { } illnessSeverity ||
-                                                     person.IllnessDiagnosedOn is not
-                                                     { } illnessDiagnosedOn
-                ? null
-                : new CityResidentIllnessDto(
-                    Kind: illnessKind.ToString(),
-                    Severity: illnessSeverity.ToString(),
-                    DiagnosedOn: illnessDiagnosedOn.ToString(
-                        format: "dd MMMM yyyy",
-                        provider: CultureInfo.InvariantCulture));
-            string? lastIllnessRecoveredOn = person.LastIllnessRecoveredOn?
-               .ToString(
-                    format: "dd MMMM yyyy",
-                    provider: CultureInfo.InvariantCulture);
 
             return new CityResidentDetailsDto(
                 Id: snapshot.Id,
@@ -97,8 +80,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Mapping
                 Father: father?.ToReferenceDto(),
                 Children: childReferences,
                 LastChildbirthDate: lastChildbirthDate,
-                CurrentIllness: currentIllness,
-                LastIllnessRecoveredOn: lastIllnessRecoveredOn,
                 CurrentHousing: housing,
                 CurrentWorkplace: workplace,
                 CurrentEducationInstitution: educationInstitution,

@@ -59,8 +59,6 @@ namespace Matrix.Population.Api.Tests.TestSupport
                 Father: null,
                 Children: [],
                 LastChildbirthDate: null,
-                CurrentIllness: null,
-                LastIllnessRecoveredOn: null,
                 CurrentHousing: new CityResidentHousingDto(
                     HouseholdId: Guid.Parse("922eb4d0-6704-49c9-a39c-2de460ed060e"),
                     HousingStatus: "Housed",
