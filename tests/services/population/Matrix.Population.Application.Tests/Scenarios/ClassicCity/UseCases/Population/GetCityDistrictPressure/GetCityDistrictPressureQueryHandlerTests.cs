@@ -1,7 +1,7 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDistrictPressure;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -109,16 +109,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 happiness: 42,
                 stress: 73,
                 health: 58);
-            DateOnly diagnosedOn = new(
-                    year: 2048,
-                    month: 5,
-                    day: 4);
-            ApplyHealthcareProjection(
-                person: higherPressureResident,
-                currentDate: diagnosedOn,
-                illnessKind: IllnessKind.Infection,
-                illnessSeverity: IllnessSeverity.Severe,
-                diagnosedOn: diagnosedOn);
             Person lowerPressureResident = CreatePerson(
                 personId: Guid.Parse("11111111-9999-8888-7777-666666666666"),
                 householdId: secondHouseholdId.Value,
@@ -188,7 +178,36 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             GetCityDistrictPressureQueryHandler handler = CreateHandler(
                 personReadRepository: personReadRepository,
                 householdWriteRepository: householdWriteRepository,
-                utilityClient: utilityClient);
+                utilityClient: utilityClient,
+                healthcareRepository: new FakeCityHealthcarePressureSnapshotRepository
+                {
+                    Snapshot = new ClassicCityHealthcarePressureSnapshot(
+                        CityId.From(cityId),
+                        SourceRevision: 17,
+                        CurrentDate: new DateOnly(2048, 5, 6),
+                        PatientCount: 2,
+                        Pressure: new CityPopulationHealthcarePressureProfile(
+                            ActiveIllnessCount: 1,
+                            SevereIllnessCount: 1,
+                            MedicalLoadIndex: 0.82m,
+                            TriagePressureIndex: 0.34m,
+                            RecoverySupportIndex: 1.12m),
+                        OccurredAtUtc: new DateTimeOffset(2048, 5, 6, 10, 0, 0, TimeSpan.Zero),
+                        UpdatedAtUtc: new DateTimeOffset(2048, 5, 6, 10, 1, 0, TimeSpan.Zero),
+                        Districts:
+                        [
+                            new ClassicCityHealthcareDistrictHealthSnapshot(
+                                higherPressureDistrictId,
+                                PatientCount: 1,
+                                ActiveIllnessCount: 1,
+                                SevereIllnessCount: 1),
+                            new ClassicCityHealthcareDistrictHealthSnapshot(
+                                lowerPressureDistrictId,
+                                PatientCount: 1,
+                                ActiveIllnessCount: 0,
+                                SevereIllnessCount: 0)
+                        ])
+                });
 
             CityPopulationDistrictPressureDto? result = await handler.Handle(
                 request: new GetCityDistrictPressureQuery(cityId),
@@ -223,11 +242,14 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         private static GetCityDistrictPressureQueryHandler CreateHandler(
             FakeCityPopulationPersonReadRepository? personReadRepository = null,
             FakeHouseholdWriteRepository? householdWriteRepository = null,
-            FakeCityDistrictUtilityConditionsClient? utilityClient = null)
+            FakeCityDistrictUtilityConditionsClient? utilityClient = null,
+            FakeCityHealthcarePressureSnapshotRepository? healthcareRepository = null)
         {
             return new GetCityDistrictPressureQueryHandler(
                 personReadRepository: personReadRepository ?? new FakeCityPopulationPersonReadRepository(),
                 householdWriteRepository: householdWriteRepository ?? new FakeHouseholdWriteRepository(),
+                healthcarePressureSnapshotRepository: healthcareRepository
+                                                      ?? new FakeCityHealthcarePressureSnapshotRepository(),
                 districtUtilityConditionsClient: utilityClient ?? new FakeCityDistrictUtilityConditionsClient(),
                 timeProvider: CreateTimeProvider(),
                 logger: NullLogger<GetCityDistrictPressureQueryHandler>.Instance);

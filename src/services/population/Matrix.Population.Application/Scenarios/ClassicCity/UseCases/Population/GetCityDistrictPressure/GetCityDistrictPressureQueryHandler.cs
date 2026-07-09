@@ -1,8 +1,8 @@
 using System.Globalization;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -16,6 +16,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
     public sealed class GetCityDistrictPressureQueryHandler(
         ICityPopulationPersonReadRepository personReadRepository,
         IHouseholdWriteRepository householdWriteRepository,
+        ICityHealthcarePressureSnapshotRepository healthcarePressureSnapshotRepository,
         ICityDistrictUtilityConditionsClient districtUtilityConditionsClient,
         TimeProvider timeProvider,
         ILogger<GetCityDistrictPressureQueryHandler> logger)
@@ -37,6 +38,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
             if (persons.Count == 0 || placements.Count == 0)
                 return null;
+
+            ClassicCityHealthcarePressureSnapshot? healthcarePressureSnapshot =
+                await healthcarePressureSnapshotRepository.GetByCityAsync(
+                    cityId,
+                    cancellationToken);
+            IReadOnlyDictionary<DistrictId, ClassicCityHealthcareDistrictHealthSnapshot>
+                healthcareByDistrictId = healthcarePressureSnapshot?.Districts
+                   .ToDictionary(district => district.DistrictId)
+                ?? new Dictionary<DistrictId, ClassicCityHealthcareDistrictHealthSnapshot>();
 
             IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
                 districtUtilityConditionsByDistrictId =
@@ -79,6 +89,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     districtId: x.Key,
                     residents: x.ToArray(),
                     placementByHouseholdId: placementByHouseholdId,
+                    healthcareDistrictHealth: ResolveHealthcareDistrictHealth(
+                        districtId: x.Key,
+                        healthcareByDistrictId: healthcareByDistrictId),
                     districtUtilityConditions: ResolveDistrictUtilityConditions(
                         districtId: x.Key,
                         districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId)))
@@ -98,6 +111,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DistrictId districtId,
             IReadOnlyCollection<Person> residents,
             IReadOnlyDictionary<HouseholdId, ClassicCityHouseholdPlacement> placementByHouseholdId,
+            ClassicCityHealthcareDistrictHealthSnapshot? healthcareDistrictHealth,
             CityDistrictUtilityConditionsSnapshot? districtUtilityConditions)
         {
             int residentCount = residents.Count;
@@ -110,8 +124,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     key: x.HouseholdId,
                     value: out ClassicCityHouseholdPlacement? placement) &&
                 placement.HousingStatus == HousingStatus.Homeless);
-            int activeIllnessCount = residents.Count(x => x.HasActiveIllness);
-            int severeIllnessCount = residents.Count(x => x.CurrentIllnessSeverity == IllnessSeverity.Severe);
+            int activeIllnessCount = healthcareDistrictHealth?.ActiveIllnessCount ?? 0;
+            int severeIllnessCount = healthcareDistrictHealth?.SevereIllnessCount ?? 0;
             decimal averageHealth = RoundMetric(residents.Average(x => (decimal)x.Health.Value));
             decimal averageStress = RoundMetric(residents.Average(x => (decimal)x.Stress.Value));
             decimal averageHappiness = RoundMetric(residents.Average(x => (decimal)x.Happiness.Value));
@@ -254,6 +268,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return districtUtilityConditionsByDistrictId.TryGetValue(
                 key: districtId,
                 value: out CityDistrictUtilityConditionsSnapshot? snapshot)
+                ? snapshot
+                : null;
+        }
+
+        private static ClassicCityHealthcareDistrictHealthSnapshot? ResolveHealthcareDistrictHealth(
+            DistrictId districtId,
+            IReadOnlyDictionary<DistrictId, ClassicCityHealthcareDistrictHealthSnapshot>
+                healthcareByDistrictId)
+        {
+            return healthcareByDistrictId.TryGetValue(
+                districtId,
+                out ClassicCityHealthcareDistrictHealthSnapshot? snapshot)
                 ? snapshot
                 : null;
         }
