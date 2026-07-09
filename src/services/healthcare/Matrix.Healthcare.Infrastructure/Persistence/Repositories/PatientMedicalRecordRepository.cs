@@ -81,6 +81,39 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Repositories
                .ToArray();
         }
 
+        public async Task<IReadOnlyDictionary<PatientHouseholdId, int>>
+            GetInfectiousPatientCountsByHouseholdAsync(
+                SimulationHostId simulationHostId,
+                IReadOnlyCollection<PatientHouseholdId> householdIds,
+                CancellationToken cancellationToken = default)
+        {
+            if (householdIds.Count == 0)
+                return new Dictionary<PatientHouseholdId, int>();
+
+            var aggregates = await (
+                    from profile in dbContext.PatientProfiles
+                    join record in dbContext.PatientMedicalRecords on profile.Id equals record.Id
+                    where profile.SimulationHostId == simulationHostId
+                          && record.SimulationHostId == simulationHostId
+                          && profile.IsAlive
+                          && profile.IsActive
+                          && profile.HouseholdId.HasValue
+                          && householdIds.Contains(profile.HouseholdId.Value)
+                          && record.Illness.CurrentKind == IllnessKind.Infection
+                    group profile by profile.HouseholdId!.Value
+                    into household
+                    select new
+                    {
+                        HouseholdId = household.Key,
+                        InfectiousPatientCount = household.Count()
+                    })
+               .ToArrayAsync(cancellationToken);
+
+            return aggregates.ToDictionary(
+                aggregate => aggregate.HouseholdId,
+                aggregate => aggregate.InfectiousPatientCount);
+        }
+
         public Task AddRangeAsync(
             IReadOnlyCollection<PatientMedicalRecord> records,
             CancellationToken cancellationToken = default)

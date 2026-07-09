@@ -123,6 +123,48 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
             Assert.Equal(0, second.Burden.ActiveIllnessCount);
         }
 
+        [Fact]
+        public async Task GetInfectiousPatientCountsByHousehold_AggregatesEligiblePatientRecords()
+        {
+            await using HealthcareDbContext dbContext =
+                HealthcareInfrastructureTestSupport.CreateDbContext();
+            var repository = new PatientMedicalRecordRepository(dbContext);
+            var simulationHostId = new SimulationHostId(Guid.NewGuid());
+            var firstHouseholdId = new PatientHouseholdId(Guid.NewGuid());
+            var secondHouseholdId = new PatientHouseholdId(Guid.NewGuid());
+            PatientMedicalRecord firstInfection = CreateRecord(Guid.NewGuid(), simulationHostId);
+            firstInfection.DiagnoseIllness(
+                IllnessKind.Infection,
+                IllnessSeverity.Mild,
+                new DateOnly(2048, 5, 6));
+            PatientMedicalRecord secondInfection = CreateRecord(Guid.NewGuid(), simulationHostId);
+            secondInfection.DiagnoseIllness(
+                IllnessKind.Infection,
+                IllnessSeverity.Severe,
+                new DateOnly(2048, 5, 6));
+            PatientMedicalRecord exposure = CreateRecord(Guid.NewGuid(), simulationHostId);
+            exposure.DiagnoseIllness(
+                IllnessKind.Exposure,
+                IllnessSeverity.Moderate,
+                new DateOnly(2048, 5, 6));
+
+            dbContext.PatientProfiles.AddRange(
+                CreateProfile(firstInfection.PatientId, simulationHostId, firstHouseholdId),
+                CreateProfile(secondInfection.PatientId, simulationHostId, firstHouseholdId),
+                CreateProfile(exposure.PatientId, simulationHostId, secondHouseholdId));
+            dbContext.PatientMedicalRecords.AddRange(firstInfection, secondInfection, exposure);
+            await dbContext.SaveChangesAsync();
+
+            IReadOnlyDictionary<PatientHouseholdId, int> counts =
+                await repository.GetInfectiousPatientCountsByHouseholdAsync(
+                    simulationHostId,
+                    [firstHouseholdId, secondHouseholdId]);
+
+            Assert.Equal(2, Assert.Single(counts).Value);
+            Assert.Equal(2, counts[firstHouseholdId]);
+            Assert.False(counts.ContainsKey(secondHouseholdId));
+        }
+
         private static PatientMedicalRecord CreateRecord(
             Guid patientId,
             SimulationHostId? simulationHostId = null)
@@ -132,6 +174,23 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
                 simulationHostId ?? new SimulationHostId(Guid.NewGuid()),
                 HealthScore.Full,
                 PatientIllnessState.Healthy());
+        }
+
+        private static PatientProfile CreateProfile(
+            PatientId patientId,
+            SimulationHostId simulationHostId,
+            PatientHouseholdId householdId)
+        {
+            return PatientProfile.Register(
+                patientId,
+                simulationHostId,
+                birthDate: new DateOnly(2030, 5, 6),
+                sex: PatientSex.Female,
+                isAlive: true,
+                isActive: true,
+                sourceRevision: 1,
+                synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T10:00:00+00:00"),
+                householdId: householdId);
         }
     }
 }

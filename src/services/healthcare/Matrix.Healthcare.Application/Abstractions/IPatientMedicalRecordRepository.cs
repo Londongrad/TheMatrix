@@ -17,6 +17,11 @@ namespace Matrix.Healthcare.Application.Abstractions
             SimulationHostId simulationHostId,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyDictionary<PatientHouseholdId, int>> GetInfectiousPatientCountsByHouseholdAsync(
+            SimulationHostId simulationHostId,
+            IReadOnlyCollection<PatientHouseholdId> householdIds,
+            CancellationToken cancellationToken = default);
+
         Task AddRangeAsync(
             IReadOnlyCollection<PatientMedicalRecord> records,
             CancellationToken cancellationToken = default);
