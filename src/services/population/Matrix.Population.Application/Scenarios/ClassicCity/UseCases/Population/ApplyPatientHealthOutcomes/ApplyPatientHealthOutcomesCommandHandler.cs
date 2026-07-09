@@ -79,7 +79,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             continue;
 
                         bool wasAlive = patient.IsAlive;
-                        bool accepted = patient.TryApplyHealthcareOutcome(
+                        bool accepted = patient.TryApplyVitalStateProjection(
                             sourceRevision: request.SourceRevision,
                             healthScore: outcome.HealthScore,
                             happinessDelta: outcome.HappinessDelta,

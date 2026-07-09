@@ -55,7 +55,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             Person resident = PopulationTestData.CreateAdultPerson(
                 householdId: household.Id.Value,
                 currentDate: currentDate);
-            resident.TryApplyHealthcareOutcome(
+            resident.TryApplyVitalStateProjection(
                 sourceRevision: 0,
                 healthScore: 40,
                 happinessDelta: 0,

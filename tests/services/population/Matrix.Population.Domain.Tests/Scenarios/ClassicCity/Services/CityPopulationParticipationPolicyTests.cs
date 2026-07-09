@@ -48,7 +48,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 job: PopulationTestData.CreateJob());
             employedResident.ChangeEnergy(-50);
             employedResident.ChangeStress(50);
-            employedResident.TryApplyHealthcareOutcome(
+            employedResident.TryApplyVitalStateProjection(
                 sourceRevision: 0,
                 healthScore: 55,
                 happinessDelta: 0,
@@ -112,7 +112,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 institutionAnchorId: PopulationTestData.CreateCityAnchorId());
             student.ChangeEnergy(-45);
             student.ChangeStress(40);
-            student.TryApplyHealthcareOutcome(
+            student.TryApplyVitalStateProjection(
                 sourceRevision: 0,
                 healthScore: 60,
                 happinessDelta: 0,

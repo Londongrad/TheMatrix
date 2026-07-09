@@ -26,7 +26,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(p => p.HouseholdId);
 
-            builder.Property(p => p.LastHealthcareRevision)
+            builder.Property(p => p.LastVitalStateRevision)
                .HasDefaultValue(-1L)
                .IsRequired();
 

@@ -56,7 +56,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.False(patient.IsAlive);
             Assert.Equal(MaritalStatus.Widowed, spouse.MaritalStatus);
             Assert.Null(spouse.SpouseId);
-            Assert.Equal(17, patient.LastHealthcareRevision);
+            Assert.Equal(17, patient.LastVitalStateRevision);
             Assert.Equal(1, unitOfWork.SaveChangesCalls);
             Assert.False(Assert.Single(Assert.Single(factsWriter.Batches).Residents).IsAlive);
         }
@@ -88,7 +88,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         public async Task Handle_StalePatientRevision_DoesNotOverwriteProjection()
         {
             Person patient = CreatePerson(currentDate: CurrentDate);
-            patient.TryApplyHealthcareOutcome(
+            patient.TryApplyVitalStateProjection(
                 sourceRevision: 18,
                 healthScore: 64,
                 happinessDelta: 0,

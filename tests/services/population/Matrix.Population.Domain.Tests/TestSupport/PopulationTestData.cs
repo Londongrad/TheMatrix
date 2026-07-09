@@ -18,8 +18,8 @@ namespace Matrix.Population.Domain.Tests.TestSupport
             int energyDelta = 0,
             int stressDelta = 0)
         {
-            bool applied = person.TryApplyHealthcareOutcome(
-                sourceRevision: person.LastHealthcareRevision + 1,
+            bool applied = person.TryApplyVitalStateProjection(
+                sourceRevision: person.LastVitalStateRevision + 1,
                 healthScore: healthScore ?? person.Health.Value,
                 happinessDelta: happinessDelta,
                 energyDelta: energyDelta,

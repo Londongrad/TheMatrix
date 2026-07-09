@@ -133,7 +133,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             PersonEntity resident = CreateResident(
                 personId: CreateGuid(3),
                 householdId: householdId);
-            resident.TryApplyHealthcareOutcome(
+            resident.TryApplyVitalStateProjection(
                 sourceRevision: 0,
                 healthScore: 40,
                 happinessDelta: 0,

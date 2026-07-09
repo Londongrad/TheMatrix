@@ -17,7 +17,7 @@ namespace Matrix.Population.Domain.Tests.Architecture
         }
 
         [Fact]
-        public void Person_DoesNotExposeLocalMedicalMutationMethods()
+        public void Person_ExposesOnlyAuthoritativeVitalStateProjection()
         {
             string[] forbiddenMethods =
             [
@@ -37,7 +37,7 @@ namespace Matrix.Population.Domain.Tests.Architecture
                 publicMethods,
                 method => string.Equals(
                     method.Name,
-                    nameof(Person.TryApplyHealthcareOutcome),
+                    nameof(Person.TryApplyVitalStateProjection),
                     StringComparison.Ordinal));
         }
     }

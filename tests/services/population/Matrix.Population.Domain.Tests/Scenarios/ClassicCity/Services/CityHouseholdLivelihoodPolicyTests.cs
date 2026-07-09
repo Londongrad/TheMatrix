@@ -182,7 +182,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 firstName: "Sergey",
                 lastName: "Petrov",
                 personId: Guid.Parse("cccccccc-1111-1111-1111-111111111111"));
-            unemployedResident.TryApplyHealthcareOutcome(
+            unemployedResident.TryApplyVitalStateProjection(
                 sourceRevision: 0,
                 healthScore: 40,
                 happinessDelta: 0,

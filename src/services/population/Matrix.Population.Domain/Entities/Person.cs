@@ -112,7 +112,7 @@ namespace Matrix.Population.Domain.Entities
         public PersonId? MotherId { get; private set; }
         public PersonId? FatherId { get; private set; }
         public DateOnly? LastChildbirthDate { get; private set; }
-        public long LastHealthcareRevision { get; private set; }
+        public long LastVitalStateRevision { get; private set; }
         public long LifecycleRevision { get; private set; }
 
         #endregion [ Properties ]
@@ -193,7 +193,7 @@ namespace Matrix.Population.Domain.Entities
             MotherId = motherId;
             FatherId = fatherId;
             LastChildbirthDate = lastChildbirthDate;
-            LastHealthcareRevision = -1;
+            LastVitalStateRevision = -1;
             LifecycleRevision = 0;
         }
 
@@ -332,7 +332,7 @@ namespace Matrix.Population.Domain.Entities
             LifecycleRevision = checked(LifecycleRevision + 1);
         }
 
-        public bool TryApplyHealthcareOutcome(
+        public bool TryApplyVitalStateProjection(
             long sourceRevision,
             int healthScore,
             int happinessDelta,
@@ -355,10 +355,10 @@ namespace Matrix.Population.Domain.Entities
             if (expectedLifecycleRevision.HasValue
                 && expectedLifecycleRevision.Value != LifecycleRevision)
                 return false;
-            if (sourceRevision <= LastHealthcareRevision)
+            if (sourceRevision <= LastVitalStateRevision)
                 return false;
 
-            LastHealthcareRevision = sourceRevision;
+            LastVitalStateRevision = sourceRevision;
             if (!IsAlive)
                 return true;
 

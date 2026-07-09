@@ -119,7 +119,7 @@ namespace Matrix.Population.Domain.Tests.Entities
         }
 
         [Fact]
-        public void TryApplyHealthcareOutcome_WhenHealthIsCritical_TransitionsToDeathAndClearsRuntimeState()
+        public void TryApplyVitalStateProjection_WhenHealthIsCritical_TransitionsToDeathAndClearsRuntimeState()
         {
             Person person = PopulationTestData.CreateAdultPerson();
             person.StartStudying(
@@ -130,7 +130,7 @@ namespace Matrix.Population.Domain.Tests.Entities
                 institutionId: PopulationTestData.CreateEducationInstitutionId(),
                 institutionAnchorId: PopulationTestData.CreateCityAnchorId());
 
-            person.TryApplyHealthcareOutcome(
+            person.TryApplyVitalStateProjection(
                 sourceRevision: 0,
                 healthScore: 0,
                 happinessDelta: 0,
@@ -173,12 +173,12 @@ namespace Matrix.Population.Domain.Tests.Entities
         }
 
         [Fact]
-        public void TryApplyHealthcareOutcome_WhenRevisionIsNew_SynchronizesVitalProjection()
+        public void TryApplyVitalStateProjection_WhenRevisionIsNew_SynchronizesVitalProjection()
         {
             DateOnly currentDate = new(2048, 5, 6);
             Person person = PopulationTestData.CreateAdultPerson(currentDate: currentDate);
 
-            bool applied = person.TryApplyHealthcareOutcome(
+            bool applied = person.TryApplyVitalStateProjection(
                 sourceRevision: 17,
                 healthScore: 63,
                 happinessDelta: -2,
@@ -188,17 +188,17 @@ namespace Matrix.Population.Domain.Tests.Entities
                 functionalCapacityScore: 60);
 
             Assert.True(applied);
-            Assert.Equal(17, person.LastHealthcareRevision);
+            Assert.Equal(17, person.LastVitalStateRevision);
             Assert.Equal(63, person.Health.Value);
             Assert.Equal(60, person.FunctionalCapacity.Value);
         }
 
         [Fact]
-        public void TryApplyHealthcareOutcome_WhenRevisionIsStale_LeavesProjectionUnchanged()
+        public void TryApplyVitalStateProjection_WhenRevisionIsStale_LeavesProjectionUnchanged()
         {
             DateOnly currentDate = new(2048, 5, 6);
             Person person = PopulationTestData.CreateAdultPerson(currentDate: currentDate);
-            person.TryApplyHealthcareOutcome(
+            person.TryApplyVitalStateProjection(
                 sourceRevision: 17,
                 healthScore: 63,
                 happinessDelta: 0,
@@ -206,7 +206,7 @@ namespace Matrix.Population.Domain.Tests.Entities
                 stressDelta: 0,
                 currentDate: currentDate);
 
-            bool applied = person.TryApplyHealthcareOutcome(
+            bool applied = person.TryApplyVitalStateProjection(
                 sourceRevision: 16,
                 healthScore: 10,
                 happinessDelta: -10,
@@ -219,7 +219,7 @@ namespace Matrix.Population.Domain.Tests.Entities
         }
 
         [Fact]
-        public void TryApplyHealthcareOutcome_WhenLifecycleChanged_RejectsEarlierOutcome()
+        public void TryApplyVitalStateProjection_WhenLifecycleChanged_RejectsEarlierOutcome()
         {
             DateOnly currentDate = new(2048, 5, 6);
             Person person = PopulationTestData.CreateAdultPerson(currentDate: currentDate);
@@ -227,7 +227,7 @@ namespace Matrix.Population.Domain.Tests.Entities
             long deceasedRevision = person.LifecycleRevision;
             person.Resurrect();
 
-            bool applied = person.TryApplyHealthcareOutcome(
+            bool applied = person.TryApplyVitalStateProjection(
                 sourceRevision: 17,
                 healthScore: 10,
                 happinessDelta: -10,
@@ -239,7 +239,7 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.False(applied);
             Assert.True(person.IsAlive);
             Assert.Equal(100, person.Health.Value);
-            Assert.Equal(-1, person.LastHealthcareRevision);
+            Assert.Equal(-1, person.LastVitalStateRevision);
         }
     }
 }
