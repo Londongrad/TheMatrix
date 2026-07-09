@@ -74,6 +74,55 @@ namespace Matrix.Healthcare.Infrastructure.Tests.Persistence.Repositories
             Assert.Equal(1, burden.SevereIllnessCount);
         }
 
+        [Fact]
+        public async Task GetCommunityHealthBurdens_AggregatesAssignedPatientsByCommunity()
+        {
+            await using HealthcareDbContext dbContext =
+                HealthcareInfrastructureTestSupport.CreateDbContext();
+            var repository = new PatientMedicalRecordRepository(dbContext);
+            var simulationHostId = new SimulationHostId(Guid.NewGuid());
+            var firstCommunityId = new PatientCommunityId(Guid.NewGuid());
+            var secondCommunityId = new PatientCommunityId(Guid.NewGuid());
+            PatientMedicalRecord firstMild = CreateRecord(Guid.NewGuid(), simulationHostId);
+            firstMild.TryAcceptProgressionRevision(1, firstCommunityId);
+            firstMild.DiagnoseIllness(
+                IllnessKind.Infection,
+                IllnessSeverity.Mild,
+                new DateOnly(2048, 5, 6));
+            PatientMedicalRecord firstSevere = CreateRecord(Guid.NewGuid(), simulationHostId);
+            firstSevere.TryAcceptProgressionRevision(1, firstCommunityId);
+            firstSevere.DiagnoseIllness(
+                IllnessKind.Exposure,
+                IllnessSeverity.Severe,
+                new DateOnly(2048, 5, 6));
+            PatientMedicalRecord secondHealthy = CreateRecord(Guid.NewGuid(), simulationHostId);
+            secondHealthy.TryAcceptProgressionRevision(1, secondCommunityId);
+
+            dbContext.PatientMedicalRecords.AddRange(
+                firstMild,
+                firstSevere,
+                secondHealthy,
+                CreateRecord(Guid.NewGuid(), simulationHostId),
+                CreateRecord(Guid.NewGuid(), new SimulationHostId(Guid.NewGuid())));
+            await dbContext.SaveChangesAsync();
+
+            IReadOnlyList<PatientCommunityHealthBurden> burdens =
+                await repository.GetCommunityHealthBurdensAsync(simulationHostId);
+
+            Assert.Equal(2, burdens.Count);
+            PatientCommunityHealthBurden first = Assert.Single(
+                burdens,
+                burden => burden.CommunityId == firstCommunityId);
+            Assert.Equal(2, first.Burden.PatientCount);
+            Assert.Equal(2, first.Burden.ActiveIllnessCount);
+            Assert.Equal(1, first.Burden.SevereIllnessCount);
+            PatientCommunityHealthBurden second = Assert.Single(
+                burdens,
+                burden => burden.CommunityId == secondCommunityId);
+            Assert.Equal(1, second.Burden.PatientCount);
+            Assert.Equal(0, second.Burden.ActiveIllnessCount);
+        }
+
         private static PatientMedicalRecord CreateRecord(
             Guid patientId,
             SimulationHostId? simulationHostId = null)

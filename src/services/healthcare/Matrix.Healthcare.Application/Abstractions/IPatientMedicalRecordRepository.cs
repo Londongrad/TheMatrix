@@ -13,6 +13,10 @@ namespace Matrix.Healthcare.Application.Abstractions
             SimulationHostId simulationHostId,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyList<PatientCommunityHealthBurden>> GetCommunityHealthBurdensAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default);
+
         Task AddRangeAsync(
             IReadOnlyCollection<PatientMedicalRecord> records,
             CancellationToken cancellationToken = default);

@@ -48,6 +48,39 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Repositories
                     aggregate.SevereIllnessCount);
         }
 
+        public async Task<IReadOnlyList<PatientCommunityHealthBurden>> GetCommunityHealthBurdensAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            var aggregates = await dbContext.PatientMedicalRecords
+               .Where(record => record.SimulationHostId == simulationHostId
+                                && record.CommunityId.HasValue)
+               .GroupBy(record => record.CommunityId!.Value)
+               .Select(records => new
+                {
+                    CommunityId = records.Key,
+                    PatientCount = records.Count(),
+                    MildIllnessCount = records.Count(record =>
+                        record.Illness.CurrentSeverity == IllnessSeverity.Mild),
+                    ModerateIllnessCount = records.Count(record =>
+                        record.Illness.CurrentSeverity == IllnessSeverity.Moderate),
+                    SevereIllnessCount = records.Count(record =>
+                        record.Illness.CurrentSeverity == IllnessSeverity.Severe)
+                })
+               .OrderBy(aggregate => aggregate.CommunityId)
+               .ToArrayAsync(cancellationToken);
+
+            return aggregates
+               .Select(aggregate => new PatientCommunityHealthBurden(
+                    aggregate.CommunityId,
+                    new PatientPopulationHealthBurden(
+                        aggregate.PatientCount,
+                        aggregate.MildIllnessCount,
+                        aggregate.ModerateIllnessCount,
+                        aggregate.SevereIllnessCount)))
+               .ToArray();
+        }
+
         public Task AddRangeAsync(
             IReadOnlyCollection<PatientMedicalRecord> records,
             CancellationToken cancellationToken = default)

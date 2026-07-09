@@ -170,6 +170,13 @@ namespace Matrix.Healthcare.Application.Tests.Patients.InitializePatientMedicalR
                 return Task.FromResult(PatientPopulationHealthBurden.Empty);
             }
 
+            public Task<IReadOnlyList<PatientCommunityHealthBurden>> GetCommunityHealthBurdensAsync(
+                SimulationHostId simulationHostId,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult<IReadOnlyList<PatientCommunityHealthBurden>>([]);
+            }
+
             public Task AddRangeAsync(
                 IReadOnlyCollection<PatientMedicalRecord> records,
                 CancellationToken cancellationToken = default)

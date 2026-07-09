@@ -547,6 +547,29 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                             record.Illness.CurrentSeverity == IllnessSeverity.Severe)));
             }
 
+            public Task<IReadOnlyList<PatientCommunityHealthBurden>> GetCommunityHealthBurdensAsync(
+                SimulationHostId simulationHostId,
+                CancellationToken cancellationToken = default)
+            {
+                PatientCommunityHealthBurden[] burdens = _records
+                   .Where(record => record.SimulationHostId == simulationHostId
+                                    && record.CommunityId.HasValue)
+                   .GroupBy(record => record.CommunityId!.Value)
+                   .Select(records => new PatientCommunityHealthBurden(
+                        records.Key,
+                        new PatientPopulationHealthBurden(
+                            patientCount: records.Count(),
+                            mildIllnessCount: records.Count(record =>
+                                record.Illness.CurrentSeverity == IllnessSeverity.Mild),
+                            moderateIllnessCount: records.Count(record =>
+                                record.Illness.CurrentSeverity == IllnessSeverity.Moderate),
+                            severeIllnessCount: records.Count(record =>
+                                record.Illness.CurrentSeverity == IllnessSeverity.Severe))))
+                   .OrderBy(burden => burden.CommunityId)
+                   .ToArray();
+                return Task.FromResult<IReadOnlyList<PatientCommunityHealthBurden>>(burdens);
+            }
+
             public Task AddRangeAsync(
                 IReadOnlyCollection<PatientMedicalRecord> recordsToAdd,
                 CancellationToken cancellationToken = default)
