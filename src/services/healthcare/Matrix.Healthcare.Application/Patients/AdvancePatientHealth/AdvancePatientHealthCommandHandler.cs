@@ -135,6 +135,16 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 profile => profile.PatientId);
             Dictionary<PatientId, PatientMedicalRecord> recordsById = records.ToDictionary(
                 record => record.PatientId);
+            PatientHouseholdId[] householdIds = profiles
+               .Where(profile => profile.IsEligibleForCare && profile.HouseholdId.HasValue)
+               .Select(profile => profile.HouseholdId!.Value)
+               .Distinct()
+               .ToArray();
+            IReadOnlyDictionary<PatientHouseholdId, int> infectiousPatientsByHousehold =
+                await medicalRecordRepository.GetInfectiousPatientCountsByHouseholdAsync(
+                    batch.SimulationHostId,
+                    householdIds,
+                    cancellationToken);
             Dictionary<PatientId, PatientCareNeed> careNeedsByPatientId = careNeeds.ToDictionary(
                 careNeed => careNeed.PatientId);
             Dictionary<PatientId, PatientCareAssignment> careAssignmentsByPatientId =
@@ -204,9 +214,16 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 }
 
                 processedPatients++;
+                PatientHealthRiskFactors riskFactors = patient.RiskFactors
+                   .WithInfectiousHouseholdContacts(
+                        ResolveInfectiousHouseholdContactCount(
+                            profile,
+                            record,
+                            patient.RiskFactors.HouseholdSize,
+                            infectiousPatientsByHousehold));
                 PatientIllnessProgressionOutcome outcome = progressionPolicy.Apply(
                     record,
-                    patient.RiskFactors,
+                    riskFactors,
                     batch.PreviousDate,
                     batch.CurrentDate);
 
@@ -439,6 +456,25 @@ namespace Matrix.Healthcare.Application.Patients.AdvancePatientHealth
                 cancelledOn,
                 cancelledAtUtc,
                 reason) == true;
+        }
+
+        private static int ResolveInfectiousHouseholdContactCount(
+            PatientProfile profile,
+            PatientMedicalRecord record,
+            int householdSize,
+            IReadOnlyDictionary<PatientHouseholdId, int> infectiousPatientsByHousehold)
+        {
+            if (!profile.HouseholdId.HasValue
+                || !infectiousPatientsByHousehold.TryGetValue(
+                    profile.HouseholdId.Value,
+                    out int infectiousPatientCount))
+                return 0;
+
+            int infectiousContactCount = infectiousPatientCount;
+            if (record.Illness.CurrentKind == IllnessKind.Infection)
+                infectiousContactCount--;
+
+            return Math.Clamp(infectiousContactCount, 0, householdSize - 1);
         }
 
     }

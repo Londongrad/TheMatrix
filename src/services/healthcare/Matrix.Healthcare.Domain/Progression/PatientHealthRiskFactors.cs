@@ -66,6 +66,25 @@ namespace Matrix.Healthcare.Domain.Progression
         public double PublicHealthRiskStrength { get; }
         public int ExternalHealthDelta { get; }
 
+        public PatientHealthRiskFactors WithInfectiousHouseholdContacts(int contactCount)
+        {
+            return new PatientHealthRiskFactors(
+                energyScore: EnergyScore,
+                happinessScore: HappinessScore,
+                stressScore: StressScore,
+                socialNeedScore: SocialNeedScore,
+                isVulnerable: IsVulnerable,
+                housingStability: HousingStability,
+                hasStructuredDailyActivity: HasStructuredDailyActivity,
+                infectiousHouseholdContacts: contactCount,
+                householdSize: HouseholdSize,
+                caregiverSupportStrength: CaregiverSupportStrength,
+                hadAdverseWeatherExposure: HadAdverseWeatherExposure,
+                healthcareSupportStrength: HealthcareSupportStrength,
+                publicHealthRiskStrength: PublicHealthRiskStrength,
+                externalHealthDelta: ExternalHealthDelta);
+        }
+
         private static int EnsureScore(int value, string parameterName)
         {
             return value is >= 0 and <= 100

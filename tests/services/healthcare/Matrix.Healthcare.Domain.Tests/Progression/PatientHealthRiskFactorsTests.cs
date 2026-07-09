@@ -44,6 +44,23 @@ namespace Matrix.Healthcare.Domain.Tests.Progression
             Assert.Equal(PatientHousingStability.Housed, factors.HousingStability);
         }
 
+        [Fact]
+        public void WithInfectiousHouseholdContacts_ReplacesOnlyContactCount()
+        {
+            PatientHealthRiskFactors factors = Create(
+                energyScore: 75,
+                publicHealthRiskStrength: 0.32d,
+                infectiousHouseholdContacts: 0,
+                householdSize: 3);
+
+            PatientHealthRiskFactors updated = factors.WithInfectiousHouseholdContacts(2);
+
+            Assert.Equal(2, updated.InfectiousHouseholdContacts);
+            Assert.Equal(factors.EnergyScore, updated.EnergyScore);
+            Assert.Equal(factors.PublicHealthRiskStrength, updated.PublicHealthRiskStrength);
+            Assert.Equal(factors.HouseholdSize, updated.HouseholdSize);
+        }
+
         private static PatientHealthRiskFactors Create(
             int energyScore = 60,
             double publicHealthRiskStrength = 0.2d,

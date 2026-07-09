@@ -25,8 +25,14 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
         public async Task Handle_EligiblePatient_AdvancesOnceAndWritesOutcomeAtomically()
         {
             Guid communityId = Guid.NewGuid();
+            var householdId = new PatientHouseholdId(Guid.NewGuid());
             PatientMedicalRecord record = CreateMedicalRecord(health: 2);
-            var medicalRepository = new MedicalRecordRepositoryStub([record]);
+            var medicalRepository = new MedicalRecordRepositoryStub(
+                [record],
+                new Dictionary<PatientHouseholdId, int>
+                {
+                    [householdId] = 1
+                });
             var outboxWriter = new OutcomeOutboxWriterStub();
             var careActivityWriter = new CareDeliveryActivityOutboxWriterStub();
             var populationHealthWriter = new PopulationHealthSnapshotOutboxWriterStub();
@@ -40,7 +46,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 batchSetRepository,
                 careDeliveryActivityOutboxWriter: careActivityWriter,
                 populationHealthSnapshotOutboxWriter: populationHealthWriter,
-                unitOfWork: unitOfWork);
+                unitOfWork: unitOfWork,
+                profile: CreateProfile(householdId: householdId));
 
             AdvancePatientHealthResult result = await handler.Handle(
                 CreateCommand(
@@ -59,6 +66,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             Assert.Equal(0, record.Health.Value);
             Assert.Equal(17, record.LastProgressionRevision);
             Assert.Equal(new PatientCommunityId(communityId), record.CommunityId);
+            Assert.Equal(1, medicalRepository.InfectiousHouseholdCountCallCount);
+            Assert.Equal(householdId, Assert.Single(medicalRepository.RequestedHouseholdIds));
             PatientHealthOutcomeBatch outboxBatch = Assert.Single(outboxWriter.Batches);
             Assert.Equal(17, outboxBatch.SourceRevision);
             Assert.Equal(CurrentDate, outboxBatch.CurrentDate);
@@ -479,7 +488,9 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
             return batchSet;
         }
 
-        private static PatientProfile CreateProfile(long lifecycleRevision = 0)
+        private static PatientProfile CreateProfile(
+            long lifecycleRevision = 0,
+            PatientHouseholdId? householdId = null)
         {
             return PatientProfile.Register(
                 new PatientId(PatientGuid),
@@ -490,7 +501,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                 isActive: true,
                 sourceRevision: 16,
                 synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T09:59:00+00:00"),
-                lifecycleRevision: lifecycleRevision);
+                lifecycleRevision: lifecycleRevision,
+                householdId: householdId);
         }
 
         private static PatientMedicalRecord CreateMedicalRecord(
@@ -518,13 +530,16 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
         }
 
         private sealed class MedicalRecordRepositoryStub(
-            IReadOnlyList<PatientMedicalRecord>? records = null)
+            IReadOnlyList<PatientMedicalRecord>? records = null,
+            IReadOnlyDictionary<PatientHouseholdId, int>? infectiousPatientCounts = null)
             : IPatientMedicalRecordRepository
         {
             private readonly IReadOnlyList<PatientMedicalRecord> _records =
                 records ?? Array.Empty<PatientMedicalRecord>();
 
             internal int GetCallCount { get; private set; }
+            internal int InfectiousHouseholdCountCallCount { get; private set; }
+            internal IReadOnlyCollection<PatientHouseholdId> RequestedHouseholdIds { get; private set; } = [];
 
             public Task<IReadOnlyList<PatientMedicalRecord>> GetByIdsAsync(
                 IReadOnlyCollection<PatientId> patientIds,
@@ -581,7 +596,11 @@ namespace Matrix.Healthcare.Application.Tests.Patients.AdvancePatientHealth
                     IReadOnlyCollection<PatientHouseholdId> householdIds,
                     CancellationToken cancellationToken = default)
             {
-                return Task.FromResult<IReadOnlyDictionary<PatientHouseholdId, int>>(
+                InfectiousHouseholdCountCallCount++;
+                RequestedHouseholdIds = householdIds;
+                return Task.FromResult(
+                    infectiousPatientCounts
+                    ?? (IReadOnlyDictionary<PatientHouseholdId, int>)
                     new Dictionary<PatientHouseholdId, int>());
             }
 
