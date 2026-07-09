@@ -9,7 +9,6 @@ namespace Matrix.Population.Application.Integration
         bool IsVulnerable,
         string HousingStability,
         bool HasStructuredDailyActivity,
-        int InfectiousHouseholdContacts,
         int HouseholdSize,
         double CaregiverSupportStrength,
         bool HadAdverseWeatherExposure,

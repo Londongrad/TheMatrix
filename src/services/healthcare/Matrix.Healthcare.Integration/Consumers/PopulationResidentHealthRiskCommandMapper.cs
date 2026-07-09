@@ -32,7 +32,7 @@ namespace Matrix.Healthcare.Integration.Consumers
                     IsVulnerable: resident.IsVulnerable,
                     HousingStability: MapHousingStability(resident.HousingStability),
                     HasStructuredDailyActivity: resident.HasStructuredDailyActivity,
-                    InfectiousHouseholdContacts: resident.InfectiousHouseholdContacts,
+                    InfectiousHouseholdContacts: 0,
                     HouseholdSize: resident.HouseholdSize,
                     CaregiverSupportStrength: resident.CaregiverSupportStrength,
                     HadAdverseWeatherExposure: resident.HadAdverseWeatherExposure,

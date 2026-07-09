@@ -9,7 +9,6 @@ namespace Matrix.Population.Contracts.Events
         bool IsVulnerable,
         string HousingStability,
         bool HasStructuredDailyActivity,
-        int InfectiousHouseholdContacts,
         int HouseholdSize,
         double CaregiverSupportStrength,
         bool HadAdverseWeatherExposure,

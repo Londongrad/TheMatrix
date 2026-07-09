@@ -125,9 +125,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         HasStructuredDailyActivity:
                         resident.Employment.Status is EmploymentStatus.Employed or EmploymentStatus.Student
                         || resident.Education.CurrentInstitutionId is not null,
-                        InfectiousHouseholdContacts: aliveHouseholdResidents.Count(member =>
-                            member.Id != resident.Id
-                            && member.CurrentIllnessKind == IllnessKind.Infection),
                         HouseholdSize: Math.Max(1, aliveHouseholdResidents.Length),
                         CaregiverSupportStrength: ResolveCaregiverSupportStrength(
                             resident: resident,
@@ -190,8 +187,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             PersonEntity[] caregivers = householdResidents
                .Where(member => member.Id != resident.Id
                                 && member.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior
-                                && (!member.HasActiveIllness
-                                    || member.CurrentIllnessSeverity != IllnessSeverity.Severe))
+                                && member.FunctionalCapacity.Value >= 50)
                .ToArray();
             if (caregivers.Length == 0)
                 return 0d;

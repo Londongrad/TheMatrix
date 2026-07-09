@@ -30,7 +30,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
                 [
                     new PopulationResidentHealthRiskV1(
                         residentId, 50, 45, 60, 40, false, "Housed", true,
-                        0, 2, 0.1d, false, 0.2d, 0.3d)
+                        2, 0.1d, false, 0.2d, 0.3d)
                 ]);
 
             await consumer.ConsumeAsync(message, CancellationToken.None);

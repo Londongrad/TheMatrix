@@ -41,7 +41,6 @@ namespace Matrix.Population.Infrastructure.Tests.Outbox
                         IsVulnerable: false,
                         HousingStability: "Housed",
                         HasStructuredDailyActivity: true,
-                        InfectiousHouseholdContacts: 0,
                         HouseholdSize: 3,
                         CaregiverSupportStrength: 0.12d,
                         HadAdverseWeatherExposure: false,

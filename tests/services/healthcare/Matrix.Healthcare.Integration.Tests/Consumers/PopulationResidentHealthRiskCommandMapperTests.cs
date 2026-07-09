@@ -23,7 +23,6 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
                     IsVulnerable: true,
                     HousingStability: "Homeless",
                     HasStructuredDailyActivity: false,
-                    InfectiousHouseholdContacts: 1,
                     HouseholdSize: 3,
                     CaregiverSupportStrength: 0.1d,
                     HadAdverseWeatherExposure: true,
@@ -40,6 +39,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             Assert.Equal(residentId, patient.PatientId);
             Assert.Equal(PatientHousingStability.Unhoused, patient.HousingStability);
             Assert.Equal(0.4d, patient.PublicHealthRiskStrength);
+            Assert.Equal(0, patient.InfectiousHouseholdContacts);
             Assert.Equal(3, patient.LifecycleRevision);
             Assert.Equal(communityId, patient.CommunityId);
         }
@@ -50,7 +50,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             PopulationResidentHealthRiskBatchV1 message = CreateMessage(
                 new PopulationResidentHealthRiskV1(
                     Guid.NewGuid(), 50, 50, 50, 50, false, "Shelter", true,
-                    0, 1, 0d, false, 0d, 0d));
+                    1, 0d, false, 0d, 0d));
 
             Assert.Throws<ArgumentException>(() =>
                 PopulationResidentHealthRiskCommandMapper.Map(message));

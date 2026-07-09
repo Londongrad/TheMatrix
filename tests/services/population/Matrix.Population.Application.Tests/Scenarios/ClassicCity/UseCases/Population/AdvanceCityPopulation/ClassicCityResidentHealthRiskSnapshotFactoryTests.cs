@@ -31,12 +31,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 householdId: householdId,
                 birthDate: new DateOnly(1990, 1, 1),
                 currentDate: CurrentDate);
-            ApplyHealthcareProjection(
-                person: infectedResident,
-                currentDate: CurrentDate,
-                illnessKind: IllnessKind.Infection,
-                illnessSeverity: IllnessSeverity.Mild,
-                diagnosedOn: CurrentDate.AddDays(-1));
             Person familyMember = CreatePerson(
                 personId: Guid.NewGuid(),
                 householdId: householdId,
@@ -94,7 +88,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(2, routingService.HealthcareResolveCallCount);
             PopulationResidentHealthRiskSnapshot exposed = snapshots.Single(x =>
                 x.ResidentId == familyMember.Id.Value);
-            Assert.Equal(1, exposed.InfectiousHouseholdContacts);
             Assert.Equal(2, exposed.HouseholdSize);
             Assert.Equal("Housed", exposed.HousingStability);
             Assert.True(exposed.HadAdverseWeatherExposure);

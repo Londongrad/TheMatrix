@@ -94,7 +94,6 @@ namespace Matrix.Population.Application.Integration
                 IsVulnerable: resident.IsVulnerable,
                 HousingStability: resident.HousingStability,
                 HasStructuredDailyActivity: resident.HasStructuredDailyActivity,
-                InfectiousHouseholdContacts: resident.InfectiousHouseholdContacts,
                 HouseholdSize: resident.HouseholdSize,
                 CaregiverSupportStrength: resident.CaregiverSupportStrength,
                 HadAdverseWeatherExposure: resident.HadAdverseWeatherExposure,

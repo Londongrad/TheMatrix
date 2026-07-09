@@ -19,7 +19,6 @@ namespace Matrix.Population.Application.Tests.Integration
             PopulationResidentHealthRiskSnapshot first = Create(firstId) with
             {
                 HousingStability = "Unhoused",
-                InfectiousHouseholdContacts = 2,
                 HealthcareSupportStrength = 0.42d,
                 LifecycleRevision = 5,
                 CommunityId = communityId
@@ -43,7 +42,6 @@ namespace Matrix.Population.Application.Tests.Integration
                 batches.SelectMany(batch => batch.Residents).Select(risk => risk.ResidentId));
             PopulationResidentHealthRiskV1 firstRisk = batches[0].Residents[0];
             Assert.Equal("Unhoused", firstRisk.HousingStability);
-            Assert.Equal(2, firstRisk.InfectiousHouseholdContacts);
             Assert.Equal(0.42d, firstRisk.HealthcareSupportStrength);
             Assert.Equal(5, firstRisk.LifecycleRevision);
             Assert.Equal(communityId, firstRisk.CommunityId);
@@ -75,7 +73,6 @@ namespace Matrix.Population.Application.Tests.Integration
                 IsVulnerable: false,
                 HousingStability: "Housed",
                 HasStructuredDailyActivity: true,
-                InfectiousHouseholdContacts: 0,
                 HouseholdSize: 3,
                 CaregiverSupportStrength: 0.12d,
                 HadAdverseWeatherExposure: false,
