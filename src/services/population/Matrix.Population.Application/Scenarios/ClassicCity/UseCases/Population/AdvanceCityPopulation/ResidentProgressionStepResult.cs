@@ -2,9 +2,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 {
     internal readonly record struct ResidentProgressionStepResult(
         bool PopulationChanged,
-        int HealthcareHealthDelta)
+        int ExternalHealthDelta)
     {
-        public bool HasAnyEffect => PopulationChanged || HealthcareHealthDelta != 0;
+        public bool HasAnyEffect => PopulationChanged || ExternalHealthDelta != 0;
 
         public static ResidentProgressionStepResult None => new(false, 0);
     }

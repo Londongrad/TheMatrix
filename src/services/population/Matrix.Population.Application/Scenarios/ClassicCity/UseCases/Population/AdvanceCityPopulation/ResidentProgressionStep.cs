@@ -53,7 +53,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CancellationToken cancellationToken)
         {
             bool populationChanged = false;
-            int healthcareHealthDelta = 0;
+            int externalHealthDelta = 0;
             if (requiresNeedsProgression)
             {
                 ResidentProgressionStepResult needsProgression = ResidentNeedsProgressionStep.Apply(
@@ -63,7 +63,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     environment: environment,
                     personNeedsProgressionPolicy: personNeedsProgressionPolicy);
                 populationChanged |= needsProgression.PopulationChanged;
-                healthcareHealthDelta += needsProgression.HealthcareHealthDelta;
+                externalHealthDelta += needsProgression.ExternalHealthDelta;
             }
             if (requiresDateProgression &&
                 await ResidentTimeProgressionStep.ApplyAsync(
@@ -117,7 +117,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     districtImpactPolicy: districtImpactPolicy,
                     livingConditionsPressurePolicy: livingConditionsPressurePolicy);
                 populationChanged |= livingConditionsProgression.PopulationChanged;
-                healthcareHealthDelta += livingConditionsProgression.HealthcareHealthDelta;
+                externalHealthDelta += livingConditionsProgression.ExternalHealthDelta;
             }
             if (exposureSegments.Count > 0)
             {
@@ -128,11 +128,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     exposureSegments: exposureSegments,
                     weatherExposurePolicy: weatherExposurePolicy);
                 populationChanged |= weatherExposure.PopulationChanged;
-                healthcareHealthDelta += weatherExposure.HealthcareHealthDelta;
+                externalHealthDelta += weatherExposure.ExternalHealthDelta;
             }
             return new ResidentProgressionStepResult(
                 PopulationChanged: populationChanged,
-                HealthcareHealthDelta: Math.Clamp(healthcareHealthDelta, -100, 100));
+                ExternalHealthDelta: Math.Clamp(externalHealthDelta, -100, 100));
         }
     }
 }

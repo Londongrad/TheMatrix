@@ -75,7 +75,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
             return new ResidentProgressionStepResult(
                 PopulationChanged: changed,
-                HealthcareHealthDelta: effect.HealthDelta);
+                ExternalHealthDelta: effect.HealthDelta);
         }
     }
 }

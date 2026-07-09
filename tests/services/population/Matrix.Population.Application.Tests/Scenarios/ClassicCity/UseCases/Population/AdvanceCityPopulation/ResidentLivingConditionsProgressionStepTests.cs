@@ -118,7 +118,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: before.Health,
                 actual: resident.Health.Value);
-            Assert.Equal(expectedEffect.HealthDelta, result.HealthcareHealthDelta);
+            Assert.Equal(expectedEffect.HealthDelta, result.ExternalHealthDelta);
             Assert.Equal(
                 expected: before.Energy + expectedEffect.EnergyDelta,
                 actual: resident.Energy.Value);
@@ -179,7 +179,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: before.Health,
                 actual: resident.Health.Value);
-            Assert.Equal(expectedEffect.HealthDelta, result.HealthcareHealthDelta);
+            Assert.Equal(expectedEffect.HealthDelta, result.ExternalHealthDelta);
             Assert.Equal(
                 expected: before.Energy + expectedEffect.EnergyDelta,
                 actual: resident.Energy.Value);
@@ -255,7 +255,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 essentialsState: CreateDegradedEssentialsState());
 
             Assert.True(result.HasAnyEffect);
-            Assert.True(result.HealthcareHealthDelta < 0);
+            Assert.True(result.ExternalHealthDelta < 0);
             Assert.True(resident.IsAlive);
             Assert.Equal(MaritalStatus.Married, spouse.MaritalStatus);
             Assert.Equal(resident.Id, spouse.SpouseId);

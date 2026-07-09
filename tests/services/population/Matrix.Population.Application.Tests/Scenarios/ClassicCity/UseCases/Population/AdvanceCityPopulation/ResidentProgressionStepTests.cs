@@ -117,7 +117,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: before.SocialNeed + expectedEffect.SocialNeedDelta,
                 actual: resident.SocialNeed.Value);
             Assert.Equal(before.Health, resident.Health.Value);
-            Assert.Equal(expectedEffect.HealthDelta, result.HealthcareHealthDelta);
+            Assert.Equal(expectedEffect.HealthDelta, result.ExternalHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + expectedEffect.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -156,7 +156,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.True(expectedImpact.HasEffect);
             Assert.True(result.HasAnyEffect);
             Assert.Equal(before.Health, resident.Health.Value);
-            Assert.Equal(expectedImpact.HealthDelta, result.HealthcareHealthDelta);
+            Assert.Equal(expectedImpact.HealthDelta, result.ExternalHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + expectedImpact.HappinessDelta,
                 actual: resident.Happiness.Value);

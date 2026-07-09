@@ -106,7 +106,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.True(expectedImpact.HasEffect);
             Assert.True(result.HasAnyEffect);
             Assert.Equal(before.Health, resident.Health.Value);
-            Assert.Equal(expectedImpact.HealthDelta, result.HealthcareHealthDelta);
+            Assert.Equal(expectedImpact.HealthDelta, result.ExternalHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + expectedImpact.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -166,7 +166,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(before.Health, resident.Health.Value);
             Assert.Equal(
                 adverseImpact.HealthDelta + recoveryImpact.HealthDelta,
-                result.HealthcareHealthDelta);
+                result.ExternalHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + adverseImpact.HappinessDelta + recoveryImpact.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -271,7 +271,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.True(expectedImpact.HealthDelta < 0);
             Assert.True(expectedImpact.HappinessDelta < 0);
             Assert.True(result.HasAnyEffect);
-            Assert.Equal(expectedImpact.HealthDelta, result.HealthcareHealthDelta);
+            Assert.Equal(expectedImpact.HealthDelta, result.ExternalHealthDelta);
             Assert.True(resident.IsAlive);
             Assert.Equal(1, resident.Health.Value);
             Assert.Equal(
@@ -322,7 +322,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 ]);
 
             Assert.True(result.HasAnyEffect);
-            Assert.True(result.HealthcareHealthDelta < 0);
+            Assert.True(result.ExternalHealthDelta < 0);
             Assert.True(resident.IsAlive);
             Assert.Equal(
                 expected: MaritalStatus.Married,

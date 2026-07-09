@@ -107,7 +107,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: before.SocialNeed + expectedEffect.SocialNeedDelta,
                 actual: resident.SocialNeed.Value);
             Assert.Equal(before.Health, resident.Health.Value);
-            Assert.Equal(expectedEffect.HealthDelta, result.HealthcareHealthDelta);
+            Assert.Equal(expectedEffect.HealthDelta, result.ExternalHealthDelta);
             Assert.Equal(
                 expected: before.Happiness + expectedEffect.HappinessDelta,
                 actual: resident.Happiness.Value);
@@ -236,7 +236,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 policy: new PersonNeedsProgressionPolicy());
 
             Assert.True(result.HasAnyEffect);
-            Assert.True(result.HealthcareHealthDelta < 0);
+            Assert.True(result.ExternalHealthDelta < 0);
             Assert.True(resident.IsAlive);
             Assert.Equal(MaritalStatus.Married, spouse.MaritalStatus);
             Assert.Equal(resident.Id, spouse.SpouseId);

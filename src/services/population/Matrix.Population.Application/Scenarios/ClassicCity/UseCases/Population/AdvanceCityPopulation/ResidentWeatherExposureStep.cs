@@ -43,7 +43,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
             return new ResidentProgressionStepResult(
                 PopulationChanged: populationChanged,
-                HealthcareHealthDelta: Math.Clamp(totalHealthDelta, -100, 100));
+                ExternalHealthDelta: Math.Clamp(totalHealthDelta, -100, 100));
         }
     }
 }

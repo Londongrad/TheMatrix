@@ -295,13 +295,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 person: person,
                                 pendingImpacts: pendingWeatherImpacts,
                                 weatherImpactPolicy: weatherImpactPolicy);
-                            int healthcareHealthDelta = Math.Clamp(
-                                progressionResult.HealthcareHealthDelta + pendingWeatherHealthDelta,
+                            int externalHealthDelta = Math.Clamp(
+                                progressionResult.ExternalHealthDelta + pendingWeatherHealthDelta,
                                 -100,
                                 100);
-                            if (healthcareHealthDelta != 0)
+                            if (externalHealthDelta != 0)
                                 pendingHealthAdjustmentsByResidentId[person.Id] =
-                                    healthcareHealthDelta;
+                                    externalHealthDelta;
                             if (progressionResult.HasAnyEffect || pendingWeatherHealthDelta != 0)
                             {
                                 affectedPeopleCount++;
