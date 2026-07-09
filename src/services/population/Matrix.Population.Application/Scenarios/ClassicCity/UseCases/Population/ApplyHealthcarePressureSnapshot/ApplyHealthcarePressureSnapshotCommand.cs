@@ -14,5 +14,16 @@ public sealed record ApplyHealthcarePressureSnapshotCommand(
     decimal MedicalLoadIndex,
     decimal TriagePressureIndex,
     decimal RecoverySupportIndex,
-    DateTimeOffset OccurredAtUtc)
-    : IRequest<ApplyHealthcarePressureSnapshotResult>;
+    DateTimeOffset OccurredAtUtc,
+    IReadOnlyList<HealthcareDistrictHealthSnapshotInput>? Districts = null)
+    : IRequest<ApplyHealthcarePressureSnapshotResult>
+{
+    public IReadOnlyList<HealthcareDistrictHealthSnapshotInput> Districts { get; init; } =
+        Districts ?? [];
+}
+
+public sealed record HealthcareDistrictHealthSnapshotInput(
+    Guid DistrictId,
+    int PatientCount,
+    int ActiveIllnessCount,
+    int SevereIllnessCount);

@@ -11,6 +11,7 @@ public sealed class HealthcarePopulationHealthSnapshotCommandMapperTests
     public void Map_PreservesHealthcareOwnedAggregate()
     {
         var messageId = Guid.NewGuid();
+        var districtId = Guid.NewGuid();
         var message = new HealthcarePopulationHealthSnapshotV1(
             SimulationHostId: Guid.NewGuid(),
             SourceRevision: 17,
@@ -22,7 +23,15 @@ public sealed class HealthcarePopulationHealthSnapshotCommandMapperTests
             TriagePressureIndex: 0.34m,
             RecoverySupportIndex: 1.12m,
             OccurredAtUtc: new DateTimeOffset(2048, 5, 6, 10, 0, 0, TimeSpan.Zero),
-            CorrelationId: "health-risk:17:population-health");
+            CorrelationId: "health-risk:17:population-health",
+            Communities:
+            [
+                new HealthcareCommunityHealthSnapshotV1(
+                    CommunityId: districtId,
+                    PatientCount: 40,
+                    ActiveIllnessCount: 5,
+                    SevereIllnessCount: 1)
+            ]);
 
         ApplyHealthcarePressureSnapshotCommand command =
             HealthcarePopulationHealthSnapshotCommandMapper.Map(
@@ -37,6 +46,11 @@ public sealed class HealthcarePopulationHealthSnapshotCommandMapperTests
         Assert.Equal(8, command.ActiveIllnessCount);
         Assert.Equal(2, command.SevereIllnessCount);
         Assert.Equal(0.82m, command.MedicalLoadIndex);
+        HealthcareDistrictHealthSnapshotInput district = Assert.Single(command.Districts);
+        Assert.Equal(districtId, district.DistrictId);
+        Assert.Equal(40, district.PatientCount);
+        Assert.Equal(5, district.ActiveIllnessCount);
+        Assert.Equal(1, district.SevereIllnessCount);
     }
 
     [Fact]

@@ -13,6 +13,8 @@ public sealed class ApplyHealthcarePressureSnapshotCommandHandlerTests
 {
     private static readonly Guid CityGuid =
         Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+    private static readonly Guid DistrictGuid =
+        Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff");
 
     [Fact]
     public async Task Handle_WhenSnapshotIsNewer_StoresHealthcareProjection()
@@ -34,6 +36,12 @@ public sealed class ApplyHealthcarePressureSnapshotCommandHandlerTests
         Assert.Equal(8, repository.Snapshot.Pressure.ActiveIllnessCount);
         Assert.Equal(2, repository.Snapshot.Pressure.SevereIllnessCount);
         Assert.Equal(0.82m, repository.Snapshot.Pressure.MedicalLoadIndex);
+        ClassicCityHealthcareDistrictHealthSnapshot district =
+            Assert.Single(repository.Snapshot.Districts);
+        Assert.Equal(DistrictId.From(DistrictGuid), district.DistrictId);
+        Assert.Equal(40, district.PatientCount);
+        Assert.Equal(5, district.ActiveIllnessCount);
+        Assert.Equal(1, district.SevereIllnessCount);
         Assert.Equal(1, unitOfWork.SaveChangesCalls);
     }
 
@@ -98,6 +106,26 @@ public sealed class ApplyHealthcarePressureSnapshotCommandHandlerTests
         Assert.Equal(0, unitOfWork.ExecuteTransactionCalls);
     }
 
+    [Fact]
+    public async Task Handle_WhenDistrictsAreDuplicated_RejectsBeforeTransaction()
+    {
+        var unitOfWork = new FakeUnitOfWork();
+        ApplyHealthcarePressureSnapshotCommandHandler handler = CreateHandler(
+            new HealthcarePressureSnapshotRepositoryStub(),
+            unitOfWork: unitOfWork);
+        HealthcareDistrictHealthSnapshotInput district = Assert.Single(CreateCommand().Districts);
+        ApplyHealthcarePressureSnapshotCommand invalid = CreateCommand() with
+        {
+            Districts = [district, district]
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(
+            invalid,
+            CancellationToken.None));
+
+        Assert.Equal(0, unitOfWork.ExecuteTransactionCalls);
+    }
+
     private static ApplyHealthcarePressureSnapshotCommandHandler CreateHandler(
         HealthcarePressureSnapshotRepositoryStub repository,
         FakeProcessedIntegrationMessageRepository? processedRepository = null,
@@ -127,7 +155,15 @@ public sealed class ApplyHealthcarePressureSnapshotCommandHandlerTests
             MedicalLoadIndex: 0.82m,
             TriagePressureIndex: 0.34m,
             RecoverySupportIndex: 1.12m,
-            OccurredAtUtc: new DateTimeOffset(2048, 5, 6, 10, 0, 0, TimeSpan.Zero));
+            OccurredAtUtc: new DateTimeOffset(2048, 5, 6, 10, 0, 0, TimeSpan.Zero),
+            Districts:
+            [
+                new HealthcareDistrictHealthSnapshotInput(
+                    DistrictId: DistrictGuid,
+                    PatientCount: 40,
+                    ActiveIllnessCount: 5,
+                    SevereIllnessCount: 1)
+            ]);
     }
 
     private static ClassicCityHealthcarePressureSnapshot CreateSnapshot(long sourceRevision)

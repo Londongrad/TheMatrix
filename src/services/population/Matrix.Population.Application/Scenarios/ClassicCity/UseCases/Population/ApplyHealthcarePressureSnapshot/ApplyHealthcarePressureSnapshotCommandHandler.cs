@@ -58,7 +58,14 @@ public sealed class ApplyHealthcarePressureSnapshotCommandHandler(
                             TriagePressureIndex: request.TriagePressureIndex,
                             RecoverySupportIndex: request.RecoverySupportIndex),
                         OccurredAtUtc: request.OccurredAtUtc,
-                        UpdatedAtUtc: timeProvider.GetUtcNow()),
+                        UpdatedAtUtc: timeProvider.GetUtcNow(),
+                        Districts: request.Districts
+                           .Select(district => new ClassicCityHealthcareDistrictHealthSnapshot(
+                                DistrictId: DistrictId.From(district.DistrictId),
+                                PatientCount: district.PatientCount,
+                                ActiveIllnessCount: district.ActiveIllnessCount,
+                                SevereIllnessCount: district.SevereIllnessCount))
+                           .ToArray()),
                     ct);
                 await unitOfWork.SaveChangesAsync(ct);
 
@@ -92,5 +99,23 @@ public sealed class ApplyHealthcarePressureSnapshotCommandHandler(
             throw new ArgumentException("Healthcare pressure indexes are invalid.", nameof(request));
         if (request.OccurredAtUtc.Offset != TimeSpan.Zero)
             throw new ArgumentException("Healthcare snapshot timestamps must be expressed in UTC.", nameof(request));
+
+        if (request.Districts.Any(district =>
+                district.DistrictId == Guid.Empty
+                || district.PatientCount < 0
+                || district.ActiveIllnessCount < 0
+                || district.ActiveIllnessCount > district.PatientCount
+                || district.SevereIllnessCount < 0
+                || district.SevereIllnessCount > district.ActiveIllnessCount))
+            throw new ArgumentException("Healthcare district counts are invalid.", nameof(request));
+        if (request.Districts.Select(district => district.DistrictId).Distinct().Count()
+            != request.Districts.Count)
+            throw new ArgumentException("Healthcare districts must be unique.", nameof(request));
+        if (request.Districts.Sum(district => district.PatientCount) > request.PatientCount
+            || request.Districts.Sum(district => district.ActiveIllnessCount) > request.ActiveIllnessCount
+            || request.Districts.Sum(district => district.SevereIllnessCount) > request.SevereIllnessCount)
+            throw new ArgumentException(
+                "Healthcare district counts cannot exceed the population aggregate.",
+                nameof(request));
     }
 }

@@ -10,4 +10,9 @@ public sealed record ClassicCityHealthcarePressureSnapshot(
     int PatientCount,
     CityPopulationHealthcarePressureProfile Pressure,
     DateTimeOffset OccurredAtUtc,
-    DateTimeOffset UpdatedAtUtc);
+    DateTimeOffset UpdatedAtUtc,
+    IReadOnlyList<ClassicCityHealthcareDistrictHealthSnapshot>? Districts = null)
+{
+    public IReadOnlyList<ClassicCityHealthcareDistrictHealthSnapshot> Districts { get; init; } =
+        Districts ?? [];
+}

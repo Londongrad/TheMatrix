@@ -24,6 +24,13 @@ internal static class HealthcarePopulationHealthSnapshotCommandMapper
             MedicalLoadIndex: message.MedicalLoadIndex,
             TriagePressureIndex: message.TriagePressureIndex,
             RecoverySupportIndex: message.RecoverySupportIndex,
-            OccurredAtUtc: message.OccurredAtUtc);
+            OccurredAtUtc: message.OccurredAtUtc,
+            Districts: message.Communities?
+               .Select(community => new HealthcareDistrictHealthSnapshotInput(
+                    DistrictId: community.CommunityId,
+                    PatientCount: community.PatientCount,
+                    ActiveIllnessCount: community.ActiveIllnessCount,
+                    SevereIllnessCount: community.SevereIllnessCount))
+               .ToArray() ?? []);
     }
 }
