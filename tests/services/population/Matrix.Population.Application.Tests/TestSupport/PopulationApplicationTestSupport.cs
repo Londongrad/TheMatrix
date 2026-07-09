@@ -39,32 +39,6 @@ namespace Matrix.Population.Application.Tests.TestSupport
             return new FakeTimeProvider(utcNow ?? UtcNow);
         }
 
-        internal static void ApplyHealthcareProjection(
-            Person person,
-            DateOnly currentDate,
-            IllnessKind? illnessKind,
-            IllnessSeverity? illnessSeverity,
-            DateOnly? diagnosedOn = null,
-            DateOnly? lastRecoveredOn = null,
-            int? healthScore = null)
-        {
-            bool applied = person.TryApplyHealthcareOutcome(
-                sourceRevision: person.LastHealthcareRevision + 1,
-                healthScore: healthScore ?? person.Health.Value,
-                illness: IllnessInfo.FromHealthcareSnapshot(
-                    currentKind: illnessKind,
-                    currentSeverity: illnessSeverity,
-                    diagnosedOn: diagnosedOn,
-                    lastRecoveredOn: lastRecoveredOn),
-                happinessDelta: 0,
-                energyDelta: 0,
-                stressDelta: 0,
-                currentDate: currentDate);
-
-            if (!applied)
-                throw new InvalidOperationException("The healthcare test projection was not accepted.");
-        }
-
         internal static Person CreatePerson(
             Guid? personId = null,
             Guid? householdId = null,
@@ -116,8 +90,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 healthLevel: HealthLevel.From(health),
                 weight: BodyWeight.FromKilograms(72m),
                 job: job,
-                currentDate: resolvedCurrentDate,
-                illness: IllnessInfo.Healthy());
+                currentDate: resolvedCurrentDate);
 
             if (lifeStatus == LifeStatus.Deceased)
                 person.Die(resolvedCurrentDate);

@@ -183,12 +183,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
             builder.Ignore(p => p.MaritalStatus);
             builder.Ignore(p => p.SpouseId);
             builder.Ignore(p => p.EducationLevel);
-            builder.Ignore(p => p.HasActiveIllness);
-            builder.Ignore(p => p.CurrentIllnessKind);
-            builder.Ignore(p => p.CurrentIllnessSeverity);
-            builder.Ignore(p => p.IllnessDiagnosedOn);
-            builder.Ignore(p => p.LastIllnessRecoveredOn);
-
             builder.OwnsOne(
                 navigationExpression: p => p.Education,
                 buildAction: edu =>
@@ -237,41 +231,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                                 ? PersonId.From(value.Value)
                                 : null)
                        .HasColumnName("SpouseId");
-                });
-
-            builder.OwnsOne(
-                navigationExpression: p => p.Illness,
-                buildAction: illness =>
-                {
-                    illness.Property(i => i.CurrentKind)
-                       .HasConversion<string>()
-                       .HasColumnName("CurrentIllnessKind");
-
-                    illness.Property(i => i.CurrentSeverity)
-                       .HasConversion<string>()
-                       .HasColumnName("CurrentIllnessSeverity");
-
-                    illness.Property(i => i.DiagnosedOn)
-                       .HasConversion(
-                            convertToProviderExpression: date => date.HasValue
-                                ? date.Value.ToDateTime(TimeOnly.MinValue)
-                                : (DateTime?)null,
-                            convertFromProviderExpression: date => date.HasValue
-                                ? DateOnly.FromDateTime(date.Value)
-                                : null)
-                       .HasColumnName("IllnessDiagnosedOn")
-                       .HasColumnType("date");
-
-                    illness.Property(i => i.LastRecoveredOn)
-                       .HasConversion(
-                            convertToProviderExpression: date => date.HasValue
-                                ? date.Value.ToDateTime(TimeOnly.MinValue)
-                                : (DateTime?)null,
-                            convertFromProviderExpression: date => date.HasValue
-                                ? DateOnly.FromDateTime(date.Value)
-                                : null)
-                       .HasColumnName("LastIllnessRecoveredOn")
-                       .HasColumnType("date");
                 });
 
             builder.OwnsOne(

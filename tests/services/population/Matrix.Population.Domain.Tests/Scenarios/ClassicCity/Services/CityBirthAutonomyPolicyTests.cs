@@ -289,7 +289,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     year: 2048,
                     month: 5,
                     day: 1),
-                illness: IllnessInfo.Healthy(),
                 lastChildbirthDate: lastChildbirthDate);
         }
 
@@ -324,8 +323,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 currentDate: new DateOnly(
                     year: 2048,
                     month: 5,
-                    day: 1),
-                illness: IllnessInfo.Healthy());
+                    day: 1));
         }
 
         private static Guid CreateGuid(int seed)

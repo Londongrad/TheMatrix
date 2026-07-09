@@ -404,7 +404,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         workplaceAnchorId: null)
                     : null,
                 currentDate: CurrentDate,
-                illness: IllnessInfo.Healthy(),
                 motherId: motherId,
                 fatherId: fatherId);
         }

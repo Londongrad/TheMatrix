@@ -69,7 +69,6 @@ namespace Matrix.Population.Infrastructure.Tests.TestSupport
                 weight: BodyWeight.FromKilograms(72m),
                 job: null,
                 currentDate: resolvedCurrentDate,
-                illness: IllnessInfo.Healthy(),
                 functionalCapacity: FunctionalCapacityLevel.From(functionalCapacity));
         }
 

@@ -136,7 +136,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             resident.TryApplyHealthcareOutcome(
                 sourceRevision: 0,
                 healthScore: 40,
-                illness: IllnessInfo.Healthy(),
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,
@@ -444,8 +443,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 healthLevel: HealthLevel.From(health),
                 weight: BodyWeight.FromKilograms(72m),
                 job: job,
-                currentDate: CurrentDate,
-                illness: IllnessInfo.Healthy());
+                currentDate: CurrentDate);
         }
 
         private static HouseholdEntity CreateHousehold(

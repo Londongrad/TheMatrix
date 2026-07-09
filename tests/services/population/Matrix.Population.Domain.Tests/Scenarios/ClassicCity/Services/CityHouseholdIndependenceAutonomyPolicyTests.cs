@@ -337,7 +337,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     year: 2048,
                     month: 5,
                     day: 3),
-                illness: IllnessInfo.Healthy(),
                 motherId: motherId,
                 fatherId: fatherId);
         }

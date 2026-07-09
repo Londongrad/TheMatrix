@@ -75,12 +75,10 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     month: 5,
                     day: 1),
                 currentDate: currentDate);
-            PopulationTestData.ApplyHealthcareProjection(
+            PopulationTestData.ApplyFunctionalCapacityProjection(
                 person: child,
                 currentDate: currentDate,
-                illnessKind: IllnessKind.Infection,
-                illnessSeverity: IllnessSeverity.Mild,
-                diagnosedOn: currentDate);
+                functionalCapacityScore: 85);
 
             CityPopulationLivingConditionsPressureEffect effect = policy.Calculate(
                 person: child,

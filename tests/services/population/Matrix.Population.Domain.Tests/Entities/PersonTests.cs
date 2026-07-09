@@ -133,7 +133,6 @@ namespace Matrix.Population.Domain.Tests.Entities
             person.TryApplyHealthcareOutcome(
                 sourceRevision: 0,
                 healthScore: 0,
-                illness: IllnessInfo.Healthy(),
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,
@@ -174,21 +173,14 @@ namespace Matrix.Population.Domain.Tests.Entities
         }
 
         [Fact]
-        public void TryApplyHealthcareOutcome_WhenRevisionIsNew_SynchronizesMedicalProjection()
+        public void TryApplyHealthcareOutcome_WhenRevisionIsNew_SynchronizesVitalProjection()
         {
             DateOnly currentDate = new(2048, 5, 6);
-            DateOnly diagnosedOn = currentDate.AddDays(-2);
             Person person = PopulationTestData.CreateAdultPerson(currentDate: currentDate);
-            IllnessInfo illness = IllnessInfo.FromHealthcareSnapshot(
-                currentKind: IllnessKind.Infection,
-                currentSeverity: IllnessSeverity.Moderate,
-                diagnosedOn: diagnosedOn,
-                lastRecoveredOn: null);
 
             bool applied = person.TryApplyHealthcareOutcome(
                 sourceRevision: 17,
                 healthScore: 63,
-                illness: illness,
                 happinessDelta: -2,
                 energyDelta: -3,
                 stressDelta: 2,
@@ -199,9 +191,6 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.Equal(17, person.LastHealthcareRevision);
             Assert.Equal(63, person.Health.Value);
             Assert.Equal(60, person.FunctionalCapacity.Value);
-            Assert.Equal(IllnessKind.Infection, person.CurrentIllnessKind);
-            Assert.Equal(IllnessSeverity.Moderate, person.CurrentIllnessSeverity);
-            Assert.Equal(diagnosedOn, person.IllnessDiagnosedOn);
         }
 
         [Fact]
@@ -212,7 +201,6 @@ namespace Matrix.Population.Domain.Tests.Entities
             person.TryApplyHealthcareOutcome(
                 sourceRevision: 17,
                 healthScore: 63,
-                illness: IllnessInfo.Healthy(),
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,
@@ -221,11 +209,6 @@ namespace Matrix.Population.Domain.Tests.Entities
             bool applied = person.TryApplyHealthcareOutcome(
                 sourceRevision: 16,
                 healthScore: 10,
-                illness: IllnessInfo.FromHealthcareSnapshot(
-                    IllnessKind.Exposure,
-                    IllnessSeverity.Severe,
-                    currentDate,
-                    null),
                 happinessDelta: -10,
                 energyDelta: -10,
                 stressDelta: 10,
@@ -233,7 +216,6 @@ namespace Matrix.Population.Domain.Tests.Entities
 
             Assert.False(applied);
             Assert.Equal(63, person.Health.Value);
-            Assert.False(person.HasActiveIllness);
         }
 
         [Fact]
@@ -248,7 +230,6 @@ namespace Matrix.Population.Domain.Tests.Entities
             bool applied = person.TryApplyHealthcareOutcome(
                 sourceRevision: 17,
                 healthScore: 10,
-                illness: IllnessInfo.Healthy(),
                 happinessDelta: -10,
                 energyDelta: -10,
                 stressDelta: 10,

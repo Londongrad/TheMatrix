@@ -90,12 +90,10 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             resident.AssignJob(
                 currentDate: currentDate,
                 job: PopulationTestData.CreateJob("Architect"));
-            PopulationTestData.ApplyHealthcareProjection(
+            PopulationTestData.ApplyFunctionalCapacityProjection(
                 person: resident,
                 currentDate: currentDate,
-                illnessKind: IllnessKind.Infection,
-                illnessSeverity: IllnessSeverity.Mild,
-                diagnosedOn: currentDate);
+                functionalCapacityScore: 85);
 
             bool changed = policy.Apply(
                 resident: resident,

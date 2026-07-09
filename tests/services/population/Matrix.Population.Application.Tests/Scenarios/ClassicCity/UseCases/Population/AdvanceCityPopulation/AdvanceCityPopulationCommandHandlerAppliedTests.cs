@@ -59,7 +59,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var risk = Assert.Single(batch.Residents);
             Assert.Equal(resident.Id.Value, risk.ResidentId);
             Assert.Equal("Unhoused", risk.HousingStability);
-            Assert.False(resident.HasActiveIllness);
         }
 
         [Fact]

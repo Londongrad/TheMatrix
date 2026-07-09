@@ -618,8 +618,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                 healthLevel: HealthLevel.From(90),
                 weight: BodyWeight.FromKilograms(72m),
                 job: job,
-                currentDate: CurrentDate,
-                illness: IllnessInfo.Healthy());
+                currentDate: CurrentDate);
         }
 
         private static Job CreateJob(CityAnchorId workplaceAnchorId)

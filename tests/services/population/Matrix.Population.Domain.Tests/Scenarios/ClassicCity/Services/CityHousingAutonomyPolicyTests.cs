@@ -58,7 +58,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             resident.TryApplyHealthcareOutcome(
                 sourceRevision: 0,
                 healthScore: 40,
-                illness: IllnessInfo.Healthy(),
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,

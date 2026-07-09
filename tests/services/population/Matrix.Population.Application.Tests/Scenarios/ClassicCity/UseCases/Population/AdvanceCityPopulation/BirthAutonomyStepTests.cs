@@ -370,8 +370,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     workplaceId: WorkplaceId.From(Guid.Parse("77777777-aaaa-bbbb-cccc-777777777777")),
                     title: "Engineer",
                     workplaceAnchorId: CityAnchorId.From(Guid.Parse("88888888-aaaa-bbbb-cccc-888888888888"))),
-                currentDate: CurrentDate,
-                illness: IllnessInfo.Healthy());
+                currentDate: CurrentDate);
         }
 
         private static Guid CreateGuid(int seed)

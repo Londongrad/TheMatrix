@@ -51,11 +51,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             employedResident.TryApplyHealthcareOutcome(
                 sourceRevision: 0,
                 healthScore: 55,
-                illness: IllnessInfo.FromHealthcareSnapshot(
-                    currentKind: IllnessKind.Infection,
-                    currentSeverity: IllnessSeverity.Moderate,
-                    diagnosedOn: currentDate,
-                    lastRecoveredOn: null),
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,
@@ -120,7 +115,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             student.TryApplyHealthcareOutcome(
                 sourceRevision: 0,
                 healthScore: 60,
-                illness: IllnessInfo.Healthy(),
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,

@@ -73,12 +73,10 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             employedAdult.AssignJob(
                 currentDate: currentDate,
                 job: PopulationTestData.CreateJob("Architect"));
-            PopulationTestData.ApplyHealthcareProjection(
+            PopulationTestData.ApplyFunctionalCapacityProjection(
                 person: employedAdult,
                 currentDate: currentDate,
-                illnessKind: IllnessKind.Infection,
-                illnessSeverity: IllnessSeverity.Mild,
-                diagnosedOn: currentDate);
+                functionalCapacityScore: 85);
 
             Person adultStudent = PopulationTestData.CreateAdultPerson(
                 firstName: "Olga",
@@ -187,7 +185,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             unemployedResident.TryApplyHealthcareOutcome(
                 sourceRevision: 0,
                 healthScore: 40,
-                illness: IllnessInfo.Healthy(),
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,

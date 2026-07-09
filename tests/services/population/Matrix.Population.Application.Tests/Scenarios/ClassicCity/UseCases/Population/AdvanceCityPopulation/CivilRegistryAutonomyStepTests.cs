@@ -417,8 +417,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 healthLevel: HealthLevel.From(health),
                 weight: BodyWeight.FromKilograms(70m),
                 job: null,
-                currentDate: CurrentDate,
-                illness: IllnessInfo.Healthy());
+                currentDate: CurrentDate);
         }
 
         private static void ConfigureHousedHousehold(

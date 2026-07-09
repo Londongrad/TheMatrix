@@ -81,12 +81,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     month: 5,
                     day: 1),
                 currentDate: CurrentDate);
-            ApplyHealthcareProjection(
-                person: resident,
-                currentDate: CurrentDate,
-                illnessKind: IllnessKind.Infection,
-                illnessSeverity: IllnessSeverity.Mild,
-                diagnosedOn: CurrentDate);
             CityPopulationLivingConditionsState livingConditionsState = CreateDegradedLivingConditionsState();
             CityPopulationEssentialsState essentialsState = CreateDegradedEssentialsState();
             var districtImpactPolicy = new CityPopulationDistrictImpactPolicy();

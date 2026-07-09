@@ -91,7 +91,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             patient.TryApplyHealthcareOutcome(
                 sourceRevision: 18,
                 healthScore: 64,
-                illness: Matrix.Population.Domain.ValueObjects.IllnessInfo.Healthy(),
                 happinessDelta: 0,
                 energyDelta: 0,
                 stressDelta: 0,

@@ -35,7 +35,6 @@ namespace Matrix.Population.Domain.Entities
             BodyWeight weight,
             Job? job,
             DateOnly currentDate,
-            IllnessInfo? illness = null,
             PersonId? motherId = null,
             PersonId? fatherId = null,
             DateOnly? lastChildbirthDate = null,
@@ -82,7 +81,6 @@ namespace Matrix.Population.Domain.Entities
                 functionalCapacity: functionalCapacity ?? (lifeStatus == LifeStatus.Alive
                     ? FunctionalCapacityLevel.Full
                     : FunctionalCapacityLevel.From(FunctionalCapacityLevel.Minimum)),
-                illness: illness ?? IllnessInfo.Healthy(),
                 motherId: motherId,
                 fatherId: fatherId,
                 lastChildbirthDate: lastChildbirthDate);
@@ -111,7 +109,6 @@ namespace Matrix.Population.Domain.Entities
         public SocialNeedLevel SocialNeed { get; private set; }
         public Personality Personality { get; } = null!;
         public FunctionalCapacityLevel FunctionalCapacity { get; private set; }
-        public IllnessInfo Illness { get; private set; } = null!;
         public PersonId? MotherId { get; private set; }
         public PersonId? FatherId { get; private set; }
         public DateOnly? LastChildbirthDate { get; private set; }
@@ -132,11 +129,6 @@ namespace Matrix.Population.Domain.Entities
         public PersonId? SpouseId => Marital.SpouseId;
 
         public EducationLevel EducationLevel => Education.Level;
-        public bool HasActiveIllness => Illness.HasActiveIllness;
-        public IllnessKind? CurrentIllnessKind => Illness.CurrentKind;
-        public IllnessSeverity? CurrentIllnessSeverity => Illness.CurrentSeverity;
-        public DateOnly? IllnessDiagnosedOn => Illness.DiagnosedOn;
-        public DateOnly? LastIllnessRecoveredOn => Illness.LastRecoveredOn;
 
         #endregion [ Convenience shortcuts ]
 
@@ -160,7 +152,6 @@ namespace Matrix.Population.Domain.Entities
             Personality personality,
             BodyWeight weight,
             FunctionalCapacityLevel functionalCapacity,
-            IllnessInfo illness,
             PersonId? motherId,
             PersonId? fatherId,
             DateOnly? lastChildbirthDate)
@@ -199,9 +190,6 @@ namespace Matrix.Population.Domain.Entities
                 value: weight,
                 propertyName: nameof(Weight));
             FunctionalCapacity = functionalCapacity;
-            Illness = GuardHelper.AgainstNull(
-                value: illness,
-                propertyName: nameof(Illness));
             MotherId = motherId;
             FatherId = fatherId;
             LastChildbirthDate = lastChildbirthDate;
@@ -341,14 +329,12 @@ namespace Matrix.Population.Domain.Entities
             Energy = EnergyLevel.Default();
             Stress = StressLevel.Default();
             SocialNeed = SocialNeedLevel.Default();
-            Illness = Illness.ClearActive();
             LifecycleRevision = checked(LifecycleRevision + 1);
         }
 
         public bool TryApplyHealthcareOutcome(
             long sourceRevision,
             int healthScore,
-            IllnessInfo illness,
             int happinessDelta,
             int energyDelta,
             int stressDelta,
@@ -366,10 +352,6 @@ namespace Matrix.Population.Domain.Entities
                 or > FunctionalCapacityLevel.Maximum)
                 throw new ArgumentOutOfRangeException(nameof(functionalCapacityScore));
 
-            illness = GuardHelper.AgainstNull(
-                value: illness,
-                propertyName: nameof(illness));
-
             if (expectedLifecycleRevision.HasValue
                 && expectedLifecycleRevision.Value != LifecycleRevision)
                 return false;
@@ -380,7 +362,6 @@ namespace Matrix.Population.Domain.Entities
             if (!IsAlive)
                 return true;
 
-            Illness = illness;
             if (functionalCapacityScore.HasValue)
                 FunctionalCapacity = FunctionalCapacityLevel.From(functionalCapacityScore.Value);
             if (healthScore != Health.Value)

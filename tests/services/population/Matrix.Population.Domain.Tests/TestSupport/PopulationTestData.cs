@@ -9,39 +9,26 @@ namespace Matrix.Population.Domain.Tests.TestSupport
 {
     internal static class PopulationTestData
     {
-        internal static void ApplyHealthcareProjection(
+        internal static void ApplyFunctionalCapacityProjection(
             Person person,
             DateOnly currentDate,
-            IllnessKind? illnessKind,
-            IllnessSeverity? illnessSeverity,
-            DateOnly? diagnosedOn = null,
-            DateOnly? lastRecoveredOn = null,
+            int functionalCapacityScore,
             int? healthScore = null,
-            int? functionalCapacityScore = null)
+            int happinessDelta = 0,
+            int energyDelta = 0,
+            int stressDelta = 0)
         {
             bool applied = person.TryApplyHealthcareOutcome(
                 sourceRevision: person.LastHealthcareRevision + 1,
                 healthScore: healthScore ?? person.Health.Value,
-                illness: IllnessInfo.FromHealthcareSnapshot(
-                    currentKind: illnessKind,
-                    currentSeverity: illnessSeverity,
-                    diagnosedOn: diagnosedOn,
-                    lastRecoveredOn: lastRecoveredOn),
-                happinessDelta: 0,
-                energyDelta: 0,
-                stressDelta: 0,
+                happinessDelta: happinessDelta,
+                energyDelta: energyDelta,
+                stressDelta: stressDelta,
                 currentDate: currentDate,
-                functionalCapacityScore: functionalCapacityScore ?? illnessSeverity switch
-                {
-                    null => 100,
-                    IllnessSeverity.Mild => 85,
-                    IllnessSeverity.Moderate => 60,
-                    IllnessSeverity.Severe => 30,
-                    _ => throw new ArgumentOutOfRangeException(nameof(illnessSeverity))
-                });
+                functionalCapacityScore: functionalCapacityScore);
 
             if (!applied)
-                throw new InvalidOperationException("The healthcare test projection was not accepted.");
+                throw new InvalidOperationException("The functional capacity test projection was not accepted.");
         }
 
         internal static Person CreateAdultPerson(
@@ -89,8 +76,7 @@ namespace Matrix.Population.Domain.Tests.TestSupport
                 healthLevel: HealthLevel.From(80),
                 weight: BodyWeight.FromKilograms(72m),
                 job: null,
-                currentDate: resolvedCurrentDate,
-                illness: IllnessInfo.Healthy());
+                currentDate: resolvedCurrentDate);
         }
 
         internal static Household CreateHousehold(

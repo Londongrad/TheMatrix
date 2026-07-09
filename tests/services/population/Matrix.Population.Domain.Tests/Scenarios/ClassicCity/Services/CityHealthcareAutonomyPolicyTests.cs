@@ -51,12 +51,10 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 day: 2);
 
             Person illResident = PopulationTestData.CreateAdultPerson(currentDate: currentDate);
-            PopulationTestData.ApplyHealthcareProjection(
+            PopulationTestData.ApplyFunctionalCapacityProjection(
                 person: illResident,
                 currentDate: currentDate,
-                illnessKind: IllnessKind.Infection,
-                illnessSeverity: IllnessSeverity.Moderate,
-                diagnosedOn: currentDate);
+                functionalCapacityScore: 60);
 
             Person employedCaregiver = PopulationTestData.CreateAdultPerson(
                 firstName: "Olga",
@@ -132,12 +130,10 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     month: 5,
                     day: 1),
                 currentDate: currentDate);
-            PopulationTestData.ApplyHealthcareProjection(
+            PopulationTestData.ApplyFunctionalCapacityProjection(
                 person: seniorResident,
                 currentDate: currentDate,
-                illnessKind: IllnessKind.Exhaustion,
-                illnessSeverity: IllnessSeverity.Severe,
-                diagnosedOn: currentDate);
+                functionalCapacityScore: 30);
 
             Person caregiver = PopulationTestData.CreateAdultPerson(
                 firstName: "Maria",

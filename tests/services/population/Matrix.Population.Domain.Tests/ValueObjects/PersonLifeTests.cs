@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Matrix.Population.Domain.Tests.ValueObjects
 {
-    public sealed class PersonLifeAndIllnessTests
+    public sealed class PersonLifeTests
     {
         [Fact]
         public void PersonNameFromFullName_WhenTwoOrThreePartsProvided_ParsesAndFormatsCorrectly()
@@ -98,50 +98,6 @@ namespace Matrix.Population.Domain.Tests.ValueObjects
                     month: 5,
                     day: 1),
                 actual: updated.DeathDate);
-        }
-
-        [Fact]
-        public void IllnessInfoLifecycle_WhenDiagnosedProgressedAndRecovered_TracksStateTransitions()
-        {
-            var illness = IllnessInfo.Healthy();
-
-            illness = illness.Diagnose(
-                kind: IllnessKind.Infection,
-                severity: IllnessSeverity.Mild,
-                currentDate: new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 1));
-            illness = illness.ProgressTo(IllnessSeverity.Severe);
-
-            Assert.True(illness.HasActiveIllness);
-            Assert.Equal(
-                expected: IllnessKind.Infection,
-                actual: illness.CurrentKind);
-            Assert.Equal(
-                expected: IllnessSeverity.Severe,
-                actual: illness.CurrentSeverity);
-            Assert.Equal(
-                expected: new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 1),
-                actual: illness.DiagnosedOn);
-
-            IllnessInfo recovered = illness.Recover(
-                new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 4));
-
-            Assert.False(recovered.HasActiveIllness);
-            Assert.Null(recovered.CurrentKind);
-            Assert.Equal(
-                expected: new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 4),
-                actual: recovered.LastRecoveredOn);
         }
     }
 }
