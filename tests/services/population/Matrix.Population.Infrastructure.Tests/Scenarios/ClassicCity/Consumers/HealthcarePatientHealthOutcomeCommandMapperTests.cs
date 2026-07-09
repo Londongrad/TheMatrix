@@ -1,6 +1,5 @@
 using Matrix.Healthcare.Contracts.Events;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyPatientHealthOutcomes;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Xunit;
 
@@ -9,7 +8,7 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
     public sealed class HealthcarePatientHealthOutcomeCommandMapperTests
     {
         [Fact]
-        public void Map_ValidOutcome_PreservesEnvelopeAndMedicalSnapshot()
+        public void Map_ValidOutcome_PreservesEnvelopeAndVitalProjection()
         {
             Guid messageId = Guid.NewGuid();
             Guid patientId = Guid.NewGuid();
@@ -41,21 +40,20 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
             Assert.Equal(new DateOnly(2048, 5, 6), command.CurrentDate);
             PatientHealthOutcomeInput patient = Assert.Single(command.Patients);
             Assert.Equal(patientId, patient.PatientId);
-            Assert.Equal(IllnessKind.Infection, patient.CurrentIllnessKind);
-            Assert.Equal(IllnessSeverity.Moderate, patient.CurrentIllnessSeverity);
+            Assert.Equal(64, patient.HealthScore);
             Assert.Equal(60, patient.FunctionalCapacityScore);
             Assert.Equal(3, patient.LifecycleRevision);
         }
 
         [Fact]
-        public void Map_MismatchedIllnessSnapshot_ThrowsArgumentException()
+        public void Map_UnknownMedicalSnapshot_DoesNotInterpretHealthcareState()
         {
             HealthcarePatientHealthOutcomeBatchV1 message = CreateMessage(
                 new HealthcarePatientHealthOutcomeV1(
                     PatientId: Guid.NewGuid(),
                     HealthScore: 64,
-                    CurrentIllnessKind: "Infection",
-                    CurrentIllnessSeverity: null,
+                    CurrentIllnessKind: "FutureDiagnosis",
+                    CurrentIllnessSeverity: "FutureSeverity",
                     DiagnosedOn: new DateOnly(2048, 5, 4),
                     LastRecoveredOn: null,
                     HealthDelta: -2,
@@ -64,11 +62,13 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     StressDelta: 2,
                     BecameCritical: false));
 
-            Assert.Throws<ArgumentException>(() =>
+            ApplyPatientHealthOutcomesCommand command =
                 HealthcarePatientHealthOutcomeCommandMapper.Map(
                     message,
                     Guid.NewGuid(),
-                    HealthcarePatientHealthOutcomeConsumerDefinition.EndpointNameValue));
+                    HealthcarePatientHealthOutcomeConsumerDefinition.EndpointNameValue);
+
+            Assert.Equal(64, Assert.Single(command.Patients).HealthScore);
         }
 
         [Fact]

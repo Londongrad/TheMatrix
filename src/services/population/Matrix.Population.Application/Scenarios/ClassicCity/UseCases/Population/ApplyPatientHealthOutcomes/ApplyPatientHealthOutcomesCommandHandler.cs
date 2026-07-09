@@ -82,11 +82,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         bool accepted = patient.TryApplyHealthcareOutcome(
                             sourceRevision: request.SourceRevision,
                             healthScore: outcome.HealthScore,
-                            illness: IllnessInfo.FromHealthcareSnapshot(
-                                currentKind: outcome.CurrentIllnessKind,
-                                currentSeverity: outcome.CurrentIllnessSeverity,
-                                diagnosedOn: outcome.DiagnosedOn,
-                                lastRecoveredOn: outcome.LastRecoveredOn),
+                            illness: patient.Illness,
                             happinessDelta: outcome.HappinessDelta,
                             energyDelta: outcome.EnergyDelta,
                             stressDelta: outcome.StressDelta,

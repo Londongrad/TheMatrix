@@ -46,10 +46,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     new PatientHealthOutcomeInput(
                         PatientId: patient.Id.Value,
                         HealthScore: 0,
-                        CurrentIllnessKind: IllnessKind.Infection,
-                        CurrentIllnessSeverity: IllnessSeverity.Severe,
-                        DiagnosedOn: CurrentDate.AddDays(-2),
-                        LastRecoveredOn: null,
                         HappinessDelta: -3,
                         EnergyDelta: -2,
                         StressDelta: 2)),
@@ -111,10 +107,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     new PatientHealthOutcomeInput(
                         patient.Id.Value,
                         10,
-                        IllnessKind.Exposure,
-                        IllnessSeverity.Severe,
-                        CurrentDate,
-                        null,
                         -10,
                         -10,
                         10)),
@@ -123,7 +115,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(0, result.AppliedPatientCount);
             Assert.Equal(1, result.StalePatientCount);
             Assert.Equal(64, patient.Health.Value);
-            Assert.False(patient.HasActiveIllness);
         }
 
         [Fact]
@@ -145,10 +136,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     new PatientHealthOutcomeInput(
                         patient.Id.Value,
                         0,
-                        null,
-                        null,
-                        null,
-                        null,
                         0,
                         0,
                         0,
