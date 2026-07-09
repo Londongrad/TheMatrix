@@ -18,7 +18,8 @@ namespace Matrix.Healthcare.Domain.Patients
             bool isActive,
             long lastSourceRevision,
             long lastLifecycleRevision,
-            DateTimeOffset lastSynchronizedAtUtc)
+            DateTimeOffset lastSynchronizedAtUtc,
+            PatientHouseholdId? householdId)
             : base(patientId)
         {
             SimulationHostId = simulationHostId;
@@ -29,6 +30,7 @@ namespace Matrix.Healthcare.Domain.Patients
             LastSourceRevision = EnsureRevision(lastSourceRevision);
             LastLifecycleRevision = EnsureRevision(lastLifecycleRevision);
             LastSynchronizedAtUtc = EnsureUtc(lastSynchronizedAtUtc);
+            HouseholdId = householdId;
         }
 
         private PatientProfile()
@@ -45,6 +47,7 @@ namespace Matrix.Healthcare.Domain.Patients
         public long LastSourceRevision { get; private set; }
         public long LastLifecycleRevision { get; private set; }
         public DateTimeOffset LastSynchronizedAtUtc { get; private set; }
+        public PatientHouseholdId? HouseholdId { get; private set; }
 
         public bool IsEligibleForCare => IsAlive && IsActive;
 
@@ -57,7 +60,8 @@ namespace Matrix.Healthcare.Domain.Patients
             bool isActive,
             long sourceRevision,
             DateTimeOffset synchronizedAtUtc,
-            long lifecycleRevision = 0)
+            long lifecycleRevision = 0,
+            PatientHouseholdId? householdId = null)
         {
             return new PatientProfile(
                 patientId: patientId,
@@ -68,7 +72,8 @@ namespace Matrix.Healthcare.Domain.Patients
                 isActive: isActive,
                 lastSourceRevision: sourceRevision,
                 lastLifecycleRevision: lifecycleRevision,
-                lastSynchronizedAtUtc: synchronizedAtUtc);
+                lastSynchronizedAtUtc: synchronizedAtUtc,
+                householdId: householdId);
         }
 
         public bool TrySynchronizeResidentFacts(
@@ -79,7 +84,8 @@ namespace Matrix.Healthcare.Domain.Patients
             bool isActive,
             long sourceRevision,
             DateTimeOffset synchronizedAtUtc,
-            long lifecycleRevision = 0)
+            long lifecycleRevision = 0,
+            PatientHouseholdId? householdId = null)
         {
             EnsureSameSimulationHost(simulationHostId);
 
@@ -97,6 +103,8 @@ namespace Matrix.Healthcare.Domain.Patients
                 BirthDate = birthDate;
                 Sex = EnsureSex(sex);
                 IsActive = isActive;
+                if (householdId.HasValue)
+                    HouseholdId = householdId;
                 LastSourceRevision = normalizedRevision;
             }
 

@@ -47,6 +47,16 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Configurations
                .HasColumnName("is_active")
                .IsRequired();
 
+            builder.Property(x => x.HouseholdId)
+               .HasConversion(
+                    convertToProviderExpression: id => id.HasValue
+                        ? id.Value.Value
+                        : (Guid?)null,
+                    convertFromProviderExpression: value => value.HasValue
+                        ? new PatientHouseholdId(value.Value)
+                        : null)
+               .HasColumnName("household_id");
+
             builder.Property(x => x.LastSourceRevision)
                .HasColumnName("last_source_revision")
                .IsRequired();
@@ -68,6 +78,13 @@ namespace Matrix.Healthcare.Infrastructure.Persistence.Configurations
                        x.BirthDate
                    })
                .HasDatabaseName("ix_healthcare_profiles_tick_candidates");
+
+            builder.HasIndex(x => new
+                {
+                    x.SimulationHostId,
+                    x.HouseholdId
+                })
+               .HasDatabaseName("ix_healthcare_profiles_host_household");
         }
     }
 }

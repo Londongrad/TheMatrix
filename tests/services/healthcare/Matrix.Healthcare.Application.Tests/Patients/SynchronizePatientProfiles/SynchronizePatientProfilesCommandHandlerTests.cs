@@ -14,6 +14,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.SynchronizePatientProfile
             Guid updatedId = Guid.NewGuid();
             Guid ignoredId = Guid.NewGuid();
             Guid addedId = Guid.NewGuid();
+            Guid householdId = Guid.NewGuid();
             PatientProfile updatedProfile = PatientProfileSynchronizationTestData.CreateProfile(
                 patientId: updatedId,
                 sourceRevision: 4);
@@ -32,7 +33,8 @@ namespace Matrix.Healthcare.Application.Tests.Patients.SynchronizePatientProfile
                         sex: PatientSex.Male,
                         isAlive: false,
                         isActive: false,
-                        lifecycleRevision: 1),
+                        lifecycleRevision: 1,
+                        householdId: householdId),
                     PatientProfileSynchronizationTestData.CreateItem(
                         patientId: ignoredId,
                         sourceRevision: 7),
@@ -57,6 +59,7 @@ namespace Matrix.Healthcare.Application.Tests.Patients.SynchronizePatientProfile
             Assert.Equal(PatientSex.Male, updatedProfile.Sex);
             Assert.False(updatedProfile.IsEligibleForCare);
             Assert.Equal(1, updatedProfile.LastLifecycleRevision);
+            Assert.Equal(new PatientHouseholdId(householdId), updatedProfile.HouseholdId);
             Assert.Equal(8, ignoredProfile.LastSourceRevision);
         }
 

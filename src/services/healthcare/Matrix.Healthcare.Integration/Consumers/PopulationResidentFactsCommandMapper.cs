@@ -31,7 +31,8 @@ namespace Matrix.Healthcare.Integration.Consumers
                     IsAlive: resident.IsAlive,
                     IsActive: resident.IsActive,
                     SourceRevision: message.SourceRevision,
-                    LifecycleRevision: resident.LifecycleRevision))
+                    LifecycleRevision: resident.LifecycleRevision,
+                    HouseholdId: resident.HouseholdId))
                .ToArray();
 
             return new SynchronizePatientProfilesCommand(

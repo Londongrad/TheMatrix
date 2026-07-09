@@ -64,7 +64,8 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
                         isActive: fact.IsActive,
                         sourceRevision: fact.SourceRevision,
                         synchronizedAtUtc: batch.SynchronizedAtUtc,
-                        lifecycleRevision: fact.LifecycleRevision);
+                        lifecycleRevision: fact.LifecycleRevision,
+                        householdId: fact.HouseholdId);
                     addedProfiles.Add(profile);
                     continue;
                 }
@@ -77,7 +78,8 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
                     isActive: fact.IsActive,
                     sourceRevision: fact.SourceRevision,
                     synchronizedAtUtc: batch.SynchronizedAtUtc,
-                    lifecycleRevision: fact.LifecycleRevision);
+                    lifecycleRevision: fact.LifecycleRevision,
+                    householdId: fact.HouseholdId);
 
                 if (changed)
                     updatedProfiles++;
@@ -159,7 +161,10 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
                     IsAlive: item.IsAlive,
                     IsActive: item.IsActive,
                     SourceRevision: item.SourceRevision,
-                    LifecycleRevision: item.LifecycleRevision);
+                    LifecycleRevision: item.LifecycleRevision,
+                    HouseholdId: item.HouseholdId.HasValue
+                        ? new PatientHouseholdId(item.HouseholdId.Value)
+                        : null);
             }
 
             return new PreparedBatch(
@@ -182,6 +187,7 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
             bool IsAlive,
             bool IsActive,
             long SourceRevision,
-            long LifecycleRevision);
+            long LifecycleRevision,
+            PatientHouseholdId? HouseholdId);
     }
 }

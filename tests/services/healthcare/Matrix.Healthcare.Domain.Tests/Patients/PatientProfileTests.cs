@@ -23,6 +23,7 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
             Assert.Equal(PatientSex.Female, profile.Sex);
             Assert.True(profile.IsEligibleForCare);
             Assert.Equal(7, profile.LastSourceRevision);
+            Assert.Equal(HouseholdId, profile.HouseholdId);
         }
 
         [Fact]
@@ -40,7 +41,8 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
                 isActive: false,
                 sourceRevision: 8,
                 synchronizedAtUtc: synchronizedAtUtc,
-                lifecycleRevision: 1);
+                lifecycleRevision: 1,
+                householdId: NextHouseholdId);
 
             Assert.True(changed);
             Assert.Equal(new DateOnly(2027, 4, 4), profile.BirthDate);
@@ -49,6 +51,7 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
             Assert.Equal(8, profile.LastSourceRevision);
             Assert.Equal(1, profile.LastLifecycleRevision);
             Assert.Equal(synchronizedAtUtc, profile.LastSynchronizedAtUtc);
+            Assert.Equal(NextHouseholdId, profile.HouseholdId);
         }
 
         [Fact]
@@ -136,7 +139,11 @@ namespace Matrix.Healthcare.Domain.Tests.Patients
                 isAlive: true,
                 isActive: true,
                 sourceRevision: 7,
-                synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T10:00:00+00:00"));
+                synchronizedAtUtc: DateTimeOffset.Parse("2048-05-06T10:00:00+00:00"),
+                householdId: HouseholdId);
         }
+
+        private static readonly PatientHouseholdId HouseholdId = new(Guid.NewGuid());
+        private static readonly PatientHouseholdId NextHouseholdId = new(Guid.NewGuid());
     }
 }

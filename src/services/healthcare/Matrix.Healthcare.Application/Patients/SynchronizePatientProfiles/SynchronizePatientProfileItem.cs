@@ -9,5 +9,6 @@ namespace Matrix.Healthcare.Application.Patients.SynchronizePatientProfiles
         bool IsAlive,
         bool IsActive,
         long SourceRevision,
-        long LifecycleRevision = 0);
+        long LifecycleRevision = 0,
+        Guid? HouseholdId = null);
 }

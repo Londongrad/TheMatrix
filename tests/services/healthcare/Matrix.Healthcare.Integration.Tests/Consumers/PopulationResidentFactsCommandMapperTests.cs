@@ -11,6 +11,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
         [Fact]
         public void Map_ValidBatch_MapsDemographicsAndSourceRevision()
         {
+            Guid householdId = Guid.NewGuid();
             PopulationResidentFactsBatchV1 message = CreateMessage(
                 new PopulationResidentFactsV1(
                     ResidentId: Guid.Parse("66666666-7777-8888-9999-aaaaaaaaaaaa"),
@@ -18,7 +19,8 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
                     Sex: "female",
                     IsAlive: true,
                     IsActive: false,
-                    LifecycleRevision: 3));
+                    LifecycleRevision: 3,
+                    HouseholdId: householdId));
 
             SynchronizePatientProfilesCommand command =
                 PopulationResidentFactsCommandMapper.Map(message);
@@ -33,6 +35,7 @@ namespace Matrix.Healthcare.Integration.Tests.Consumers
             Assert.False(profile.IsActive);
             Assert.Equal(message.SourceRevision, profile.SourceRevision);
             Assert.Equal(3, profile.LifecycleRevision);
+            Assert.Equal(householdId, profile.HouseholdId);
         }
 
         [Fact]

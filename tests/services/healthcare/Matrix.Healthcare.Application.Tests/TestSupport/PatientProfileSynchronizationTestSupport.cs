@@ -152,7 +152,8 @@ namespace Matrix.Healthcare.Application.Tests.TestSupport
             PatientSex sex = PatientSex.Female,
             bool isAlive = true,
             bool isActive = true,
-            long lifecycleRevision = 0)
+            long lifecycleRevision = 0,
+            Guid? householdId = null)
         {
             return new SynchronizePatientProfileItem(
                 PatientId: patientId,
@@ -161,7 +162,8 @@ namespace Matrix.Healthcare.Application.Tests.TestSupport
                 IsAlive: isAlive,
                 IsActive: isActive,
                 SourceRevision: sourceRevision,
-                LifecycleRevision: lifecycleRevision);
+                LifecycleRevision: lifecycleRevision,
+                HouseholdId: householdId);
         }
 
         internal static SynchronizePatientProfilesCommand CreateCommand(
