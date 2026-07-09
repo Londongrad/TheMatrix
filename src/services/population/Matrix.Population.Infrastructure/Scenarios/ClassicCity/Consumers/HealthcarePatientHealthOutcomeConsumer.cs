@@ -1,6 +1,6 @@
 using MassTransit;
 using Matrix.Healthcare.Contracts.Events;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyPatientHealthOutcomes;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyResidentVitalStateOutcomes;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -28,20 +28,20 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                 throw new InvalidOperationException(
                     "HealthcarePatientHealthOutcome message must have a MessageId.");
 
-            ApplyPatientHealthOutcomesResult result = await mediator.Send(
+            ApplyResidentVitalStateOutcomesResult result = await mediator.Send(
                 HealthcarePatientHealthOutcomeCommandMapper.Map(
                     message,
                     messageId.Value,
                     HealthcarePatientHealthOutcomeConsumerDefinition.EndpointNameValue),
                 cancellationToken);
 
-            if (result.Status == ApplyPatientHealthOutcomesStatus.Applied)
+            if (result.Status == ApplyResidentVitalStateOutcomesStatus.Applied)
                 logger.LogInformation(
                     "Applied healthcare outcomes for cityId={CityId}, revision={Revision}, patients={Patients}, stale={Stale}, batch={BatchNumber}/{TotalBatches}.",
                     message.SimulationHostId,
                     message.SourceRevision,
-                    result.AppliedPatientCount,
-                    result.StalePatientCount,
+                    result.AppliedResidentCount,
+                    result.StaleResidentCount,
                     message.BatchNumber,
                     message.TotalBatches);
             else

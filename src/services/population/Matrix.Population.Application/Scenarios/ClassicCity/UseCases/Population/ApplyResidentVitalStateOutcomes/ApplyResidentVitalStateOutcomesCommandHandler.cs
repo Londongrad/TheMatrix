@@ -10,9 +10,9 @@ using Matrix.Population.Domain.Services;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyPatientHealthOutcomes
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyResidentVitalStateOutcomes
 {
-    public sealed class ApplyPatientHealthOutcomesCommandHandler(
+    public sealed class ApplyResidentVitalStateOutcomesCommandHandler(
         ICityPopulationPersonReadRepository personReadRepository,
         ICityPopulationArchiveStateRepository archiveStateRepository,
         ICityPopulationDeletionStateRepository deletionStateRepository,
@@ -21,12 +21,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         MarriageDomainService marriageDomainService,
         TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
-        : IRequestHandler<ApplyPatientHealthOutcomesCommand, ApplyPatientHealthOutcomesResult>
+        : IRequestHandler<ApplyResidentVitalStateOutcomesCommand, ApplyResidentVitalStateOutcomesResult>
     {
         public const int MaxBatchSize = 1000;
 
-        public Task<ApplyPatientHealthOutcomesResult> Handle(
-            ApplyPatientHealthOutcomesCommand request,
+        public Task<ApplyResidentVitalStateOutcomesResult> Handle(
+            ApplyResidentVitalStateOutcomesCommand request,
             CancellationToken cancellationToken)
         {
             Validate(request);
@@ -41,24 +41,24 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         processedAtUtc: timeProvider.GetUtcNow(),
                         cancellationToken: ct);
                     if (!marked)
-                        return Result(ApplyPatientHealthOutcomesStatus.Duplicate);
+                        return Result(ApplyResidentVitalStateOutcomesStatus.Duplicate);
 
                     if (await deletionStateRepository.GetByCityAsync(cityId, ct) is not null)
-                        return Result(ApplyPatientHealthOutcomesStatus.CityDeleted);
+                        return Result(ApplyResidentVitalStateOutcomesStatus.CityDeleted);
                     if (await archiveStateRepository.GetByCityAsync(cityId, ct) is not null)
-                        return Result(ApplyPatientHealthOutcomesStatus.CityArchived);
+                        return Result(ApplyResidentVitalStateOutcomesStatus.CityArchived);
 
-                    PersonId[] patientIds = request.Patients
-                       .Select(patient => PersonId.From(patient.PatientId))
+                    PersonId[] residentIds = request.Residents
+                       .Select(resident => PersonId.From(resident.ResidentId))
                        .ToArray();
-                    IReadOnlyCollection<Person> patients = await personReadRepository.ListByCityAndIdsAsync(
+                    IReadOnlyCollection<Person> residents = await personReadRepository.ListByCityAndIdsAsync(
                         cityId,
-                        patientIds,
+                        residentIds,
                         ct);
-                    Dictionary<PersonId, Person> residentsById = patients.ToDictionary(person => person.Id);
-                    PersonId[] spouseIds = patients
-                       .Where(patient => patient.SpouseId.HasValue)
-                       .Select(patient => patient.SpouseId!.Value)
+                    Dictionary<PersonId, Person> residentsById = residents.ToDictionary(person => person.Id);
+                    PersonId[] spouseIds = residents
+                       .Where(resident => resident.SpouseId.HasValue)
+                       .Select(resident => resident.SpouseId!.Value)
                        .Where(spouseId => !residentsById.ContainsKey(spouseId))
                        .Distinct()
                        .ToArray();
@@ -72,14 +72,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     int applied = 0;
                     int stale = 0;
                     List<Person> lifecycleChanges = [];
-                    foreach (PatientHealthOutcomeInput outcome in request.Patients)
+                    foreach (ResidentVitalStateOutcomeInput outcome in request.Residents)
                     {
-                        var patientId = PersonId.From(outcome.PatientId);
-                        if (!residentsById.TryGetValue(patientId, out Person? patient))
+                        var residentId = PersonId.From(outcome.ResidentId);
+                        if (!residentsById.TryGetValue(residentId, out Person? resident))
                             continue;
 
-                        bool wasAlive = patient.IsAlive;
-                        bool accepted = patient.TryApplyVitalStateProjection(
+                        bool wasAlive = resident.IsAlive;
+                        bool accepted = resident.TryApplyVitalStateProjection(
                             sourceRevision: request.SourceRevision,
                             healthScore: outcome.HealthScore,
                             happinessDelta: outcome.HappinessDelta,
@@ -95,11 +95,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         }
 
                         applied++;
-                        if (wasAlive && !patient.IsAlive)
+                        if (wasAlive && !resident.IsAlive)
                         {
-                            lifecycleChanges.Add(patient);
+                            lifecycleChanges.Add(resident);
                             ClassicCityWidowhoodSupport.TryRegisterWidowhood(
-                                deceased: patient,
+                                deceased: resident,
                                 residentsById: residentsById,
                                 marriageDomainService: marriageDomainService);
                         }
@@ -109,25 +109,24 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                  simulationHostId: request.CityId,
                                  sourceRevision: request.SourceRevision,
                                  residents: lifecycleChanges,
-                                 correlationId:
-                                 $"population:{request.CityId:N}:healthcare:{request.SourceRevision}:resident-facts",
+                                 correlationId: $"{request.CorrelationId}:resident-facts",
                                  synchronizedAtUtc: request.OccurredAtUtc))
                         await residentFactsOutboxWriter.AddResidentFactsBatchAsync(batch, ct);
 
                     await unitOfWork.SaveChangesAsync(ct);
-                    return new ApplyPatientHealthOutcomesResult(
-                        Status: ApplyPatientHealthOutcomesStatus.Applied,
-                        AppliedPatientCount: applied,
-                        IgnoredPatientCount: request.Patients.Count - applied - stale,
-                        StalePatientCount: stale);
+                    return new ApplyResidentVitalStateOutcomesResult(
+                        Status: ApplyResidentVitalStateOutcomesStatus.Applied,
+                        AppliedResidentCount: applied,
+                        IgnoredResidentCount: request.Residents.Count - applied - stale,
+                        StaleResidentCount: stale);
                 },
                 cancellationToken: cancellationToken);
         }
 
-        private static ApplyPatientHealthOutcomesResult Result(ApplyPatientHealthOutcomesStatus status) =>
+        private static ApplyResidentVitalStateOutcomesResult Result(ApplyResidentVitalStateOutcomesStatus status) =>
             new(status, 0, 0, 0);
 
-        private static void Validate(ApplyPatientHealthOutcomesCommand request)
+        private static void Validate(ApplyResidentVitalStateOutcomesCommand request)
         {
             ArgumentNullException.ThrowIfNull(request);
             if (request.CityId == Guid.Empty)
@@ -144,16 +143,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 || request.BatchNumber <= 0
                 || request.BatchNumber > request.TotalBatches)
                 throw new ArgumentException("Outcome batch position metadata is invalid.", nameof(request));
-            ArgumentNullException.ThrowIfNull(request.Patients);
-            if (request.Patients.Count > MaxBatchSize)
-                throw new ArgumentException($"Outcome batches cannot exceed {MaxBatchSize} patients.", nameof(request));
-            if (request.Patients.Any(patient => patient.PatientId == Guid.Empty
-                                                || patient.HealthScore is < 0 or > 100
-                                                || patient.FunctionalCapacityScore is < 0 or > 100
-                                                || patient.LifecycleRevision < 0))
-                throw new ArgumentException("Outcome patient data is invalid.", nameof(request));
-            if (request.Patients.Select(patient => patient.PatientId).Distinct().Count() != request.Patients.Count)
-                throw new ArgumentException("Outcome batches cannot contain duplicate patients.", nameof(request));
+            ArgumentNullException.ThrowIfNull(request.Residents);
+            if (request.Residents.Count > MaxBatchSize)
+                throw new ArgumentException($"Outcome batches cannot exceed {MaxBatchSize} residents.", nameof(request));
+            if (request.Residents.Any(resident => resident.ResidentId == Guid.Empty
+                                                  || resident.HealthScore is < 0 or > 100
+                                                  || resident.FunctionalCapacityScore is < 0 or > 100
+                                                  || resident.LifecycleRevision < 0))
+                throw new ArgumentException("Outcome resident data is invalid.", nameof(request));
+            if (request.Residents.Select(resident => resident.ResidentId).Distinct().Count()
+                != request.Residents.Count)
+                throw new ArgumentException("Outcome batches cannot contain duplicate residents.", nameof(request));
         }
     }
 }

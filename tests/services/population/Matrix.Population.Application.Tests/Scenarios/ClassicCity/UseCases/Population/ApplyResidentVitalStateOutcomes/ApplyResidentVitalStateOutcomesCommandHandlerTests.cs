@@ -1,13 +1,13 @@
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyPatientHealthOutcomes;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyResidentVitalStateOutcomes;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Services;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
 
-namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.ApplyPatientHealthOutcomes
+namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.ApplyResidentVitalStateOutcomes
 {
-    public sealed class ApplyPatientHealthOutcomesCommandHandlerTests
+    public sealed class ApplyResidentVitalStateOutcomesCommandHandlerTests
     {
         private static readonly Guid CityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
         private static readonly DateOnly CurrentDate = new(2048, 5, 6);
@@ -35,24 +35,24 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             };
             var factsWriter = new FakePopulationResidentFactsOutboxWriter();
             var unitOfWork = new FakeUnitOfWork();
-            ApplyPatientHealthOutcomesCommandHandler handler = CreateHandler(
+            ApplyResidentVitalStateOutcomesCommandHandler handler = CreateHandler(
                 personRepository,
                 factsWriter,
                 marriageDomainService,
                 unitOfWork: unitOfWork);
 
-            ApplyPatientHealthOutcomesResult result = await handler.Handle(
+            ApplyResidentVitalStateOutcomesResult result = await handler.Handle(
                 CreateCommand(
-                    new PatientHealthOutcomeInput(
-                        PatientId: patient.Id.Value,
+                    new ResidentVitalStateOutcomeInput(
+                        ResidentId: patient.Id.Value,
                         HealthScore: 0,
                         HappinessDelta: -3,
                         EnergyDelta: -2,
                         StressDelta: 2)),
                 CancellationToken.None);
 
-            Assert.Equal(ApplyPatientHealthOutcomesStatus.Applied, result.Status);
-            Assert.Equal(1, result.AppliedPatientCount);
+            Assert.Equal(ApplyResidentVitalStateOutcomesStatus.Applied, result.Status);
+            Assert.Equal(1, result.AppliedResidentCount);
             Assert.False(patient.IsAlive);
             Assert.Equal(MaritalStatus.Widowed, spouse.MaritalStatus);
             Assert.Null(spouse.SpouseId);
@@ -70,16 +70,16 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             };
             var personRepository = new FakeCityPopulationPersonReadRepository();
             var unitOfWork = new FakeUnitOfWork();
-            ApplyPatientHealthOutcomesCommandHandler handler = CreateHandler(
+            ApplyResidentVitalStateOutcomesCommandHandler handler = CreateHandler(
                 personRepository,
                 processedRepository: processedRepository,
                 unitOfWork: unitOfWork);
 
-            ApplyPatientHealthOutcomesResult result = await handler.Handle(
+            ApplyResidentVitalStateOutcomesResult result = await handler.Handle(
                 CreateCommand(),
                 CancellationToken.None);
 
-            Assert.Equal(ApplyPatientHealthOutcomesStatus.Duplicate, result.Status);
+            Assert.Equal(ApplyResidentVitalStateOutcomesStatus.Duplicate, result.Status);
             Assert.Null(personRepository.RequestedCityId);
             Assert.Equal(0, unitOfWork.SaveChangesCalls);
         }
@@ -99,11 +99,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             {
                 ListByCityResult = [patient]
             };
-            ApplyPatientHealthOutcomesCommandHandler handler = CreateHandler(personRepository);
+            ApplyResidentVitalStateOutcomesCommandHandler handler = CreateHandler(personRepository);
 
-            ApplyPatientHealthOutcomesResult result = await handler.Handle(
+            ApplyResidentVitalStateOutcomesResult result = await handler.Handle(
                 CreateCommand(
-                    new PatientHealthOutcomeInput(
+                    new ResidentVitalStateOutcomeInput(
                         patient.Id.Value,
                         10,
                         -10,
@@ -111,8 +111,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         10)),
                 CancellationToken.None);
 
-            Assert.Equal(0, result.AppliedPatientCount);
-            Assert.Equal(1, result.StalePatientCount);
+            Assert.Equal(0, result.AppliedResidentCount);
+            Assert.Equal(1, result.StaleResidentCount);
             Assert.Equal(64, patient.Health.Value);
         }
 
@@ -128,11 +128,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             {
                 ListByCityResult = [patient]
             };
-            ApplyPatientHealthOutcomesCommandHandler handler = CreateHandler(personRepository);
+            ApplyResidentVitalStateOutcomesCommandHandler handler = CreateHandler(personRepository);
 
-            ApplyPatientHealthOutcomesResult result = await handler.Handle(
+            ApplyResidentVitalStateOutcomesResult result = await handler.Handle(
                 CreateCommand(
-                    new PatientHealthOutcomeInput(
+                    new ResidentVitalStateOutcomeInput(
                         patient.Id.Value,
                         0,
                         0,
@@ -141,20 +141,20 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         LifecycleRevision: deceasedRevision)),
                 CancellationToken.None);
 
-            Assert.Equal(0, result.AppliedPatientCount);
-            Assert.Equal(1, result.StalePatientCount);
+            Assert.Equal(0, result.AppliedResidentCount);
+            Assert.Equal(1, result.StaleResidentCount);
             Assert.True(patient.IsAlive);
             Assert.Equal(100, patient.Health.Value);
         }
 
-        private static ApplyPatientHealthOutcomesCommandHandler CreateHandler(
+        private static ApplyResidentVitalStateOutcomesCommandHandler CreateHandler(
             FakeCityPopulationPersonReadRepository? personRepository = null,
             FakePopulationResidentFactsOutboxWriter? factsWriter = null,
             MarriageDomainService? marriageDomainService = null,
             FakeProcessedIntegrationMessageRepository? processedRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
-            return new ApplyPatientHealthOutcomesCommandHandler(
+            return new ApplyResidentVitalStateOutcomesCommandHandler(
                 personReadRepository: personRepository ?? new FakeCityPopulationPersonReadRepository(),
                 archiveStateRepository: new FakeCityPopulationArchiveStateRepository(),
                 deletionStateRepository: new FakeCityPopulationDeletionStateRepository(),
@@ -165,10 +165,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 unitOfWork: unitOfWork ?? new FakeUnitOfWork());
         }
 
-        private static ApplyPatientHealthOutcomesCommand CreateCommand(
-            params PatientHealthOutcomeInput[] patients)
+        private static ApplyResidentVitalStateOutcomesCommand CreateCommand(
+            params ResidentVitalStateOutcomeInput[] residents)
         {
-            return new ApplyPatientHealthOutcomesCommand(
+            return new ApplyResidentVitalStateOutcomesCommand(
                 CityId: CityId,
                 IntegrationMessageId: Guid.Parse("33333333-3333-3333-3333-333333333333"),
                 ConsumerName: "population-healthcare-patient-health-outcome-v1",
@@ -178,7 +178,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 CorrelationId: "healthcare:city:17:outcome",
                 BatchNumber: 1,
                 TotalBatches: 1,
-                Patients: patients);
+                Residents: residents);
         }
     }
 }

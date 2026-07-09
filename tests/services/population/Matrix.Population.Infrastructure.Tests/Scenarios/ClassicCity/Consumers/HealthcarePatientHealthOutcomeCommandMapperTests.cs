@@ -1,5 +1,5 @@
 using Matrix.Healthcare.Contracts.Events;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyPatientHealthOutcomes;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyResidentVitalStateOutcomes;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
 using Xunit;
 
@@ -28,7 +28,7 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     LifecycleRevision: 3,
                     FunctionalCapacityScore: 60));
 
-            ApplyPatientHealthOutcomesCommand command =
+            ApplyResidentVitalStateOutcomesCommand command =
                 HealthcarePatientHealthOutcomeCommandMapper.Map(
                     message,
                     messageId,
@@ -38,11 +38,11 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
             Assert.Equal(messageId, command.IntegrationMessageId);
             Assert.Equal(17, command.SourceRevision);
             Assert.Equal(new DateOnly(2048, 5, 6), command.CurrentDate);
-            PatientHealthOutcomeInput patient = Assert.Single(command.Patients);
-            Assert.Equal(patientId, patient.PatientId);
-            Assert.Equal(64, patient.HealthScore);
-            Assert.Equal(60, patient.FunctionalCapacityScore);
-            Assert.Equal(3, patient.LifecycleRevision);
+            ResidentVitalStateOutcomeInput resident = Assert.Single(command.Residents);
+            Assert.Equal(patientId, resident.ResidentId);
+            Assert.Equal(64, resident.HealthScore);
+            Assert.Equal(60, resident.FunctionalCapacityScore);
+            Assert.Equal(3, resident.LifecycleRevision);
         }
 
         [Fact]
@@ -62,13 +62,13 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Consumers
                     StressDelta: 2,
                     BecameCritical: false));
 
-            ApplyPatientHealthOutcomesCommand command =
+            ApplyResidentVitalStateOutcomesCommand command =
                 HealthcarePatientHealthOutcomeCommandMapper.Map(
                     message,
                     Guid.NewGuid(),
                     HealthcarePatientHealthOutcomeConsumerDefinition.EndpointNameValue);
 
-            Assert.Equal(64, Assert.Single(command.Patients).HealthScore);
+            Assert.Equal(64, Assert.Single(command.Residents).HealthScore);
         }
 
         [Fact]

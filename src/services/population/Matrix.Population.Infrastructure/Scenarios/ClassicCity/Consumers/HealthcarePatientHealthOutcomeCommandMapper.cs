@@ -1,11 +1,11 @@
 using Matrix.Healthcare.Contracts.Events;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyPatientHealthOutcomes;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyResidentVitalStateOutcomes;
 
 namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     internal static class HealthcarePatientHealthOutcomeCommandMapper
     {
-        internal static ApplyPatientHealthOutcomesCommand Map(
+        internal static ApplyResidentVitalStateOutcomesCommand Map(
             HealthcarePatientHealthOutcomeBatchV1 message,
             Guid messageId,
             string consumerName)
@@ -13,9 +13,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
             ArgumentNullException.ThrowIfNull(message);
             ArgumentNullException.ThrowIfNull(message.Patients);
 
-            PatientHealthOutcomeInput[] patients = message.Patients
-               .Select(patient => new PatientHealthOutcomeInput(
-                    PatientId: patient.PatientId,
+            ResidentVitalStateOutcomeInput[] residents = message.Patients
+               .Select(patient => new ResidentVitalStateOutcomeInput(
+                    ResidentId: patient.PatientId,
                     HealthScore: patient.HealthScore,
                     HappinessDelta: patient.HappinessDelta,
                     EnergyDelta: patient.EnergyDelta,
@@ -24,7 +24,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     FunctionalCapacityScore: patient.FunctionalCapacityScore))
                .ToArray();
 
-            return new ApplyPatientHealthOutcomesCommand(
+            return new ApplyResidentVitalStateOutcomesCommand(
                 CityId: message.SimulationHostId,
                 IntegrationMessageId: messageId,
                 ConsumerName: consumerName,
@@ -34,7 +34,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                 CorrelationId: message.CorrelationId,
                 BatchNumber: message.BatchNumber,
                 TotalBatches: message.TotalBatches,
-                Patients: patients);
+                Residents: residents);
         }
     }
 }
