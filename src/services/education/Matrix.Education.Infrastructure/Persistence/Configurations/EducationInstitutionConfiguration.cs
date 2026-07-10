@@ -72,6 +72,14 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
                .HasColumnName("is_active")
                .IsRequired();
 
+            builder.Property(x => x.LastSourceRevision)
+               .HasColumnName("last_source_revision")
+               .HasDefaultValue(-1L)
+               .IsRequired();
+
+            builder.Property(x => x.LastSynchronizedAtUtc)
+               .HasColumnName("last_synchronized_at_utc");
+
             builder.Property<uint>("xmin")
                .IsRowVersion()
                .HasColumnName("xmin");

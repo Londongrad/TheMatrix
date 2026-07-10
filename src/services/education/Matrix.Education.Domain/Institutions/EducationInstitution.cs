@@ -16,7 +16,9 @@ namespace Matrix.Education.Domain.Institutions
             LocationAnchorId? locationAnchorId,
             int capacity,
             int currentEnrollmentCount,
-            bool isActive)
+            bool isActive,
+            long lastSourceRevision,
+            DateTimeOffset? lastSynchronizedAtUtc)
             : base(id)
         {
             SimulationHostId = simulationHostId;
@@ -28,6 +30,10 @@ namespace Matrix.Education.Domain.Institutions
                 currentEnrollmentCount,
                 Capacity);
             IsActive = isActive;
+            LastSourceRevision = EnsureStoredRevision(lastSourceRevision);
+            LastSynchronizedAtUtc = lastSynchronizedAtUtc.HasValue
+                ? EnsureUtc(lastSynchronizedAtUtc.Value)
+                : null;
         }
 
         private EducationInstitution()
@@ -44,6 +50,8 @@ namespace Matrix.Education.Domain.Institutions
         public int CurrentEnrollmentCount { get; private set; }
         public int AvailableSeatCount => Capacity - CurrentEnrollmentCount;
         public bool IsActive { get; private set; }
+        public long LastSourceRevision { get; private set; }
+        public DateTimeOffset? LastSynchronizedAtUtc { get; private set; }
 
         public static EducationInstitution Create(
             EducationInstitutionId id,
@@ -61,7 +69,47 @@ namespace Matrix.Education.Domain.Institutions
                 locationAnchorId: locationAnchorId,
                 capacity: capacity,
                 currentEnrollmentCount: 0,
-                isActive: true);
+                isActive: true,
+                lastSourceRevision: -1,
+                lastSynchronizedAtUtc: null);
+        }
+
+        public bool TrySynchronizeProvisioning(
+            long sourceRevision,
+            string name,
+            EducationInstitutionKindKey kind,
+            int capacity,
+            bool isActive,
+            DateTimeOffset synchronizedAtUtc,
+            LocationAnchorId? locationAnchorId = null)
+        {
+            long revision = EnsureSourceRevision(sourceRevision);
+            DateTimeOffset timestamp = EnsureUtc(synchronizedAtUtc);
+            if (revision <= LastSourceRevision)
+                return false;
+
+            string normalizedName = EnsureName(name);
+            int validatedCapacity = EnsureCapacity(capacity);
+            if (validatedCapacity < CurrentEnrollmentCount)
+                throw new InvalidOperationException(
+                    "Institution capacity cannot be lower than its current enrollment count.");
+
+            Name = normalizedName;
+            Kind = kind;
+            Capacity = validatedCapacity;
+            if (locationAnchorId.HasValue)
+                BindLocation(locationAnchorId.Value);
+            else
+                ClearLocation();
+
+            if (isActive)
+                Activate();
+            else
+                Deactivate();
+
+            LastSourceRevision = revision;
+            LastSynchronizedAtUtc = timestamp;
+            return true;
         }
 
         public void Rename(string name)
@@ -166,6 +214,33 @@ namespace Matrix.Education.Domain.Institutions
                 : throw new ArgumentOutOfRangeException(
                     paramName: nameof(value),
                     message: "Seat counts must be positive.");
+        }
+
+        private static long EnsureStoredRevision(long value)
+        {
+            return value >= -1
+                ? value
+                : throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    "Institution source revisions cannot be lower than -1.");
+        }
+
+        private static long EnsureSourceRevision(long value)
+        {
+            return value >= 0
+                ? value
+                : throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    "Institution source revisions cannot be negative.");
+        }
+
+        private static DateTimeOffset EnsureUtc(DateTimeOffset value)
+        {
+            return value.Offset == TimeSpan.Zero
+                ? value
+                : throw new ArgumentException(
+                    "Institution synchronization timestamps must be expressed in UTC.",
+                    nameof(value));
         }
     }
 }

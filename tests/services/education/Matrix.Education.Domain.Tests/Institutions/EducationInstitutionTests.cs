@@ -17,6 +17,8 @@ namespace Matrix.Education.Domain.Tests.Institutions
             Assert.Equal(0, institution.CurrentEnrollmentCount);
             Assert.Equal(120, institution.AvailableSeatCount);
             Assert.True(institution.IsActive);
+            Assert.Equal(-1, institution.LastSourceRevision);
+            Assert.Null(institution.LastSynchronizedAtUtc);
         }
 
         [Fact]
@@ -70,6 +72,59 @@ namespace Matrix.Education.Domain.Tests.Institutions
         public void Create_RejectsInvalidCapacity()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => CreateInstitution(capacity: 0));
+        }
+
+        [Fact]
+        public void TrySynchronizeProvisioning_NewerRevision_ReplacesProvisionedFacts()
+        {
+            EducationInstitution institution = CreateInstitution(capacity: 120);
+            var synchronizedAtUtc = new DateTimeOffset(2048, 5, 1, 10, 0, 0, TimeSpan.Zero);
+            var locationAnchorId = new LocationAnchorId(Guid.NewGuid());
+
+            bool synchronized = institution.TrySynchronizeProvisioning(
+                sourceRevision: 7,
+                name: "Technical Institute",
+                kind: new EducationInstitutionKindKey("institute"),
+                capacity: 240,
+                isActive: false,
+                synchronizedAtUtc: synchronizedAtUtc,
+                locationAnchorId: locationAnchorId);
+
+            Assert.True(synchronized);
+            Assert.Equal("Technical Institute", institution.Name);
+            Assert.Equal("institute", institution.Kind.Value);
+            Assert.Equal(240, institution.Capacity);
+            Assert.False(institution.IsActive);
+            Assert.Equal(locationAnchorId, institution.LocationAnchorId);
+            Assert.Equal(7, institution.LastSourceRevision);
+            Assert.Equal(synchronizedAtUtc, institution.LastSynchronizedAtUtc);
+        }
+
+        [Fact]
+        public void TrySynchronizeProvisioning_StaleRevision_PreservesProvisionedFacts()
+        {
+            EducationInstitution institution = CreateInstitution(capacity: 120);
+            var synchronizedAtUtc = new DateTimeOffset(2048, 5, 1, 10, 0, 0, TimeSpan.Zero);
+            institution.TrySynchronizeProvisioning(
+                sourceRevision: 7,
+                name: "Technical Institute",
+                kind: new EducationInstitutionKindKey("institute"),
+                capacity: 240,
+                isActive: true,
+                synchronizedAtUtc: synchronizedAtUtc);
+
+            bool synchronized = institution.TrySynchronizeProvisioning(
+                sourceRevision: 6,
+                name: "Stale School",
+                kind: new EducationInstitutionKindKey("school"),
+                capacity: 10,
+                isActive: false,
+                synchronizedAtUtc: synchronizedAtUtc.AddMinutes(1));
+
+            Assert.False(synchronized);
+            Assert.Equal("Technical Institute", institution.Name);
+            Assert.Equal(240, institution.Capacity);
+            Assert.True(institution.IsActive);
         }
 
         private static EducationInstitution CreateInstitution(int capacity)
