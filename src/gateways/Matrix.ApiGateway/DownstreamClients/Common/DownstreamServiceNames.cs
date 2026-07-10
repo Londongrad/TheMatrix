@@ -7,6 +7,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Common
         public const string Economy = "Economy";
         public const string Resources = "Resources";
         public const string Population = "Population";
+        public const string Education = "Education";
         public const string Identity = "Identity";
     }
 }

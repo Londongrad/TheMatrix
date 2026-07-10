@@ -41,6 +41,9 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     validation: o => IsAbsoluteUri(o.Population),
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:Population must be an absolute URI.")
                .Validate(
+                    validation: o => IsAbsoluteUri(o.Education),
+                    failureMessage: $"{DownstreamServicesOptions.SectionName}:Education must be an absolute URI.")
+               .Validate(
                     validation: o => IsAbsoluteUri(o.Identity),
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:Identity must be an absolute URI.")
                .ValidateOnStart();

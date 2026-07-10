@@ -22,6 +22,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                 DownstreamServiceNames.Economy => options.Economy,
                 DownstreamServiceNames.Resources => options.Resources,
                 DownstreamServiceNames.Population => options.Population,
+                DownstreamServiceNames.Education => options.Education,
                 DownstreamServiceNames.Identity => options.Identity,
                 _ => throw new InvalidOperationException($"Unsupported downstream service '{serviceName}'.")
             };

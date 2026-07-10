@@ -41,6 +41,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 ["DownstreamServices:Economy"] = "https://economy.test",
                 ["DownstreamServices:Resources"] = "https://resources.test",
                 ["DownstreamServices:Population"] = "https://population.test",
+                ["DownstreamServices:Education"] = "https://education.test",
                 ["DownstreamServices:Identity"] = "https://identity.test",
                 ["RabbitMq:Host"] = "rabbitmq.test",
                 ["RabbitMq:Port"] = "5672",
