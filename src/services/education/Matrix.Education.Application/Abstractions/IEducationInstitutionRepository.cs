@@ -22,5 +22,9 @@ namespace Matrix.Education.Application.Abstractions
         Task AddAsync(
             EducationInstitution institution,
             CancellationToken cancellationToken = default);
+
+        Task AddRangeAsync(
+            IReadOnlyCollection<EducationInstitution> institutions,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -36,6 +36,10 @@ namespace Matrix.Education.Application.Tests.TestSupport
         public Task AddAsync(
             EducationInstitution value,
             CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task AddRangeAsync(
+            IReadOnlyCollection<EducationInstitution> institutions,
+            CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     internal sealed class StudentEnrollmentRepositoryStub(StudentEnrollment? active = null)
