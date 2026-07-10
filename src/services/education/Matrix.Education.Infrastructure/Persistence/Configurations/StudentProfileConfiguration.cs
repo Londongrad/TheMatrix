@@ -1,5 +1,6 @@
 using Matrix.Education.Domain.Simulation;
 using Matrix.Education.Domain.Students;
+using Matrix.Education.Domain.Programs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -41,6 +42,28 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
             builder.Property(x => x.IsActive)
                .HasColumnName("is_active")
                .IsRequired();
+
+            builder.Property(x => x.CompletedStage)
+               .HasConversion(
+                    convertToProviderExpression: stage => stage.HasValue
+                        ? stage.Value.Value
+                        : null,
+                    convertFromProviderExpression: value => value == null
+                        ? null
+                        : new EducationStageKey(value))
+               .HasMaxLength(64)
+               .HasColumnName("completed_stage");
+
+            builder.Property(x => x.CompletedStageOn)
+               .HasConversion(
+                    convertToProviderExpression: value => value.HasValue
+                        ? value.Value.ToDateTime(TimeOnly.MinValue)
+                        : (DateTime?)null,
+                    convertFromProviderExpression: value => value.HasValue
+                        ? DateOnly.FromDateTime(value.Value)
+                        : null)
+               .HasColumnType("date")
+               .HasColumnName("completed_stage_on");
 
             builder.Property(x => x.LastSourceRevision)
                .HasColumnName("last_source_revision")

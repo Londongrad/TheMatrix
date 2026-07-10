@@ -1,5 +1,6 @@
 using Matrix.Education.Domain.Simulation;
 using Matrix.Education.Domain.Students;
+using Matrix.Education.Domain.Programs;
 using Xunit;
 
 namespace Matrix.Education.Domain.Tests.Students
@@ -159,6 +160,32 @@ namespace Matrix.Education.Domain.Tests.Students
             Assert.True(reactivated);
             Assert.True(profile.IsActive);
             Assert.Equal(SynchronizedAtUtc.AddMinutes(2), profile.LastSynchronizedAtUtc);
+        }
+
+        [Fact]
+        public void RecordStageCompletion_AvailableStudent_StoresEducationAttainment()
+        {
+            StudentProfile profile = CreateProfile();
+            var stage = new EducationStageKey("upper-secondary");
+            var completedOn = new DateOnly(2028, 6, 30);
+
+            profile.RecordStageCompletion(stage, completedOn);
+
+            Assert.Equal(stage, profile.CompletedStage);
+            Assert.Equal(completedOn, profile.CompletedStageOn);
+        }
+
+        [Fact]
+        public void RecordStageCompletion_UnavailableStudent_RejectsAttainment()
+        {
+            StudentProfile profile = CreateProfile();
+            profile.TryDeactivate(
+                sourceRevision: 11,
+                synchronizedAtUtc: SynchronizedAtUtc.AddMinutes(1));
+
+            Assert.Throws<InvalidOperationException>(() => profile.RecordStageCompletion(
+                new EducationStageKey("upper-secondary"),
+                new DateOnly(2028, 6, 30)));
         }
 
         [Fact]

@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain.Common;
+using Matrix.Education.Domain.Programs;
 using Matrix.Education.Domain.Simulation;
 
 namespace Matrix.Education.Domain.Students
@@ -15,6 +16,8 @@ namespace Matrix.Education.Domain.Students
             DateOnly birthDate,
             bool isAlive,
             bool isActive,
+            EducationStageKey? completedStage,
+            DateOnly? completedStageOn,
             long lastSourceRevision,
             long lastLifecycleRevision,
             DateTimeOffset lastSynchronizedAtUtc)
@@ -24,6 +27,8 @@ namespace Matrix.Education.Domain.Students
             BirthDate = birthDate;
             IsAlive = isAlive;
             IsActive = isActive;
+            CompletedStage = completedStage;
+            CompletedStageOn = completedStageOn;
             LastSourceRevision = EnsureRevision(lastSourceRevision);
             LastLifecycleRevision = EnsureRevision(lastLifecycleRevision);
             LastSynchronizedAtUtc = EnsureUtc(lastSynchronizedAtUtc);
@@ -39,6 +44,8 @@ namespace Matrix.Education.Domain.Students
         public DateOnly BirthDate { get; private set; }
         public bool IsAlive { get; private set; }
         public bool IsActive { get; private set; }
+        public EducationStageKey? CompletedStage { get; private set; }
+        public DateOnly? CompletedStageOn { get; private set; }
         public long LastSourceRevision { get; private set; }
         public long LastLifecycleRevision { get; private set; }
         public DateTimeOffset LastSynchronizedAtUtc { get; private set; }
@@ -59,6 +66,8 @@ namespace Matrix.Education.Domain.Students
                 birthDate: birthDate,
                 isAlive: isAlive,
                 isActive: isActive,
+                completedStage: null,
+                completedStageOn: null,
                 lastSourceRevision: sourceRevision,
                 lastLifecycleRevision: lifecycleRevision,
                 lastSynchronizedAtUtc: synchronizedAtUtc);
@@ -124,6 +133,22 @@ namespace Matrix.Education.Domain.Students
             IsActive = true;
 
             return true;
+        }
+
+        public void RecordStageCompletion(
+            EducationStageKey stage,
+            DateOnly completedOn)
+        {
+            if (!IsAlive || !IsActive)
+                throw new InvalidOperationException(
+                    "An unavailable student cannot complete an education stage.");
+            if (completedOn < BirthDate)
+                throw new ArgumentOutOfRangeException(
+                    nameof(completedOn),
+                    "An education stage cannot be completed before the student's birth date.");
+
+            CompletedStage = stage;
+            CompletedStageOn = completedOn;
         }
 
         private bool TryAcceptSourceRevision(
