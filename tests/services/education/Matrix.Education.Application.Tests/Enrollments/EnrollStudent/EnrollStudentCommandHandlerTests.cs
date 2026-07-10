@@ -1,5 +1,4 @@
 using System.Data;
-using Matrix.Education.Application.Abstractions;
 using Matrix.Education.Application.Enrollments.EnrollStudent;
 using Matrix.Education.Application.Tests.TestSupport;
 using Matrix.Education.Domain.Enrollments;
@@ -21,8 +20,8 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
         {
             StudentProfile profile = CreateProfile();
             EducationInstitution institution = CreateInstitution(capacity: 2);
-            var institutionRepository = new InstitutionRepositoryStub(institution);
-            var enrollmentRepository = new EnrollmentRepositoryStub();
+            var institutionRepository = new EducationInstitutionRepositoryStub(institution);
+            var enrollmentRepository = new StudentEnrollmentRepositoryStub();
             var unitOfWork = new EducationUnitOfWorkStub();
             EnrollStudentCommandHandler handler = CreateHandler(
                 profile,
@@ -56,11 +55,11 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
                 institutionId: institution.EducationInstitutionId,
                 stage: new EducationStageKey("upper-secondary"),
                 enrolledOn: new DateOnly(2048, 5, 1));
-            var enrollmentRepository = new EnrollmentRepositoryStub(existing);
+            var enrollmentRepository = new StudentEnrollmentRepositoryStub(existing);
             var unitOfWork = new EducationUnitOfWorkStub();
             EnrollStudentCommandHandler handler = CreateHandler(
                 profile,
-                new InstitutionRepositoryStub(institution),
+                new EducationInstitutionRepositoryStub(institution),
                 enrollmentRepository,
                 unitOfWork: unitOfWork);
 
@@ -86,11 +85,11 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
                 isActive: false,
                 sourceRevision: 1,
                 synchronizedAtUtc: StudentProfileSynchronizationTestData.SynchronizedAtUtc);
-            var institutionRepository = new InstitutionRepositoryStub(CreateInstitution(2));
+            var institutionRepository = new EducationInstitutionRepositoryStub(CreateInstitution(2));
             EnrollStudentCommandHandler handler = CreateHandler(
                 profile,
                 institutionRepository,
-                new EnrollmentRepositoryStub());
+                new StudentEnrollmentRepositoryStub());
 
             EnrollStudentResult result = await handler.Handle(
                 CreateCommand(Guid.NewGuid()),
@@ -105,11 +104,11 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
         {
             EducationInstitution institution = CreateInstitution(capacity: 1);
             Assert.True(institution.TryReserveSeats(1));
-            var enrollmentRepository = new EnrollmentRepositoryStub();
+            var enrollmentRepository = new StudentEnrollmentRepositoryStub();
             var unitOfWork = new EducationUnitOfWorkStub();
             EnrollStudentCommandHandler handler = CreateHandler(
                 CreateProfile(),
-                new InstitutionRepositoryStub(institution),
+                new EducationInstitutionRepositoryStub(institution),
                 enrollmentRepository,
                 unitOfWork: unitOfWork);
 
@@ -124,8 +123,8 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
 
         private static EnrollStudentCommandHandler CreateHandler(
             StudentProfile profile,
-            InstitutionRepositoryStub institutionRepository,
-            EnrollmentRepositoryStub enrollmentRepository,
+            EducationInstitutionRepositoryStub institutionRepository,
+            StudentEnrollmentRepositoryStub enrollmentRepository,
             EducationUnitOfWorkStub? unitOfWork = null)
         {
             return new EnrollStudentCommandHandler(
@@ -161,59 +160,6 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
                 name: "Central school",
                 kind: new EducationInstitutionKindKey("school"),
                 capacity: capacity);
-        }
-
-        private sealed class InstitutionRepositoryStub(EducationInstitution? institution)
-            : IEducationInstitutionRepository
-        {
-            internal int GetCallCount { get; private set; }
-
-            public Task<EducationInstitution?> GetAsync(
-                SimulationHostId simulationHostId,
-                EducationInstitutionId institutionId,
-                CancellationToken cancellationToken = default)
-            {
-                GetCallCount++;
-                return Task.FromResult(
-                    institution?.SimulationHostId == simulationHostId
-                    && institution.EducationInstitutionId == institutionId
-                        ? institution
-                        : null);
-            }
-
-            public Task<IReadOnlyList<EducationInstitution>> ListAsync(
-                SimulationHostId simulationHostId,
-                CancellationToken cancellationToken = default) => throw new NotSupportedException();
-
-            public Task AddAsync(
-                EducationInstitution value,
-                CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        }
-
-        private sealed class EnrollmentRepositoryStub(StudentEnrollment? active = null)
-            : IStudentEnrollmentRepository
-        {
-            internal List<StudentEnrollment> Added { get; } = [];
-
-            public Task<StudentEnrollment?> GetActiveByResidentAsync(
-                SimulationHostId simulationHostId,
-                ResidentId residentId,
-                CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(active);
-            }
-
-            public Task<IReadOnlyList<StudentEnrollment>> ListActiveAsync(
-                SimulationHostId simulationHostId,
-                CancellationToken cancellationToken = default) => throw new NotSupportedException();
-
-            public Task AddAsync(
-                StudentEnrollment enrollment,
-                CancellationToken cancellationToken = default)
-            {
-                Added.Add(enrollment);
-                return Task.CompletedTask;
-            }
         }
     }
 }
