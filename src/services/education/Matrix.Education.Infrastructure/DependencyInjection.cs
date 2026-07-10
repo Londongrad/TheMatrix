@@ -51,6 +51,8 @@ namespace Matrix.Education.Infrastructure
             });
 
             services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
+            services.AddScoped<IEducationInstitutionRepository, EducationInstitutionRepository>();
+            services.AddScoped<IStudentEnrollmentRepository, StudentEnrollmentRepository>();
             services.AddScoped<IEducationProgressionCheckpointRepository,
                 EducationProgressionCheckpointRepository>();
             services.AddScoped<IEducationSimulationDeletionRepository,
