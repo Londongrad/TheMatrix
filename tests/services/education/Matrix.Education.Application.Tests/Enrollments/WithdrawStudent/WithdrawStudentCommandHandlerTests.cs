@@ -69,7 +69,7 @@ namespace Matrix.Education.Application.Tests.Enrollments.WithdrawStudent
             var enrollmentRepository = new StudentEnrollmentRepositoryStub(
                 CreateEnrollment(EducationInstitutionId.New()));
             var handler = new WithdrawStudentCommandHandler(
-                new EducationInstitutionRepositoryStub(null),
+                new EducationInstitutionRepositoryStub((EducationInstitution?)null),
                 enrollmentRepository,
                 new EducationSimulationDeletionRepositoryStub(
                     StudentProfileSynchronizationTestData.SynchronizedAtUtc),

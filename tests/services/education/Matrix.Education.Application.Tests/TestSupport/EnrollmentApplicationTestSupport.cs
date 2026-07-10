@@ -6,10 +6,25 @@ using Matrix.Education.Domain.Students;
 
 namespace Matrix.Education.Application.Tests.TestSupport
 {
-    internal sealed class EducationInstitutionRepositoryStub(EducationInstitution? institution)
-        : IEducationInstitutionRepository
+    internal sealed class EducationInstitutionRepositoryStub : IEducationInstitutionRepository
     {
+        private readonly Dictionary<EducationInstitutionId, EducationInstitution> _institutions;
+
+        internal EducationInstitutionRepositoryStub(EducationInstitution? institution)
+            : this(institution is null ? [] : [institution])
+        {
+        }
+
+        internal EducationInstitutionRepositoryStub(
+            IReadOnlyCollection<EducationInstitution> institutions)
+        {
+            _institutions = institutions.ToDictionary(value => value.EducationInstitutionId);
+        }
+
         internal int GetCallCount { get; private set; }
+        internal int GetByIdsCallCount { get; private set; }
+        internal int AddRangeCallCount { get; private set; }
+        internal List<EducationInstitution> Added { get; } = [];
 
         public Task<EducationInstitution?> GetAsync(
             SimulationHostId simulationHostId,
@@ -17,11 +32,10 @@ namespace Matrix.Education.Application.Tests.TestSupport
             CancellationToken cancellationToken = default)
         {
             GetCallCount++;
-            return Task.FromResult(
-                institution?.SimulationHostId == simulationHostId
-                && institution.EducationInstitutionId == institutionId
-                    ? institution
-                    : null);
+            _institutions.TryGetValue(institutionId, out EducationInstitution? institution);
+            return Task.FromResult(institution?.SimulationHostId == simulationHostId
+                ? institution
+                : null);
         }
 
         public Task<IReadOnlyList<EducationInstitution>> ListAsync(
@@ -31,7 +45,16 @@ namespace Matrix.Education.Application.Tests.TestSupport
         public Task<IReadOnlyList<EducationInstitution>> GetByIdsAsync(
             SimulationHostId simulationHostId,
             IReadOnlyCollection<EducationInstitutionId> institutionIds,
-            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+            CancellationToken cancellationToken = default)
+        {
+            GetByIdsCallCount++;
+            IReadOnlyList<EducationInstitution> resolved = institutionIds
+               .Where(_institutions.ContainsKey)
+               .Select(id => _institutions[id])
+               .Where(institution => institution.SimulationHostId == simulationHostId)
+               .ToArray();
+            return Task.FromResult(resolved);
+        }
 
         public Task AddAsync(
             EducationInstitution value,
@@ -39,7 +62,12 @@ namespace Matrix.Education.Application.Tests.TestSupport
 
         public Task AddRangeAsync(
             IReadOnlyCollection<EducationInstitution> institutions,
-            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+            CancellationToken cancellationToken = default)
+        {
+            AddRangeCallCount++;
+            Added.AddRange(institutions);
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class StudentEnrollmentRepositoryStub(StudentEnrollment? active = null)
