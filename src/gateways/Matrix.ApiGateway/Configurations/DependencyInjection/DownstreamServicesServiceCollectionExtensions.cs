@@ -1,5 +1,6 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.DownstreamClients.Common;
+using Matrix.ApiGateway.DownstreamClients.Education;
 using Matrix.ApiGateway.DownstreamClients.HttpHandlers;
 using Matrix.ApiGateway.DownstreamClients.Identity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
@@ -57,6 +58,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
             services.AddSimulationCoreClients();
             services.AddPopulationClients();
+            services.AddEducationClients();
             services.AddIdentityClients();
 
             return services;
@@ -76,6 +78,14 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                 DownstreamServiceNames.Population);
             services.AddInternalDownstreamClient<IPopulationApiClient, PopulationApiClient>(
                 DownstreamServiceNames.Population);
+
+            return services;
+        }
+
+        private static IServiceCollection AddEducationClients(this IServiceCollection services)
+        {
+            services.AddInternalDownstreamClient<IEducationApiClient, EducationApiClient>(
+                DownstreamServiceNames.Education);
 
             return services;
         }
