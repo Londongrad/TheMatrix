@@ -19,6 +19,20 @@ namespace Matrix.Education.Infrastructure.Persistence.Repositories
                 cancellationToken);
         }
 
+        public async Task<IReadOnlyList<EducationInstitution>> GetByIdsAsync(
+            SimulationHostId simulationHostId,
+            IReadOnlyCollection<EducationInstitutionId> institutionIds,
+            CancellationToken cancellationToken = default)
+        {
+            if (institutionIds.Count == 0)
+                return Array.Empty<EducationInstitution>();
+
+            return await dbContext.Institutions
+               .Where(institution => institution.SimulationHostId == simulationHostId
+                                     && institutionIds.Contains(institution.Id))
+               .ToListAsync(cancellationToken);
+        }
+
         public async Task<IReadOnlyList<EducationInstitution>> ListAsync(
             SimulationHostId simulationHostId,
             CancellationToken cancellationToken = default)

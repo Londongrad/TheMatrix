@@ -31,10 +31,14 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence.Repositories
             EducationInstitution? loaded = await repository.GetAsync(
                 simulationHostId,
                 first.EducationInstitutionId);
+            IReadOnlyList<EducationInstitution> selected = await repository.GetByIdsAsync(
+                simulationHostId,
+                [second.EducationInstitutionId, foreign.EducationInstitutionId]);
             IReadOnlyList<EducationInstitution> listed = await repository.ListAsync(simulationHostId);
 
             Assert.NotNull(loaded);
             Assert.Equal(first.EducationInstitutionId, loaded.EducationInstitutionId);
+            Assert.Equal(second.EducationInstitutionId, Assert.Single(selected).EducationInstitutionId);
             Assert.Equal(new[] { "Academy", "University" }, listed.Select(item => item.Name));
         }
 

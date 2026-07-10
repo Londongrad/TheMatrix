@@ -28,6 +28,11 @@ namespace Matrix.Education.Application.Tests.TestSupport
             SimulationHostId simulationHostId,
             CancellationToken cancellationToken = default) => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<EducationInstitution>> GetByIdsAsync(
+            SimulationHostId simulationHostId,
+            IReadOnlyCollection<EducationInstitutionId> institutionIds,
+            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
         public Task AddAsync(
             EducationInstitution value,
             CancellationToken cancellationToken = default) => throw new NotSupportedException();

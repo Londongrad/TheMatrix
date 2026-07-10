@@ -10,6 +10,11 @@ namespace Matrix.Education.Application.Abstractions
             EducationInstitutionId institutionId,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyList<EducationInstitution>> GetByIdsAsync(
+            SimulationHostId simulationHostId,
+            IReadOnlyCollection<EducationInstitutionId> institutionIds,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<EducationInstitution>> ListAsync(
             SimulationHostId simulationHostId,
             CancellationToken cancellationToken = default);
