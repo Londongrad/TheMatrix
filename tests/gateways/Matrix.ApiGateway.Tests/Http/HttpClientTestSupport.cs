@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using Matrix.ApiGateway.Controllers.Economy.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
+using Matrix.ApiGateway.DownstreamClients.Education;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
@@ -186,6 +187,13 @@ namespace Matrix.ApiGateway.Tests.Http
                 culture: null);
 
             return Assert.IsAssignableFrom<IClassicCityEconomyApiClient>(instance);
+        }
+
+        internal static IEducationApiClient CreateEducationApiClient(HttpClient httpClient)
+        {
+            return CreateInternalClient<IEducationApiClient>(
+                typeName: "Matrix.ApiGateway.DownstreamClients.Education.EducationApiClient",
+                args: [httpClient]);
         }
 
         internal static IStockpilesApiClient CreateStockpilesApiClient(HttpClient httpClient)

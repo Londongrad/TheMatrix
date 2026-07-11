@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\gateways\Matrix.ApiGateway\Matrix.ApiGateway.csproj"/>
+    <ProjectReference Include="..\..\..\src\services\education\Matrix.Education.Contracts\Matrix.Education.Contracts.csproj"/>
   </ItemGroup>
 
 </Project>
