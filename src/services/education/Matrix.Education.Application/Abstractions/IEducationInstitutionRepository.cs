@@ -19,6 +19,10 @@ namespace Matrix.Education.Application.Abstractions
             SimulationHostId simulationHostId,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyList<EducationInstitution>> ListActiveAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default);
+
         Task AddAsync(
             EducationInstitution institution,
             CancellationToken cancellationToken = default);

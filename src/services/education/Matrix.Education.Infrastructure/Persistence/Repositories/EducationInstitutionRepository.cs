@@ -44,6 +44,19 @@ namespace Matrix.Education.Infrastructure.Persistence.Repositories
                .ToListAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyList<EducationInstitution>> ListActiveAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            return await dbContext.Institutions
+               .AsNoTracking()
+               .Where(institution => institution.SimulationHostId == simulationHostId
+                                     && institution.IsActive)
+               .OrderBy(institution => institution.Name)
+               .ThenBy(institution => institution.Id)
+               .ToListAsync(cancellationToken);
+        }
+
         public Task AddAsync(
             EducationInstitution institution,
             CancellationToken cancellationToken = default)
