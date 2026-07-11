@@ -8,6 +8,8 @@ namespace Matrix.Education.Integration
         public static void AddEducationIntegrationConsumers(this IBusRegistrationConfigurator configurator)
         {
             configurator.AddConsumer<PopulationResidentFactsConsumer, PopulationResidentFactsConsumerDefinition>();
+            configurator.AddConsumer<SimulationEducationInstitutionProvisioningConsumer,
+                SimulationEducationInstitutionProvisioningConsumerDefinition>();
             configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
         }
     }
