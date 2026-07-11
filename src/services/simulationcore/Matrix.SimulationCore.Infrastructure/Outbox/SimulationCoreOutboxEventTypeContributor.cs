@@ -12,7 +12,9 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                 [SimulationCoreEventTypes.SimulationDeletedV1] = typeof(SimulationDeletedV1),
                 [SimulationCoreEventTypes.SimulationTickPhaseReachedV1] = typeof(SimulationTickPhaseReachedV1),
                 [SimulationCoreEventTypes.SimulationCareFacilityProvisioningBatchV1] =
-                    typeof(SimulationCareFacilityProvisioningBatchV1)
+                    typeof(SimulationCareFacilityProvisioningBatchV1),
+                [SimulationCoreEventTypes.SimulationEducationInstitutionProvisioningBatchV1] =
+                    typeof(SimulationEducationInstitutionProvisioningBatchV1)
             };
     }
 }
