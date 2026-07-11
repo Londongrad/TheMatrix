@@ -8,5 +8,7 @@ namespace Matrix.SimulationCore.Contracts.Events
         public const string SimulationTickPhaseReachedV1 = "simulationcore.simulation-tick-phase-reached.v1";
         public const string SimulationCareFacilityProvisioningBatchV1 =
             "simulationcore.simulation-care-facility-provisioning-batch.v1";
+        public const string SimulationEducationInstitutionProvisioningBatchV1 =
+            "simulationcore.simulation-education-institution-provisioning-batch.v1";
     }
 }
