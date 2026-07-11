@@ -5,6 +5,7 @@ using Matrix.ApiGateway.Configurations;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Configurations.Security;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
+using Matrix.ApiGateway.DownstreamClients.Education;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
@@ -96,6 +97,7 @@ namespace Matrix.ApiGateway.Tests.Configurations
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<IPopulationApiClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<IClassicCityPopulationApiClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<IClassicCityEconomyApiClient>());
+            Assert.NotNull(scope.ServiceProvider.GetRequiredService<IEducationApiClient>());
             Assert.NotNull(scope.ServiceProvider.GetRequiredService<IIdentityAuthClient>());
             Assert.Same(
                 expected: TimeProvider.System,
@@ -110,6 +112,9 @@ namespace Matrix.ApiGateway.Tests.Configurations
             Assert.Equal(
                 expected: "https://identity.test",
                 actual: downstreamServices.Identity);
+            Assert.Equal(
+                expected: "https://education.test",
+                actual: downstreamServices.Education);
             Assert.Equal(
                 expected: 9,
                 actual: dashboardOptions.PanelReadTimeoutSeconds);
