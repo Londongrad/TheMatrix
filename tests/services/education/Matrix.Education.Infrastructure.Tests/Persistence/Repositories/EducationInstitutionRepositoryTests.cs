@@ -42,6 +42,37 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence.Repositories
             Assert.Equal(new[] { "Academy", "University" }, listed.Select(item => item.Name));
         }
 
+        [Fact]
+        public async Task ListActiveAsync_FiltersInactiveAndForeignInstitutions()
+        {
+            await using EducationDbContext dbContext =
+                EducationInfrastructureTestSupport.CreateDbContext();
+            var repository = new EducationInstitutionRepository(dbContext);
+            var simulationHostId = new SimulationHostId(Guid.NewGuid());
+            EducationInstitution academy = CreateInstitution(simulationHostId, "Academy");
+            EducationInstitution university = CreateInstitution(simulationHostId, "University");
+            EducationInstitution inactive = CreateInstitution(simulationHostId, "Inactive school");
+            inactive.Deactivate();
+            EducationInstitution foreign = CreateInstitution(
+                new SimulationHostId(Guid.NewGuid()),
+                "Foreign school");
+
+            await repository.AddRangeAsync([university, inactive, foreign, academy]);
+            await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
+
+            IReadOnlyList<EducationInstitution> listed =
+                await repository.ListActiveAsync(simulationHostId);
+
+            Assert.Equal(
+                expected: ["Academy", "University"],
+                actual: listed.Select(item => item.Name));
+            Assert.All(
+                collection: listed,
+                action: institution => Assert.True(institution.IsActive));
+            Assert.Empty(dbContext.ChangeTracker.Entries());
+        }
+
         private static EducationInstitution CreateInstitution(
             SimulationHostId simulationHostId,
             string name)
