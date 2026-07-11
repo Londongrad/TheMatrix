@@ -23,6 +23,7 @@ namespace Matrix.Education.Application.Tests.TestSupport
 
         internal int GetCallCount { get; private set; }
         internal int GetByIdsCallCount { get; private set; }
+        internal int ListActiveCallCount { get; private set; }
         internal int AddRangeCallCount { get; private set; }
         internal List<EducationInstitution> Added { get; } = [];
 
@@ -44,7 +45,17 @@ namespace Matrix.Education.Application.Tests.TestSupport
 
         public Task<IReadOnlyList<EducationInstitution>> ListActiveAsync(
             SimulationHostId simulationHostId,
-            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+            CancellationToken cancellationToken = default)
+        {
+            ListActiveCallCount++;
+            IReadOnlyList<EducationInstitution> institutions = _institutions.Values
+               .Where(institution => institution.SimulationHostId == simulationHostId
+                                     && institution.IsActive)
+               .OrderBy(institution => institution.Name)
+               .ThenBy(institution => institution.EducationInstitutionId.Value)
+               .ToArray();
+            return Task.FromResult(institutions);
+        }
 
         public Task<IReadOnlyList<EducationInstitution>> GetByIdsAsync(
             SimulationHostId simulationHostId,
