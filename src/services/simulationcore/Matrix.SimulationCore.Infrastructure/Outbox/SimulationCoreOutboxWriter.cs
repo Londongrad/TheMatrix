@@ -140,5 +140,40 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 
             return Task.CompletedTask;
         }
+
+        public Task AddEducationInstitutionProvisioningAsync(
+            EducationInstitutionProvisioningBatch batch,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(batch);
+
+            if (batch.Institutions.Count == 0)
+                return Task.CompletedTask;
+
+            var integrationEvent = new SimulationEducationInstitutionProvisioningBatchV1(
+                SimulationHostId: batch.SimulationHostId,
+                SourceRevision: batch.SourceRevision,
+                SynchronizedAtUtc: batch.SynchronizedAtUtc,
+                CorrelationId: batch.CorrelationId,
+                BatchNumber: 1,
+                TotalBatches: 1,
+                Institutions: batch.Institutions
+                   .Select(institution => new SimulationEducationInstitutionProvisioningV1(
+                        InstitutionId: institution.InstitutionId,
+                        Name: institution.Name,
+                        Kind: institution.Kind,
+                        LocationAnchorId: institution.LocationAnchorId,
+                        Capacity: institution.Capacity,
+                        IsActive: institution.IsActive))
+                   .ToArray());
+
+            dbContext.OutboxMessages.Add(
+                OutboxMessage.Create(
+                    type: SimulationCoreEventTypes.SimulationEducationInstitutionProvisioningBatchV1,
+                    occurredOnUtc: timeProvider.GetUtcNow().UtcDateTime,
+                    payload: integrationEvent));
+
+            return Task.CompletedTask;
+        }
     }
 }

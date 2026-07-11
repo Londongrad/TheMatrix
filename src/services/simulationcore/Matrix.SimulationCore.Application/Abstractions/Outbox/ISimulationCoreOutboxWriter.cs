@@ -23,5 +23,9 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
             CareFacilityProvisioningBatch batch,
             CancellationToken cancellationToken);
 
+        Task AddEducationInstitutionProvisioningAsync(
+            EducationInstitutionProvisioningBatch batch,
+            CancellationToken cancellationToken);
+
     }
 }

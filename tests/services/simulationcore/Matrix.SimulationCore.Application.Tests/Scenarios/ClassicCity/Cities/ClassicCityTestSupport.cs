@@ -178,6 +178,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
             public IReadOnlyList<IDomainEvent> WeatherEvents { get; private set; } = Array.Empty<IDomainEvent>();
             public List<SimulationTickPhaseReachedCall> SimulationTickPhaseReachedCalls { get; } = [];
             public List<CareFacilityProvisioningBatch> CareFacilityProvisioningBatches { get; } = [];
+            public List<EducationInstitutionProvisioningBatch> EducationInstitutionProvisioningBatches { get; } = [];
 
             public Task AddSimulationEventsAsync(
                 IReadOnlyCollection<IDomainEvent> domainEvents,
@@ -228,6 +229,14 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities
                 CancellationToken cancellationToken)
             {
                 CareFacilityProvisioningBatches.Add(batch);
+                return Task.CompletedTask;
+            }
+
+            public Task AddEducationInstitutionProvisioningAsync(
+                EducationInstitutionProvisioningBatch batch,
+                CancellationToken cancellationToken)
+            {
+                EducationInstitutionProvisioningBatches.Add(batch);
                 return Task.CompletedTask;
             }
 
