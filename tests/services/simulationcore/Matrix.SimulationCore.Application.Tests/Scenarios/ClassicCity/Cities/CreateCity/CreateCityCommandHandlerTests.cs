@@ -13,6 +13,7 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Weather;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Domain.Simulation;
 using Xunit;
@@ -90,6 +91,7 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             Assert.Empty(outboxWriter.CityEvents);
             Assert.Empty(outboxWriter.WeatherEvents);
             Assert.Empty(outboxWriter.CareFacilityProvisioningBatches);
+            Assert.Empty(outboxWriter.EducationInstitutionProvisioningBatches);
             Assert.Equal(
                 expected: 0,
                 actual: unitOfWork.ExecuteInTransactionCallCount);
@@ -126,6 +128,16 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 districtId: district.Id,
                 name: "Central Hospital",
                 accessRoadNodeId: southNode.Id);
+            CityAnchor schoolAnchor = CityAnchor.Create(
+                cityId: city.Id,
+                districtId: district.Id,
+                accessRoadNodeId: northNode.Id,
+                name: new CityAnchorName("Central Education Complex"),
+                type: CityAnchorType.School,
+                capacity: 640,
+                positionX: 18m,
+                positionY: 24m,
+                createdAtUtc: city.CreatedAtUtc);
             RoadSegment roadSegment = TopologyTestSupport.CreateRoadSegment(
                 cityId: city.Id,
                 districtId: district.Id,
@@ -135,7 +147,11 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             var topology = new CityTopologySeed(
                 Districts: [district],
                 ResidentialBuildings: [residentialBuilding],
-                Anchors: [cityAnchor],
+                Anchors:
+                [
+                    cityAnchor,
+                    schoolAnchor
+                ],
                 RoadNodes:
                 [
                     northNode,
@@ -211,7 +227,11 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
                 expected: [residentialBuilding],
                 actual: residentialBuildingRepository.AddedBuildings);
             Assert.Equal(
-                expected: [cityAnchor],
+                expected:
+                [
+                    cityAnchor,
+                    schoolAnchor
+                ],
                 actual: cityAnchorRepository.AddedAnchors);
             Assert.Equal(
                 expected:
@@ -256,6 +276,13 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities.C
             CareFacilityProvisioning facility = Assert.Single(facilityBatch.Facilities);
             Assert.Equal(cityAnchor.Id.Value, facility.FacilityId);
             Assert.Equal(cityAnchor.Capacity, facility.DailyPatientCapacity);
+            EducationInstitutionProvisioningBatch institutionBatch =
+                Assert.Single(outboxWriter.EducationInstitutionProvisioningBatches);
+            Assert.Equal(city.Id.Value, institutionBatch.SimulationHostId);
+            Assert.Equal(city.CreatedAtUtc, institutionBatch.SynchronizedAtUtc);
+            EducationInstitutionProvisioning institution = Assert.Single(institutionBatch.Institutions);
+            Assert.Equal(schoolAnchor.Id.Value, institution.InstitutionId);
+            Assert.Equal(schoolAnchor.Capacity, institution.Capacity);
             Assert.Equal(
                 expected: city.Id.Value,
                 actual: result.CityId);
