@@ -1,4 +1,5 @@
 using Matrix.Education.Application.Lifecycle.DeleteEducationSimulation;
+using Matrix.Education.Application.Institutions.SynchronizeEducationInstitutions;
 using Matrix.Education.Application.Students.SynchronizeStudentProfiles;
 using MediatR;
 
@@ -7,6 +8,7 @@ namespace Matrix.Education.Integration.Tests.TestSupport
     internal sealed class EducationIntegrationMediatorStub : IMediator
     {
         internal List<SynchronizeStudentProfilesCommand> ProfileCommands { get; } = [];
+        internal List<SynchronizeEducationInstitutionsCommand> InstitutionCommands { get; } = [];
         internal List<DeleteEducationSimulationCommand> DeletionCommands { get; } = [];
 
         internal SynchronizeStudentProfilesResult ProfileResult { get; set; } = new(
@@ -18,6 +20,12 @@ namespace Matrix.Education.Integration.Tests.TestSupport
         internal DeleteEducationSimulationResult DeletionResult { get; set; } =
             new(DeleteEducationSimulationStatus.Applied);
 
+        internal SynchronizeEducationInstitutionsResult InstitutionResult { get; set; } = new(
+            Status: SynchronizeEducationInstitutionsStatus.Applied,
+            AddedInstitutions: 0,
+            UpdatedInstitutions: 0,
+            IgnoredInstitutions: 0);
+
         public Task<TResponse> Send<TResponse>(
             IRequest<TResponse> request,
             CancellationToken cancellationToken = default)
@@ -25,6 +33,7 @@ namespace Matrix.Education.Integration.Tests.TestSupport
             object response = request switch
             {
                 SynchronizeStudentProfilesCommand command => RecordProfile(command),
+                SynchronizeEducationInstitutionsCommand command => RecordInstitutions(command),
                 DeleteEducationSimulationCommand command => RecordDeletion(command),
                 _ => throw new NotSupportedException(request.GetType().FullName)
             };
@@ -86,6 +95,13 @@ namespace Matrix.Education.Integration.Tests.TestSupport
         {
             DeletionCommands.Add(command);
             return DeletionResult;
+        }
+
+        private SynchronizeEducationInstitutionsResult RecordInstitutions(
+            SynchronizeEducationInstitutionsCommand command)
+        {
+            InstitutionCommands.Add(command);
+            return InstitutionResult;
         }
     }
 }
