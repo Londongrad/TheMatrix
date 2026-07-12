@@ -5,6 +5,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Education
 {
     public interface IEducationApiClient
     {
+        Task<EducationInstitutionCatalogResponse> ListInstitutionsAsync(
+            Guid simulationHostId,
+            CancellationToken cancellationToken = default);
+
         Task<SynchronizeEducationInstitutionsResponse> SynchronizeInstitutionsAsync(
             Guid simulationHostId,
             SynchronizeEducationInstitutionsRequest request,

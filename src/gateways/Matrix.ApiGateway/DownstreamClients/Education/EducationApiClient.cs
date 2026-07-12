@@ -12,6 +12,24 @@ namespace Matrix.ApiGateway.DownstreamClients.Education
         private const string SimulationHostRouteParameter = "{simulationHostId:guid}";
         private readonly HttpClient _client = client;
 
+        public async Task<EducationInstitutionCatalogResponse> ListInstitutionsAsync(
+            Guid simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = ResolveRoute(
+                routeTemplate: EducationApiRoutes.Institutions,
+                simulationHostId: simulationHostId);
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<EducationInstitutionCatalogResponse>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task<SynchronizeEducationInstitutionsResponse> SynchronizeInstitutionsAsync(
             Guid simulationHostId,
             SynchronizeEducationInstitutionsRequest request,
