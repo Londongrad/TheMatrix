@@ -9,6 +9,51 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Education
     public sealed class EducationApiClientInstitutionTests
     {
         [Fact]
+        public async Task ListInstitutionsAsync_WhenResponseIsSuccessful_GetsCatalog()
+        {
+            var simulationHostId = Guid.Parse("0cd851e1-5c8b-4cf3-a91f-8268809a52d2");
+            var institutionId = Guid.Parse("a8425817-300d-43e3-b1b2-e48ca865b11c");
+            var expected = new EducationInstitutionCatalogResponse(
+                Institutions:
+                [
+                    new EducationInstitutionResponse(
+                        InstitutionId: institutionId,
+                        Name: "Central Education Complex",
+                        Kind: "school",
+                        LocationAnchorId: institutionId,
+                        Capacity: 640,
+                        CurrentEnrollmentCount: 17,
+                        AvailableSeatCount: 623)
+                ]);
+            var handler = new RecordingHttpMessageHandler
+            {
+                OnSendAsync = (
+                    _,
+                    _) => Task.FromResult(
+                    CreateJsonResponse(
+                        statusCode: HttpStatusCode.OK,
+                        payload: expected))
+            };
+            IEducationApiClient client = CreateEducationApiClient(CreateHttpClient(handler));
+
+            EducationInstitutionCatalogResponse result = await client.ListInstitutionsAsync(
+                simulationHostId: simulationHostId,
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: Assert.Single(expected.Institutions),
+                actual: Assert.Single(result.Institutions));
+            RecordedRequest request = Assert.Single(handler.Requests);
+            Assert.Equal(
+                expected: HttpMethod.Get,
+                actual: request.Method);
+            Assert.EndsWith(
+                expectedEndString: $"/api/simulation-hosts/{simulationHostId:D}/education/institutions",
+                actualString: request.RequestUri,
+                comparisonType: StringComparison.Ordinal);
+        }
+
+        [Fact]
         public async Task SynchronizeInstitutionsAsync_WhenResponseIsSuccessful_PutsProvisioningBatch()
         {
             var simulationHostId = Guid.Parse("a75f11a7-87ad-4e71-8652-b938357c941a");
