@@ -18,16 +18,16 @@ public sealed class StudentEducationStatusReader(EducationDbContext dbContext)
         var row = await (
                 from profile in dbContext.StudentProfiles.AsNoTracking()
                 where profile.SimulationHostId == simulationHostId
-                      && profile.ResidentId == residentId
+                      && profile.Id == residentId
                 join enrollment in dbContext.Enrollments
                        .AsNoTracking()
                        .Where(candidate => candidate.Status == EnrollmentStatus.Active)
-                    on new { profile.SimulationHostId, profile.ResidentId }
+                    on new { profile.SimulationHostId, ResidentId = profile.Id }
                     equals new { enrollment.SimulationHostId, enrollment.ResidentId }
                     into enrollments
                 from enrollment in enrollments.DefaultIfEmpty()
                 join institution in dbContext.Institutions.AsNoTracking()
-                    on enrollment.InstitutionId equals institution.EducationInstitutionId
+                    on enrollment.InstitutionId equals institution.Id
                     into institutions
                 from institution in institutions.DefaultIfEmpty()
                 select new
@@ -59,7 +59,7 @@ public sealed class StudentEducationStatusReader(EducationDbContext dbContext)
         }
 
         return new StudentEducationStatusView(
-            ResidentId: row.Profile.ResidentId.Value,
+            ResidentId: row.Profile.Id.Value,
             IsAlive: row.Profile.IsAlive,
             IsActive: row.Profile.IsActive,
             CompletedStage: row.Profile.CompletedStage?.Value,
