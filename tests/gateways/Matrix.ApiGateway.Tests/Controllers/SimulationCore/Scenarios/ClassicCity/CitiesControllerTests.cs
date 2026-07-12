@@ -2,6 +2,7 @@ using System.Net;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Education.Contracts.Institutions;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
@@ -389,6 +390,49 @@ namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore.Scenarios.ClassicCi
             Assert.Equal(
                 expected: personId,
                 actual: populationClient.LastResidentDetailsPersonId);
+        }
+
+        [Fact]
+        public async Task GetEducationCatalog_WhenCalled_UsesEducationOwnerCatalog()
+        {
+            var cityId = Guid.Parse("4314a9ae-e053-4f7b-9c52-0325c236f547");
+            var institutionId = Guid.Parse("c5687145-3207-41dd-8827-d6143a815414");
+            var educationClient = new RecordingEducationApiClient
+            {
+                CatalogResult = new EducationInstitutionCatalogResponse(
+                    Institutions:
+                    [
+                        new EducationInstitutionResponse(
+                            InstitutionId: institutionId,
+                            Name: "Central Education Complex",
+                            Kind: "school",
+                            LocationAnchorId: institutionId,
+                            Capacity: 640,
+                            CurrentEnrollmentCount: 17,
+                            AvailableSeatCount: 623)
+                    ])
+            };
+            CitiesController controller = CreateCitiesController(educationClient: educationClient);
+
+            ActionResult<CityEducationCatalogResponseDto> action = await controller.GetEducationCatalog(
+                cityId: cityId,
+                cancellationToken: CancellationToken.None);
+
+            var response = Assert.IsType<CityEducationCatalogResponseDto>(
+                Assert.IsType<OkObjectResult>(action.Result).Value);
+            Assert.Equal(
+                expected: cityId,
+                actual: educationClient.LastSimulationHostId);
+            CityEducationInstitutionResponseDto institution = Assert.Single(response.Institutions);
+            Assert.Equal(
+                expected: institutionId,
+                actual: institution.InstitutionId);
+            Assert.Equal(
+                expected: "Central Education Complex",
+                actual: institution.Name);
+            Assert.Equal(
+                expected: 623,
+                actual: institution.AvailableSeatCount);
         }
     }
 }
