@@ -20,6 +20,7 @@ using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.SetupSe
 using Matrix.ApiGateway.Controllers.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
+using Matrix.ApiGateway.DownstreamClients.Education;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
@@ -35,6 +36,8 @@ using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Requests;
 using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
+using Matrix.Education.Contracts.Enrollments;
+using Matrix.Education.Contracts.Institutions;
 using Matrix.Identity.Contracts.Internal.Responses;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -467,6 +470,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
             RecordingTripsApiClient? tripsClient = null,
             RecordingSimulationApiClient? simulationClient = null,
             RecordingEconomyApiClient? economyClient = null,
+            RecordingEducationApiClient? educationClient = null,
             RecordingPopulationApiClient? populationClient = null,
             RecordingStockpilesApiClient? stockpilesClient = null,
             RecordingEnvironmentalConditionsApiClient? environmentalConditionsClient = null,
@@ -480,6 +484,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 tripsClient: tripsClient ?? new RecordingTripsApiClient(),
                 simulationClient: simulationClient ?? new RecordingSimulationApiClient(),
                 economyClient: economyClient ?? new RecordingEconomyApiClient(),
+                educationClient: educationClient ?? new RecordingEducationApiClient(),
                 populationClient: populationClient ?? new RecordingPopulationApiClient(),
                 stockpilesClient: stockpilesClient ?? new RecordingStockpilesApiClient(),
                 environmentalConditionsClient: environmentalConditionsClient ??
@@ -2015,6 +2020,40 @@ namespace Matrix.ApiGateway.Tests.TestSupport
             {
                 throw new NotSupportedException();
             }
+        }
+
+        public sealed class RecordingEducationApiClient : IEducationApiClient
+        {
+            public EducationInstitutionCatalogResponse CatalogResult { get; set; } = new([]);
+            public Guid? LastSimulationHostId { get; private set; }
+
+            public Task<EducationInstitutionCatalogResponse> ListInstitutionsAsync(
+                Guid simulationHostId,
+                CancellationToken cancellationToken = default)
+            {
+                LastSimulationHostId = simulationHostId;
+                return Task.FromResult(CatalogResult);
+            }
+
+            public Task<SynchronizeEducationInstitutionsResponse> SynchronizeInstitutionsAsync(
+                Guid simulationHostId,
+                SynchronizeEducationInstitutionsRequest request,
+                CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+            public Task<EducationEnrollmentOperationResponse> EnrollStudentAsync(
+                Guid simulationHostId,
+                EnrollStudentRequest request,
+                CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+            public Task<EducationEnrollmentOperationResponse> CompleteStudentStageAsync(
+                Guid simulationHostId,
+                CompleteStudentStageRequest request,
+                CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+            public Task<EducationEnrollmentOperationResponse> WithdrawStudentAsync(
+                Guid simulationHostId,
+                WithdrawStudentRequest request,
+                CancellationToken cancellationToken = default) => throw new NotSupportedException();
         }
 
         public sealed class RecordingStockpilesApiClient : IStockpilesApiClient

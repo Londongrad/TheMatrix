@@ -3,6 +3,7 @@ using System.Text.Json;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy.Scenarios.ClassicCity;
+using Matrix.ApiGateway.DownstreamClients.Education;
 using Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
@@ -12,6 +13,7 @@ using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCit
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
+using Matrix.Education.Contracts.Institutions;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
@@ -41,6 +43,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         ITripsApiClient tripsClient,
         ISimulationApiClient simulationClient,
         IClassicCityEconomyApiClient economyClient,
+        IEducationApiClient educationClient,
         IClassicCityPopulationApiClient populationClient,
         IStockpilesApiClient stockpilesClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
@@ -51,6 +54,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
         private readonly IClassicCityEconomyApiClient _economyClient = economyClient;
+        private readonly IEducationApiClient _educationClient = educationClient;
 
         private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient =
             environmentalConditionsClient;
@@ -338,15 +342,25 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         }
 
         [HttpGet("{cityId:guid}/education/catalog")]
-        public async Task<ActionResult<CityEducationCatalogDto>> GetEducationCatalog(
+        public async Task<ActionResult<CityEducationCatalogResponseDto>> GetEducationCatalog(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken = default)
         {
-            CityEducationCatalogDto catalog = await _populationClient.GetCityEducationCatalogAsync(
-                cityId: cityId,
+            EducationInstitutionCatalogResponse catalog = await _educationClient.ListInstitutionsAsync(
+                simulationHostId: cityId,
                 cancellationToken: cancellationToken);
 
-            return Ok(catalog);
+            return Ok(new CityEducationCatalogResponseDto(
+                Institutions: catalog.Institutions
+                   .Select(institution => new CityEducationInstitutionResponseDto(
+                        InstitutionId: institution.InstitutionId,
+                        Name: institution.Name,
+                        Kind: institution.Kind,
+                        LocationAnchorId: institution.LocationAnchorId,
+                        Capacity: institution.Capacity,
+                        CurrentEnrollmentCount: institution.CurrentEnrollmentCount,
+                        AvailableSeatCount: institution.AvailableSeatCount))
+                   .ToArray()));
         }
 
         [HttpPost("{cityId:guid}/employment/hire")]
