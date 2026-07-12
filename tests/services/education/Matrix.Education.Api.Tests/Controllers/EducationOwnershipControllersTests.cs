@@ -4,6 +4,7 @@ using Matrix.Education.Application.Enrollments.CompleteStudentStage;
 using Matrix.Education.Application.Enrollments.EnrollStudent;
 using Matrix.Education.Application.Enrollments.WithdrawStudent;
 using Matrix.Education.Application.Institutions.SynchronizeEducationInstitutions;
+using Matrix.Education.Application.Institutions.ListEducationInstitutions;
 using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,50 @@ namespace Matrix.Education.Api.Tests.Controllers
 {
     public sealed class EducationOwnershipControllersTests
     {
+        [Fact]
+        public async Task List_MapsActiveInstitutionCatalog()
+        {
+            var sender = new EducationApiSenderStub();
+            var institutionId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+            var locationAnchorId = Guid.Parse("66666666-7777-8888-9999-aaaaaaaaaaaa");
+            sender.Handle<ListEducationInstitutionsQuery, IReadOnlyList<EducationInstitutionView>>(
+                _ =>
+                [
+                    new EducationInstitutionView(
+                        InstitutionId: institutionId,
+                        Name: "Central Education Complex",
+                        Kind: "school",
+                        LocationAnchorId: locationAnchorId,
+                        Capacity: 640,
+                        CurrentEnrollmentCount: 17,
+                        AvailableSeatCount: 623)
+                ]);
+            var controller = new EducationInstitutionsController(sender);
+            Guid simulationHostId = Guid.NewGuid();
+
+            ActionResult<EducationInstitutionCatalogResponse> action = await controller.List(
+                simulationHostId,
+                CancellationToken.None);
+
+            var response = Assert.IsType<EducationInstitutionCatalogResponse>(
+                Assert.IsType<OkObjectResult>(action.Result).Value);
+            ListEducationInstitutionsQuery query =
+                Assert.IsType<ListEducationInstitutionsQuery>(Assert.Single(sender.Requests));
+            Assert.Equal(
+                expected: simulationHostId,
+                actual: query.SimulationHostId);
+            EducationInstitutionResponse institution = Assert.Single(response.Institutions);
+            Assert.Equal(
+                expected: institutionId,
+                actual: institution.InstitutionId);
+            Assert.Equal(
+                expected: locationAnchorId,
+                actual: institution.LocationAnchorId);
+            Assert.Equal(
+                expected: 623,
+                actual: institution.AvailableSeatCount);
+        }
+
         [Fact]
         public async Task Synchronize_MapsProvisioningBatchAndResponse()
         {
