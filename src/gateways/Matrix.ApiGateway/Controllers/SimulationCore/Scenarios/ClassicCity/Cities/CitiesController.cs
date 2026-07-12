@@ -13,6 +13,7 @@ using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCit
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
+using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -436,9 +437,9 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         }
 
         [HttpPost("{cityId:guid}/education/enroll")]
-        public async Task<ActionResult<CityEducationOperationResultDto>> EnrollResident(
+        public async Task<ActionResult<CityEducationOperationResponseDto>> EnrollResident(
             [FromRoute] Guid cityId,
-            [FromBody] CityEducationOperationRequestDto request,
+            [FromBody] EnrollCityResidentEducationRequestDto request,
             CancellationToken cancellationToken = default)
         {
             SimulationClockView clock = await _simulationClient.GetClockAsync(
@@ -447,22 +448,22 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
 
             var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
 
-            CityEducationOperationResultDto result = await _populationClient.EnrollCityResidentAsync(
-                cityId: cityId,
-                request: new CityEducationOperationRequest(
+            EducationEnrollmentOperationResponse result = await _educationClient.EnrollStudentAsync(
+                simulationHostId: cityId,
+                request: new EnrollStudentRequest(
                     ResidentId: request.ResidentId,
-                    TargetEducationLevel: request.TargetEducationLevel,
                     InstitutionId: request.InstitutionId,
-                    CurrentDate: currentDate),
+                    Stage: request.Stage,
+                    EnrolledOn: currentDate),
                 cancellationToken: cancellationToken);
 
-            return Ok(result);
+            return Ok(MapEducationOperation(result));
         }
 
         [HttpPost("{cityId:guid}/education/graduate")]
-        public async Task<ActionResult<CityEducationOperationResultDto>> GraduateResident(
+        public async Task<ActionResult<CityEducationOperationResponseDto>> GraduateResident(
             [FromRoute] Guid cityId,
-            [FromBody] CityEducationOperationRequestDto request,
+            [FromBody] CompleteCityResidentEducationRequestDto request,
             CancellationToken cancellationToken = default)
         {
             SimulationClockView clock = await _simulationClient.GetClockAsync(
@@ -471,22 +472,20 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
 
             var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
 
-            CityEducationOperationResultDto result = await _populationClient.GraduateCityResidentAsync(
-                cityId: cityId,
-                request: new CityEducationOperationRequest(
+            EducationEnrollmentOperationResponse result = await _educationClient.CompleteStudentStageAsync(
+                simulationHostId: cityId,
+                request: new CompleteStudentStageRequest(
                     ResidentId: request.ResidentId,
-                    TargetEducationLevel: request.TargetEducationLevel,
-                    InstitutionId: request.InstitutionId,
-                    CurrentDate: currentDate),
+                    CompletedOn: currentDate),
                 cancellationToken: cancellationToken);
 
-            return Ok(result);
+            return Ok(MapEducationOperation(result));
         }
 
         [HttpPost("{cityId:guid}/education/withdraw")]
-        public async Task<ActionResult<CityEducationOperationResultDto>> WithdrawResident(
+        public async Task<ActionResult<CityEducationOperationResponseDto>> WithdrawResident(
             [FromRoute] Guid cityId,
-            [FromBody] CityEducationOperationRequestDto request,
+            [FromBody] WithdrawCityResidentEducationRequestDto request,
             CancellationToken cancellationToken = default)
         {
             SimulationClockView clock = await _simulationClient.GetClockAsync(
@@ -495,16 +494,14 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
 
             var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
 
-            CityEducationOperationResultDto result = await _populationClient.WithdrawCityResidentFromStudyAsync(
-                cityId: cityId,
-                request: new CityEducationOperationRequest(
+            EducationEnrollmentOperationResponse result = await _educationClient.WithdrawStudentAsync(
+                simulationHostId: cityId,
+                request: new WithdrawStudentRequest(
                     ResidentId: request.ResidentId,
-                    TargetEducationLevel: request.TargetEducationLevel,
-                    InstitutionId: request.InstitutionId,
-                    CurrentDate: currentDate),
+                    WithdrawnOn: currentDate),
                 cancellationToken: cancellationToken);
 
-            return Ok(result);
+            return Ok(MapEducationOperation(result));
         }
 
         [HttpPost("{cityId:guid}/civil-registry/marriages")]
@@ -641,6 +638,15 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
                 cancellationToken: cancellationToken);
 
             return NoContent();
+        }
+
+        private static CityEducationOperationResponseDto MapEducationOperation(
+            EducationEnrollmentOperationResponse response)
+        {
+            return new CityEducationOperationResponseDto(
+                Status: response.Status,
+                EnrollmentId: response.EnrollmentId,
+                CompletedStage: response.CompletedStage);
         }
 
         private static IReadOnlyList<CityPopulationDashboardMetricDto> BuildEconomyMetrics(EconomySummaryView summary)
