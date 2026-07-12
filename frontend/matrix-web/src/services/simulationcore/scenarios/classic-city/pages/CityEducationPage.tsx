@@ -54,25 +54,8 @@ function formatEducationLevel(level: string): string {
     return level.replace(/([a-z])([A-Z])/g, "$1 $2");
 }
 
-function formatActionLabel(action: string): string {
-    switch (action) {
-        case "ResidentEnrolledInStudy":
-            return "Resident enrolled";
-        case "ResidentWithdrawnFromStudy":
-            return "Study withdrawn";
-        default:
-            return "Education advanced";
-    }
-}
-
-function formatTimestamp(value: string): string {
-    const parsed = new Date(value);
-
-    if (Number.isNaN(parsed.getTime())) {
-        return value;
-    }
-
-    return parsed.toLocaleString();
+function formatOperationStatus(status: string): string {
+    return status.replace(/([a-z])([A-Z])/g, "$1 $2");
 }
 
 function formatInstitutionLabel(institutionId?: string | null) {
@@ -83,8 +66,8 @@ function formatInstitutionLabel(institutionId?: string | null) {
     return `Institution ${institutionId.slice(0, 8)}`;
 }
 
-function formatInstitutionOccupancy(count: number) {
-    return `${count} resident${count === 1 ? "" : "s"}`;
+function formatInstitutionOccupancy(current: number, capacity: number) {
+    return `${current} of ${capacity} seats occupied`;
 }
 
 type SelectedResidentCardProps = {
@@ -303,17 +286,10 @@ const CityEducationPage = () => {
         [selectedResident],
     );
     const currentInstitutions = useMemo(
-        () => catalog?.currentInstitutions ?? [],
-        [catalog?.currentInstitutions],
+        () => catalog?.institutions ?? [],
+        [catalog?.institutions],
     );
-    const relevantEducationLevel = selectedResident
-        ? selectedResident.employmentStatus === "Student"
-            ? selectedTargetEducationLevel || nextLevels[0] || ""
-            : selectedResident.educationLevel
-        : "";
-    const relevantInstitutions = relevantEducationLevel
-        ? currentInstitutions.filter((institution) => institution.educationLevel === relevantEducationLevel)
-        : currentInstitutions;
+    const relevantInstitutions = currentInstitutions;
     const visibleInstitutions = relevantInstitutions.slice(0, MAX_VISIBLE_INSTITUTIONS);
     const selectedInstitution = selectedInstitutionId
         ? currentInstitutions.find((institution) => institution.institutionId === selectedInstitutionId) ?? null
@@ -340,14 +316,13 @@ const CityEducationPage = () => {
         }
 
         const stillValid = currentInstitutions.some((institution) => (
-            institution.institutionId === selectedInstitutionId &&
-            (!relevantEducationLevel || institution.educationLevel === relevantEducationLevel)
+            institution.institutionId === selectedInstitutionId
         ));
 
         if (!stillValid) {
             setSelectedInstitutionId("");
         }
-    }, [currentInstitutions, relevantEducationLevel, selectedInstitutionId]);
+    }, [currentInstitutions, selectedInstitutionId]);
 
     const canEnrollResident =
         selectedResidentId.length > 0 &&
@@ -355,6 +330,9 @@ const CityEducationPage = () => {
         selectedResident?.employmentStatus !== "Student" &&
         selectedResident?.employmentStatus !== "Retired" &&
         selectedResident?.ageGroup !== "Senior" &&
+        selectedTargetEducationLevel.length > 0 &&
+        selectedInstitutionId.length > 0 &&
+        (selectedInstitution?.availableSeatCount ?? 0) > 0 &&
         !isArchived &&
         !isSubmitting;
 
@@ -369,7 +347,6 @@ const CityEducationPage = () => {
         selectedResidentId.length > 0 &&
         selectedResident?.lifeStatus === "Alive" &&
         selectedResident?.employmentStatus === "Student" &&
-        nextLevels.includes(selectedTargetEducationLevel) &&
         !isArchived &&
         !isSubmitting;
 
@@ -400,7 +377,8 @@ const CityEducationPage = () => {
             if (action === "enroll") {
                 result = await enrollCityResident(cityId, {
                     residentId: selectedResidentId,
-                    institutionId: selectedInstitutionId || null,
+                    institutionId: selectedInstitutionId,
+                    stage: selectedTargetEducationLevel,
                 });
             } else if (action === "withdraw") {
                 result = await withdrawCityResidentFromStudy(cityId, {
@@ -409,13 +387,13 @@ const CityEducationPage = () => {
             } else {
                 result = await graduateCityResident(cityId, {
                     residentId: selectedResidentId,
-                    targetEducationLevel: selectedTargetEducationLevel,
-                    institutionId: selectedInstitutionId || null,
                 });
             }
 
             setOperationResult(result);
-            setSelectedInstitutionId(result.resident.currentEducationInstitution?.institutionId ?? "");
+            if (action !== "enroll") {
+                setSelectedInstitutionId("");
+            }
             await refreshSnapshots();
         } catch (error: unknown) {
             setOperationError(getErrorMessage(error, "Failed to run education operation."));
@@ -484,10 +462,15 @@ const CityEducationPage = () => {
 
                 {operationResult ? (
                     <div className="city-state-banner city-state-banner--active">
-                        <div className="city-state-banner__title">{formatActionLabel(operationResult.action)}</div>
+                        <div className="city-state-banner__title">
+                            Education operation: {formatOperationStatus(operationResult.status)}
+                        </div>
                         <div className="city-state-banner__text">
-                            {operationResult.resident.fullName}
-                            {" "}was updated on {formatTimestamp(operationResult.recordedAtUtc)}.
+                            {operationResult.completedStage
+                                ? `Completed stage: ${formatEducationLevel(operationResult.completedStage)}.`
+                                : operationResult.enrollmentId
+                                    ? `Enrollment ${operationResult.enrollmentId.slice(0, 8)} was updated.`
+                                    : "The Education service processed the request."}
                         </div>
                     </div>
                 ) : null}
@@ -537,10 +520,8 @@ const CityEducationPage = () => {
                             </span>
                             <span>
                                 {selectedInstitution
-                                    ? `The selected institution will be reused for ${formatEducationLevel(selectedInstitution.educationLevel)}.`
-                                    : relevantEducationLevel
-                                        ? `Leave institution empty to create a new ${formatEducationLevel(relevantEducationLevel)} institution.`
-                                        : "Select a resident to choose or create a place of study."}
+                                    ? `${selectedInstitution.name} is selected for enrollment.`
+                                    : "Select an active institution before enrolling a resident."}
                             </span>
                             <span>
                                 Children, youths, and adults can study. Seniors and retired residents cannot enroll.
@@ -609,10 +590,9 @@ const CityEducationPage = () => {
                     {relevantInstitutions.length > 0 ? (
                         <>
                             <p className="card-sub">
-                                {relevantEducationLevel
-                                    ? `Showing ${Math.min(relevantInstitutions.length, MAX_VISIBLE_INSTITUTIONS)} of ${relevantInstitutions.length} institutions for ${formatEducationLevel(relevantEducationLevel)}.`
-                                    : `Showing ${Math.min(relevantInstitutions.length, MAX_VISIBLE_INSTITUTIONS)} of ${relevantInstitutions.length} institutions in this city.`}
-                                {" "}Choose one to reuse it instead of creating a new place of study.
+                                Showing {Math.min(relevantInstitutions.length, MAX_VISIBLE_INSTITUTIONS)} of
+                                {" "}{relevantInstitutions.length} active institutions in this city. Choose one for
+                                the new enrollment.
                             </p>
 
                             <div className="city-education__institutions-grid">
@@ -625,7 +605,8 @@ const CityEducationPage = () => {
                                             className={`city-education__institution-card${isSelectedInstitution ? " city-education__institution-card--selected" : ""}`}
                                         >
                                             <div className="city-education__institution-copy">
-                                                <strong>{formatEducationLevel(institution.educationLevel)}</strong>
+                                                <strong>{institution.name}</strong>
+                                                <span className="card-sub">{formatEducationLevel(institution.kind)}</span>
                                                 <span
                                                     className="city-education__entity-token"
                                                     title={institution.institutionId}
@@ -633,7 +614,10 @@ const CityEducationPage = () => {
                                                     {formatInstitutionLabel(institution.institutionId)}
                                                 </span>
                                                 <span className="card-sub">
-                                                    {formatInstitutionOccupancy(institution.residentCount)}
+                                                    {formatInstitutionOccupancy(
+                                                        institution.currentEnrollmentCount,
+                                                        institution.capacity,
+                                                    )}
                                                 </span>
                                             </div>
 
@@ -641,7 +625,13 @@ const CityEducationPage = () => {
                                                 type="button"
                                                 size="sm"
                                                 variant={isSelectedInstitution ? "success" : "default"}
-                                                disabled={isSubmitting || isArchived || !selectedResidentId || isSelectedInstitution}
+                                                disabled={
+                                                    isSubmitting ||
+                                                    isArchived ||
+                                                    !selectedResidentId ||
+                                                    isSelectedInstitution ||
+                                                    institution.availableSeatCount === 0
+                                                }
                                                 onClick={() => handleUseInstitution(institution)}
                                             >
                                                 {isSelectedInstitution ? "Selected institution" : "Use institution"}
@@ -661,10 +651,10 @@ const CityEducationPage = () => {
                         </>
                     ) : (
                         <div className="city-state-banner city-state-banner--active">
-                            <div className="city-state-banner__title">No shared study institutions yet</div>
+                            <div className="city-state-banner__title">No active study institutions yet</div>
                             <div className="city-state-banner__text">
-                                Enrolling or graduating a resident can create the first institution for this education
-                                level, and later residents will be able to reuse it from this network.
+                                The Education service has not received an institution provisioning snapshot for this
+                                city yet. Enrollment will become available after provisioning completes.
                             </div>
                         </div>
                     )}

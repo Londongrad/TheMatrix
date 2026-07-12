@@ -51,10 +51,14 @@ type CityEmploymentOperationPayload = {
     workplaceId?: string | null;
 };
 
-type CityEducationOperationPayload = {
+type EnrollCityResidentEducationPayload = {
     residentId: string;
-    targetEducationLevel?: string | null;
-    institutionId?: string | null;
+    institutionId: string;
+    stage: string;
+};
+
+type CityResidentEducationLifecyclePayload = {
+    residentId: string;
 };
 
 export function getCityEmploymentCatalog(
@@ -124,7 +128,7 @@ export function retireCityResident(
 
 export function enrollCityResident(
     cityId: string,
-    payload: CityEducationOperationPayload,
+    payload: EnrollCityResidentEducationPayload,
 ) {
     return apiRequest<CityEducationOperationResultDto>(
         `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/enroll`,
@@ -137,7 +141,7 @@ export function enrollCityResident(
 
 export function graduateCityResident(
     cityId: string,
-    payload: CityEducationOperationPayload,
+    payload: CityResidentEducationLifecyclePayload,
 ) {
     return apiRequest<CityEducationOperationResultDto>(
         `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/graduate`,
@@ -150,7 +154,7 @@ export function graduateCityResident(
 
 export function withdrawCityResidentFromStudy(
     cityId: string,
-    payload: CityEducationOperationPayload,
+    payload: CityResidentEducationLifecyclePayload,
 ) {
     return apiRequest<CityEducationOperationResultDto>(
         `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/withdraw`,

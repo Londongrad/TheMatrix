@@ -1,17 +1,19 @@
-import type {CityResidentDetailsDto} from "./residentContracts";
-
 export interface CityEducationCatalogDto {
-    currentInstitutions: CityEducationInstitutionDto[];
+    institutions: CityEducationInstitutionDto[];
 }
 
 export interface CityEducationInstitutionDto {
     institutionId: string;
-    educationLevel: string;
-    residentCount: number;
+    name: string;
+    kind: string;
+    locationAnchorId: string | null;
+    capacity: number;
+    currentEnrollmentCount: number;
+    availableSeatCount: number;
 }
 
 export interface CityEducationOperationResultDto {
-    action: string;
-    recordedAtUtc: string;
-    resident: CityResidentDetailsDto;
+    status: string;
+    enrollmentId: string | null;
+    completedStage: string | null;
 }
