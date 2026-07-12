@@ -2,6 +2,7 @@ using System.Net;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -433,6 +434,96 @@ namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore.Scenarios.ClassicCi
             Assert.Equal(
                 expected: 623,
                 actual: institution.AvailableSeatCount);
+        }
+
+        [Fact]
+        public async Task EducationOperations_WhenCalled_UseOwnerAndSimulationDate()
+        {
+            var cityId = Guid.Parse("2c92d38c-32ac-4e9d-9e82-d137f00d5a8c");
+            var residentId = Guid.Parse("a219b52c-69b9-4979-8536-92172a89d157");
+            var institutionId = Guid.Parse("c4919001-3602-42d6-9c85-faf646a78f88");
+            var enrollmentId = Guid.Parse("9f9ba8c8-0fe5-48b4-a79c-62e568a56b2c");
+            DateTimeOffset simTimeUtc = new(
+                year: 2048,
+                month: 6,
+                day: 8,
+                hour: 6,
+                minute: 10,
+                second: 0,
+                offset: TimeSpan.Zero);
+            var simulationClient = new RecordingSimulationApiClient
+            {
+                ClockResult = CreateSimulationClockView(
+                    simulationId: cityId,
+                    simTimeUtc: simTimeUtc)
+            };
+            var educationClient = new RecordingEducationApiClient
+            {
+                EnrollResult = new EducationEnrollmentOperationResponse("Applied", enrollmentId),
+                CompleteResult = new EducationEnrollmentOperationResponse(
+                    "Applied",
+                    enrollmentId,
+                    "upper-secondary"),
+                WithdrawResult = new EducationEnrollmentOperationResponse("NoActiveEnrollment")
+            };
+            CitiesController controller = CreateCitiesController(
+                simulationClient: simulationClient,
+                educationClient: educationClient);
+
+            ActionResult<CityEducationOperationResponseDto> enrolled = await controller.EnrollResident(
+                cityId: cityId,
+                request: new EnrollCityResidentEducationRequestDto(
+                    ResidentId: residentId,
+                    InstitutionId: institutionId,
+                    Stage: "upper-secondary"),
+                cancellationToken: CancellationToken.None);
+            ActionResult<CityEducationOperationResponseDto> completed = await controller.GraduateResident(
+                cityId: cityId,
+                request: new CompleteCityResidentEducationRequestDto(residentId),
+                cancellationToken: CancellationToken.None);
+            ActionResult<CityEducationOperationResponseDto> withdrawn = await controller.WithdrawResident(
+                cityId: cityId,
+                request: new WithdrawCityResidentEducationRequestDto(residentId),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(
+                expected: enrollmentId,
+                actual: ReadEducationOperation(enrolled).EnrollmentId);
+            Assert.Equal(
+                expected: "upper-secondary",
+                actual: ReadEducationOperation(completed).CompletedStage);
+            Assert.Equal(
+                expected: "NoActiveEnrollment",
+                actual: ReadEducationOperation(withdrawn).Status);
+            Assert.Equal(
+                expected: 3,
+                actual: simulationClient.GetClockCallCount);
+            Assert.Equal(
+                expected: cityId,
+                actual: educationClient.LastSimulationHostId);
+            Assert.Equal(
+                expected: institutionId,
+                actual: educationClient.LastEnrollRequest?.InstitutionId);
+            Assert.Equal(
+                expected: "upper-secondary",
+                actual: educationClient.LastEnrollRequest?.Stage);
+            DateOnly currentDate = DateOnly.FromDateTime(simTimeUtc.UtcDateTime);
+            Assert.Equal(
+                expected: currentDate,
+                actual: educationClient.LastEnrollRequest?.EnrolledOn);
+            Assert.Equal(
+                expected: currentDate,
+                actual: educationClient.LastCompleteRequest?.CompletedOn);
+            Assert.Equal(
+                expected: currentDate,
+                actual: educationClient.LastWithdrawRequest?.WithdrawnOn);
+        }
+
+        private static CityEducationOperationResponseDto ReadEducationOperation(
+            ActionResult<CityEducationOperationResponseDto> action)
+        {
+            return Assert.IsType<CityEducationOperationResponseDto>(
+                Assert.IsType<OkObjectResult>(action.Result).Value);
         }
     }
 }

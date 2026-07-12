@@ -2025,7 +2025,13 @@ namespace Matrix.ApiGateway.Tests.TestSupport
         public sealed class RecordingEducationApiClient : IEducationApiClient
         {
             public EducationInstitutionCatalogResponse CatalogResult { get; set; } = new([]);
+            public EducationEnrollmentOperationResponse EnrollResult { get; set; } = new("Applied");
+            public EducationEnrollmentOperationResponse CompleteResult { get; set; } = new("Applied");
+            public EducationEnrollmentOperationResponse WithdrawResult { get; set; } = new("Applied");
             public Guid? LastSimulationHostId { get; private set; }
+            public EnrollStudentRequest? LastEnrollRequest { get; private set; }
+            public CompleteStudentStageRequest? LastCompleteRequest { get; private set; }
+            public WithdrawStudentRequest? LastWithdrawRequest { get; private set; }
 
             public Task<EducationInstitutionCatalogResponse> ListInstitutionsAsync(
                 Guid simulationHostId,
@@ -2043,17 +2049,32 @@ namespace Matrix.ApiGateway.Tests.TestSupport
             public Task<EducationEnrollmentOperationResponse> EnrollStudentAsync(
                 Guid simulationHostId,
                 EnrollStudentRequest request,
-                CancellationToken cancellationToken = default) => throw new NotSupportedException();
+                CancellationToken cancellationToken = default)
+            {
+                LastSimulationHostId = simulationHostId;
+                LastEnrollRequest = request;
+                return Task.FromResult(EnrollResult);
+            }
 
             public Task<EducationEnrollmentOperationResponse> CompleteStudentStageAsync(
                 Guid simulationHostId,
                 CompleteStudentStageRequest request,
-                CancellationToken cancellationToken = default) => throw new NotSupportedException();
+                CancellationToken cancellationToken = default)
+            {
+                LastSimulationHostId = simulationHostId;
+                LastCompleteRequest = request;
+                return Task.FromResult(CompleteResult);
+            }
 
             public Task<EducationEnrollmentOperationResponse> WithdrawStudentAsync(
                 Guid simulationHostId,
                 WithdrawStudentRequest request,
-                CancellationToken cancellationToken = default) => throw new NotSupportedException();
+                CancellationToken cancellationToken = default)
+            {
+                LastSimulationHostId = simulationHostId;
+                LastWithdrawRequest = request;
+                return Task.FromResult(WithdrawResult);
+            }
         }
 
         public sealed class RecordingStockpilesApiClient : IStockpilesApiClient
