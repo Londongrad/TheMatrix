@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Education.Application.Abstractions;
 using Matrix.Education.Infrastructure.Persistence;
+using Matrix.Education.Infrastructure.Persistence.Queries;
 using Matrix.Education.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -51,6 +52,7 @@ namespace Matrix.Education.Infrastructure
             });
 
             services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
+            services.AddScoped<IStudentEducationStatusReader, StudentEducationStatusReader>();
             services.AddScoped<IEducationInstitutionRepository, EducationInstitutionRepository>();
             services.AddScoped<IStudentEnrollmentRepository, StudentEnrollmentRepository>();
             services.AddScoped<IEducationProgressionCheckpointRepository,
