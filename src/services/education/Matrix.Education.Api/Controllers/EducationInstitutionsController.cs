@@ -1,4 +1,5 @@
 using Matrix.Education.Application.Institutions.SynchronizeEducationInstitutions;
+using Matrix.Education.Application.Institutions.ListEducationInstitutions;
 using Matrix.Education.Contracts;
 using Matrix.Education.Contracts.Institutions;
 using MediatR;
@@ -12,6 +13,28 @@ namespace Matrix.Education.Api.Controllers
     [Route(EducationApiRoutes.Institutions)]
     public sealed class EducationInstitutionsController(ISender sender) : ControllerBase
     {
+        [HttpGet]
+        public async Task<ActionResult<EducationInstitutionCatalogResponse>> List(
+            [FromRoute] Guid simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            IReadOnlyList<EducationInstitutionView> institutions = await sender.Send(
+                new ListEducationInstitutionsQuery(simulationHostId),
+                cancellationToken);
+
+            return Ok(new EducationInstitutionCatalogResponse(
+                Institutions: institutions
+                   .Select(institution => new EducationInstitutionResponse(
+                        InstitutionId: institution.InstitutionId,
+                        Name: institution.Name,
+                        Kind: institution.Kind,
+                        LocationAnchorId: institution.LocationAnchorId,
+                        Capacity: institution.Capacity,
+                        CurrentEnrollmentCount: institution.CurrentEnrollmentCount,
+                        AvailableSeatCount: institution.AvailableSeatCount))
+                   .ToArray()));
+        }
+
         [HttpPut]
         public async Task<ActionResult<SynchronizeEducationInstitutionsResponse>> Synchronize(
             [FromRoute] Guid simulationHostId,
