@@ -4,6 +4,7 @@ using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
+using Matrix.Education.Contracts.Students;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
@@ -391,6 +392,70 @@ namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore.Scenarios.ClassicCi
             Assert.Equal(
                 expected: personId,
                 actual: populationClient.LastResidentDetailsPersonId);
+        }
+
+        [Fact]
+        public async Task GetResidentEducationStatus_WhenAvailable_MapsEducationOwnerState()
+        {
+            Guid cityId = Guid.NewGuid();
+            Guid residentId = Guid.NewGuid();
+            Guid enrollmentId = Guid.NewGuid();
+            Guid institutionId = Guid.NewGuid();
+            var educationClient = new RecordingEducationApiClient
+            {
+                StudentStatusResult = new StudentEducationStatusResponse(
+                    ResidentId: residentId,
+                    IsAlive: true,
+                    IsActive: true,
+                    CompletedStage: "primary",
+                    CompletedStageOn: new DateOnly(2047, 6, 30),
+                    ActiveEnrollment: new ActiveStudentEnrollmentResponse(
+                        EnrollmentId: enrollmentId,
+                        InstitutionId: institutionId,
+                        InstitutionName: "Central School",
+                        InstitutionKind: "school",
+                        LocationAnchorId: institutionId,
+                        Stage: "secondary",
+                        EnrolledOn: new DateOnly(2048, 5, 1)))
+            };
+            CitiesController controller = CreateCitiesController(educationClient: educationClient);
+
+            ActionResult<CityResidentEducationStatusResponseDto> action =
+                await controller.GetResidentEducationStatus(
+                    cityId,
+                    residentId,
+                    CancellationToken.None);
+
+            var response = Assert.IsType<CityResidentEducationStatusResponseDto>(
+                Assert.IsType<OkObjectResult>(action.Result).Value);
+            Assert.True(response.ProfileAvailable);
+            Assert.Equal("primary", response.CompletedStage);
+            Assert.NotNull(response.ActiveEnrollment);
+            Assert.Equal(enrollmentId, response.ActiveEnrollment.EnrollmentId);
+            Assert.Equal(institutionId, response.ActiveEnrollment.InstitutionId);
+            Assert.Equal(cityId, educationClient.LastSimulationHostId);
+            Assert.Equal(residentId, educationClient.LastStudentStatusResidentId);
+        }
+
+        [Fact]
+        public async Task GetResidentEducationStatus_WhenProfileIsPending_ReturnsUnavailableState()
+        {
+            Guid cityId = Guid.NewGuid();
+            Guid residentId = Guid.NewGuid();
+            CitiesController controller = CreateCitiesController(
+                educationClient: new RecordingEducationApiClient());
+
+            ActionResult<CityResidentEducationStatusResponseDto> action =
+                await controller.GetResidentEducationStatus(
+                    cityId,
+                    residentId,
+                    CancellationToken.None);
+
+            var response = Assert.IsType<CityResidentEducationStatusResponseDto>(
+                Assert.IsType<OkObjectResult>(action.Result).Value);
+            Assert.Equal(residentId, response.ResidentId);
+            Assert.False(response.ProfileAvailable);
+            Assert.Null(response.ActiveEnrollment);
         }
 
         [Fact]
