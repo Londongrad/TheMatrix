@@ -6,6 +6,7 @@ import type {CityCivilRegistryOperationResultDto} from "@services/simulationcore
 import type {
     CityEducationCatalogDto,
     CityEducationOperationResultDto,
+    CityResidentEducationStatusDto,
 } from "@services/simulationcore/scenarios/classic-city/contracts/educationContracts";
 import type {
     CityEmploymentCatalogDto,
@@ -80,6 +81,20 @@ export function getCityEducationCatalog(
 ) {
     return apiRequest<CityEducationCatalogDto>(
         `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/catalog`,
+        {
+            method: "GET",
+            signal,
+        },
+    );
+}
+
+export function getCityResidentEducationStatus(
+    cityId: string,
+    residentId: string,
+    signal?: AbortSignal,
+) {
+    return apiRequest<CityResidentEducationStatusDto>(
+        `${API_CLASSIC_CITY_CITIES_URL}/${cityId}/education/students/${residentId}`,
         {
             method: "GET",
             signal,
