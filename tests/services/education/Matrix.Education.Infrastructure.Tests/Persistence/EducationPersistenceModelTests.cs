@@ -66,7 +66,7 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence
         }
 
         [Fact]
-        public void Enrollments_AllowOnlyOneActiveEnrollmentPerStage()
+        public void Enrollments_AllowOnlyOneActiveEnrollmentPerResident()
         {
             using EducationDbContext dbContext =
                 EducationInfrastructureTestSupport.CreateDbContext();
@@ -74,10 +74,17 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence
 
             IIndex index = FindIndex(
                 entityType,
-                "ux_education_enrollments_active_stage");
+                "ux_education_enrollments_active_resident");
 
             Assert.True(index.IsUnique);
             Assert.Equal("status = 'Active'", index.GetFilter());
+            Assert.Equal(
+                new[]
+                {
+                    nameof(StudentEnrollment.SimulationHostId),
+                    nameof(StudentEnrollment.ResidentId)
+                },
+                index.Properties.Select(property => property.Name));
         }
 
         [Fact]

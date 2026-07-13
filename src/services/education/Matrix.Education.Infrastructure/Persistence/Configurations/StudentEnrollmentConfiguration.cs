@@ -113,12 +113,11 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => new
                    {
                        x.SimulationHostId,
-                       x.ResidentId,
-                       x.Stage
+                       x.ResidentId
                    })
                .IsUnique()
                .HasFilter("status = 'Active'")
-               .HasDatabaseName("ux_education_enrollments_active_stage");
+               .HasDatabaseName("ux_education_enrollments_active_resident");
         }
     }
 }
