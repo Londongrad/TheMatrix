@@ -15,6 +15,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
+using Matrix.Education.Contracts.Students;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
@@ -328,6 +329,52 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
                 cancellationToken: cancellationToken);
 
             return Ok(resident);
+        }
+
+        [HttpGet("{cityId:guid}/education/students/{personId:guid}")]
+        public async Task<ActionResult<CityResidentEducationStatusResponseDto>> GetResidentEducationStatus(
+            [FromRoute] Guid cityId,
+            [FromRoute] Guid personId,
+            CancellationToken cancellationToken = default)
+        {
+            StudentEducationStatusResponse? status = await _educationClient.GetStudentStatusAsync(
+                simulationHostId: cityId,
+                residentId: personId,
+                cancellationToken: cancellationToken);
+
+            if (status is null)
+                return Ok(new CityResidentEducationStatusResponseDto(
+                    ResidentId: personId,
+                    ProfileAvailable: false,
+                    IsAlive: false,
+                    IsActive: false,
+                    CompletedStage: null,
+                    CompletedStageOn: null,
+                    ActiveEnrollment: null));
+
+            if (status.ResidentId != personId)
+                throw new InvalidOperationException(
+                    "Education returned a student status for a different resident.");
+
+            CityResidentActiveEnrollmentResponseDto? activeEnrollment = status.ActiveEnrollment is null
+                ? null
+                : new CityResidentActiveEnrollmentResponseDto(
+                    EnrollmentId: status.ActiveEnrollment.EnrollmentId,
+                    InstitutionId: status.ActiveEnrollment.InstitutionId,
+                    InstitutionName: status.ActiveEnrollment.InstitutionName,
+                    InstitutionKind: status.ActiveEnrollment.InstitutionKind,
+                    LocationAnchorId: status.ActiveEnrollment.LocationAnchorId,
+                    Stage: status.ActiveEnrollment.Stage,
+                    EnrolledOn: status.ActiveEnrollment.EnrolledOn);
+
+            return Ok(new CityResidentEducationStatusResponseDto(
+                ResidentId: status.ResidentId,
+                ProfileAvailable: true,
+                IsAlive: status.IsAlive,
+                IsActive: status.IsActive,
+                CompletedStage: status.CompletedStage,
+                CompletedStageOn: status.CompletedStageOn,
+                ActiveEnrollment: activeEnrollment));
         }
 
         [HttpGet("{cityId:guid}/employment/catalog")]
