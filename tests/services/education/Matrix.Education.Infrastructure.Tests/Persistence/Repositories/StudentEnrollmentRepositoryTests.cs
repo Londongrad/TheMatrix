@@ -29,9 +29,7 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence.Repositories
                 new SimulationHostId(Guid.NewGuid()),
                 new ResidentId(Guid.NewGuid()));
 
-            await repository.AddAsync(active);
-            await repository.AddAsync(completed);
-            await repository.AddAsync(foreign);
+            await repository.AddRangeAsync([active, completed, foreign]);
             await dbContext.SaveChangesAsync();
             dbContext.ChangeTracker.Clear();
 

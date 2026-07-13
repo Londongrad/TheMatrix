@@ -57,6 +57,35 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence.Repositories
         }
 
         [Fact]
+        public async Task ListBySimulationHost_ReturnsTrackedProfilesInStableOrder()
+        {
+            await using EducationDbContext dbContext =
+                EducationInfrastructureTestSupport.CreateDbContext();
+            var repository = new StudentProfileRepository(dbContext);
+            var simulationHostId = new SimulationHostId(Guid.NewGuid());
+            StudentProfile second = CreateProfile(
+                Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                simulationHostId);
+            StudentProfile first = CreateProfile(
+                Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                simulationHostId);
+            StudentProfile foreign = CreateProfile(Guid.NewGuid());
+            dbContext.AddRange(second, foreign, first);
+            await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
+
+            IReadOnlyList<StudentProfile> profiles =
+                await repository.ListBySimulationHostAsync(simulationHostId);
+
+            Assert.Equal(
+                new[] { first.ResidentId, second.ResidentId },
+                profiles.Select(profile => profile.ResidentId));
+            Assert.All(
+                profiles,
+                profile => Assert.Equal(EntityState.Unchanged, dbContext.Entry(profile).State));
+        }
+
+        [Fact]
         public void BatchLookup_TranslatesStrongIdsToPostgreSqlArrayPredicate()
         {
             DbContextOptions<EducationDbContext> options =
@@ -78,11 +107,13 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence.Repositories
             Assert.Contains("ANY", sql, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static StudentProfile CreateProfile(Guid residentId)
+        private static StudentProfile CreateProfile(
+            Guid residentId,
+            SimulationHostId? simulationHostId = null)
         {
             return StudentProfile.Register(
                 residentId: new ResidentId(residentId),
-                simulationHostId: new SimulationHostId(Guid.NewGuid()),
+                simulationHostId: simulationHostId ?? new SimulationHostId(Guid.NewGuid()),
                 birthDate: new DateOnly(2030, 5, 12),
                 isAlive: true,
                 isActive: true,

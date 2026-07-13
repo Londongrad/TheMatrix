@@ -40,5 +40,14 @@ namespace Matrix.Education.Infrastructure.Persistence.Repositories
             dbContext.Enrollments.Add(enrollment);
             return Task.CompletedTask;
         }
+
+        public Task AddRangeAsync(
+            IReadOnlyCollection<StudentEnrollment> enrollments,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(enrollments);
+            dbContext.Enrollments.AddRange(enrollments);
+            return Task.CompletedTask;
+        }
     }
 }

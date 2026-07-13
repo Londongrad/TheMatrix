@@ -111,5 +111,13 @@ namespace Matrix.Education.Application.Tests.TestSupport
             Added.Add(enrollment);
             return Task.CompletedTask;
         }
+
+        public Task AddRangeAsync(
+            IReadOnlyCollection<StudentEnrollment> enrollments,
+            CancellationToken cancellationToken = default)
+        {
+            Added.AddRange(enrollments);
+            return Task.CompletedTask;
+        }
     }
 }

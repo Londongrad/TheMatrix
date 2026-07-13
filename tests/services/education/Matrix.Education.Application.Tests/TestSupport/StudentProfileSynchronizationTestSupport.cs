@@ -67,6 +67,17 @@ namespace Matrix.Education.Application.Tests.TestSupport
         internal IReadOnlyCollection<StudentProfile> AddedProfiles { get; private set; } =
             Array.Empty<StudentProfile>();
 
+        public Task<IReadOnlyList<StudentProfile>> ListBySimulationHostAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken = default)
+        {
+            IReadOnlyList<StudentProfile> profiles = _existingProfiles
+               .Where(profile => profile.SimulationHostId == simulationHostId)
+               .OrderBy(profile => profile.ResidentId.Value)
+               .ToArray();
+            return Task.FromResult(profiles);
+        }
+
         public Task<IReadOnlyList<StudentProfile>> GetByIdsAsync(
             IReadOnlyCollection<ResidentId> residentIds,
             CancellationToken cancellationToken = default)

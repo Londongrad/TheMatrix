@@ -18,5 +18,9 @@ namespace Matrix.Education.Application.Abstractions
         Task AddAsync(
             StudentEnrollment enrollment,
             CancellationToken cancellationToken = default);
+
+        Task AddRangeAsync(
+            IReadOnlyCollection<StudentEnrollment> enrollments,
+            CancellationToken cancellationToken = default);
     }
 }
