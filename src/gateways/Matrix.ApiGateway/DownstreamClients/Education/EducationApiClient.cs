@@ -1,8 +1,10 @@
+using System.Net;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Education.Contracts;
 using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
+using Matrix.Education.Contracts.Students;
 
 namespace Matrix.ApiGateway.DownstreamClients.Education
 {
@@ -45,6 +47,26 @@ namespace Matrix.ApiGateway.DownstreamClients.Education
                 cancellationToken: cancellationToken);
 
             return await response.ReadJsonOrThrowDownstreamAsync<SynchronizeEducationInstitutionsResponse>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task<StudentEducationStatusResponse?> GetStudentStatusAsync(
+            Guid simulationHostId,
+            Guid residentId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{ResolveRoute(EducationApiRoutes.Students, simulationHostId)}/{residentId:D}";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return null;
+
+            return await response.ReadJsonOrThrowDownstreamAsync<StudentEducationStatusResponse>(
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken,
                 requestUrl: url);

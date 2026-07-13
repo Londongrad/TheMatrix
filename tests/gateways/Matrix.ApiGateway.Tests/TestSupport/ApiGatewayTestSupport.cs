@@ -38,6 +38,7 @@ using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Requests;
 using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
+using Matrix.Education.Contracts.Students;
 using Matrix.Identity.Contracts.Internal.Responses;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -2028,7 +2029,9 @@ namespace Matrix.ApiGateway.Tests.TestSupport
             public EducationEnrollmentOperationResponse EnrollResult { get; set; } = new("Applied");
             public EducationEnrollmentOperationResponse CompleteResult { get; set; } = new("Applied");
             public EducationEnrollmentOperationResponse WithdrawResult { get; set; } = new("Applied");
+            public StudentEducationStatusResponse? StudentStatusResult { get; set; }
             public Guid? LastSimulationHostId { get; private set; }
+            public Guid? LastStudentStatusResidentId { get; private set; }
             public EnrollStudentRequest? LastEnrollRequest { get; private set; }
             public CompleteStudentStageRequest? LastCompleteRequest { get; private set; }
             public WithdrawStudentRequest? LastWithdrawRequest { get; private set; }
@@ -2045,6 +2048,16 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 Guid simulationHostId,
                 SynchronizeEducationInstitutionsRequest request,
                 CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+            public Task<StudentEducationStatusResponse?> GetStudentStatusAsync(
+                Guid simulationHostId,
+                Guid residentId,
+                CancellationToken cancellationToken = default)
+            {
+                LastSimulationHostId = simulationHostId;
+                LastStudentStatusResidentId = residentId;
+                return Task.FromResult(StudentStatusResult);
+            }
 
             public Task<EducationEnrollmentOperationResponse> EnrollStudentAsync(
                 Guid simulationHostId,

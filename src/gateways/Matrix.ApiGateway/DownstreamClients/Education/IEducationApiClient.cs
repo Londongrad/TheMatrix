@@ -1,5 +1,6 @@
 using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
+using Matrix.Education.Contracts.Students;
 
 namespace Matrix.ApiGateway.DownstreamClients.Education
 {
@@ -12,6 +13,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Education
         Task<SynchronizeEducationInstitutionsResponse> SynchronizeInstitutionsAsync(
             Guid simulationHostId,
             SynchronizeEducationInstitutionsRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task<StudentEducationStatusResponse?> GetStudentStatusAsync(
+            Guid simulationHostId,
+            Guid residentId,
             CancellationToken cancellationToken = default);
 
         Task<EducationEnrollmentOperationResponse> EnrollStudentAsync(
