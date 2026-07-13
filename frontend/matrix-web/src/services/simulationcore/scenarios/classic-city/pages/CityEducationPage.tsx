@@ -9,6 +9,7 @@ import {
 } from "@services/simulationcore/scenarios/classic-city/api/residentsApi";
 import {useCityDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityResidentDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityResidentDetails";
+import {useCityResidentEducationStatus} from "@services/simulationcore/scenarios/classic-city/hooks/useCityResidentEducationStatus";
 import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityProvisioningPath,
@@ -20,6 +21,7 @@ import type {
     CityEducationCatalogDto,
     CityEducationInstitutionDto,
     CityEducationOperationResultDto,
+    CityResidentEducationStatusDto,
 } from "@services/simulationcore/scenarios/classic-city/contracts/educationContracts";
 import type {CityResidentDetailsDto} from "@services/simulationcore/scenarios/classic-city/contracts/residentContracts";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
@@ -34,14 +36,14 @@ const PAGE_SIZE = 100;
 const MAX_VISIBLE_INSTITUTIONS = 18;
 
 const NEXT_EDUCATION_LEVELS: Record<string, string[]> = {
-    None: ["Preschool"],
-    Preschool: ["Primary"],
-    Primary: ["LowerSecondary"],
-    LowerSecondary: ["UpperSecondary"],
-    UpperSecondary: ["Vocational", "Higher"],
-    Vocational: ["Higher"],
-    Higher: ["Postgraduate"],
-    Postgraduate: [],
+    none: ["preschool"],
+    preschool: ["primary"],
+    primary: ["lower-secondary"],
+    "lower-secondary": ["upper-secondary"],
+    "upper-secondary": ["vocational", "higher"],
+    vocational: ["higher"],
+    higher: ["postgraduate"],
+    postgraduate: [],
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -51,7 +53,15 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 function formatEducationLevel(level: string): string {
-    return level.replace(/([a-z])([A-Z])/g, "$1 $2");
+    const words = normalizeEducationStage(level).replaceAll("-", " ");
+    return `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
+}
+
+function normalizeEducationStage(level: string): string {
+    return level
+        .replace(/([a-z])([A-Z])/g, "$1-$2")
+        .trim()
+        .toLowerCase();
 }
 
 function formatOperationStatus(status: string): string {
@@ -74,6 +84,7 @@ type SelectedResidentCardProps = {
     cityId: string;
     residentId: string;
     resident: CityResidentDetailsDto | null;
+    educationStatus: CityResidentEducationStatusDto | null;
     isLoading: boolean;
     nextLevels: string[];
     onClear: () => void;
@@ -83,6 +94,7 @@ function SelectedResidentCard({
                                   cityId,
                                   residentId,
                                   resident,
+                                  educationStatus,
                                   isLoading,
                                   nextLevels,
                                   onClear
@@ -108,7 +120,7 @@ function SelectedResidentCard({
                 <div className="city-education__selected-body">
                     <div className="city-education__tag-row">
                         <span className="city-education__tag">
-                            {resident?.employmentStatus === "Student" ? "Studying now" : "Not studying"}
+                            {educationStatus?.activeEnrollment ? "Studying now" : "Not studying"}
                         </span>
                         {resident?.lifeStatus ? (
                             <span className="city-education__tag city-education__tag--muted">
@@ -125,18 +137,24 @@ function SelectedResidentCard({
                     <p className="city-education__selected-copy">
                         Current level:
                         {" "}
-                        <strong>{resident?.educationLevel ? formatEducationLevel(resident.educationLevel) : "Snapshot pending"}</strong>
+                        <strong>
+                            {educationStatus?.completedStage
+                                ? formatEducationLevel(educationStatus.completedStage)
+                                : resident?.educationLevel
+                                    ? formatEducationLevel(resident.educationLevel)
+                                    : "Snapshot pending"}
+                        </strong>
                     </p>
 
                     <p className="city-education__selected-copy">
                         Current institution:
                         {" "}
-                        {resident?.currentEducationInstitution ? (
+                        {educationStatus?.activeEnrollment ? (
                             <span
                                 className="city-education__entity-token"
-                                title={resident.currentEducationInstitution.institutionId}
+                                title={educationStatus.activeEnrollment.institutionId}
                             >
-                                {formatInstitutionLabel(resident.currentEducationInstitution.institutionId)}
+                                {educationStatus.activeEnrollment.institutionName}
                             </span>
                         ) : (
                             <strong>No assigned institution</strong>
@@ -166,6 +184,10 @@ function SelectedResidentCard({
 
                     {isLoading ? (
                         <p className="card-sub">Refreshing resident snapshot...</p>
+                    ) : null}
+
+                    {educationStatus && !educationStatus.profileAvailable ? (
+                        <p className="card-sub">Education profile synchronization is still pending.</p>
                     ) : null}
                 </div>
             ) : (
@@ -199,6 +221,11 @@ const CityEducationPage = () => {
 
     const cityQuery = useCityDetails(cityId);
     const residentQuery = useCityResidentDetails(cityId, selectedResidentId, selectedResidentId.length > 0);
+    const educationQuery = useCityResidentEducationStatus(
+        cityId,
+        selectedResidentId,
+        selectedResidentId.length > 0,
+    );
     const residentsQuery = usePagedQuery<PersonDto>(
         (pageNumber, pageSize) => getCityResidentsPage(cityId, pageNumber, pageSize),
         PAGE_SIZE,
@@ -266,8 +293,8 @@ const CityEducationPage = () => {
             return;
         }
 
-        setSelectedInstitutionId(residentQuery.data?.currentEducationInstitution?.institutionId ?? "");
-    }, [residentQuery.data?.currentEducationInstitution?.institutionId, selectedResidentId]);
+        setSelectedInstitutionId(educationQuery.data?.activeEnrollment?.institutionId ?? "");
+    }, [educationQuery.data?.activeEnrollment?.institutionId, selectedResidentId]);
 
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
@@ -279,11 +306,17 @@ const CityEducationPage = () => {
     const pageSize = residentsQuery.data?.pageSize ?? PAGE_SIZE;
     const range = getPageRange(currentPage, pageSize, total);
     const selectedResident = residentQuery.data;
+    const educationStatus = educationQuery.data;
+    const currentEducationStage = educationStatus?.completedStage
+        ? normalizeEducationStage(educationStatus.completedStage)
+        : selectedResident?.educationLevel
+            ? normalizeEducationStage(selectedResident.educationLevel)
+            : "none";
+    const isStudying = educationStatus?.activeEnrollment !== null &&
+        educationStatus?.activeEnrollment !== undefined;
     const nextLevels = useMemo(
-        () => selectedResident
-            ? NEXT_EDUCATION_LEVELS[selectedResident.educationLevel] ?? []
-            : [],
-        [selectedResident],
+        () => NEXT_EDUCATION_LEVELS[currentEducationStage] ?? [],
+        [currentEducationStage],
     );
     const currentInstitutions = useMemo(
         () => catalog?.institutions ?? [],
@@ -327,7 +360,10 @@ const CityEducationPage = () => {
     const canEnrollResident =
         selectedResidentId.length > 0 &&
         selectedResident?.lifeStatus === "Alive" &&
-        selectedResident?.employmentStatus !== "Student" &&
+        educationStatus?.profileAvailable === true &&
+        educationStatus.isAlive &&
+        educationStatus.isActive &&
+        !isStudying &&
         selectedResident?.employmentStatus !== "Retired" &&
         selectedResident?.ageGroup !== "Senior" &&
         selectedTargetEducationLevel.length > 0 &&
@@ -339,14 +375,16 @@ const CityEducationPage = () => {
     const canWithdrawResident =
         selectedResidentId.length > 0 &&
         selectedResident?.lifeStatus === "Alive" &&
-        selectedResident?.employmentStatus === "Student" &&
+        educationStatus?.profileAvailable === true &&
+        isStudying &&
         !isArchived &&
         !isSubmitting;
 
     const canGraduateResident =
         selectedResidentId.length > 0 &&
         selectedResident?.lifeStatus === "Alive" &&
-        selectedResident?.employmentStatus === "Student" &&
+        educationStatus?.profileAvailable === true &&
+        isStudying &&
         !isArchived &&
         !isSubmitting;
 
@@ -359,7 +397,10 @@ const CityEducationPage = () => {
     }
 
     async function refreshSnapshots() {
-        await residentQuery.refetch();
+        await Promise.all([
+            residentQuery.refetch(),
+            educationQuery.refetch(),
+        ]);
         setRefreshNonce((value) => value + 1);
     }
 
@@ -454,6 +495,12 @@ const CityEducationPage = () => {
                     </div>
                 ) : null}
 
+                {educationQuery.error ? (
+                    <div className="simulationcore-error-banner" role="alert">
+                        <span>{educationQuery.error}</span>
+                    </div>
+                ) : null}
+
                 {operationError ? (
                     <div className="simulationcore-error-banner" role="alert">
                         <span>{operationError}</span>
@@ -480,7 +527,8 @@ const CityEducationPage = () => {
                         cityId={cityId}
                         residentId={selectedResidentId}
                         resident={selectedResident}
-                        isLoading={residentQuery.isLoading}
+                        educationStatus={educationStatus}
+                        isLoading={residentQuery.isLoading || educationQuery.isLoading}
                         nextLevels={nextLevels}
                         onClear={() => setSelectedResidentId("")}
                     />
@@ -498,7 +546,13 @@ const CityEducationPage = () => {
                             <select
                                 value={selectedTargetEducationLevel}
                                 onChange={(event) => setSelectedTargetEducationLevel(event.target.value)}
-                                disabled={isSubmitting || isArchived || !selectedResidentId || nextLevels.length === 0}
+                                disabled={
+                                    isSubmitting ||
+                                    isArchived ||
+                                    !selectedResidentId ||
+                                    isStudying ||
+                                    nextLevels.length === 0
+                                }
                             >
                                 {nextLevels.length === 0 ? (
                                     <option value="">No available next level</option>
