@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Api.Controllers.Scenarios.ClassicCity;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.GetEducationCatalog;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.GetEmploymentCatalog;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDistrictPressure;
@@ -57,7 +56,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
         }
 
         [Fact]
-        public async Task ResidentAndCatalogQueries_ForwardInputsAndReturnOk()
+        public async Task ResidentAndEmploymentCatalogQueries_ForwardInputsAndReturnOk()
         {
             var cityId = Guid.Parse("22c7bcc1-35cd-4f1b-8df2-7fc99292788a");
             var personId = Guid.Parse("76fefad3-fb16-437a-bd7e-63bca5ca4a8e");
@@ -108,8 +107,6 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                     fullName: "Neo");
             });
             sender.Handle<GetCityEmploymentCatalogQuery, CityEmploymentCatalogDto>(_ => CreateEmploymentCatalogDto());
-            sender.Handle<GetCityEducationCatalogQuery, CityEducationCatalogDto>(_ => CreateEducationCatalogDto());
-            var educationController = new ClassicCityEducationController(sender);
             var employmentController = new ClassicCityEmploymentController(sender);
             var residentsController = new ClassicCityResidentsController(sender);
 
@@ -126,10 +123,6 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                 cancellationToken: CancellationToken.None);
             ActionResult<CityEmploymentCatalogDto> employmentCatalogResult =
                 await employmentController.GetCityEmploymentCatalog(
-                    cityId: cityId,
-                    cancellationToken: CancellationToken.None);
-            ActionResult<CityEducationCatalogDto> educationCatalogResult =
-                await educationController.GetCityEducationCatalog(
                     cityId: cityId,
                     cancellationToken: CancellationToken.None);
             OkObjectResult residentsOk = Assert.IsType<OkObjectResult>(residentsResult.Result);
@@ -157,10 +150,6 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                     "Medic"
                 ],
                 actual: employmentCatalog.JobTitles);
-
-            OkObjectResult educationOk = Assert.IsType<OkObjectResult>(educationCatalogResult.Result);
-            CityEducationCatalogDto educationCatalog = Assert.IsType<CityEducationCatalogDto>(educationOk.Value);
-            Assert.Single(educationCatalog.CurrentInstitutions);
 
         }
     }

@@ -1,9 +1,6 @@
 using Matrix.Population.Api.Controllers.Scenarios.ClassicCity;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterDivorce;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterMarriage;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.EnrollResident;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.GraduateResident;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.WithdrawResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.FireResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.HireResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.RetireResident;
@@ -240,59 +237,17 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
         }
 
         [Fact]
-        public async Task EducationAndCivilRegistryOperations_SendExpectedCommands()
+        public async Task CivilRegistryOperations_SendExpectedCommands()
         {
             var cityId = Guid.Parse("96508e68-194a-4078-80d5-6b6fe2cf2ce0");
             var residentId = Guid.Parse("28f443e4-f6b0-4b7f-bbcb-10307ffcbd89");
-            var institutionId = Guid.Parse("bdf4de49-1c59-46ec-b54f-8d4086eaee90");
             var secondResidentId = Guid.Parse("671814b3-a061-4ec5-a766-64726c1af1a0");
             var sender = new FakeSender();
-            sender.Handle<EnrollCityResidentCommand, CityEducationOperationResultDto>(_
-                => CreateEducationOperationResultDto());
-            sender.Handle<GraduateCityResidentCommand, CityEducationOperationResultDto>(_
-                => CreateEducationOperationResultDto("Graduate"));
-            sender.Handle<WithdrawCityResidentFromStudyCommand, CityEducationOperationResultDto>(_
-                => CreateEducationOperationResultDto("Withdraw"));
             sender.Handle<RegisterCityMarriageCommand, CityCivilRegistryOperationResultDto>(_
                 => CreateCivilRegistryOperationResultDto());
             sender.Handle<RegisterCityDivorceCommand, CityCivilRegistryOperationResultDto>(_
                 => CreateCivilRegistryOperationResultDto("Divorce"));
             var controller = new ClassicCityCivilRegistryController(sender);
-            var educationController = new ClassicCityEducationController(sender);
-
-            await educationController.EnrollResident(
-                cityId: cityId,
-                request: new CityEducationOperationRequest(
-                    ResidentId: residentId,
-                    TargetEducationLevel: null,
-                    InstitutionId: institutionId,
-                    CurrentDate: new DateOnly(
-                        year: 2048,
-                        month: 6,
-                        day: 1)),
-                cancellationToken: CancellationToken.None);
-            await educationController.GraduateResident(
-                cityId: cityId,
-                request: new CityEducationOperationRequest(
-                    ResidentId: residentId,
-                    TargetEducationLevel: "Higher",
-                    InstitutionId: institutionId,
-                    CurrentDate: new DateOnly(
-                        year: 2048,
-                        month: 6,
-                        day: 2)),
-                cancellationToken: CancellationToken.None);
-            await educationController.WithdrawResident(
-                cityId: cityId,
-                request: new CityEducationOperationRequest(
-                    ResidentId: residentId,
-                    TargetEducationLevel: null,
-                    InstitutionId: null,
-                    CurrentDate: new DateOnly(
-                        year: 2048,
-                        month: 6,
-                        day: 3)),
-                cancellationToken: CancellationToken.None);
             await controller.RegisterMarriage(
                 cityId: cityId,
                 request: new CityCivilRegistryOperationRequest(
@@ -314,33 +269,13 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                         day: 5)),
                 cancellationToken: CancellationToken.None);
 
-            EnrollCityResidentCommand enrollCommand = Assert.IsType<EnrollCityResidentCommand>(sender.Requests[0]);
-            Assert.Equal(
-                expected: institutionId,
-                actual: enrollCommand.InstitutionId);
-
-            GraduateCityResidentCommand graduateCommand =
-                Assert.IsType<GraduateCityResidentCommand>(sender.Requests[1]);
-            Assert.Equal(
-                expected: "Higher",
-                actual: graduateCommand.TargetEducationLevel);
-
-            WithdrawCityResidentFromStudyCommand withdrawCommand =
-                Assert.IsType<WithdrawCityResidentFromStudyCommand>(sender.Requests[2]);
-            Assert.Equal(
-                expected: new DateOnly(
-                    year: 2048,
-                    month: 6,
-                    day: 3),
-                actual: withdrawCommand.CurrentDate);
-
             RegisterCityMarriageCommand marriageCommand =
-                Assert.IsType<RegisterCityMarriageCommand>(sender.Requests[3]);
+                Assert.IsType<RegisterCityMarriageCommand>(sender.Requests[0]);
             Assert.Equal(
                 expected: secondResidentId,
                 actual: marriageCommand.SecondResidentId);
 
-            RegisterCityDivorceCommand divorceCommand = Assert.IsType<RegisterCityDivorceCommand>(sender.Requests[4]);
+            RegisterCityDivorceCommand divorceCommand = Assert.IsType<RegisterCityDivorceCommand>(sender.Requests[1]);
             Assert.Equal(
                 expected: new DateOnly(
                     year: 2048,

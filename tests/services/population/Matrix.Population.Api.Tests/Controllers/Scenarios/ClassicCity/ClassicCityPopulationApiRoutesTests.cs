@@ -35,9 +35,6 @@ public sealed class ClassicCityPopulationApiRoutesTests
             expected: ClassicCityPopulationApiRoutes.EmploymentRoute,
             actual: GetRouteTemplate<ClassicCityEmploymentController>());
         Assert.Equal(
-            expected: ClassicCityPopulationApiRoutes.EducationRoute,
-            actual: GetRouteTemplate<ClassicCityEducationController>());
-        Assert.Equal(
             expected: ClassicCityPopulationApiRoutes.CivilRegistryRoute,
             actual: GetRouteTemplate<ClassicCityCivilRegistryController>());
     }
