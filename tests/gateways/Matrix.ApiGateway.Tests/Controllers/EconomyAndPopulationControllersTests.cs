@@ -403,13 +403,6 @@ namespace Matrix.ApiGateway.Tests.Controllers
                 throw new NotSupportedException();
             }
 
-            public Task<CityEducationCatalogDto> GetCityEducationCatalogAsync(
-                Guid cityId,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
             public Task<CityEmploymentOperationResultDto> HireCityResidentAsync(
                 Guid cityId,
                 CityEmploymentOperationRequest request,
@@ -429,30 +422,6 @@ namespace Matrix.ApiGateway.Tests.Controllers
             public Task<CityEmploymentOperationResultDto> RetireCityResidentAsync(
                 Guid cityId,
                 CityEmploymentOperationRequest request,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
-            public Task<CityEducationOperationResultDto> EnrollCityResidentAsync(
-                Guid cityId,
-                CityEducationOperationRequest request,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
-            public Task<CityEducationOperationResultDto> GraduateCityResidentAsync(
-                Guid cityId,
-                CityEducationOperationRequest request,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotSupportedException();
-            }
-
-            public Task<CityEducationOperationResultDto> WithdrawCityResidentFromStudyAsync(
-                Guid cityId,
-                CityEducationOperationRequest request,
                 CancellationToken cancellationToken = default)
             {
                 throw new NotSupportedException();
