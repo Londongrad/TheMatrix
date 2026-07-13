@@ -1,4 +1,5 @@
 using Matrix.Education.Application.Progression;
+using Matrix.Simulation.Primitives;
 
 namespace Matrix.Education.Application.Abstractions
 {
@@ -8,6 +9,8 @@ namespace Matrix.Education.Application.Abstractions
     /// </summary>
     public interface IEducationProgressionBatchProcessor
     {
+        SimulationRuntimeKey RuntimeKey { get; }
+
         Task<EducationProgressionBatchResult> ProcessAsync(
             EducationProgressionBatch batch,
             CancellationToken cancellationToken = default);

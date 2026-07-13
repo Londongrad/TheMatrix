@@ -2,6 +2,7 @@ using System.Data;
 using Matrix.Education.Application.Abstractions;
 using Matrix.Education.Domain.Progression;
 using Matrix.Education.Domain.Simulation;
+using Matrix.Simulation.Primitives;
 using MediatR;
 
 namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
@@ -9,7 +10,7 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
     public sealed class AdvanceEducationProgressionCommandHandler(
         IEducationProgressionCheckpointRepository checkpointRepository,
         IEducationSimulationDeletionRepository deletionRepository,
-        IEducationProgressionBatchProcessor batchProcessor,
+        EducationProgressionBatchProcessorRegistry batchProcessorRegistry,
         IEducationUnitOfWork unitOfWork,
         TimeProvider timeProvider)
         : IRequestHandler<AdvanceEducationProgressionCommand, AdvanceEducationProgressionResult>
@@ -19,7 +20,11 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
             CancellationToken cancellationToken)
         {
             var simulationHostId = new SimulationHostId(request.SimulationHostId);
+            var runtimeKey = new SimulationRuntimeKey(
+                scenarioKey: new SimulationScenarioKey(request.ScenarioKey),
+                hostTypeKey: new SimulationHostTypeKey(request.HostTypeKey));
             EducationProgressionBatch batch = EducationProgressionBatch.Create(
+                runtimeKey: runtimeKey,
                 simulationHostId: simulationHostId,
                 tickId: request.TickId,
                 fromSimTimeUtc: request.FromSimTimeUtc,
@@ -57,6 +62,8 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
                     return Skipped(AdvanceEducationProgressionStatus.OutOfOrder);
             }
 
+            IEducationProgressionBatchProcessor batchProcessor =
+                batchProcessorRegistry.Resolve(batch.RuntimeKey);
             EducationProgressionBatchResult batchResult = await batchProcessor.ProcessAsync(
                 batch: batch,
                 cancellationToken: cancellationToken);

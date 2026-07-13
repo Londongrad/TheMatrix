@@ -1,4 +1,5 @@
 using System.Reflection;
+using Matrix.Education.Application.Progression;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Education.Application
@@ -10,6 +11,7 @@ namespace Matrix.Education.Application
             Assembly assembly = typeof(DependencyInjection).Assembly;
 
             services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
+            services.AddScoped<EducationProgressionBatchProcessorRegistry>();
         }
     }
 }

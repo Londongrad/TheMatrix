@@ -4,6 +4,7 @@ using Matrix.Education.Application.Progression;
 using Matrix.Education.Application.Progression.AdvanceEducationProgression;
 using Matrix.Education.Domain.Progression;
 using Matrix.Education.Domain.Simulation;
+using Matrix.Simulation.Primitives;
 using Xunit;
 
 namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgression
@@ -171,7 +172,7 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
             return new AdvanceEducationProgressionCommandHandler(
                 checkpointRepository: repository,
                 deletionRepository: deletionRepository ?? new DeletionRepositoryStub(),
-                batchProcessor: processor,
+                batchProcessorRegistry: new EducationProgressionBatchProcessorRegistry([processor]),
                 unitOfWork: unitOfWork,
                 timeProvider: new FixedTimeProvider(UpdatedAtUtc));
         }
@@ -183,6 +184,8 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
         {
             return new AdvanceEducationProgressionCommand(
                 SimulationHostId: HostId,
+                ScenarioKey: "classic-city",
+                HostTypeKey: "city",
                 TickId: tickId,
                 FromSimTimeUtc: fromUtc ?? FromUtc,
                 ToSimTimeUtc: toUtc ?? ToUtc);
@@ -225,6 +228,10 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
 
         private sealed class BatchProcessorStub : IEducationProgressionBatchProcessor
         {
+            public SimulationRuntimeKey RuntimeKey { get; } = new(
+                scenarioKey: new SimulationScenarioKey("classic-city"),
+                hostTypeKey: new SimulationHostTypeKey("city"));
+
             public EducationProgressionBatchResult Result { get; } = new(
                 StudentProfilesEvaluated: 1000,
                 EnrollmentsStarted: 20,

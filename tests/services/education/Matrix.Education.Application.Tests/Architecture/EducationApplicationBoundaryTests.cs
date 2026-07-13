@@ -12,7 +12,8 @@ namespace Matrix.Education.Application.Tests.Architecture
             BoundedContextDependencyRule.AssertOnlyReferencesMatrixAssemblies(
                 assembly: typeof(AdvanceEducationProgressionCommand).Assembly,
                 "Matrix.BuildingBlocks.Application",
-                "Matrix.Education.Domain");
+                "Matrix.Education.Domain",
+                "Matrix.Simulation.Primitives");
         }
     }
 }

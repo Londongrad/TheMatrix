@@ -1,32 +1,42 @@
 using Matrix.Education.Domain.Simulation;
+using Matrix.Simulation.Primitives;
 
 namespace Matrix.Education.Application.Progression
 {
     public sealed record EducationProgressionBatch
     {
         private EducationProgressionBatch(
+            SimulationRuntimeKey runtimeKey,
             SimulationHostId simulationHostId,
             long tickId,
             DateTimeOffset fromSimTimeUtc,
             DateTimeOffset toSimTimeUtc)
         {
+            RuntimeKey = runtimeKey;
             SimulationHostId = simulationHostId;
             TickId = tickId;
             FromSimTimeUtc = fromSimTimeUtc;
             ToSimTimeUtc = toSimTimeUtc;
         }
 
+        public SimulationRuntimeKey RuntimeKey { get; }
         public SimulationHostId SimulationHostId { get; }
         public long TickId { get; }
         public DateTimeOffset FromSimTimeUtc { get; }
         public DateTimeOffset ToSimTimeUtc { get; }
 
         public static EducationProgressionBatch Create(
+            SimulationRuntimeKey runtimeKey,
             SimulationHostId simulationHostId,
             long tickId,
             DateTimeOffset fromSimTimeUtc,
             DateTimeOffset toSimTimeUtc)
         {
+            if (runtimeKey.IsEmpty)
+                throw new ArgumentException(
+                    message: "Education progression requires a simulation runtime key.",
+                    paramName: nameof(runtimeKey));
+
             if (tickId < 0)
                 throw new ArgumentOutOfRangeException(
                     paramName: nameof(tickId),
@@ -41,6 +51,7 @@ namespace Matrix.Education.Application.Progression
                     paramName: nameof(toSimTimeUtc));
 
             return new EducationProgressionBatch(
+                runtimeKey: runtimeKey,
                 simulationHostId: simulationHostId,
                 tickId: tickId,
                 fromSimTimeUtc: fromSimTimeUtc,
