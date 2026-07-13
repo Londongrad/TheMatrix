@@ -56,7 +56,7 @@ namespace Matrix.Education.Application.Enrollments.EnrollStudent
                     [residentId],
                     cancellationToken))
                .SingleOrDefault();
-            if (student is null)
+            if (student is null || student.SimulationHostId != simulationHostId)
                 return Result(EnrollStudentStatus.StudentNotFound);
             if (!student.IsAlive || !student.IsActive)
                 return Result(EnrollStudentStatus.StudentUnavailable);

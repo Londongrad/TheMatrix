@@ -100,6 +100,27 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
         }
 
         [Fact]
+        public async Task Handle_StudentFromAnotherSimulation_ReturnsNotFound()
+        {
+            StudentProfile foreignProfile = StudentProfileSynchronizationTestData.CreateProfile(
+                residentId: ResidentId,
+                sourceRevision: 1,
+                simulationHostId: Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+            var institutionRepository = new EducationInstitutionRepositoryStub(CreateInstitution(2));
+            EnrollStudentCommandHandler handler = CreateHandler(
+                foreignProfile,
+                institutionRepository,
+                new StudentEnrollmentRepositoryStub());
+
+            EnrollStudentResult result = await handler.Handle(
+                CreateCommand(Guid.NewGuid()),
+                CancellationToken.None);
+
+            Assert.Equal(EnrollStudentStatus.StudentNotFound, result.Status);
+            Assert.Equal(0, institutionRepository.GetCallCount);
+        }
+
+        [Fact]
         public async Task Handle_FullInstitution_DoesNotCreateEnrollment()
         {
             EducationInstitution institution = CreateInstitution(capacity: 1);
