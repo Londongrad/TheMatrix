@@ -4,6 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\services\education\Matrix.Education.Contracts\Matrix.Education.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\economy\Matrix.Economy.Contracts\Matrix.Economy.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\resources\Matrix.Resources.Contracts\Matrix.Resources.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\simulationcore\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>

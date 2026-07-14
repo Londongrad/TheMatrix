@@ -40,6 +40,7 @@ namespace Matrix.PermissionCatalog.Tests
                 expectedSpan:
                 [
                     "Economy",
+                    "Education",
                     "Identity",
                     "Population",
                     "Resources",
@@ -56,6 +57,11 @@ namespace Matrix.PermissionCatalog.Tests
                .Select(x => x.Key)
                .ToArray();
 
+            Assert.Contains(
+                collection: keys,
+                filter: key => key.StartsWith(
+                    value: "education.",
+                    comparisonType: StringComparison.Ordinal));
             Assert.Contains(
                 collection: keys,
                 filter: key => key.StartsWith(
