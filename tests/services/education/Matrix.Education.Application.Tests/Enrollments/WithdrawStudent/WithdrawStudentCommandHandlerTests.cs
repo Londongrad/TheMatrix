@@ -24,11 +24,16 @@ namespace Matrix.Education.Application.Tests.Enrollments.WithdrawStudent
             StudentEnrollment enrollment = CreateEnrollment(institution.EducationInstitutionId);
             var institutionRepository = new EducationInstitutionRepositoryStub(institution);
             var unitOfWork = new EducationUnitOfWorkStub();
+            StudentProfile student = CreateStudent();
+            var outboxWriter = new EducationStudentParticipationOutboxWriterStub();
             var handler = new WithdrawStudentCommandHandler(
+                new StudentProfileRepositoryStub([student]),
                 institutionRepository,
                 new StudentEnrollmentRepositoryStub(enrollment),
                 new EducationSimulationDeletionRepositoryStub(),
-                unitOfWork);
+                outboxWriter,
+                unitOfWork,
+                new EducationFixedTimeProvider(StudentProfileSynchronizationTestData.SynchronizedAtUtc));
 
             WithdrawStudentResult result = await handler.Handle(
                 CreateCommand(),
@@ -39,6 +44,8 @@ namespace Matrix.Education.Application.Tests.Enrollments.WithdrawStudent
             Assert.Equal(EnrollmentStatus.Withdrawn, enrollment.Status);
             Assert.Equal(new DateOnly(2048, 5, 4), enrollment.ClosedOn);
             Assert.Equal(0, institution.CurrentEnrollmentCount);
+            Assert.Equal(1, student.ParticipationRevision);
+            Assert.False(Assert.Single(Assert.Single(outboxWriter.Batches).Students).IsEnrolled);
             Assert.Equal(1, unitOfWork.SaveCount);
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
         }
@@ -49,10 +56,13 @@ namespace Matrix.Education.Application.Tests.Enrollments.WithdrawStudent
             var institutionRepository = new EducationInstitutionRepositoryStub(CreateInstitution());
             var unitOfWork = new EducationUnitOfWorkStub();
             var handler = new WithdrawStudentCommandHandler(
+                new StudentProfileRepositoryStub([CreateStudent()]),
                 institutionRepository,
                 new StudentEnrollmentRepositoryStub(),
                 new EducationSimulationDeletionRepositoryStub(),
-                unitOfWork);
+                new EducationStudentParticipationOutboxWriterStub(),
+                unitOfWork,
+                new EducationFixedTimeProvider(StudentProfileSynchronizationTestData.SynchronizedAtUtc));
 
             WithdrawStudentResult result = await handler.Handle(
                 CreateCommand(),
@@ -69,11 +79,14 @@ namespace Matrix.Education.Application.Tests.Enrollments.WithdrawStudent
             var enrollmentRepository = new StudentEnrollmentRepositoryStub(
                 CreateEnrollment(EducationInstitutionId.New()));
             var handler = new WithdrawStudentCommandHandler(
+                new StudentProfileRepositoryStub([CreateStudent()]),
                 new EducationInstitutionRepositoryStub((EducationInstitution?)null),
                 enrollmentRepository,
                 new EducationSimulationDeletionRepositoryStub(
                     StudentProfileSynchronizationTestData.SynchronizedAtUtc),
-                new EducationUnitOfWorkStub());
+                new EducationStudentParticipationOutboxWriterStub(),
+                new EducationUnitOfWorkStub(),
+                new EducationFixedTimeProvider(StudentProfileSynchronizationTestData.SynchronizedAtUtc));
 
             WithdrawStudentResult result = await handler.Handle(
                 CreateCommand(),
@@ -99,6 +112,18 @@ namespace Matrix.Education.Application.Tests.Enrollments.WithdrawStudent
                 name: "Central school",
                 kind: new EducationInstitutionKindKey("school"),
                 capacity: 10);
+        }
+
+        private static StudentProfile CreateStudent()
+        {
+            return StudentProfile.Register(
+                residentId: ResidentId,
+                simulationHostId: SimulationHostId,
+                birthDate: new DateOnly(2030, 5, 12),
+                isAlive: true,
+                isActive: true,
+                sourceRevision: 1,
+                synchronizedAtUtc: StudentProfileSynchronizationTestData.SynchronizedAtUtc);
         }
 
         private static StudentEnrollment CreateEnrollment(EducationInstitutionId institutionId)

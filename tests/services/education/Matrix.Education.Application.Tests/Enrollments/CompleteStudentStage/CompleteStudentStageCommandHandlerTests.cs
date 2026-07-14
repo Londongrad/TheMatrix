@@ -24,12 +24,15 @@ namespace Matrix.Education.Application.Tests.Enrollments.CompleteStudentStage
             Assert.True(institution.TryReserveSeats(1));
             StudentEnrollment enrollment = CreateEnrollment(institution.EducationInstitutionId);
             var unitOfWork = new EducationUnitOfWorkStub();
+            var outboxWriter = new EducationStudentParticipationOutboxWriterStub();
             var handler = new CompleteStudentStageCommandHandler(
                 new StudentProfileRepositoryStub([student]),
                 new EducationInstitutionRepositoryStub(institution),
                 new StudentEnrollmentRepositoryStub(enrollment),
                 new EducationSimulationDeletionRepositoryStub(),
-                unitOfWork);
+                outboxWriter,
+                unitOfWork,
+                new EducationFixedTimeProvider(StudentProfileSynchronizationTestData.SynchronizedAtUtc));
 
             CompleteStudentStageResult result = await handler.Handle(
                 CreateCommand(),
@@ -42,6 +45,8 @@ namespace Matrix.Education.Application.Tests.Enrollments.CompleteStudentStage
             Assert.Equal(new EducationStageKey("upper-secondary"), student.CompletedStage);
             Assert.Equal(new DateOnly(2048, 6, 30), student.CompletedStageOn);
             Assert.Equal(0, institution.CurrentEnrollmentCount);
+            Assert.Equal(1, student.ParticipationRevision);
+            Assert.False(Assert.Single(Assert.Single(outboxWriter.Batches).Students).IsEnrolled);
             Assert.Equal(1, unitOfWork.SaveCount);
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
         }
@@ -62,7 +67,9 @@ namespace Matrix.Education.Application.Tests.Enrollments.CompleteStudentStage
                 new EducationInstitutionRepositoryStub(institution),
                 new StudentEnrollmentRepositoryStub(enrollment),
                 new EducationSimulationDeletionRepositoryStub(),
-                unitOfWork);
+                new EducationStudentParticipationOutboxWriterStub(),
+                unitOfWork,
+                new EducationFixedTimeProvider(StudentProfileSynchronizationTestData.SynchronizedAtUtc));
 
             CompleteStudentStageResult result = await handler.Handle(
                 CreateCommand(),
@@ -83,7 +90,9 @@ namespace Matrix.Education.Application.Tests.Enrollments.CompleteStudentStage
                 new EducationInstitutionRepositoryStub(CreateInstitution()),
                 new StudentEnrollmentRepositoryStub(),
                 new EducationSimulationDeletionRepositoryStub(),
-                new EducationUnitOfWorkStub());
+                new EducationStudentParticipationOutboxWriterStub(),
+                new EducationUnitOfWorkStub(),
+                new EducationFixedTimeProvider(StudentProfileSynchronizationTestData.SynchronizedAtUtc));
 
             CompleteStudentStageResult result = await handler.Handle(
                 CreateCommand(),

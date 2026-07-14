@@ -23,11 +23,13 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
             var institutionRepository = new EducationInstitutionRepositoryStub(institution);
             var enrollmentRepository = new StudentEnrollmentRepositoryStub();
             var unitOfWork = new EducationUnitOfWorkStub();
+            var outboxWriter = new EducationStudentParticipationOutboxWriterStub();
             EnrollStudentCommandHandler handler = CreateHandler(
                 profile,
                 institutionRepository,
                 enrollmentRepository,
-                unitOfWork: unitOfWork);
+                unitOfWork: unitOfWork,
+                outboxWriter: outboxWriter);
 
             EnrollStudentResult result = await handler.Handle(
                 CreateCommand(institution.EducationInstitutionId.Value),
@@ -39,6 +41,8 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
             Assert.Equal(new ResidentId(ResidentId), added.ResidentId);
             Assert.Equal(new EducationStageKey("upper-secondary"), added.Stage);
             Assert.Equal(1, institution.CurrentEnrollmentCount);
+            Assert.Equal(1, profile.ParticipationRevision);
+            Assert.True(Assert.Single(Assert.Single(outboxWriter.Batches).Students).IsEnrolled);
             Assert.Equal(1, unitOfWork.SaveCount);
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
         }
@@ -146,14 +150,19 @@ namespace Matrix.Education.Application.Tests.Enrollments.EnrollStudent
             StudentProfile profile,
             EducationInstitutionRepositoryStub institutionRepository,
             StudentEnrollmentRepositoryStub enrollmentRepository,
-            EducationUnitOfWorkStub? unitOfWork = null)
+            EducationUnitOfWorkStub? unitOfWork = null,
+            EducationStudentParticipationOutboxWriterStub? outboxWriter = null)
         {
             return new EnrollStudentCommandHandler(
                 studentProfileRepository: new StudentProfileRepositoryStub([profile]),
                 institutionRepository: institutionRepository,
                 enrollmentRepository: enrollmentRepository,
                 deletionRepository: new EducationSimulationDeletionRepositoryStub(),
-                unitOfWork: unitOfWork ?? new EducationUnitOfWorkStub());
+                participationOutboxWriter:
+                    outboxWriter ?? new EducationStudentParticipationOutboxWriterStub(),
+                unitOfWork: unitOfWork ?? new EducationUnitOfWorkStub(),
+                timeProvider: new EducationFixedTimeProvider(
+                    StudentProfileSynchronizationTestData.SynchronizedAtUtc));
         }
 
         private static EnrollStudentCommand CreateCommand(Guid institutionId)

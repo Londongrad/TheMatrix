@@ -1,4 +1,5 @@
 using Matrix.Education.Application.Abstractions;
+using Matrix.Education.Contracts.Events;
 using Matrix.Education.Domain.Enrollments;
 using Matrix.Education.Domain.Institutions;
 using Matrix.Education.Domain.Simulation;
@@ -6,6 +7,25 @@ using Matrix.Education.Domain.Students;
 
 namespace Matrix.Education.Application.Tests.TestSupport
 {
+    internal sealed class EducationStudentParticipationOutboxWriterStub
+        : IEducationStudentParticipationOutboxWriter
+    {
+        internal List<EducationStudentParticipationBatchV1> Batches { get; } = [];
+
+        public Task AddAsync(
+            EducationStudentParticipationBatchV1 batch,
+            CancellationToken cancellationToken = default)
+        {
+            Batches.Add(batch);
+            return Task.CompletedTask;
+        }
+    }
+
+    internal sealed class EducationFixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => utcNow;
+    }
+
     internal sealed class EducationInstitutionRepositoryStub : IEducationInstitutionRepository
     {
         private readonly Dictionary<EducationInstitutionId, EducationInstitution> _institutions;

@@ -1,5 +1,6 @@
 using System.Data;
 using Matrix.Education.Application.Abstractions;
+using Matrix.Education.Application.Integration;
 using Matrix.Education.Domain.Enrollments;
 using Matrix.Education.Domain.Institutions;
 using Matrix.Education.Domain.Programs;
@@ -14,7 +15,9 @@ namespace Matrix.Education.Application.Enrollments.EnrollStudent
         IEducationInstitutionRepository institutionRepository,
         IStudentEnrollmentRepository enrollmentRepository,
         IEducationSimulationDeletionRepository deletionRepository,
-        IEducationUnitOfWork unitOfWork)
+        IEducationStudentParticipationOutboxWriter participationOutboxWriter,
+        IEducationUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<EnrollStudentCommand, EnrollStudentResult>
     {
         public Task<EnrollStudentResult> Handle(
@@ -89,6 +92,14 @@ namespace Matrix.Education.Application.Enrollments.EnrollStudent
                 stage: stage,
                 enrolledOn: enrolledOn);
             await enrollmentRepository.AddAsync(enrollment, cancellationToken);
+            student.RecordParticipationChange();
+            await participationOutboxWriter.AddChangesAsync(
+                simulationHostId: simulationHostId.Value,
+                snapshotDate: enrolledOn,
+                occurredAtUtc: timeProvider.GetUtcNow(),
+                correlationId: $"education:enrollment:{enrollment.EnrollmentId.Value}:started",
+                changes: [EducationStudentParticipationChange.Capture(student, enrollment, institution)],
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new EnrollStudentResult(
