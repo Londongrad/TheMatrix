@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Education.Application.Authorization.Permissions;
 using MediatR;
 
 namespace Matrix.Education.Application.Enrollments.EnrollStudent
@@ -8,5 +10,8 @@ namespace Matrix.Education.Application.Enrollments.EnrollStudent
         Guid InstitutionId,
         string Stage,
         DateOnly EnrolledOn)
-        : IRequest<EnrollStudentResult>;
+        : IRequest<EnrollStudentResult>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EducationEnrollmentsManage;
+    }
 }
