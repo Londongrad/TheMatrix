@@ -2,6 +2,7 @@ using MassTransit;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Education.Application.Abstractions;
+using Matrix.Education.Infrastructure.Outbox;
 using Matrix.Education.Infrastructure.Persistence;
 using Matrix.Education.Infrastructure.Persistence.Queries;
 using Matrix.Education.Infrastructure.Persistence.Repositories;
@@ -59,6 +60,8 @@ namespace Matrix.Education.Infrastructure
                 EducationProgressionCheckpointRepository>();
             services.AddScoped<IEducationSimulationDeletionRepository,
                 EducationSimulationDeletionRepository>();
+            services.AddScoped<IEducationStudentParticipationOutboxWriter,
+                EducationStudentParticipationOutboxWriter>();
             services.AddScoped<IEducationUnitOfWork, EducationUnitOfWork>();
 
             services.AddRabbitMqOptions(configuration);

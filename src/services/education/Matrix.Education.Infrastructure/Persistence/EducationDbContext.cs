@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.Education.Domain.Enrollments;
 using Matrix.Education.Domain.Institutions;
 using Matrix.Education.Domain.Progression;
@@ -15,12 +17,14 @@ namespace Matrix.Education.Infrastructure.Persistence
         public DbSet<StudentEnrollment> Enrollments => Set<StudentEnrollment>();
         public DbSet<EducationProgressionCheckpoint> ProgressionCheckpoints =>
             Set<EducationProgressionCheckpoint>();
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
         public DbSet<EducationSimulationDeletionState> SimulationDeletionStates =>
             Set<EducationSimulationDeletionState>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.AddOutboxMessageModel();
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(EducationDbContext).Assembly);
         }
     }

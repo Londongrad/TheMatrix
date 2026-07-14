@@ -15,6 +15,7 @@ namespace Matrix.Education.Infrastructure.Tests.Architecture
                 "Matrix.BuildingBlocks.Domain",
                 "Matrix.BuildingBlocks.Infrastructure",
                 "Matrix.Education.Application",
+                "Matrix.Education.Contracts",
                 "Matrix.Education.Domain");
         }
     }
