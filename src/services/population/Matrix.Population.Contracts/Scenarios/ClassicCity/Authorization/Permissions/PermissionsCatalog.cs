@@ -22,12 +22,7 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Authorization.Permis
                 Key: PermissionKeys.PopulationEmploymentManage,
                 Service: PopulationService,
                 Group: "Employment",
-                Description: "Manage hiring, firing, and retirement inside Classic City employment services."),
-            new(
-                Key: PermissionKeys.PopulationEducationManage,
-                Service: PopulationService,
-                Group: "Education",
-                Description: "Manage enrollment, graduation, and study withdrawal inside Classic City education services.")
+                Description: "Manage hiring, firing, and retirement inside Classic City employment services.")
         ];
     }
 }

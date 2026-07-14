@@ -285,7 +285,7 @@ export default function ClassicCityLayout() {
                 requiredPermissions: [
                     PermissionKeys.SimulationCoreClassicCityRead,
                     PermissionKeys.PopulationPeopleRead,
-                    PermissionKeys.PopulationEducationManage,
+                    PermissionKeys.EducationEnrollmentsManage,
                 ],
                 requiredPermissionsMode: "all",
                 permissionDisplay: "disable",

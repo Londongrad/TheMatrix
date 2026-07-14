@@ -8,6 +8,5 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Authorization.Perm
         public const string PopulationPeopleInitialize = ContractPermissionKeys.PopulationPeopleInitialize;
         public const string PopulationCivilRegistryManage = ContractPermissionKeys.PopulationCivilRegistryManage;
         public const string PopulationEmploymentManage = ContractPermissionKeys.PopulationEmploymentManage;
-        public const string PopulationEducationManage = ContractPermissionKeys.PopulationEducationManage;
     }
 }

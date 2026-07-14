@@ -42,7 +42,7 @@ export const PermissionKeys = {
     PopulationPeopleRead: "population.people.read",
     PopulationCivilRegistryManage: "population.civil-registry.manage",
     PopulationEmploymentManage: "population.employment.manage",
-    PopulationEducationManage: "population.education.manage",
+    EducationEnrollmentsManage: "education.enrollments.manage",
     PopulationPersonResurrect: "population.person.resurrect",
     PopulationPersonKill: "population.person.kill",
     EconomyBudgetRead: "economy.budget.read",

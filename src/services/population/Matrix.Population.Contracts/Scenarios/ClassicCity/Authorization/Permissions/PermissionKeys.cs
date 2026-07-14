@@ -5,6 +5,5 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Authorization.Permis
         public const string PopulationPeopleInitialize = "population.people.initialize";
         public const string PopulationCivilRegistryManage = "population.civil-registry.manage";
         public const string PopulationEmploymentManage = "population.employment.manage";
-        public const string PopulationEducationManage = "population.education.manage";
     }
 }

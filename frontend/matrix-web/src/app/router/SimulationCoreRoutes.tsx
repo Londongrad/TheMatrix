@@ -148,7 +148,7 @@ export const classicCityRoutes = (
                     permissions={[
                         PermissionKeys.SimulationCoreClassicCityRead,
                         PermissionKeys.PopulationPeopleRead,
-                        PermissionKeys.PopulationEducationManage,
+                        PermissionKeys.EducationEnrollmentsManage,
                     ]}
                     permissionMatchMode="all"
                 >
