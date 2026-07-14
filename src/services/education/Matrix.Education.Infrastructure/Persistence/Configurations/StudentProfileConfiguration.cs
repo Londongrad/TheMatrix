@@ -79,6 +79,11 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
                .HasDefaultValue(0L)
                .IsRequired();
 
+            builder.Property(x => x.ParticipationRevision)
+               .HasColumnName("participation_revision")
+               .HasDefaultValue(0L)
+               .IsRequired();
+
             builder.Property(x => x.LastSynchronizedAtUtc)
                .HasColumnName("last_synchronized_at_utc")
                .IsRequired();

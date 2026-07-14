@@ -38,7 +38,21 @@ namespace Matrix.Education.Domain.Tests.Students
             Assert.True(profile.IsAlive);
             Assert.True(profile.IsActive);
             Assert.Equal(10, profile.LastSourceRevision);
+            Assert.Equal(0, profile.ParticipationRevision);
             Assert.Equal(SynchronizedAtUtc, profile.LastSynchronizedAtUtc);
+        }
+
+        [Fact]
+        public void RecordParticipationChange_IncrementsEducationOwnedRevision()
+        {
+            StudentProfile profile = CreateProfile();
+
+            long firstRevision = profile.RecordParticipationChange();
+            long secondRevision = profile.RecordParticipationChange();
+
+            Assert.Equal(1, firstRevision);
+            Assert.Equal(2, secondRevision);
+            Assert.Equal(2, profile.ParticipationRevision);
         }
 
         [Fact]

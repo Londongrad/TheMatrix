@@ -31,6 +31,7 @@ namespace Matrix.Education.Domain.Students
             CompletedStageOn = completedStageOn;
             LastSourceRevision = EnsureRevision(lastSourceRevision);
             LastLifecycleRevision = EnsureRevision(lastLifecycleRevision);
+            ParticipationRevision = 0;
             LastSynchronizedAtUtc = EnsureUtc(lastSynchronizedAtUtc);
         }
 
@@ -48,6 +49,7 @@ namespace Matrix.Education.Domain.Students
         public DateOnly? CompletedStageOn { get; private set; }
         public long LastSourceRevision { get; private set; }
         public long LastLifecycleRevision { get; private set; }
+        public long ParticipationRevision { get; private set; }
         public DateTimeOffset LastSynchronizedAtUtc { get; private set; }
 
         public static StudentProfile Register(
@@ -149,6 +151,12 @@ namespace Matrix.Education.Domain.Students
 
             CompletedStage = stage;
             CompletedStageOn = completedOn;
+        }
+
+        public long RecordParticipationChange()
+        {
+            ParticipationRevision = checked(ParticipationRevision + 1);
+            return ParticipationRevision;
         }
 
         private bool TryAcceptSourceRevision(
