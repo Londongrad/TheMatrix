@@ -1,6 +1,8 @@
 using Matrix.Education.Application.Lifecycle.DeleteEducationSimulation;
 using Matrix.Education.Application.Institutions.SynchronizeEducationInstitutions;
 using Matrix.Education.Application.Students.SynchronizeStudentProfiles;
+using Matrix.Education.Application.Progression;
+using Matrix.Education.Application.Progression.AdvanceEducationProgression;
 using MediatR;
 
 namespace Matrix.Education.Integration.Tests.TestSupport
@@ -10,6 +12,7 @@ namespace Matrix.Education.Integration.Tests.TestSupport
         internal List<SynchronizeStudentProfilesCommand> ProfileCommands { get; } = [];
         internal List<SynchronizeEducationInstitutionsCommand> InstitutionCommands { get; } = [];
         internal List<DeleteEducationSimulationCommand> DeletionCommands { get; } = [];
+        internal List<AdvanceEducationProgressionCommand> ProgressionCommands { get; } = [];
 
         internal SynchronizeStudentProfilesResult ProfileResult { get; set; } = new(
             Status: SynchronizeStudentProfilesStatus.Applied,
@@ -26,6 +29,10 @@ namespace Matrix.Education.Integration.Tests.TestSupport
             UpdatedInstitutions: 0,
             IgnoredInstitutions: 0);
 
+        internal AdvanceEducationProgressionResult ProgressionResult { get; set; } = new(
+            Status: AdvanceEducationProgressionStatus.Applied,
+            BatchResult: EducationProgressionBatchResult.Empty);
+
         public Task<TResponse> Send<TResponse>(
             IRequest<TResponse> request,
             CancellationToken cancellationToken = default)
@@ -35,6 +42,7 @@ namespace Matrix.Education.Integration.Tests.TestSupport
                 SynchronizeStudentProfilesCommand command => RecordProfile(command),
                 SynchronizeEducationInstitutionsCommand command => RecordInstitutions(command),
                 DeleteEducationSimulationCommand command => RecordDeletion(command),
+                AdvanceEducationProgressionCommand command => RecordProgression(command),
                 _ => throw new NotSupportedException(request.GetType().FullName)
             };
 
@@ -102,6 +110,13 @@ namespace Matrix.Education.Integration.Tests.TestSupport
         {
             InstitutionCommands.Add(command);
             return InstitutionResult;
+        }
+
+        private AdvanceEducationProgressionResult RecordProgression(
+            AdvanceEducationProgressionCommand command)
+        {
+            ProgressionCommands.Add(command);
+            return ProgressionResult;
         }
     }
 }

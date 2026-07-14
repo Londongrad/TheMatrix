@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.Education.Integration.Consumers;
+using Matrix.Education.Integration.Scenarios.ClassicCity.Consumers;
 
 namespace Matrix.Education.Integration
 {
@@ -11,6 +12,8 @@ namespace Matrix.Education.Integration
             configurator.AddConsumer<SimulationEducationInstitutionProvisioningConsumer,
                 SimulationEducationInstitutionProvisioningConsumerDefinition>();
             configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
+            configurator.AddConsumer<ClassicCityEducationProgressionConsumer,
+                ClassicCityEducationProgressionConsumerDefinition>();
         }
     }
 }
