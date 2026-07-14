@@ -84,14 +84,30 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
 
             builder.HasOne<StudentProfile>()
                .WithMany()
-               .HasForeignKey(x => x.ResidentId)
-               .HasPrincipalKey(x => x.Id)
+               .HasForeignKey(x => new
+                {
+                    x.SimulationHostId,
+                    x.ResidentId
+                })
+               .HasPrincipalKey(x => new
+                {
+                    x.SimulationHostId,
+                    x.Id
+                })
                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne<EducationInstitution>()
                .WithMany()
-               .HasForeignKey(x => x.InstitutionId)
-               .HasPrincipalKey(x => x.Id)
+               .HasForeignKey(x => new
+                {
+                    x.SimulationHostId,
+                    x.InstitutionId
+                })
+               .HasPrincipalKey(x => new
+                {
+                    x.SimulationHostId,
+                    x.Id
+                })
                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(x => new

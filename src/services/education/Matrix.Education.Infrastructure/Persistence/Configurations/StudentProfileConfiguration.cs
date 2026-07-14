@@ -13,6 +13,11 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
             builder.ToTable("education_student_profiles");
 
             builder.HasKey(x => x.Id);
+            builder.HasAlternateKey(x => new
+            {
+                x.SimulationHostId,
+                x.Id
+            });
 
             builder.Property(x => x.Id)
                .HasConversion(

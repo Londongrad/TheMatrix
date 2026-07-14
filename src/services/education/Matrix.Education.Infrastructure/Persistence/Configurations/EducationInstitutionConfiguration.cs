@@ -23,6 +23,11 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
                 });
 
             builder.HasKey(x => x.Id);
+            builder.HasAlternateKey(x => new
+            {
+                x.SimulationHostId,
+                x.Id
+            });
 
             builder.Property(x => x.Id)
                .HasConversion(

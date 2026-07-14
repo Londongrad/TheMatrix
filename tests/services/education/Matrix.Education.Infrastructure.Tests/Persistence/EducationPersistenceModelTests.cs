@@ -88,6 +88,34 @@ namespace Matrix.Education.Infrastructure.Tests.Persistence
         }
 
         [Fact]
+        public void Enrollments_KeepProfileAndInstitutionInsideSimulationHost()
+        {
+            using EducationDbContext dbContext =
+                EducationInfrastructureTestSupport.CreateDbContext();
+            IEntityType entityType = dbContext.Model.FindEntityType(typeof(StudentEnrollment))!;
+
+            IForeignKey profileForeignKey = entityType.GetForeignKeys()
+               .Single(key => key.PrincipalEntityType.ClrType == typeof(StudentProfile));
+            IForeignKey institutionForeignKey = entityType.GetForeignKeys()
+               .Single(key => key.PrincipalEntityType.ClrType == typeof(EducationInstitution));
+
+            Assert.Equal(
+                new[]
+                {
+                    nameof(StudentEnrollment.SimulationHostId),
+                    nameof(StudentEnrollment.ResidentId)
+                },
+                profileForeignKey.Properties.Select(property => property.Name));
+            Assert.Equal(
+                new[]
+                {
+                    nameof(StudentEnrollment.SimulationHostId),
+                    nameof(StudentEnrollment.InstitutionId)
+                },
+                institutionForeignKey.Properties.Select(property => property.Name));
+        }
+
+        [Fact]
         public void Institutions_UseOptimisticConcurrencyForCapacityUpdates()
         {
             using EducationDbContext dbContext =
