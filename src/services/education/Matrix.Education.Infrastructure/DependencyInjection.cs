@@ -1,8 +1,11 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Education.Application.Abstractions;
 using Matrix.Education.Infrastructure.Outbox;
+using Matrix.Education.Infrastructure.Outbox.RabbitMq;
 using Matrix.Education.Infrastructure.Persistence;
 using Matrix.Education.Infrastructure.Persistence.Queries;
 using Matrix.Education.Infrastructure.Persistence.Repositories;
@@ -63,6 +66,8 @@ namespace Matrix.Education.Infrastructure
             services.AddScoped<IEducationStudentParticipationOutboxWriter,
                 EducationStudentParticipationOutboxWriter>();
             services.AddScoped<IEducationUnitOfWork, EducationUnitOfWork>();
+            services.AddOutbox<EducationDbContext>(configuration);
+            services.AddScoped<IOutboxMessagePublisher, EducationMassTransitOutboxMessagePublisher>();
 
             services.AddRabbitMqOptions(configuration);
             services.AddMassTransitEndpointHygieneOptions(configuration);
