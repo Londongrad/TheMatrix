@@ -1,5 +1,7 @@
 using System.Reflection;
 using Matrix.Education.Application.Progression;
+using Matrix.Education.Application.Abstractions;
+using Matrix.Education.Application.Scenarios.ClassicCity.Progression;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Education.Application
@@ -11,6 +13,10 @@ namespace Matrix.Education.Application
             Assembly assembly = typeof(DependencyInjection).Assembly;
 
             services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
+            services.AddSingleton<ClassicCityEducationProgressionPolicy>();
+            services.AddSingleton<ClassicCityEducationInstitutionSelectionPolicy>();
+            services.AddScoped<IEducationProgressionBatchProcessor,
+                ClassicCityEducationProgressionBatchProcessor>();
             services.AddScoped<EducationProgressionBatchProcessorRegistry>();
         }
     }

@@ -23,6 +23,7 @@ namespace Matrix.Education.Application.Tests.TestSupport
 
         internal int GetCallCount { get; private set; }
         internal int GetByIdsCallCount { get; private set; }
+        internal int ListCallCount { get; private set; }
         internal int ListActiveCallCount { get; private set; }
         internal int AddRangeCallCount { get; private set; }
         internal List<EducationInstitution> Added { get; } = [];
@@ -41,7 +42,16 @@ namespace Matrix.Education.Application.Tests.TestSupport
 
         public Task<IReadOnlyList<EducationInstitution>> ListAsync(
             SimulationHostId simulationHostId,
-            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+            CancellationToken cancellationToken = default)
+        {
+            ListCallCount++;
+            IReadOnlyList<EducationInstitution> institutions = _institutions.Values
+               .Where(institution => institution.SimulationHostId == simulationHostId)
+               .OrderBy(institution => institution.Name)
+               .ThenBy(institution => institution.EducationInstitutionId.Value)
+               .ToArray();
+            return Task.FromResult(institutions);
+        }
 
         public Task<IReadOnlyList<EducationInstitution>> ListActiveAsync(
             SimulationHostId simulationHostId,
@@ -88,6 +98,7 @@ namespace Matrix.Education.Application.Tests.TestSupport
     internal sealed class StudentEnrollmentRepositoryStub(StudentEnrollment? active = null)
         : IStudentEnrollmentRepository
     {
+        private readonly List<StudentEnrollment> _existing = active is null ? [] : [active];
         internal List<StudentEnrollment> Added { get; } = [];
         internal int GetActiveCallCount { get; private set; }
 
@@ -97,12 +108,25 @@ namespace Matrix.Education.Application.Tests.TestSupport
             CancellationToken cancellationToken = default)
         {
             GetActiveCallCount++;
-            return Task.FromResult(active);
+            StudentEnrollment? enrollment = _existing
+               .Concat(Added)
+               .SingleOrDefault(value => value.SimulationHostId == simulationHostId &&
+                                         value.ResidentId == residentId &&
+                                         value.IsActive);
+            return Task.FromResult(enrollment);
         }
 
         public Task<IReadOnlyList<StudentEnrollment>> ListActiveAsync(
             SimulationHostId simulationHostId,
-            CancellationToken cancellationToken = default) => throw new NotSupportedException();
+            CancellationToken cancellationToken = default)
+        {
+            IReadOnlyList<StudentEnrollment> enrollments = _existing
+               .Where(enrollment => enrollment.SimulationHostId == simulationHostId &&
+                                    enrollment.IsActive)
+               .OrderBy(enrollment => enrollment.EnrollmentId.Value)
+               .ToArray();
+            return Task.FromResult(enrollments);
+        }
 
         public Task AddAsync(
             StudentEnrollment enrollment,
