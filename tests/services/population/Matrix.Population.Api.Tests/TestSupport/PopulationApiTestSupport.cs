@@ -214,19 +214,6 @@ namespace Matrix.Population.Api.Tests.TestSupport
                 ]);
         }
 
-        public static CityEducationCatalogDto CreateEducationCatalogDto()
-        {
-            return new CityEducationCatalogDto(
-                CurrentInstitutions:
-                [
-                    new CityEducationInstitutionDto(
-                        InstitutionId: Guid.Parse("0df72f31-a3a9-4317-9f7f-078d1814eb95"),
-                        InstitutionAnchorId: Guid.Parse("455918de-4795-4960-a1e8-cd1818c60168"),
-                        EducationLevel: "Higher",
-                        ResidentCount: 11)
-                ]);
-        }
-
         public static CityPopulationBootstrapSummaryDto CreateBootstrapSummaryDto(Guid cityId)
         {
             return new CityPopulationBootstrapSummaryDto(
@@ -250,21 +237,6 @@ namespace Matrix.Population.Api.Tests.TestSupport
                     day: 1,
                     hour: 10,
                     minute: 30,
-                    second: 0,
-                    offset: TimeSpan.Zero),
-                Resident: CreateResidentDetailsDto());
-        }
-
-        public static CityEducationOperationResultDto CreateEducationOperationResultDto(string action = "Enroll")
-        {
-            return new CityEducationOperationResultDto(
-                Action: action,
-                RecordedAtUtc: new DateTimeOffset(
-                    year: 2048,
-                    month: 6,
-                    day: 1,
-                    hour: 10,
-                    minute: 45,
                     second: 0,
                     offset: TimeSpan.Zero),
                 Resident: CreateResidentDetailsDto());

@@ -10,6 +10,5 @@ public static class ClassicCityPopulationApiRoutes
     public const string CityRoute = CitiesRoute + "/{cityId:guid}";
     public const string ResidentsRoute = CityRoute + "/residents";
     public const string EmploymentRoute = CityRoute + "/employment";
-    public const string EducationRoute = CityRoute + "/education";
     public const string CivilRegistryRoute = CityRoute + "/civil-registry";
 }
