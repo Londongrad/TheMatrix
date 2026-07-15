@@ -59,10 +59,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         offset: TimeSpan.Zero))
             };
             var householdWriteRepository = new FakeHouseholdWriteRepository();
+            var educationParticipationProjectionRepository =
+                new FakeEducationParticipationProjectionRepository();
             var unitOfWork = new FakeUnitOfWork();
             DeleteCityPopulationDataCommandHandler handler = CreateHandler(
                 deletionStateRepository: deletionStateRepository,
                 householdWriteRepository: householdWriteRepository,
+                educationParticipationProjectionRepository: educationParticipationProjectionRepository,
                 unitOfWork: unitOfWork);
 
             DeleteCityPopulationDataResult result = await handler.Handle(
@@ -75,6 +78,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: 0,
                 actual: householdWriteRepository.DeleteByCityCalls);
+            Assert.Empty(
+                educationParticipationProjectionRepository.DeletedSimulationHostIds);
             Assert.Equal(
                 expected: 0,
                 actual: unitOfWork.SaveChangesCalls);
@@ -85,6 +90,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         {
             var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
             var householdWriteRepository = new FakeHouseholdWriteRepository();
+            var educationParticipationProjectionRepository =
+                new FakeEducationParticipationProjectionRepository();
             var archiveStateRepository = new FakeCityPopulationArchiveStateRepository
             {
                 State = CityPopulationArchiveState.Create(
@@ -165,6 +172,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var unitOfWork = new FakeUnitOfWork();
             DeleteCityPopulationDataCommandHandler handler = CreateHandler(
                 householdWriteRepository: householdWriteRepository,
+                educationParticipationProjectionRepository: educationParticipationProjectionRepository,
                 archiveStateRepository: archiveStateRepository,
                 costOfLivingStateRepository: costOfLivingStateRepository,
                 essentialsStateRepository: essentialsStateRepository,
@@ -193,6 +201,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: 1,
                 actual: householdWriteRepository.DeleteByCityCalls);
+            Assert.Equal(
+                expected: cityId,
+                actual: Assert.Single(
+                    educationParticipationProjectionRepository.DeletedSimulationHostIds));
             Assert.Equal(
                 expected: 1,
                 actual: archiveStateRepository.DeleteByCityCalls);
@@ -310,6 +322,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
         private static DeleteCityPopulationDataCommandHandler CreateHandler(
             FakeHouseholdWriteRepository? householdWriteRepository = null,
+            FakeEducationParticipationProjectionRepository? educationParticipationProjectionRepository = null,
             FakeCityPopulationArchiveStateRepository? archiveStateRepository = null,
             FakeCityPopulationCostOfLivingStateRepository? costOfLivingStateRepository = null,
             FakeCityPopulationEssentialsStateRepository? essentialsStateRepository = null,
@@ -331,6 +344,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         {
             return new DeleteCityPopulationDataCommandHandler(
                 householdWriteRepository: householdWriteRepository ?? new FakeHouseholdWriteRepository(),
+                educationParticipationProjectionRepository: educationParticipationProjectionRepository ??
+                                                            new FakeEducationParticipationProjectionRepository(),
                 cityPopulationArchiveStateRepository: archiveStateRepository ??
                                                       new FakeCityPopulationArchiveStateRepository(),
                 cityPopulationCostOfLivingStateRepository: costOfLivingStateRepository ??

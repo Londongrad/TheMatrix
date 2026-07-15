@@ -841,6 +841,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 _projections = [];
 
             public int UpsertCallCount { get; private set; }
+            public List<Guid> DeletedSimulationHostIds { get; } = [];
             public IReadOnlyCollection<EducationParticipationProjection> Projections =>
                 _projections.Values;
 
@@ -883,6 +884,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 Guid simulationHostId,
                 CancellationToken cancellationToken = default)
             {
+                DeletedSimulationHostIds.Add(simulationHostId);
                 foreach (var key in _projections.Keys
                              .Where(key => key.HostId == simulationHostId)
                              .ToArray())

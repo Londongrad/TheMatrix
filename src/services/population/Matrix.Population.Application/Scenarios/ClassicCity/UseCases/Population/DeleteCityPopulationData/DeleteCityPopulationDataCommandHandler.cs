@@ -9,6 +9,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 {
     public sealed class DeleteCityPopulationDataCommandHandler(
         IHouseholdWriteRepository householdWriteRepository,
+        IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
         ICityPopulationEssentialsStateRepository cityPopulationEssentialsStateRepository,
@@ -58,6 +59,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     if (deletionState is not null && request.DeletedAtUtc < deletionState.DeletedAtUtc)
                         return new DeleteCityPopulationDataResult(DeleteCityPopulationDataStatus.Stale);
 
+                    await educationParticipationProjectionRepository.DeleteBySimulationHostAsync(
+                        simulationHostId: cityId.Value,
+                        cancellationToken: ct);
                     await householdWriteRepository.DeleteByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
