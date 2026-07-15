@@ -122,13 +122,15 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         cityId: CityId.From(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")))
                 ]
             };
+            var educationProjectionRepository = new FakeEducationParticipationProjectionRepository();
 
             AdvanceCityPopulationWorkingSet workingSet = await LoadAsync(
                 personReadRepository: personReadRepository,
                 householdWriteRepository: householdWriteRepository,
                 householdStressRepository: householdStressRepository,
                 employerStressRepository: employerStressRepository,
-                anchorRepository: anchorRepository);
+                anchorRepository: anchorRepository,
+                educationProjectionRepository: educationProjectionRepository);
 
             Assert.Equal(
                 expected: TestCityId,
@@ -142,6 +144,20 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: TestCityId,
                 actual: employerStressRepository.RequestedCityId);
+            Assert.Equal(
+                expected: 1,
+                actual: educationProjectionRepository.GetByResidentIdsCallCount);
+            Assert.Equal(
+                expected: TestCityId.Value,
+                actual: educationProjectionRepository.RequestedSimulationHostId);
+            Assert.Equal(
+                expected:
+                [
+                    firstResident.Id.Value,
+                    secondResident.Id.Value,
+                    thirdResident.Id.Value
+                ],
+                actual: educationProjectionRepository.RequestedResidentIds);
             Assert.Equal(
                 expected:
                 [
@@ -163,6 +179,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: 2,
                 actual: workingSet.ResidentsByHouseholdId[firstHouseholdId].Count);
             Assert.Single(workingSet.ResidentsByHouseholdId[secondHouseholdId]);
+            Assert.Null(workingSet.EducationParticipation.FindCurrent(firstResident));
             Assert.Equal(
                 expected:
                 [
@@ -246,6 +263,30 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
+        public async Task LoadAsync_WhenEducationParticipationIsNotRequired_SkipsProjectionRead()
+        {
+            PersonEntity resident = CreatePerson();
+            var projectionRepository = new FakeEducationParticipationProjectionRepository();
+            var personReadRepository = new FakeCityPopulationPersonReadRepository
+            {
+                ListByCityResult =
+                [
+                    resident
+                ]
+            };
+
+            AdvanceCityPopulationWorkingSet workingSet = await LoadAsync(
+                personReadRepository: personReadRepository,
+                educationProjectionRepository: projectionRepository,
+                includeEducationParticipation: false);
+
+            Assert.Equal(
+                expected: 0,
+                actual: projectionRepository.GetByResidentIdsCallCount);
+            Assert.Null(workingSet.EducationParticipation.FindCurrent(resident));
+        }
+
+        [Fact]
         public async Task LoadAsync_BuildsWorkplacePoolsFromLoadedResidents()
         {
             var workplaceId = WorkplaceId.From(Guid.Parse("22222222-3333-4444-5555-666666666663"));
@@ -282,7 +323,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationHouseholdFinancialStressStateRepository? householdStressRepository = null,
             FakeCityPopulationEmployerFinancialStressStateRepository? employerStressRepository = null,
             FakeCityPopulationAnchorCatalogRepository? anchorRepository = null,
-            FakeCityHealthcarePressureSnapshotRepository? healthcarePressureSnapshotRepository = null)
+            FakeCityHealthcarePressureSnapshotRepository? healthcarePressureSnapshotRepository = null,
+            FakeEducationParticipationProjectionRepository? educationProjectionRepository = null,
+            bool includeEducationParticipation = true)
         {
             return AdvanceCityPopulationWorkingSetLoader.LoadAsync(
                 cityId: TestCityId,
@@ -296,6 +339,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                        new FakeCityPopulationAnchorCatalogRepository(),
                 healthcarePressureSnapshotRepository: healthcarePressureSnapshotRepository ??
                                                       new FakeCityHealthcarePressureSnapshotRepository(),
+                educationParticipationProjectionRepository: educationProjectionRepository ??
+                                                            new FakeEducationParticipationProjectionRepository(),
+                includeEducationParticipation: includeEducationParticipation,
                 cancellationToken: CancellationToken.None);
         }
 

@@ -42,6 +42,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
         ICityPopulationLivingConditionsStateRepository cityPopulationLivingConditionsStateRepository,
+        IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
         ICityDistrictUtilityConditionsClient districtUtilityConditionsClient,
         ICityPopulationCommuteRoutingService commuteRoutingService,
         ICityPopulationCommuteTripSyncService commuteTripSyncService,
@@ -219,6 +220,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 employerFinancialStressStateRepository: employerFinancialStressStateRepository,
                                 cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
                                 healthcarePressureSnapshotRepository: healthcarePressureSnapshotRepository,
+                                educationParticipationProjectionRepository: educationParticipationProjectionRepository,
+                                includeEducationParticipation: requiresDateProgression,
                                 cancellationToken: ct);
                         List<PersonEntity> residents = workingSet.Residents;
                         personsSnapshot = residents;
