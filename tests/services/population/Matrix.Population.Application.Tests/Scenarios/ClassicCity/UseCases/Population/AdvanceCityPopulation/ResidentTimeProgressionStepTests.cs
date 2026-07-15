@@ -62,12 +62,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         anchorId: CreateAnchorId(1),
                         type: CityAnchorType.Workplace)
                 ],
-                schoolAnchors:
-                [
-                    CreateAnchor(
-                        anchorId: CreateAnchorId(2),
-                        type: CityAnchorType.School)
-                ],
                 commuteRoutingService: routingService);
 
             Assert.False(changed);
@@ -93,12 +87,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         anchorId: CreateAnchorId(3),
                         type: CityAnchorType.Workplace)
                 ],
-                schoolAnchors:
-                [
-                    CreateAnchor(
-                        anchorId: CreateAnchorId(4),
-                        type: CityAnchorType.School)
-                ],
                 commuteRoutingService: routingService);
 
             Assert.False(changed);
@@ -116,12 +104,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     year: 2025,
                     month: 5,
                     day: 2));
-            CityPopulationAnchorCatalogItem schoolA = CreateAnchor(
-                anchorId: CreateAnchorId(5),
-                type: CityAnchorType.School);
-            CityPopulationAnchorCatalogItem schoolB = CreateAnchor(
-                anchorId: CreateAnchorId(6),
-                type: CityAnchorType.School);
             CityPopulationAnchorCatalogItem workplaceA = CreateAnchor(
                 anchorId: CreateAnchorId(7),
                 type: CityAnchorType.Workplace);
@@ -139,11 +121,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 [
                     workplaceA,
                     workplaceB
-                ],
-                schoolAnchors:
-                [
-                    schoolA,
-                    schoolB
                 ],
                 commuteRoutingService: routingService);
 
@@ -200,12 +177,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     CreateAnchor(
                         anchorId: CreateAnchorId(9),
                         type: CityAnchorType.Workplace)
-                ],
-                schoolAnchors:
-                [
-                    CreateAnchor(
-                        anchorId: CreateAnchorId(10),
-                        type: CityAnchorType.School)
                 ],
                 commuteRoutingService: routingService);
 
@@ -310,10 +281,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>? employerStressByWorkplaceId =
                 null,
             CityPopulationCostOfLivingState? costOfLivingState = null,
-            CityPopulationServiceQualityState? serviceQualityState = null,
-            IDictionary<EducationLevel, List<CityEducationInstitutionBinding>>? institutionPools = null,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem>? workplaceAnchors = null,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem>? schoolAnchors = null,
             IDictionary<string, List<Job>>? workplacePools = null,
             RecordingCommuteRoutingService? commuteRoutingService = null,
             DateOnly? previousDate = null,
@@ -336,16 +304,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 employerStressByWorkplaceId: employerStressByWorkplaceId ??
                                              new Dictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>(),
                 costOfLivingState: costOfLivingState,
-                serviceQualityState: serviceQualityState,
-                educationAutonomyPolicy: new CityEducationAutonomyPolicy(anchorSelectionPolicy),
                 employmentAutonomyPolicy: new CityEmploymentAutonomyPolicy(
                     contentCatalog: new TestPopulationGenerationContentCatalog(),
                     householdEconomyPolicy: CreateHouseholdEconomyPolicy(),
                     anchorSelectionPolicy: anchorSelectionPolicy),
-                institutionPools: institutionPools ??
-                                  new Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>(),
                 workplaceAnchors: workplaceAnchors ?? [],
-                schoolAnchors: schoolAnchors ?? [],
                 workplacePools: workplacePools ?? new Dictionary<string, List<Job>>(StringComparer.OrdinalIgnoreCase),
                 commuteRoutingService: commuteRoutingService ?? new RecordingCommuteRoutingService(),
                 cancellationToken: CancellationToken.None);

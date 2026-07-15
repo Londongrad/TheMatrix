@@ -78,12 +78,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                     costOfLivingState: costOfLivingState,
-                    serviceQualityState: serviceQualityState,
-                    educationAutonomyPolicy: educationAutonomyPolicy,
                     employmentAutonomyPolicy: employmentAutonomyPolicy,
-                    institutionPools: institutionPools,
                     workplaceAnchors: workplaceAnchors,
-                    schoolAnchors: schoolAnchors,
                     workplacePools: workplacePools,
                     commuteRoutingService: commuteRoutingService,
                     cancellationToken: cancellationToken))

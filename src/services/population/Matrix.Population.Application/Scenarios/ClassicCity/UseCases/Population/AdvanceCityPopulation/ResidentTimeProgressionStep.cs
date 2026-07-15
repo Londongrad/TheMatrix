@@ -25,12 +25,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             CityPopulationCostOfLivingState? costOfLivingState,
-            CityPopulationServiceQualityState? serviceQualityState,
-            CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
-            IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
             IDictionary<string, List<Job>> workplacePools,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
