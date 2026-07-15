@@ -1,4 +1,3 @@
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -22,9 +21,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> FinancialStressByHouseholdId,
         IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> EmployerStressByWorkplaceId,
         IReadOnlyList<CityPopulationAnchorCatalogItem> WorkplaceAnchors,
-        IReadOnlyList<CityPopulationAnchorCatalogItem> SchoolAnchors,
         IReadOnlyList<CityPopulationAnchorCatalogItem> HospitalAnchors,
         CityPopulationHealthcarePressureProfile HealthcarePressureProfile,
-        Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> InstitutionPools,
         Dictionary<string, List<Job>> WorkplacePools);
 }

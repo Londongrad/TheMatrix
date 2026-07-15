@@ -51,7 +51,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var residentialBuildingId = ResidentialBuildingId.From(Guid.Parse("44444444-4444-4444-4444-444444444444"));
             var workplaceId = WorkplaceId.From(Guid.Parse("55555555-5555-5555-5555-555555555555"));
             var workplaceAnchorId = CityAnchorId.From(Guid.Parse("66666666-6666-6666-6666-666666666666"));
-            var schoolAnchorId = CityAnchorId.From(Guid.Parse("77777777-7777-7777-7777-777777777777"));
             var hospitalAnchorId = CityAnchorId.From(Guid.Parse("88888888-8888-8888-8888-888888888888"));
             PersonEntity firstResident = CreatePerson(
                 personId: Guid.Parse("99999999-9999-9999-9999-999999999991"),
@@ -112,10 +111,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     CreateAnchor(
                         anchorId: workplaceAnchorId,
                         type: CityAnchorType.Workplace,
-                        cityId: TestCityId),
-                    CreateAnchor(
-                        anchorId: schoolAnchorId,
-                        type: CityAnchorType.School,
                         cityId: TestCityId),
                     CreateAnchor(
                         anchorId: hospitalAnchorId,
@@ -213,13 +208,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 actual: Assert.Single(workingSet.WorkplaceAnchors)
                    .CityAnchorId);
             Assert.Equal(
-                expected: schoolAnchorId,
-                actual: Assert.Single(workingSet.SchoolAnchors)
-                   .CityAnchorId);
-            Assert.Equal(
                 expected: hospitalAnchorId,
                 actual: Assert.Single(workingSet.HospitalAnchors)
                    .CityAnchorId);
+            Assert.DoesNotContain(
+                anchorRepository.ListRequests,
+                request => request.Type == CityAnchorType.School);
         }
 
         [Fact]
@@ -252,15 +246,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public async Task LoadAsync_BuildsEducationInstitutionAndWorkplacePoolsFromLoadedResidents()
+        public async Task LoadAsync_BuildsWorkplacePoolsFromLoadedResidents()
         {
-            var institutionId = EducationInstitutionId.From(Guid.Parse("22222222-3333-4444-5555-666666666661"));
-            var institutionAnchorId = CityAnchorId.From(Guid.Parse("22222222-3333-4444-5555-666666666662"));
             var workplaceId = WorkplaceId.From(Guid.Parse("22222222-3333-4444-5555-666666666663"));
             var workplaceAnchorId = CityAnchorId.From(Guid.Parse("22222222-3333-4444-5555-666666666664"));
-            PersonEntity student = CreateStudent(
-                institutionId: institutionId,
-                institutionAnchorId: institutionAnchorId);
             PersonEntity employedResident = CreatePerson(
                 personId: Guid.Parse("22222222-3333-4444-5555-666666666665"),
                 employmentStatus: EmploymentStatus.Employed,
@@ -272,21 +261,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             {
                 ListByCityResult =
                 [
-                    student,
                     employedResident
                 ]
             };
 
             AdvanceCityPopulationWorkingSet workingSet = await LoadAsync(personReadRepository: personReadRepository);
 
-            CityEducationInstitutionBinding institutionBinding =
-                Assert.Single(workingSet.InstitutionPools[EducationLevel.UpperSecondary]);
-            Assert.Equal(
-                expected: institutionId,
-                actual: institutionBinding.InstitutionId);
-            Assert.Equal(
-                expected: institutionAnchorId,
-                actual: institutionBinding.InstitutionAnchorId);
             Job job = Assert.Single(workingSet.WorkplacePools["Engineer"]);
             Assert.Equal(
                 expected: workplaceId,
@@ -400,19 +380,5 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 updatedAtUtc: EvaluatedAtUtc);
         }
 
-        private static PersonEntity CreateStudent(
-            EducationInstitutionId institutionId,
-            CityAnchorId institutionAnchorId)
-        {
-            PersonEntity student = CreatePerson(
-                personId: Guid.Parse("22222222-3333-4444-5555-666666666660"),
-                currentDate: CurrentDate);
-            student.StartStudying(
-                currentDate: CurrentDate,
-                institutionId: institutionId,
-                institutionAnchorId: institutionAnchorId);
-
-            return student;
-        }
     }
 }

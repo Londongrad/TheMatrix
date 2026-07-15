@@ -68,11 +68,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cityId: cityId,
                     type: CityAnchorType.Workplace,
                     cancellationToken: cancellationToken);
-            IReadOnlyList<CityPopulationAnchorCatalogItem> schoolAnchors =
-                await cityPopulationAnchorCatalogRepository.ListByCityAsync(
-                    cityId: cityId,
-                    type: CityAnchorType.School,
-                    cancellationToken: cancellationToken);
             IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors =
                 await cityPopulationAnchorCatalogRepository.ListByCityAsync(
                     cityId: cityId,
@@ -91,8 +86,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             var householdsById = households.ToDictionary(
                 keySelector: x => x.Id,
                 elementSelector: x => x);
-            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools =
-                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(residents);
             Dictionary<string, List<Job>> workplacePools =
                 ResidentPlacementPoolBuilder.BuildWorkplacePools(residents);
 
@@ -109,10 +102,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 FinancialStressByHouseholdId: financialStressByHouseholdId,
                 EmployerStressByWorkplaceId: employerStressByWorkplaceId,
                 WorkplaceAnchors: workplaceAnchors,
-                SchoolAnchors: schoolAnchors,
                 HospitalAnchors: hospitalAnchors,
                 HealthcarePressureProfile: healthcarePressureProfile,
-                InstitutionPools: institutionPools,
                 WorkplacePools: workplacePools);
         }
     }

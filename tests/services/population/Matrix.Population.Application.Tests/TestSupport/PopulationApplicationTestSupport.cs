@@ -624,6 +624,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
         {
             public int DeleteByCityCalls { get; private set; }
             public List<IReadOnlyCollection<CityPopulationAnchorCatalogItem>> AddedRanges { get; } = [];
+            public List<(CityId CityId, CityAnchorType? Type)> ListRequests { get; } = [];
 
             public IReadOnlyList<CityPopulationAnchorCatalogItem> Items { get; set; } =
                 Array.Empty<CityPopulationAnchorCatalogItem>();
@@ -633,6 +634,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 CityAnchorType? type = null,
                 CancellationToken cancellationToken = default)
             {
+                ListRequests.Add((cityId, type));
                 IReadOnlyList<CityPopulationAnchorCatalogItem> items = Items
                    .Where(x => x.CityId == cityId && (!type.HasValue || x.Type == type.Value))
                    .ToArray();

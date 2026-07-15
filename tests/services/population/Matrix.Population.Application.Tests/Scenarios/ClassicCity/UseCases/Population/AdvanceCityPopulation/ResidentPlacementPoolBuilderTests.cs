@@ -17,118 +17,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             day: 6);
 
         [Fact]
-        public void BuildEducationInstitutionPools_WhenPersonsHaveNoInstitutions_ReturnsEmpty()
-        {
-            Person[] persons =
-            [
-                CreatePerson(personId: Guid.NewGuid()),
-                CreatePerson(personId: Guid.NewGuid())
-            ];
-
-            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
-                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(persons);
-
-            Assert.Empty(pools);
-        }
-
-        [Fact]
-        public void BuildEducationInstitutionPools_GroupsInstitutionsByEducationLevel()
-        {
-            var upperInstitution = EducationInstitutionId.From(Guid.Parse("11111111-1111-1111-1111-111111111111"));
-            var higherInstitution = EducationInstitutionId.From(Guid.Parse("22222222-2222-2222-2222-222222222222"));
-            Person upperStudent = CreateStudent(
-                level: EducationLevel.UpperSecondary,
-                institutionId: upperInstitution);
-            Person higherStudent = CreateStudent(
-                level: EducationLevel.Higher,
-                institutionId: higherInstitution);
-
-            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
-                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(
-                [
-                    upperStudent,
-                    higherStudent
-                ]);
-
-            Assert.Equal(
-                expected: 2,
-                actual: pools.Count);
-            Assert.Equal(
-                expected: upperInstitution,
-                actual: Assert.Single(pools[EducationLevel.UpperSecondary])
-                   .InstitutionId);
-            Assert.Equal(
-                expected: higherInstitution,
-                actual: Assert.Single(pools[EducationLevel.Higher])
-                   .InstitutionId);
-        }
-
-        [Fact]
-        public void BuildEducationInstitutionPools_DeduplicatesInstitutionPerLevelAndKeepsFirstAnchor()
-        {
-            var institutionId = EducationInstitutionId.From(Guid.Parse("33333333-3333-3333-3333-333333333333"));
-            var firstAnchorId = CityAnchorId.From(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
-            var secondAnchorId = CityAnchorId.From(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
-            Person firstStudent = CreateStudent(
-                level: EducationLevel.UpperSecondary,
-                institutionId: institutionId,
-                institutionAnchorId: firstAnchorId);
-            Person duplicateStudent = CreateStudent(
-                level: EducationLevel.UpperSecondary,
-                institutionId: institutionId,
-                institutionAnchorId: secondAnchorId);
-
-            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
-                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(
-                [
-                    firstStudent,
-                    duplicateStudent
-                ]);
-
-            CityEducationInstitutionBinding binding = Assert.Single(pools[EducationLevel.UpperSecondary]);
-            Assert.Equal(
-                expected: institutionId,
-                actual: binding.InstitutionId);
-            Assert.Equal(
-                expected: firstAnchorId,
-                actual: binding.InstitutionAnchorId);
-        }
-
-        [Fact]
-        public void BuildEducationInstitutionPools_AllowsSameInstitutionAcrossDifferentLevels()
-        {
-            var institutionId = EducationInstitutionId.From(Guid.Parse("44444444-4444-4444-4444-444444444444"));
-            Person upperStudent = CreateStudent(
-                level: EducationLevel.UpperSecondary,
-                institutionId: institutionId);
-            Person higherStudent = CreateStudent(
-                level: EducationLevel.Higher,
-                institutionId: institutionId);
-
-            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> pools =
-                ResidentPlacementPoolBuilder.BuildEducationInstitutionPools(
-                [
-                    upperStudent,
-                    higherStudent
-                ]);
-
-            Assert.Equal(
-                expected: institutionId,
-                actual: Assert.Single(pools[EducationLevel.UpperSecondary])
-                   .InstitutionId);
-            Assert.Equal(
-                expected: institutionId,
-                actual: Assert.Single(pools[EducationLevel.Higher])
-                   .InstitutionId);
-        }
-
-        [Fact]
         public void BuildWorkplacePools_WhenPersonsAreNotEmployed_ReturnsEmpty()
         {
             Person unemployed = CreatePerson(personId: Guid.NewGuid());
-            Person student = CreateStudent(
-                level: EducationLevel.UpperSecondary,
-                institutionId: EducationInstitutionId.From(Guid.Parse("55555555-5555-5555-5555-555555555555")));
             Person retired = CreatePerson(
                 personId: Guid.NewGuid(),
                 birthDate: new DateOnly(
@@ -142,7 +33,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 ResidentPlacementPoolBuilder.BuildWorkplacePools(
                 [
                     unemployed,
-                    student,
                     retired
                 ]);
 
@@ -244,24 +134,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: workplaceId,
                 actual: Assert.Single(pools["Doctor"])
                    .WorkplaceId);
-        }
-
-        private static Person CreateStudent(
-            EducationLevel level,
-            EducationInstitutionId institutionId,
-            CityAnchorId? institutionAnchorId = null)
-        {
-            Person person = CreatePerson(personId: Guid.NewGuid());
-
-            if (person.EducationLevel != level)
-                person.GraduateTo(level);
-
-            person.StartStudying(
-                currentDate: CurrentDate,
-                institutionId: institutionId,
-                institutionAnchorId: institutionAnchorId);
-
-            return person;
         }
 
         private static Person CreateEmployedPerson(Job job)

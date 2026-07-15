@@ -1,5 +1,4 @@
 using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.ValueObjects;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
 
@@ -7,34 +6,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 {
     internal static class ResidentPlacementPoolBuilder
     {
-        internal static Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>
-            BuildEducationInstitutionPools(IEnumerable<PersonEntity> persons)
-        {
-            var pools = new Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>();
-            foreach (PersonEntity person in persons)
-            {
-                if (person.Education.CurrentInstitutionId is not
-                    { } institutionId)
-                    continue;
-                EducationLevel level = person.Education.Level;
-                if (!pools.TryGetValue(
-                        key: level,
-                        value: out List<CityEducationInstitutionBinding>? levelPool))
-                {
-                    levelPool = [];
-                    pools[level] = levelPool;
-                }
-
-                if (!levelPool.Any(x => x.InstitutionId == institutionId))
-                    levelPool.Add(
-                        new CityEducationInstitutionBinding(
-                            InstitutionId: institutionId,
-                            InstitutionAnchorId: person.Education.CurrentInstitutionAnchorId));
-            }
-
-            return pools;
-        }
-
         internal static Dictionary<string, List<Job>> BuildWorkplacePools(IEnumerable<PersonEntity> persons)
         {
             var pools = new Dictionary<string, List<Job>>(StringComparer.OrdinalIgnoreCase);
