@@ -18,8 +18,6 @@ using Matrix.Population.Domain.Services;
 using Matrix.Population.Contracts.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using CityEducationInstitutionBinding =
-    Matrix.Population.Domain.Scenarios.ClassicCity.Models.CityEducationInstitutionBinding;
 using DistrictId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.DistrictId;
 using HouseholdEntity = Matrix.Population.Domain.Entities.Household;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
@@ -62,7 +60,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         IPersonWriteRepository personWriteRepository,
         CityBirthAutonomyPolicy birthAutonomyPolicy,
         CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
-        CityEducationAutonomyPolicy educationAutonomyPolicy,
         CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
         CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
         CityHouseholdCashflowPolicy householdCashflowPolicy,
@@ -240,13 +237,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>
                             employerStressByWorkplaceId = workingSet.EmployerStressByWorkplaceId;
                         IReadOnlyList<CityPopulationAnchorCatalogItem> workplaceAnchors = workingSet.WorkplaceAnchors;
-                        IReadOnlyList<CityPopulationAnchorCatalogItem> schoolAnchors = workingSet.SchoolAnchors;
                         IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors = workingSet.HospitalAnchors;
                         CityPopulationHealthcarePressureProfile healthcarePressureProfile =
                             workingSet.HealthcarePressureProfile;
                         Dictionary<HouseholdId, HouseholdEntity> householdsById = workingSet.HouseholdsById;
-                        Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools =
-                            workingSet.InstitutionPools;
                         Dictionary<string, List<Job>> workplacePools = workingSet.WorkplacePools;
 
                         foreach (PersonEntity person in residents)
@@ -273,19 +267,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                                     workplaceAnchors: workplaceAnchors,
-                                    schoolAnchors: schoolAnchors,
                                     financialStressByHouseholdId: financialStressByHouseholdId,
                                     costOfLivingState: costOfLivingState,
                                     essentialsState: essentialsState,
                                     livingConditionsState: livingConditionsState,
                                     districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                     districtImpactPolicy: districtImpactPolicy,
-                                    serviceQualityState: serviceQualityState,
-                                    educationAutonomyPolicy: educationAutonomyPolicy,
                                     employmentAutonomyPolicy: employmentAutonomyPolicy,
                                     householdPressurePolicy: householdPressurePolicy,
                                     livingConditionsPressurePolicy: livingConditionsPressurePolicy,
-                                    institutionPools: institutionPools,
                                     workplacePools: workplacePools,
                                     personNeedsProgressionPolicy: personNeedsProgressionPolicy,
                                     weatherExposurePolicy: weatherExposurePolicy,

@@ -636,7 +636,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     contentCatalog: new TestPopulationGenerationContentCatalog(),
                     householdLivelihoodPolicy: householdLivelihoodPolicy),
                 civilRegistryAutonomyPolicy: new CityCivilRegistryAutonomyPolicy(),
-                educationAutonomyPolicy: new CityEducationAutonomyPolicy(anchorSelectionPolicy),
                 employmentAutonomyPolicy: new CityEmploymentAutonomyPolicy(
                     contentCatalog: new TestPopulationGenerationContentCatalog(),
                     householdEconomyPolicy: householdEconomyPolicy,
