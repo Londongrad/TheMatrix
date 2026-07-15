@@ -1,3 +1,4 @@
+using Matrix.Education.Application.Integration;
 using Matrix.Education.Application.Progression;
 using Matrix.Education.Application.Scenarios.ClassicCity.Progression;
 using Matrix.Education.Application.Tests.TestSupport;
@@ -38,6 +39,8 @@ namespace Matrix.Education.Application.Tests.Scenarios.ClassicCity.Progression
             Assert.Equal(1, result.StudentProfilesEvaluated);
             Assert.Equal(1, result.EnrollmentsStarted);
             Assert.Equal(1, result.InstitutionsUpdated);
+            Assert.Equal(1, profile.ParticipationRevision);
+            Assert.True(Assert.Single(result.ParticipationChanges).IsEnrolled);
         }
 
         [Fact]
@@ -69,6 +72,10 @@ namespace Matrix.Education.Application.Tests.Scenarios.ClassicCity.Progression
             Assert.Equal(1, school.CurrentEnrollmentCount);
             Assert.Equal(1, result.EnrollmentsCompleted);
             Assert.Equal(1, result.EnrollmentsStarted);
+            EducationStudentParticipationChange change = Assert.Single(result.ParticipationChanges);
+            Assert.True(change.IsEnrolled);
+            Assert.Equal(ClassicCityEducationStageCatalog.LowerSecondary.Value, change.ActiveStage);
+            Assert.Equal(ClassicCityEducationStageCatalog.Primary.Value, change.CompletedStage);
         }
 
         [Fact]
@@ -95,6 +102,7 @@ namespace Matrix.Education.Application.Tests.Scenarios.ClassicCity.Progression
             Assert.Equal(0, school.CurrentEnrollmentCount);
             Assert.Empty(enrollmentRepository.Added);
             Assert.Equal(1, result.EnrollmentsWithdrawn);
+            Assert.False(Assert.Single(result.ParticipationChanges).IsEnrolled);
         }
 
         [Fact]
@@ -114,6 +122,7 @@ namespace Matrix.Education.Application.Tests.Scenarios.ClassicCity.Progression
             Assert.Empty(enrollmentRepository.Added);
             Assert.Equal(0, result.EnrollmentsStarted);
             Assert.Equal(0, result.InstitutionsUpdated);
+            Assert.Empty(result.ParticipationChanges);
         }
 
         private static ClassicCityEducationProgressionBatchProcessor CreateProcessor(

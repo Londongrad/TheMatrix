@@ -1,4 +1,5 @@
 using Matrix.Education.Application.Abstractions;
+using Matrix.Education.Application.Integration;
 using Matrix.Education.Application.Progression;
 using Matrix.Education.Domain.Enrollments;
 using Matrix.Education.Domain.Institutions;
@@ -50,6 +51,7 @@ namespace Matrix.Education.Application.Scenarios.ClassicCity.Progression
             Dictionary<EducationInstitutionId, EducationInstitution> institutionsById = institutions.ToDictionary(
                 institution => institution.EducationInstitutionId);
             var updatedInstitutionIds = new HashSet<EducationInstitutionId>();
+            var changedResidentIds = new HashSet<ResidentId>();
             var addedEnrollments = new List<StudentEnrollment>();
             DateOnly currentDate = DateOnly.FromDateTime(batch.ToSimTimeUtc.UtcDateTime);
             int completedCount = 0;
@@ -74,6 +76,7 @@ namespace Matrix.Education.Application.Scenarios.ClassicCity.Progression
                     institution.ReleaseSeats(1);
                     updatedInstitutionIds.Add(institution.EducationInstitutionId);
                     activeByResident.Remove(enrollment.ResidentId);
+                    changedResidentIds.Add(enrollment.ResidentId);
                     withdrawnCount++;
                     continue;
                 }
@@ -90,6 +93,7 @@ namespace Matrix.Education.Application.Scenarios.ClassicCity.Progression
                 institution.ReleaseSeats(1);
                 updatedInstitutionIds.Add(institution.EducationInstitutionId);
                 activeByResident.Remove(enrollment.ResidentId);
+                changedResidentIds.Add(enrollment.ResidentId);
                 completedCount++;
             }
 
@@ -103,7 +107,10 @@ namespace Matrix.Education.Application.Scenarios.ClassicCity.Progression
                         currentDate,
                         out EducationStageKey baselineStage,
                         out DateOnly baselineCompletedOn))
+                {
                     profile.RecordStageCompletion(baselineStage, baselineCompletedOn);
+                    changedResidentIds.Add(profile.ResidentId);
+                }
 
                 EducationStageKey? nextStage = progressionPolicy.ResolveNextEnrollmentStage(
                     profile,
@@ -133,6 +140,7 @@ namespace Matrix.Education.Application.Scenarios.ClassicCity.Progression
                 addedEnrollments.Add(enrollment);
                 activeByResident.Add(profile.ResidentId, enrollment);
                 updatedInstitutionIds.Add(institution.EducationInstitutionId);
+                changedResidentIds.Add(profile.ResidentId);
             }
 
             if (addedEnrollments.Count > 0)
@@ -140,12 +148,32 @@ namespace Matrix.Education.Application.Scenarios.ClassicCity.Progression
                     addedEnrollments,
                     cancellationToken);
 
+            EducationStudentParticipationChange[] participationChanges = changedResidentIds
+               .OrderBy(residentId => residentId.Value)
+               .Select(residentId =>
+                {
+                    StudentProfile profile = profilesById[residentId];
+                    profile.RecordParticipationChange();
+                    activeByResident.TryGetValue(
+                        residentId,
+                        out StudentEnrollment? activeEnrollment);
+                    EducationInstitution? institution = activeEnrollment is null
+                        ? null
+                        : ResolveInstitution(activeEnrollment, institutionsById, batch);
+                    return EducationStudentParticipationChange.Capture(
+                        profile,
+                        activeEnrollment,
+                        institution);
+                })
+               .ToArray();
+
             return new EducationProgressionBatchResult(
                 StudentProfilesEvaluated: profiles.Count,
                 EnrollmentsStarted: addedEnrollments.Count,
                 EnrollmentsCompleted: completedCount,
                 EnrollmentsWithdrawn: withdrawnCount,
-                InstitutionsUpdated: updatedInstitutionIds.Count);
+                InstitutionsUpdated: updatedInstitutionIds.Count,
+                ParticipationChanges: participationChanges);
         }
 
         private static EducationInstitution ResolveInstitution(

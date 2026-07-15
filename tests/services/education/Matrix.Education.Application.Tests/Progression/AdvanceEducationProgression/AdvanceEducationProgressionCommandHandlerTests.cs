@@ -237,7 +237,8 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
                 EnrollmentsStarted: 20,
                 EnrollmentsCompleted: 10,
                 EnrollmentsWithdrawn: 2,
-                InstitutionsUpdated: 4);
+                InstitutionsUpdated: 4,
+                ParticipationChanges: []);
 
             public int CallCount { get; private set; }
 
