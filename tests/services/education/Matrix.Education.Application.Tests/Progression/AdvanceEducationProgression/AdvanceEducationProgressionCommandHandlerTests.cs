@@ -1,7 +1,9 @@
 using System.Data;
 using Matrix.Education.Application.Abstractions;
+using Matrix.Education.Application.Integration;
 using Matrix.Education.Application.Progression;
 using Matrix.Education.Application.Progression.AdvanceEducationProgression;
+using Matrix.Education.Application.Tests.TestSupport;
 using Matrix.Education.Domain.Progression;
 using Matrix.Education.Domain.Simulation;
 using Matrix.Simulation.Primitives;
@@ -20,12 +22,25 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
         public async Task Handle_FirstTick_ProcessesOneBatchAndCreatesCheckpoint()
         {
             var repository = new CheckpointRepositoryStub();
-            var processor = new BatchProcessorStub();
+            var participationChange = new EducationStudentParticipationChange(
+                ResidentId: Guid.NewGuid(),
+                ParticipationRevision: 1,
+                ResidentLifecycleRevision: 0,
+                IsEnrolled: false,
+                ActiveStage: null,
+                InstitutionId: null,
+                InstitutionAnchorId: null,
+                EnrolledOn: null,
+                CompletedStage: "primary",
+                CompletedStageOn: new DateOnly(2048, 1, 1));
+            var processor = new BatchProcessorStub([participationChange]);
             var unitOfWork = new EducationUnitOfWorkStub();
+            var outboxWriter = new EducationStudentParticipationOutboxWriterStub();
             AdvanceEducationProgressionCommandHandler handler = CreateHandler(
                 repository,
                 processor,
-                unitOfWork);
+                unitOfWork,
+                outboxWriter: outboxWriter);
 
             AdvanceEducationProgressionResult result = await handler.Handle(
                 CreateCommand(tickId: 1),
@@ -40,6 +55,10 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
             Assert.Equal(IsolationLevel.Serializable, unitOfWork.LastIsolationLevel);
             Assert.Equal(1, repository.Checkpoint!.LastCompletedTickId);
             Assert.Equal(ToUtc, repository.Checkpoint.LastCompletedAtUtc);
+            var participationBatch = Assert.Single(outboxWriter.Batches);
+            Assert.Equal(DateOnly.FromDateTime(ToUtc.UtcDateTime), participationBatch.SnapshotDate);
+            Assert.Equal(UpdatedAtUtc, participationBatch.OccurredAtUtc);
+            Assert.Equal(participationChange.ResidentId, Assert.Single(participationBatch.Students).ResidentId);
         }
 
         [Fact]
@@ -167,12 +186,15 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
             CheckpointRepositoryStub repository,
             BatchProcessorStub processor,
             EducationUnitOfWorkStub unitOfWork,
-            DeletionRepositoryStub? deletionRepository = null)
+            DeletionRepositoryStub? deletionRepository = null,
+            EducationStudentParticipationOutboxWriterStub? outboxWriter = null)
         {
             return new AdvanceEducationProgressionCommandHandler(
                 checkpointRepository: repository,
                 deletionRepository: deletionRepository ?? new DeletionRepositoryStub(),
                 batchProcessorRegistry: new EducationProgressionBatchProcessorRegistry([processor]),
+                participationOutboxWriter:
+                    outboxWriter ?? new EducationStudentParticipationOutboxWriterStub(),
                 unitOfWork: unitOfWork,
                 timeProvider: new FixedTimeProvider(UpdatedAtUtc));
         }
@@ -228,17 +250,23 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
 
         private sealed class BatchProcessorStub : IEducationProgressionBatchProcessor
         {
+            public BatchProcessorStub(
+                IReadOnlyList<EducationStudentParticipationChange>? participationChanges = null)
+            {
+                Result = new EducationProgressionBatchResult(
+                    StudentProfilesEvaluated: 1000,
+                    EnrollmentsStarted: 20,
+                    EnrollmentsCompleted: 10,
+                    EnrollmentsWithdrawn: 2,
+                    InstitutionsUpdated: 4,
+                    ParticipationChanges: participationChanges ?? []);
+            }
+
             public SimulationRuntimeKey RuntimeKey { get; } = new(
                 scenarioKey: new SimulationScenarioKey("classic-city"),
                 hostTypeKey: new SimulationHostTypeKey("city"));
 
-            public EducationProgressionBatchResult Result { get; } = new(
-                StudentProfilesEvaluated: 1000,
-                EnrollmentsStarted: 20,
-                EnrollmentsCompleted: 10,
-                EnrollmentsWithdrawn: 2,
-                InstitutionsUpdated: 4,
-                ParticipationChanges: []);
+            public EducationProgressionBatchResult Result { get; }
 
             public int CallCount { get; private set; }
 

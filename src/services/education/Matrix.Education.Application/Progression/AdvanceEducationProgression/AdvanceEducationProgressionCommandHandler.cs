@@ -1,5 +1,6 @@
 using System.Data;
 using Matrix.Education.Application.Abstractions;
+using Matrix.Education.Application.Integration;
 using Matrix.Education.Domain.Progression;
 using Matrix.Education.Domain.Simulation;
 using Matrix.Simulation.Primitives;
@@ -11,6 +12,7 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
         IEducationProgressionCheckpointRepository checkpointRepository,
         IEducationSimulationDeletionRepository deletionRepository,
         EducationProgressionBatchProcessorRegistry batchProcessorRegistry,
+        IEducationStudentParticipationOutboxWriter participationOutboxWriter,
         IEducationUnitOfWork unitOfWork,
         TimeProvider timeProvider)
         : IRequestHandler<AdvanceEducationProgressionCommand, AdvanceEducationProgressionResult>
@@ -87,6 +89,15 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
                     completedAtUtc: batch.ToSimTimeUtc,
                     updatedAtUtc: updatedAtUtc);
             }
+
+            await participationOutboxWriter.AddChangesAsync(
+                simulationHostId: batch.SimulationHostId.Value,
+                snapshotDate: DateOnly.FromDateTime(batch.ToSimTimeUtc.UtcDateTime),
+                occurredAtUtc: updatedAtUtc,
+                correlationId:
+                    $"education:progression:{batch.SimulationHostId.Value}:{batch.TickId}",
+                changes: batchResult.ParticipationChanges,
+                cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
