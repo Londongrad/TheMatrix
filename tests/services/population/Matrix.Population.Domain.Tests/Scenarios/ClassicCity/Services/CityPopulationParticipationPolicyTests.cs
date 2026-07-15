@@ -92,7 +92,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
         }
 
         [Fact]
-        public void ResolveStudentAttendanceIndex_WhenStudentFacesBlockedCommuteAndShortages_ReturnsReducedAttendance()
+        public void ResolveLearningAttendanceIndex_WhenLearnerFacesBlockedCommuteAndShortages_ReturnsReducedAttendance()
         {
             var policy = new CityPopulationParticipationPolicy();
             var currentDate = new DateOnly(
@@ -100,19 +100,15 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 month: 5,
                 day: 2);
 
-            Person student = PopulationTestData.CreateAdultPerson(
+            Person learner = PopulationTestData.CreateAdultPerson(
                 birthDate: new DateOnly(
                     year: 2038,
                     month: 5,
                     day: 1),
                 currentDate: currentDate);
-            student.StartStudying(
-                currentDate: currentDate,
-                institutionId: PopulationTestData.CreateEducationInstitutionId(),
-                institutionAnchorId: PopulationTestData.CreateCityAnchorId());
-            student.ChangeEnergy(-45);
-            student.ChangeStress(40);
-            student.TryApplyVitalStateProjection(
+            learner.ChangeEnergy(-45);
+            learner.ChangeStress(40);
+            learner.TryApplyVitalStateProjection(
                 sourceRevision: 0,
                 healthScore: 60,
                 happinessDelta: 0,
@@ -121,8 +117,8 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 currentDate: currentDate,
                 functionalCapacityScore: 60);
 
-            decimal attendanceIndex = policy.ResolveStudentAttendanceIndex(
-                person: student,
+            decimal attendanceIndex = policy.ResolveLearningAttendanceIndex(
+                person: learner,
                 currentDate: currentDate,
                 housingStatus: HousingStatus.Homeless,
                 livingConditions: new CityPopulationLivingConditionsContext(

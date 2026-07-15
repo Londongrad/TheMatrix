@@ -109,7 +109,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 PayrollMultiplier: payrollMultiplier);
         }
 
-        public decimal ResolveStudentAttendanceIndex(
+        public decimal ResolveLearningAttendanceIndex(
             Person person,
             DateOnly currentDate,
             HousingStatus? housingStatus,
@@ -119,7 +119,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             ArgumentNullException.ThrowIfNull(person);
 
-            if (!person.IsAlive || person.Employment.Status != EmploymentStatus.Student)
+            if (!person.IsAlive)
                 return 1m;
 
             double roadDeficit = ResolveCoverageDeficit(livingConditions.RoadAccessibilityIndex);

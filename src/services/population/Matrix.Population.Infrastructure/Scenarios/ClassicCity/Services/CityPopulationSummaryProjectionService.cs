@@ -444,7 +444,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                         resident: resident,
                         cancellationToken: cancellationToken);
                     studentAttendanceSamples.Add(
-                        participationPolicy.ResolveStudentAttendanceIndex(
+                        participationPolicy.ResolveLearningAttendanceIndex(
                             person: resident,
                             currentDate: currentDate,
                             housingStatus: residentHousingStatus,
