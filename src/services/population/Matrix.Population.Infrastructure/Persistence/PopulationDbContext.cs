@@ -66,6 +66,8 @@ namespace Matrix.Population.Infrastructure.Persistence
             => Set<ClassicCityHouseholdPlacement>();
 
         public DbSet<Household> Households => Set<Household>();
+        public DbSet<EducationParticipationProjectionEntity> EducationParticipationProjections =>
+            Set<EducationParticipationProjectionEntity>();
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
         public DbSet<Person> Persons => Set<Person>();
         public DbSet<ProcessedIntegrationMessage> ProcessedIntegrationMessages => Set<ProcessedIntegrationMessage>();
