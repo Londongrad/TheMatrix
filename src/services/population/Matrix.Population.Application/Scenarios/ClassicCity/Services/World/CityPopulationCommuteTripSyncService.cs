@@ -1,3 +1,5 @@
+using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
@@ -12,7 +14,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
 {
     public sealed class CityPopulationCommuteTripSyncService(
         ICityPopulationActiveTripClient activeTripClient,
-        ICityPopulationCommuteRoutingService commuteRoutingService)
+        ICityPopulationCommuteRoutingService commuteRoutingService,
+        IEducationParticipationProjectionRepository educationParticipationProjectionRepository)
         : ICityPopulationCommuteTripSyncService
     {
         private const int MaxTripsPerTick = 12;
@@ -38,6 +41,23 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             if (!phaseWindow.HasAnyDispatch)
                 return;
 
+            Person[] aliveResidents = residents
+               .Where(resident => resident.IsAlive)
+               .ToArray();
+            if (aliveResidents.Length == 0)
+                return;
+
+            IReadOnlyDictionary<Guid, EducationParticipationProjection> educationProjections =
+                await educationParticipationProjectionRepository.GetByResidentIdsAsync(
+                    simulationHostId: cityId,
+                    residentIds: aliveResidents
+                       .Select(resident => resident.Id.Value)
+                       .ToArray(),
+                    cancellationToken: cancellationToken);
+            var educationProjectionIndex = new EducationParticipationProjectionIndex(
+                simulationHostId: cityId,
+                projections: educationProjections);
+
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId =
                 householdPlacements
                    .GroupBy(x => x.HouseholdId)
@@ -58,11 +78,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
 
             List<CommuteTripCandidate> candidates = [];
 
-            foreach (Person resident in residents)
+            foreach (Person resident in aliveResidents)
             {
-                if (!resident.IsAlive)
-                    continue;
-
                 if (!residentialBuildingByHouseholdId.TryGetValue(
                         key: resident.HouseholdId,
                         value: out ResidentialBuildingId? residentialBuildingId) ||
@@ -93,12 +110,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                 string educationTripKey = BuildTripConcurrencyKey(
                     travellerEntityId: resident.Id.Value,
                     purpose: EducationCommutePurpose);
+                EducationParticipationProjection? educationParticipation =
+                    educationProjectionIndex.FindCurrent(resident);
                 if (phaseWindow.ShouldDispatchOutboundCommutes &&
                     !activeTripKeys.Contains(educationTripKey))
                     await TryAddEducationCandidateAsync(
                         cityId: cityId,
                         tickId: tickId,
                         resident: resident,
+                        educationParticipation: educationParticipation,
                         residentialBuildingId: residentialBuildingId.Value,
                         candidates: candidates,
                         cancellationToken: cancellationToken);
@@ -108,6 +128,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                     TryAddEducationReturnCandidate(
                         tickId: tickId,
                         resident: resident,
+                        educationParticipation: educationParticipation,
                         residentialBuildingId: residentialBuildingId.Value,
                         candidates: candidates);
             }
@@ -216,19 +237,22 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             Guid cityId,
             long tickId,
             Person resident,
+            EducationParticipationProjection? educationParticipation,
             ResidentialBuildingId residentialBuildingId,
             ICollection<CommuteTripCandidate> candidates,
             CancellationToken cancellationToken)
         {
-            if (resident.Employment.Status != EmploymentStatus.Student ||
-                resident.Education.CurrentInstitutionAnchorId is not
-                { } institutionAnchorId)
+            if (educationParticipation is not
+                {
+                    IsEnrolled: true,
+                    InstitutionAnchorId: { } institutionAnchorId
+                })
                 return;
 
-            CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEducationCommuteAsync(
+            CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
                 cityId: cityId,
                 residentialBuildingId: residentialBuildingId,
-                resident: resident,
+                destinationAnchorId: CityAnchorId.From(institutionAnchorId),
                 cancellationToken: cancellationToken);
             if (!ShouldMaterializeCommuteTrip(commute))
                 return;
@@ -239,7 +263,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                     FromKind: ResidentialBuildingPointKind,
                     FromId: residentialBuildingId.Value,
                     ToKind: CityAnchorPointKind,
-                    ToId: institutionAnchorId.Value,
+                    ToId: institutionAnchorId,
                     Purpose: EducationCommutePurpose,
                     Subject: "Resident education commute",
                     MovementCapabilityIndex: ResolveMovementCapabilityIndex(
@@ -255,19 +279,22 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
         private static void TryAddEducationReturnCandidate(
             long tickId,
             Person resident,
+            EducationParticipationProjection? educationParticipation,
             ResidentialBuildingId residentialBuildingId,
             ICollection<CommuteTripCandidate> candidates)
         {
-            if (resident.Employment.Status != EmploymentStatus.Student ||
-                resident.Education.CurrentInstitutionAnchorId is not
-                { } institutionAnchorId)
+            if (educationParticipation is not
+                {
+                    IsEnrolled: true,
+                    InstitutionAnchorId: { } institutionAnchorId
+                })
                 return;
 
             candidates.Add(
                 new CommuteTripCandidate(
                     TravellerEntityId: resident.Id.Value,
                     FromKind: CityAnchorPointKind,
-                    FromId: institutionAnchorId.Value,
+                    FromId: institutionAnchorId,
                     ToKind: ResidentialBuildingPointKind,
                     ToId: residentialBuildingId.Value,
                     Purpose: EducationCommutePurpose,
