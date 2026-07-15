@@ -4,6 +4,7 @@ using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Integration;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
@@ -829,6 +830,64 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 CancellationToken cancellationToken = default)
             {
                 WorkplaceBatches.Add(batch);
+                return Task.CompletedTask;
+            }
+        }
+
+        internal sealed class FakeEducationParticipationProjectionRepository
+            : IEducationParticipationProjectionRepository
+        {
+            private readonly Dictionary<(Guid HostId, Guid ResidentId), EducationParticipationProjection>
+                _projections = [];
+
+            public int UpsertCallCount { get; private set; }
+            public IReadOnlyCollection<EducationParticipationProjection> Projections =>
+                _projections.Values;
+
+            public Task<int> UpsertNewerAsync(
+                IReadOnlyCollection<EducationParticipationProjection> projections,
+                CancellationToken cancellationToken = default)
+            {
+                UpsertCallCount++;
+                int applied = 0;
+                foreach (EducationParticipationProjection projection in projections)
+                {
+                    var key = (projection.SimulationHostId, projection.ResidentId);
+                    if (_projections.TryGetValue(key, out EducationParticipationProjection? existing)
+                        && projection.ParticipationRevision <= existing.ParticipationRevision)
+                        continue;
+
+                    _projections[key] = projection;
+                    applied++;
+                }
+
+                return Task.FromResult(applied);
+            }
+
+            public Task<IReadOnlyDictionary<Guid, EducationParticipationProjection>>
+                GetByResidentIdsAsync(
+                    Guid simulationHostId,
+                    IReadOnlyCollection<Guid> residentIds,
+                    CancellationToken cancellationToken = default)
+            {
+                HashSet<Guid> requestedIds = residentIds.ToHashSet();
+                IReadOnlyDictionary<Guid, EducationParticipationProjection> result = _projections
+                   .Values
+                   .Where(projection => projection.SimulationHostId == simulationHostId
+                                        && requestedIds.Contains(projection.ResidentId))
+                   .ToDictionary(projection => projection.ResidentId);
+                return Task.FromResult(result);
+            }
+
+            public Task DeleteBySimulationHostAsync(
+                Guid simulationHostId,
+                CancellationToken cancellationToken = default)
+            {
+                foreach (var key in _projections.Keys
+                             .Where(key => key.HostId == simulationHostId)
+                             .ToArray())
+                    _projections.Remove(key);
+
                 return Task.CompletedTask;
             }
         }
