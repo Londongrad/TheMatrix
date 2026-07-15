@@ -86,23 +86,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
                 cancellationToken: cancellationToken);
         }
 
-        public Task<CityPopulationCommuteContext> ResolveEducationCommuteAsync(
-            Guid cityId,
-            ResidentialBuildingId? residentialBuildingId,
-            Person resident,
-            CancellationToken cancellationToken)
-        {
-            CityAnchorId? schoolAnchorId = resident.Employment.Status == EmploymentStatus.Student
-                ? resident.Education.CurrentInstitutionAnchorId
-                : null;
-
-            return ResolveAnchorCommuteAsync(
-                cityId: cityId,
-                residentialBuildingId: residentialBuildingId,
-                destinationAnchorId: schoolAnchorId,
-                cancellationToken: cancellationToken);
-        }
-
         public Task<CityPopulationCommuteContext> ResolveHealthcareCommuteAsync(
             Guid cityId,
             ResidentialBuildingId? residentialBuildingId,

@@ -556,15 +556,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 return Task.FromResult(CityPopulationCommuteContext.Neutral);
             }
 
-            public Task<CityPopulationCommuteContext> ResolveEducationCommuteAsync(
-                Guid cityId,
-                ResidentialBuildingId? residentialBuildingId,
-                PersonEntity resident,
-                CancellationToken cancellationToken)
-            {
-                return Task.FromResult(CityPopulationCommuteContext.Neutral);
-            }
-
             public Task<CityPopulationCommuteContext> ResolveHealthcareCommuteAsync(
                 Guid cityId,
                 ResidentialBuildingId? residentialBuildingId,

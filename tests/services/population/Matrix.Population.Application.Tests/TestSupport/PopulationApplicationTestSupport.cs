@@ -1457,7 +1457,6 @@ namespace Matrix.Population.Application.Tests.TestSupport
         {
             public CityPopulationCommuteContext AnchorContext { get; set; } = CityPopulationCommuteContext.Neutral;
             public CityPopulationCommuteContext EmploymentContext { get; set; } = CityPopulationCommuteContext.Neutral;
-            public CityPopulationCommuteContext EducationContext { get; set; } = CityPopulationCommuteContext.Neutral;
             public CityPopulationCommuteContext HealthcareContext { get; set; } = CityPopulationCommuteContext.Neutral;
             public List<IReadOnlyCollection<CityPopulationCommuteRouteRequest>> PreloadRequests { get; } = [];
 
@@ -1486,15 +1485,6 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 CancellationToken cancellationToken)
             {
                 return Task.FromResult(EmploymentContext);
-            }
-
-            public Task<CityPopulationCommuteContext> ResolveEducationCommuteAsync(
-                Guid cityId,
-                ResidentialBuildingId? residentialBuildingId,
-                Person resident,
-                CancellationToken cancellationToken)
-            {
-                return Task.FromResult(EducationContext);
             }
 
             public Task<CityPopulationCommuteContext> ResolveHealthcareCommuteAsync(

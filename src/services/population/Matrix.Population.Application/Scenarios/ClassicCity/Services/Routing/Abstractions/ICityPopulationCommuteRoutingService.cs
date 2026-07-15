@@ -23,12 +23,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.A
             Person resident,
             CancellationToken cancellationToken);
 
-        Task<CityPopulationCommuteContext> ResolveEducationCommuteAsync(
-            Guid cityId,
-            ResidentialBuildingId? residentialBuildingId,
-            Person resident,
-            CancellationToken cancellationToken);
-
         Task<CityPopulationCommuteContext> ResolveHealthcareCommuteAsync(
             Guid cityId,
             ResidentialBuildingId? residentialBuildingId,

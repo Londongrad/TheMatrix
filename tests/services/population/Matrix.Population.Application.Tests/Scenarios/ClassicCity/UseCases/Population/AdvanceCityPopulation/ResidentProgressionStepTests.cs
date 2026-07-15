@@ -382,11 +382,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             public int PreloadCallCount { get; private set; }
             public int AnchorCallCount { get; private set; }
             public int EmploymentCallCount { get; private set; }
-            public int EducationCallCount { get; private set; }
             public int HealthcareCallCount { get; private set; }
 
             public int TotalCallCount =>
-                PreloadCallCount + AnchorCallCount + EmploymentCallCount + EducationCallCount + HealthcareCallCount;
+                PreloadCallCount + AnchorCallCount + EmploymentCallCount + HealthcareCallCount;
 
             public Task PreloadAnchorCommutesAsync(
                 Guid cityId,
@@ -414,16 +413,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 CancellationToken cancellationToken)
             {
                 EmploymentCallCount++;
-                return Task.FromResult(CityPopulationCommuteContext.Neutral);
-            }
-
-            public Task<CityPopulationCommuteContext> ResolveEducationCommuteAsync(
-                Guid cityId,
-                ResidentialBuildingId? residentialBuildingId,
-                PersonEntity resident,
-                CancellationToken cancellationToken)
-            {
-                EducationCallCount++;
                 return Task.FromResult(CityPopulationCommuteContext.Neutral);
             }
 

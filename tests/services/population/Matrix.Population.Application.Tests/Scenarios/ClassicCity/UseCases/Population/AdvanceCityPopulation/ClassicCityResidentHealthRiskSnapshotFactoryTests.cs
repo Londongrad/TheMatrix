@@ -143,11 +143,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 Person resident,
                 CancellationToken cancellationToken) => throw new NotSupportedException();
 
-            public Task<CityPopulationCommuteContext> ResolveEducationCommuteAsync(
-                Guid cityId,
-                ResidentialBuildingId? residentialBuildingId,
-                Person resident,
-                CancellationToken cancellationToken) => throw new NotSupportedException();
         }
     }
 }

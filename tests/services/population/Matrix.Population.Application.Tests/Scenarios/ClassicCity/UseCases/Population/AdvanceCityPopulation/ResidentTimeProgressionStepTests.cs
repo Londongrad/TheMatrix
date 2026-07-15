@@ -443,15 +443,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 throw new NotSupportedException();
             }
 
-            public Task<CityPopulationCommuteContext> ResolveEducationCommuteAsync(
-                Guid cityId,
-                ResidentialBuildingId? residentialBuildingId,
-                PersonEntity resident,
-                CancellationToken cancellationToken)
-            {
-                throw new NotSupportedException();
-            }
-
             public Task<CityPopulationCommuteContext> ResolveHealthcareCommuteAsync(
                 Guid cityId,
                 ResidentialBuildingId? residentialBuildingId,
