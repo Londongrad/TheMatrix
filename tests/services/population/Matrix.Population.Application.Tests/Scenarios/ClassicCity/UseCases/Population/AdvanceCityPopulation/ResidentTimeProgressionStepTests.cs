@@ -109,7 +109,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public async Task ApplyAsync_WhenHouseholdExists_RanksSchoolAndWorkplaceAnchors()
+        public async Task ApplyAsync_WhenHouseholdExists_RanksOnlyWorkplaceAnchors()
         {
             PersonEntity resident = CreateResident(
                 birthDate: new DateOnly(
@@ -148,10 +148,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 commuteRoutingService: routingService);
 
             Assert.Equal(
-                expected: 2,
+                expected: 1,
                 actual: routingService.PreloadCallCount);
             Assert.Equal(
-                expected: 4,
+                expected: 2,
                 actual: routingService.PreloadRequests.Count);
             Assert.All(
                 collection: routingService.PreloadRequests,
@@ -167,8 +167,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expectedSpan:
                 [
-                    schoolA.CityAnchorId,
-                    schoolB.CityAnchorId,
                     workplaceA.CityAnchorId,
                     workplaceB.CityAnchorId
                 ],
@@ -177,8 +175,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected:
                 [
-                    schoolA.CityAnchorId,
-                    schoolB.CityAnchorId,
                     workplaceA.CityAnchorId,
                     workplaceB.CityAnchorId
                 ],

@@ -57,32 +57,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     key: person.HouseholdId,
                     value: out HouseholdEntity? household))
                 return false;
-            IReadOnlyList<CityAnchorId> preferredSchoolAnchorIds = await AnchorRouteAccessRanker.RankAsync(
-                cityId: cityId,
-                residentialBuildingId: residentialBuildingId,
-                anchors: schoolAnchors,
-                commuteRoutingService: commuteRoutingService,
-                cancellationToken: cancellationToken);
             IReadOnlyList<CityAnchorId> preferredWorkplaceAnchorIds = await AnchorRouteAccessRanker.RankAsync(
                 cityId: cityId,
                 residentialBuildingId: residentialBuildingId,
                 anchors: workplaceAnchors,
                 commuteRoutingService: commuteRoutingService,
                 cancellationToken: cancellationToken);
-            if (educationAutonomyPolicy.Apply(
-                    person: person,
-                    previousDate: previousDate,
-                    currentDate: currentDate,
-                    institutionPools: institutionPools,
-                    preferredDistrictId: districtByHouseholdId.TryGetValue(
-                        key: person.HouseholdId,
-                        value: out DistrictId? schoolDistrictId)
-                        ? schoolDistrictId
-                        : null,
-                    schoolAnchors: schoolAnchors,
-                    preferredInstitutionAnchorIds: preferredSchoolAnchorIds,
-                    serviceQualityState: serviceQualityState))
-                changed = true;
             if (employmentAutonomyPolicy.Apply(
                     person: person,
                     household: household,
