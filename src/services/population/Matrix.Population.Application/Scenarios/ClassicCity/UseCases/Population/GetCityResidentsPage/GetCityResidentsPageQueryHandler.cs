@@ -31,12 +31,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         simulationHostId: request.CityId,
                         residentIds: persons.Select(person => person.Id.Value).ToArray(),
                         cancellationToken: cancellationToken);
+            var educationParticipationIndex = new EducationParticipationProjectionIndex(
+                request.CityId,
+                educationParticipations);
             IReadOnlyCollection<PersonDto> dtos = persons
                .Select(person => person.ToDto(
                     currentDate: request.CurrentDate,
                     attainedEducationStage: ResolveAttainedEducationStage(
                         person,
-                        educationParticipations)))
+                        educationParticipationIndex)))
                .ToArray();
 
             return new PagedResult<PersonDto>(
@@ -48,14 +51,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static string ResolveAttainedEducationStage(
             Person person,
-            IReadOnlyDictionary<Guid, EducationParticipationProjection> educationParticipations)
+            EducationParticipationProjectionIndex educationParticipationIndex)
         {
-            return educationParticipations.TryGetValue(
-                       person.Id.Value,
-                       out EducationParticipationProjection? projection)
-                   && projection.ResidentLifecycleRevision == person.LifecycleRevision
-                ? projection.CompletedStage ?? "none"
-                : "none";
+            return educationParticipationIndex.FindCurrent(person)?.CompletedStage ?? "none";
         }
     }
 }

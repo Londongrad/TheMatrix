@@ -44,11 +44,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     simulationHostId: cityId.Value,
                     residentIds: [resident.Id.Value],
                     cancellationToken: cancellationToken);
-            educationParticipations.TryGetValue(
-                resident.Id.Value,
-                out EducationParticipationProjection? educationParticipation);
-            if (educationParticipation?.ResidentLifecycleRevision != resident.LifecycleRevision)
-                educationParticipation = null;
+            var educationParticipationIndex = new EducationParticipationProjectionIndex(
+                cityId.Value,
+                educationParticipations);
+            EducationParticipationProjection? educationParticipation =
+                educationParticipationIndex.FindCurrent(resident);
             CityResidentEducationSnapshot educationSnapshot =
                 CityResidentEducationSnapshot.FromProjection(educationParticipation);
 
