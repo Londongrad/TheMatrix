@@ -1,5 +1,6 @@
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
@@ -23,6 +24,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
         ICityPopulationCommuteRoutingService cityPopulationCommuteRoutingService,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
+        IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
         CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         IPersonReadRepository personReadRepository)
         : IRequestHandler<GetCityResidentDetailsQuery, CityResidentDetailsDto>
@@ -37,6 +39,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                   personId: PersonId.From(request.PersonId),
                                   cancellationToken: cancellationToken) ??
                               throw ApplicationErrorsFactory.PersonNotFound(request.PersonId);
+            IReadOnlyDictionary<Guid, EducationParticipationProjection> educationParticipations =
+                await educationParticipationProjectionRepository.GetByResidentIdsAsync(
+                    simulationHostId: cityId.Value,
+                    residentIds: [resident.Id.Value],
+                    cancellationToken: cancellationToken);
+            educationParticipations.TryGetValue(
+                resident.Id.Value,
+                out EducationParticipationProjection? educationParticipation);
+            if (educationParticipation?.ResidentLifecycleRevision != resident.LifecycleRevision)
+                educationParticipation = null;
+            CityResidentEducationSnapshot educationSnapshot =
+                CityResidentEducationSnapshot.FromProjection(educationParticipation);
 
             Person? currentSpouse = resident.SpouseId is not
             { } spouseId
@@ -82,12 +96,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     residentialBuildingId: residentialBuildingId,
                     resident: resident,
                     cancellationToken: cancellationToken);
-            CityPopulationCommuteContext? educationRouteAccess = resident.Education.CurrentInstitutionId is null
+            CityPopulationCommuteContext? educationRouteAccess = educationSnapshot.InstitutionId is null
                 ? null
-                : await cityPopulationCommuteRoutingService.ResolveEducationCommuteAsync(
+                : await cityPopulationCommuteRoutingService.ResolveAnchorCommuteAsync(
                     cityId: cityId.Value,
                     residentialBuildingId: residentialBuildingId,
-                    resident: resident,
+                    destinationAnchorId: educationSnapshot.InstitutionAnchorId is { } institutionAnchorId
+                        ? CityAnchorId.From(institutionAnchorId)
+                        : null,
                     cancellationToken: cancellationToken);
             CityPopulationCommuteContext? healthcareRouteAccess = primaryCareAnchor is null
                 ? null
@@ -130,6 +146,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 mother: mother,
                 father: father,
                 children: children,
+                educationSnapshot: educationSnapshot,
                 workplaceRouteAccess: workplaceRouteAccess,
                 educationRouteAccess: educationRouteAccess,
                 primaryHealthcareProvider: primaryHealthcareProvider,

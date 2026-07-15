@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
@@ -206,7 +207,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public async Task Handle_WhenResidentIsStudent_ReturnsEducationInstitutionAndRoute()
+        public async Task Handle_WhenEducationProjectionIsEnrolled_ReturnsInstitutionAndRoute()
         {
             var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
             var residentId = Guid.Parse("11111111-2222-3333-4444-555555555555");
@@ -218,13 +219,26 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Person resident = CreatePerson(
                 personId: residentId,
                 employmentStatus: EmploymentStatus.Unemployed);
-            resident.StartStudying(
-                currentDate: new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 4),
-                institutionId: EducationInstitutionId.From(institutionId),
-                institutionAnchorId: CityAnchorId.From(institutionAnchorId));
+            var educationParticipationRepository =
+                new FakeEducationParticipationProjectionRepository();
+            await educationParticipationRepository.UpsertNewerAsync(
+            [
+                new EducationParticipationProjection(
+                    SimulationHostId: cityId,
+                    ResidentId: residentId,
+                    ParticipationRevision: 3,
+                    ResidentLifecycleRevision: resident.LifecycleRevision,
+                    IsEnrolled: true,
+                    ActiveStage: "upper-secondary",
+                    InstitutionId: institutionId,
+                    InstitutionAnchorId: institutionAnchorId,
+                    EnrolledOn: new DateOnly(2048, 5, 4),
+                    CompletedStage: "lower-secondary",
+                    CompletedStageOn: new DateOnly(2048, 5, 3),
+                    SnapshotDate: new DateOnly(2048, 5, 5),
+                    OccurredAtUtc: UtcNow,
+                    UpdatedAtUtc: UtcNow)
+            ]);
 
             var cityPopulationPersonReadRepository = new FakeCityPopulationPersonReadRepository();
             cityPopulationPersonReadRepository.PersonsByCityAndId[(CityId.From(cityId), resident.Id)] = resident;
@@ -237,7 +251,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
             var commuteRoutingService = new FakeCityPopulationCommuteRoutingService
             {
-                EducationContext = new CityPopulationCommuteContext(
+                AnchorContext = new CityPopulationCommuteContext(
                     HasRouteData: true,
                     IsAccessible: false,
                     AccessibilityIndex: 0.35m,
@@ -248,6 +262,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             GetCityResidentDetailsQueryHandler handler = CreateHandler(
                 cityPopulationCommuteRoutingService: commuteRoutingService,
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
+                educationParticipationProjectionRepository: educationParticipationRepository,
                 personReadRepository: new FakePersonReadRepository());
 
             CityResidentDetailsDto result = await handler.Handle(
@@ -261,8 +276,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cancellationToken: CancellationToken.None);
 
             Assert.Equal(
-                expected: "Student",
+                expected: "Unemployed",
                 actual: result.EmploymentStatus);
+            Assert.Equal(
+                expected: "lower-secondary",
+                actual: result.EducationLevel);
             Assert.NotNull(result.CurrentEducationInstitution);
             Assert.Equal(
                 expected: institutionId,
@@ -271,7 +289,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: institutionAnchorId,
                 actual: result.CurrentEducationInstitution.InstitutionAnchorId);
             Assert.Equal(
-                expected: "UpperSecondary",
+                expected: "upper-secondary",
                 actual: result.CurrentEducationInstitution.EducationLevel);
             Assert.NotNull(result.CurrentEducationInstitution.RouteAccess);
             Assert.True(result.CurrentEducationInstitution.RouteAccess!.HasRouteData);
@@ -280,6 +298,49 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: 0.35m,
                 actual: result.CurrentEducationInstitution.RouteAccess.AccessibilityIndex);
             Assert.Null(result.CurrentWorkplace);
+        }
+
+        [Fact]
+        public async Task Handle_WhenEducationProjectionLifecycleIsStale_DoesNotExposeParticipation()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            var residentId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+            Person resident = CreatePerson(personId: residentId);
+            var cityPopulationPersonReadRepository = new FakeCityPopulationPersonReadRepository();
+            cityPopulationPersonReadRepository.PersonsByCityAndId[(CityId.From(cityId), resident.Id)] = resident;
+            var educationParticipationRepository =
+                new FakeEducationParticipationProjectionRepository();
+            await educationParticipationRepository.UpsertNewerAsync(
+            [
+                new EducationParticipationProjection(
+                    SimulationHostId: cityId,
+                    ResidentId: residentId,
+                    ParticipationRevision: 3,
+                    ResidentLifecycleRevision: resident.LifecycleRevision + 1,
+                    IsEnrolled: true,
+                    ActiveStage: "primary",
+                    InstitutionId: Guid.NewGuid(),
+                    InstitutionAnchorId: Guid.NewGuid(),
+                    EnrolledOn: new DateOnly(2048, 5, 4),
+                    CompletedStage: null,
+                    CompletedStageOn: null,
+                    SnapshotDate: new DateOnly(2048, 5, 5),
+                    OccurredAtUtc: UtcNow,
+                    UpdatedAtUtc: UtcNow)
+            ]);
+            GetCityResidentDetailsQueryHandler handler = CreateHandler(
+                cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
+                educationParticipationProjectionRepository: educationParticipationRepository);
+
+            CityResidentDetailsDto result = await handler.Handle(
+                new GetCityResidentDetailsQuery(
+                    CityId: cityId,
+                    PersonId: residentId,
+                    CurrentDate: new DateOnly(2048, 5, 5)),
+                CancellationToken.None);
+
+            Assert.Equal("none", result.EducationLevel);
+            Assert.Null(result.CurrentEducationInstitution);
         }
 
         [Fact]
@@ -310,6 +371,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationAnchorCatalogRepository? cityPopulationAnchorCatalogRepository = null,
             ICityPopulationCommuteRoutingService? cityPopulationCommuteRoutingService = null,
             FakeCityPopulationPersonReadRepository? cityPopulationPersonReadRepository = null,
+            FakeEducationParticipationProjectionRepository? educationParticipationProjectionRepository = null,
             FakePersonReadRepository? personReadRepository = null)
         {
             return new GetCityResidentDetailsQueryHandler(
@@ -321,6 +383,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                      new FakeCityPopulationCommuteRoutingService(),
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository ??
                                                     new FakeCityPopulationPersonReadRepository(),
+                educationParticipationProjectionRepository: educationParticipationProjectionRepository ??
+                                                            new FakeEducationParticipationProjectionRepository(),
                 anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy(),
                 personReadRepository: personReadRepository ?? new FakePersonReadRepository());
         }

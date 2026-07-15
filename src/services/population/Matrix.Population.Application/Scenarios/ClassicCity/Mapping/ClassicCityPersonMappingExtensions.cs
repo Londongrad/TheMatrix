@@ -18,12 +18,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Mapping
             Person? mother = null,
             Person? father = null,
             IReadOnlyCollection<Person>? children = null,
+            CityResidentEducationSnapshot? educationSnapshot = null,
             CityPopulationCommuteContext? workplaceRouteAccess = null,
             CityPopulationCommuteContext? educationRouteAccess = null,
             CityResidentHealthcareProviderDto? primaryHealthcareProvider = null,
             CityResidentActiveTripDto? currentActiveTrip = null)
         {
             PersonDto snapshot = person.ToDto(currentDate);
+            educationSnapshot ??= new CityResidentEducationSnapshot(
+                AttainedStage: person.Education.Level.ToString(),
+                ActiveStage: person.Education.CurrentInstitutionId is null
+                    ? null
+                    : person.Education.Level.ToString(),
+                InstitutionId: person.Education.CurrentInstitutionId?.Value,
+                InstitutionAnchorId: person.Education.CurrentInstitutionAnchorId?.Value);
             CityResidentHousingDto housing = currentHousing is null
                 ? new CityResidentHousingDto(
                     HouseholdId: person.HouseholdId.Value,
@@ -39,12 +47,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Mapping
                     WorkplaceId: person.Employment.Job.WorkplaceId.Value,
                     WorkplaceAnchorId: person.Employment.Job.WorkplaceAnchorId?.Value,
                     RouteAccess: ToRouteAccessDto(workplaceRouteAccess));
-            CityResidentEducationInstitutionDto? educationInstitution = person.Education.CurrentInstitutionId is null
+            CityResidentEducationInstitutionDto? educationInstitution = educationSnapshot.InstitutionId is null
                 ? null
                 : new CityResidentEducationInstitutionDto(
-                    InstitutionId: person.Education.CurrentInstitutionId.Value,
-                    InstitutionAnchorId: person.Education.CurrentInstitutionAnchorId?.Value,
-                    EducationLevel: person.Education.Level.ToString(),
+                    InstitutionId: educationSnapshot.InstitutionId.Value,
+                    InstitutionAnchorId: educationSnapshot.InstitutionAnchorId,
+                    EducationLevel: educationSnapshot.ActiveStage ?? educationSnapshot.AttainedStage,
                     RouteAccess: ToRouteAccessDto(educationRouteAccess));
             IReadOnlyCollection<PersonReferenceDto> childReferences = (children ?? Array.Empty<Person>())
                .OrderBy(x => x.BirthDate)
@@ -67,7 +75,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Mapping
                 AgeGroup: snapshot.AgeGroup,
                 LifeStatus: snapshot.LifeStatus,
                 MaritalStatus: snapshot.MaritalStatus,
-                EducationLevel: snapshot.EducationLevel,
+                EducationLevel: educationSnapshot.AttainedStage,
                 Health: snapshot.Health,
                 Happiness: snapshot.Happiness,
                 Energy: snapshot.Energy,
