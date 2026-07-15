@@ -8,6 +8,7 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Integration;
+using Matrix.Population.Infrastructure.Consumers.Education;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Options;
 using Matrix.Population.Infrastructure.Outbox;
@@ -84,6 +85,8 @@ namespace Matrix.Population.Infrastructure
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
+                x.AddConsumer<EducationStudentParticipationConsumer,
+                    EducationStudentParticipationConsumerDefinition>();
                 configureConsumers?.Invoke(x);
 
                 x.UsingRabbitMq((
