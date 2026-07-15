@@ -1,3 +1,5 @@
+using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Entities;
@@ -20,12 +22,15 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         CityPopulationParticipationPolicy participationPolicy,
         TimeProvider timeProvider,
         ICityPopulationCommuteRoutingService commuteRoutingService,
+        IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
         ILogger<CityPopulationSummaryProjectionService> logger)
         : ICityPopulationSummaryProjectionService
     {
         private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
         private readonly PopulationDbContext _dbContext = dbContext;
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
+        private readonly IEducationParticipationProjectionRepository _educationParticipationProjectionRepository =
+            educationParticipationProjectionRepository;
         private readonly ILogger<CityPopulationSummaryProjectionService> _logger = logger;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
         private readonly TimeProvider _timeProvider = timeProvider;
@@ -189,6 +194,16 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 persons: persons,
                 householdPlacements: resolvedPlacements,
                 cancellationToken: cancellationToken);
+            IReadOnlyDictionary<Guid, EducationParticipationProjection> educationParticipations =
+                resolvedPersons.Count == 0
+                    ? new Dictionary<Guid, EducationParticipationProjection>()
+                    : await _educationParticipationProjectionRepository.GetByResidentIdsAsync(
+                        simulationHostId: cityId.Value,
+                        residentIds: resolvedPersons.Select(person => person.Id.Value).ToArray(),
+                        cancellationToken: cancellationToken);
+            var educationParticipationIndex = new EducationParticipationProjectionIndex(
+                cityId.Value,
+                educationParticipations);
 
             if ((persons.Count == 0 || householdPlacements?.Count == 0) &&
                 (resolvedPersons.Count > 0 || resolvedPlacements.Count > 0))
@@ -237,6 +252,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 cityId: cityId,
                 currentDate: currentDate,
                 persons: resolvedPersons,
+                educationParticipationIndex: educationParticipationIndex,
                 householdPlacements: resolvedPlacements,
                 livingConditionsState: livingConditionsState,
                 serviceQualityState: serviceQualityState,
@@ -330,6 +346,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CityId cityId,
             DateOnly currentDate,
             IReadOnlyCollection<Person> persons,
+            EducationParticipationProjectionIndex educationParticipationIndex,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             CityPopulationLivingConditionsState? livingConditionsState,
             CityPopulationServiceQualityState? serviceQualityState,
@@ -362,8 +379,17 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             Person[] employedResidents = aliveResidents
                .Where(x => x.Employment.Status == EmploymentStatus.Employed)
                .ToArray();
-            Person[] studentResidents = aliveResidents
-               .Where(x => x.Employment.Status == EmploymentStatus.Student)
+            (Person Resident, EducationParticipationProjection Participation)[] studentResidents = aliveResidents
+               .Select(resident => (
+                    Resident: resident,
+                    Participation: educationParticipationIndex.FindCurrent(resident)))
+               .Where(item => item.Participation is
+               {
+                   IsEnrolled: true
+               })
+               .Select(item => (
+                    item.Resident,
+                    Participation: item.Participation!))
                .ToArray();
             List<decimal> workforceAttendanceSamples = [];
             List<decimal> workforceProductivitySamples = [];
@@ -414,7 +440,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                     workforceCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
                 }
 
-                foreach (Person resident in studentResidents)
+                foreach ((Person resident, EducationParticipationProjection participation) in studentResidents)
                 {
                     HousingStatus? residentHousingStatus = housingByHouseholdId.TryGetValue(
                         key: resident.HouseholdId,
@@ -438,10 +464,12 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                     CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                         districtId: districtId,
                         essentialsState: essentialsState);
-                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEducationCommuteAsync(
+                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
                         cityId: cityId.Value,
                         residentialBuildingId: residentialBuildingId,
-                        resident: resident,
+                        destinationAnchorId: participation.InstitutionAnchorId is { } institutionAnchorId
+                            ? CityAnchorId.From(institutionAnchorId)
+                            : null,
                         cancellationToken: cancellationToken);
                     studentAttendanceSamples.Add(
                         participationPolicy.ResolveLearningAttendanceIndex(
@@ -484,7 +512,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 AdultCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Adult),
                 SeniorCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Senior),
                 EmployedCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Employed),
-                StudentCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Student),
+                StudentCount: studentResidents.Length,
                 UnemployedCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Unemployed),
                 RetiredCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Retired),
                 AverageHealth: aliveResidents.Select(x => (decimal?)x.Health.Value)
