@@ -54,6 +54,19 @@ namespace Matrix.Population.Application.Mapping
                 JobTitle: person.Employment.Job?.Title);
         }
 
+        public static PersonDto ToDto(
+            this Person person,
+            DateOnly currentDate,
+            string attainedEducationStage)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(attainedEducationStage);
+
+            return person.ToDto(currentDate) with
+            {
+                EducationLevel = attainedEducationStage
+            };
+        }
+
         public static PersonReferenceDto ToReferenceDto(this Person person)
         {
             person = GuardHelper.AgainstNull(

@@ -841,6 +841,9 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 _projections = [];
 
             public int UpsertCallCount { get; private set; }
+            public int GetByResidentIdsCallCount { get; private set; }
+            public Guid? RequestedSimulationHostId { get; private set; }
+            public IReadOnlyCollection<Guid> RequestedResidentIds { get; private set; } = [];
             public List<Guid> DeletedSimulationHostIds { get; } = [];
             public IReadOnlyCollection<EducationParticipationProjection> Projections =>
                 _projections.Values;
@@ -871,6 +874,9 @@ namespace Matrix.Population.Application.Tests.TestSupport
                     IReadOnlyCollection<Guid> residentIds,
                     CancellationToken cancellationToken = default)
             {
+                GetByResidentIdsCallCount++;
+                RequestedSimulationHostId = simulationHostId;
+                RequestedResidentIds = residentIds.ToArray();
                 HashSet<Guid> requestedIds = residentIds.ToHashSet();
                 IReadOnlyDictionary<Guid, EducationParticipationProjection> result = _projections
                    .Values

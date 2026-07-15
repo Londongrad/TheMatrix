@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -50,7 +51,30 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var pagination = new Pagination(
                 pageNumber: 3,
                 pageSize: 2);
-            var handler = new GetCityResidentsPageQueryHandler(personReadRepository);
+            var educationParticipationRepository =
+                new FakeEducationParticipationProjectionRepository();
+            var firstResident = personReadRepository.PageByCityResult.Items.First();
+            await educationParticipationRepository.UpsertNewerAsync(
+            [
+                new EducationParticipationProjection(
+                    SimulationHostId: cityId,
+                    ResidentId: firstResident.Id.Value,
+                    ParticipationRevision: 2,
+                    ResidentLifecycleRevision: firstResident.LifecycleRevision,
+                    IsEnrolled: false,
+                    ActiveStage: null,
+                    InstitutionId: null,
+                    InstitutionAnchorId: null,
+                    EnrolledOn: null,
+                    CompletedStage: "higher",
+                    CompletedStageOn: new DateOnly(2048, 5, 3),
+                    SnapshotDate: new DateOnly(2048, 5, 4),
+                    OccurredAtUtc: UtcNow,
+                    UpdatedAtUtc: UtcNow)
+            ]);
+            var handler = new GetCityResidentsPageQueryHandler(
+                personReadRepository,
+                educationParticipationRepository);
 
             PagedResult<PersonDto> result = await handler.Handle(
                 request: new GetCityResidentsPageQuery(
@@ -87,6 +111,36 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: "Alive",
                 actual: first.LifeStatus);
+            Assert.Equal("higher", first.EducationLevel);
+            Assert.Equal("none", result.Items.Last().EducationLevel);
+            Assert.Equal(1, educationParticipationRepository.GetByResidentIdsCallCount);
+            Assert.Equal(cityId, educationParticipationRepository.RequestedSimulationHostId);
+            Assert.Equal(
+                expected: personReadRepository.PageByCityResult.Items
+                   .Select(person => person.Id.Value)
+                   .OrderBy(id => id),
+                actual: educationParticipationRepository.RequestedResidentIds.OrderBy(id => id));
+        }
+
+        [Fact]
+        public async Task Handle_WhenPageIsEmpty_DoesNotQueryEducationProjection()
+        {
+            var personReadRepository = new FakeCityPopulationPersonReadRepository();
+            var educationParticipationRepository =
+                new FakeEducationParticipationProjectionRepository();
+            var handler = new GetCityResidentsPageQueryHandler(
+                personReadRepository,
+                educationParticipationRepository);
+
+            PagedResult<PersonDto> result = await handler.Handle(
+                new GetCityResidentsPageQuery(
+                    CityId: Guid.NewGuid(),
+                    CurrentDate: new DateOnly(2048, 5, 4),
+                    Pagination: new Pagination(pageNumber: 1, pageSize: 25)),
+                CancellationToken.None);
+
+            Assert.Empty(result.Items);
+            Assert.Equal(0, educationParticipationRepository.GetByResidentIdsCallCount);
         }
     }
 }
