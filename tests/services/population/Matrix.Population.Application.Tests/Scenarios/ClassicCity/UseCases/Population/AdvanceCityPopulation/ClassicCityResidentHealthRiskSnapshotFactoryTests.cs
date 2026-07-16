@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Integration;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
@@ -40,6 +41,23 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var household = HouseholdId.From(householdId);
             CityPopulationAnchorCatalogItem hospital = CreateHospitalAnchor();
             var routingService = new RecordingCommuteRoutingService();
+            EducationParticipationProjectionIndex educationParticipation = CreateEducationParticipationIndex(
+                simulationHostId: CityId.Value,
+                new EducationParticipationProjection(
+                    SimulationHostId: CityId.Value,
+                    ResidentId: familyMember.Id.Value,
+                    ParticipationRevision: 1,
+                    ResidentLifecycleRevision: familyMember.LifecycleRevision,
+                    IsEnrolled: true,
+                    ActiveStage: "higher-education",
+                    InstitutionId: Guid.NewGuid(),
+                    InstitutionAnchorId: Guid.NewGuid(),
+                    EnrolledOn: CurrentDate.AddYears(-1),
+                    CompletedStage: "upper-secondary",
+                    CompletedStageOn: CurrentDate.AddYears(-2),
+                    SnapshotDate: CurrentDate,
+                    OccurredAtUtc: UtcNow,
+                    UpdatedAtUtc: UtcNow));
 
             IReadOnlyCollection<PopulationResidentHealthRiskSnapshot> snapshots =
                 await ClassicCityResidentHealthRiskSnapshotFactory.BuildAsync(
@@ -49,6 +67,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     {
                         [household] = residents
                     },
+                    educationParticipation: educationParticipation,
                     currentDate: CurrentDate,
                     housingByHouseholdId: new Dictionary<HouseholdId, HousingStatus>
                     {
@@ -91,6 +110,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(2, exposed.HouseholdSize);
             Assert.Equal("Housed", exposed.HousingStability);
             Assert.True(exposed.HadAdverseWeatherExposure);
+            Assert.True(exposed.HasStructuredDailyActivity);
             Assert.Equal(DistrictId.Value, exposed.CommunityId);
         }
 

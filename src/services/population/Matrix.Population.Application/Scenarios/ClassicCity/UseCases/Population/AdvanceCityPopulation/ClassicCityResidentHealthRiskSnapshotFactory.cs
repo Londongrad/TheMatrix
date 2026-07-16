@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Integration;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
@@ -19,6 +20,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             IReadOnlyCollection<PersonEntity> residents,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
+            EducationParticipationProjectionIndex educationParticipation,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
@@ -122,9 +124,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         SocialNeedScore: resident.SocialNeed.Value,
                         IsVulnerable: resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior,
                         HousingStability: MapHousingStability(housingStatus),
-                        HasStructuredDailyActivity:
-                        resident.Employment.Status is EmploymentStatus.Employed or EmploymentStatus.Student
-                        || resident.Education.CurrentInstitutionId is not null,
+                        HasStructuredDailyActivity: resident.Employment.Status == EmploymentStatus.Employed ||
+                                                    educationParticipation.FindCurrent(resident)?.IsEnrolled == true,
                         HouseholdSize: Math.Max(1, aliveHouseholdResidents.Length),
                         CaregiverSupportStrength: ResolveCaregiverSupportStrength(
                             resident: resident,

@@ -326,6 +326,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     cityId: cityId,
                                     residents: residents,
                                     residentsByHouseholdId: residentsByHouseholdId,
+                                    educationParticipation: educationParticipation,
                                     currentDate: toDate,
                                     housingByHouseholdId: housingByHouseholdId,
                                     districtByHouseholdId: districtByHouseholdId,
