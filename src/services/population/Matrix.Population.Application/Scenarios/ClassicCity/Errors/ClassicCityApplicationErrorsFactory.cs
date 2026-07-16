@@ -51,14 +51,5 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Errors
                 errorType: ApplicationErrorType.NotFound);
         }
 
-        public static MatrixApplicationException EducationInstitutionNotFound(
-            Guid institutionId,
-            Guid cityId)
-        {
-            return new MatrixApplicationException(
-                code: "Population.Education.Institution.NotFound",
-                message: $"Education institution '{institutionId}' was not found inside city '{cityId}'.",
-                errorType: ApplicationErrorType.NotFound);
-        }
     }
 }
