@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
@@ -12,10 +13,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly previousDate,
             DateOnly currentDate,
             HousingStatus? housingStatus,
+            PersonRoutineProfile routineProfile,
             CityPopulationLivingConditionsContext livingConditions,
             CityPopulationEssentialsContext essentials)
         {
             ArgumentNullException.ThrowIfNull(person);
+            ArgumentNullException.ThrowIfNull(routineProfile);
 
             if (!person.IsAlive || currentDate <= previousDate)
                 return CityPopulationLivingConditionsPressureEffect.None;
@@ -47,10 +50,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double housingVulnerability = housingStatus == HousingStatus.Homeless
                 ? 1.25d
                 : 1.00d;
-            double activityVulnerability =
-                person.Employment.Status is EmploymentStatus.Employed or EmploymentStatus.Student
-                    ? 1.15d
-                    : 0.75d;
+            double activityVulnerability = routineProfile.HasStructuredActivity
+                ? 1.15d
+                : 0.75d;
             double functionalVulnerability = 1d +
                                              (((100d - person.FunctionalCapacity.Value) / 100d) * 0.20d);
 

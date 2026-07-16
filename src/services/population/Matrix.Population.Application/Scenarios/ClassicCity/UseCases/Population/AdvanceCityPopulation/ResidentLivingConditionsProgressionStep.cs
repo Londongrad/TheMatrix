@@ -4,6 +4,7 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.Models;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
 
@@ -15,6 +16,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             PersonEntity person,
             DateOnly previousDate,
             DateOnly currentDate,
+            PersonRoutineProfile routineProfile,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
             CityPopulationLivingConditionsState? livingConditionsState,
@@ -49,6 +51,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 previousDate: previousDate,
                 currentDate: currentDate,
                 housingStatus: housingStatus,
+                routineProfile: routineProfile,
                 livingConditions: districtLivingConditions,
                 essentials: districtEssentials);
 

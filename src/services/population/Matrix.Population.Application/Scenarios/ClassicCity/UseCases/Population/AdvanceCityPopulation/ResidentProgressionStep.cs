@@ -1,6 +1,7 @@
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -53,6 +54,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         {
             bool populationChanged = false;
             int externalHealthDelta = 0;
+            PersonRoutineProfile routineProfile = ResidentRoutineProfileFactory.Create(
+                resident: person,
+                educationParticipation: educationParticipation.FindCurrent(person));
             if (requiresNeedsProgression)
             {
                 ResidentProgressionStepResult needsProgression = ResidentNeedsProgressionStep.Apply(
@@ -60,9 +64,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     fromSimTimeUtc: fromSimTimeUtc,
                     toSimTimeUtc: toSimTimeUtc,
                     environment: environment,
-                    routineProfile: ResidentRoutineProfileFactory.Create(
-                        resident: person,
-                        educationParticipation: educationParticipation.FindCurrent(person)),
+                    routineProfile: routineProfile,
                     personNeedsProgressionPolicy: personNeedsProgressionPolicy);
                 populationChanged |= needsProgression.PopulationChanged;
                 externalHealthDelta += needsProgression.ExternalHealthDelta;
@@ -109,6 +111,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     person: person,
                     previousDate: previousDate,
                     currentDate: currentDate,
+                    routineProfile: routineProfile,
                     housingByHouseholdId: housingByHouseholdId,
                     districtByHouseholdId: districtByHouseholdId,
                     livingConditionsState: livingConditionsState,

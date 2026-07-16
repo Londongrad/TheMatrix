@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
@@ -32,6 +33,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     month: 5,
                     day: 2),
                 housingStatus: HousingStatus.Housed,
+                routineProfile: PersonRoutineProfile.Unstructured,
                 livingConditions: CreateLivingConditionsContext(),
                 essentials: CreateEssentialsContext());
 
@@ -51,6 +53,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     month: 5,
                     day: 2),
                 housingStatus: HousingStatus.Housed,
+                routineProfile: PersonRoutineProfile.Unstructured,
                 livingConditions: CreateLivingConditionsContext(),
                 essentials: CreateEssentialsContext());
 
@@ -88,6 +91,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     day: 1),
                 currentDate: currentDate,
                 housingStatus: HousingStatus.Homeless,
+                routineProfile: PersonRoutineProfile.Unstructured,
                 livingConditions: new CityPopulationLivingConditionsContext(
                     FloodingIndex: 0.8m,
                     RoadAccessibilityIndex: 0.5m,
@@ -119,6 +123,56 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 expected: -13,
                 actual: effect.HappinessDelta);
             Assert.True(effect.HasAnyEffect);
+        }
+
+        [Fact]
+        public void Calculate_WhenResidentHasStructuredActivity_AppliesHigherRoadDisruptionPressure()
+        {
+            var policy = new CityPopulationLivingConditionsPressurePolicy();
+            Person resident = PopulationTestData.CreateAdultPerson();
+            var livingConditions = new CityPopulationLivingConditionsContext(
+                FloodingIndex: 0m,
+                RoadAccessibilityIndex: 0m,
+                PowerCoverageIndex: 1m,
+                UtilityContinuityIndex: 1m,
+                HeatingCoverageIndex: 1m,
+                WaterCoverageIndex: 1m,
+                SanitationCoverageIndex: 1m);
+            var essentials = new CityPopulationEssentialsContext(
+                SupplyStressIndex: 1m,
+                EmergencyRationingEnabled: false,
+                FoodStockLevelIndex: 1m,
+                FoodShortageRiskIndex: 0m,
+                MedicineStockLevelIndex: 1m,
+                MedicineShortageRiskIndex: 0m,
+                EmergencyWaterStockLevelIndex: 1m,
+                EmergencyWaterShortageRiskIndex: 0m);
+            PersonRoutineProfile structuredRoutine = PersonRoutineProfile.Structured(
+                activityStart: TimeSpan.FromHours(8),
+                activityEnd: TimeSpan.FromHours(15),
+                activityLoad: PersonStructuredActivityLoad.Moderate);
+
+            CityPopulationLivingConditionsPressureEffect unstructured = policy.Calculate(
+                person: resident,
+                previousDate: new DateOnly(2048, 5, 1),
+                currentDate: new DateOnly(2048, 5, 2),
+                housingStatus: HousingStatus.Housed,
+                routineProfile: PersonRoutineProfile.Unstructured,
+                livingConditions: livingConditions,
+                essentials: essentials);
+            CityPopulationLivingConditionsPressureEffect structured = policy.Calculate(
+                person: resident,
+                previousDate: new DateOnly(2048, 5, 1),
+                currentDate: new DateOnly(2048, 5, 2),
+                housingStatus: HousingStatus.Housed,
+                routineProfile: structuredRoutine,
+                livingConditions: livingConditions,
+                essentials: essentials);
+
+            Assert.Equal(-1, unstructured.EnergyDelta);
+            Assert.Equal(-2, structured.EnergyDelta);
+            Assert.Equal(2, unstructured.StressDelta);
+            Assert.Equal(3, structured.StressDelta);
         }
 
         [Fact]

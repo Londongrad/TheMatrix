@@ -1,6 +1,7 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -98,6 +99,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 previousDate: PreviousDate,
                 currentDate: CurrentDate,
                 housingStatus: HousingStatus.Homeless,
+                routineProfile: PersonRoutineProfile.Unstructured,
                 livingConditions: expectedLivingConditions,
                 essentials: expectedEssentials);
             var before = NeedsSnapshot.Capture(resident);
@@ -152,6 +154,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 previousDate: PreviousDate,
                 currentDate: CurrentDate,
                 housingStatus: HousingStatus.Housed,
+                routineProfile: PersonRoutineProfile.Unstructured,
                 livingConditions: expectedLivingConditions,
                 essentials: expectedEssentials);
             var before = NeedsSnapshot.Capture(resident);
@@ -271,6 +274,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>?
                 districtUtilityConditionsByDistrictId = null,
             CityPopulationEssentialsState? essentialsState = null,
+            PersonRoutineProfile? routineProfile = null,
             CityPopulationDistrictImpactPolicy? districtImpactPolicy = null,
             CityPopulationLivingConditionsPressurePolicy? livingConditionsPressurePolicy = null)
         {
@@ -278,6 +282,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 person: resident,
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
+                routineProfile: routineProfile ?? PersonRoutineProfile.Unstructured,
                 housingByHouseholdId: housingByHouseholdId ?? new Dictionary<HouseholdId, HousingStatus>(),
                 districtByHouseholdId: districtByHouseholdId ?? new Dictionary<HouseholdId, DistrictId?>(),
                 livingConditionsState: livingConditionsState,
