@@ -10,6 +10,34 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Mapping
 {
     public static class ClassicCityPersonMappingExtensions
     {
+        public static CityResidentSummaryDto ToResidentSummaryDto(
+            this Person person,
+            DateOnly currentDate,
+            string attainedEducationStage)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(attainedEducationStage);
+
+            PersonDto snapshot = person.ToDto(currentDate);
+            return new CityResidentSummaryDto(
+                Id: snapshot.Id,
+                FullName: snapshot.FullName,
+                Sex: snapshot.Sex,
+                BirthDate: snapshot.BirthDate,
+                DeathDate: snapshot.DeathDate,
+                Age: snapshot.Age,
+                AgeGroup: snapshot.AgeGroup,
+                LifeStatus: snapshot.LifeStatus,
+                MaritalStatus: snapshot.MaritalStatus,
+                EducationLevel: attainedEducationStage,
+                Health: snapshot.Health,
+                Happiness: snapshot.Happiness,
+                Energy: snapshot.Energy,
+                Stress: snapshot.Stress,
+                SocialNeed: snapshot.SocialNeed,
+                EmploymentStatus: snapshot.EmploymentStatus,
+                JobTitle: snapshot.JobTitle);
+        }
+
         public static CityResidentDetailsDto ToResidentDetailsDto(
             this Person person,
             DateOnly currentDate,
