@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
@@ -39,6 +40,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdId: TestHouseholdId,
                 householdResidents: [resident],
+                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 residentialBuildingByHouseholdId: new Dictionary<HouseholdId, ResidentialBuildingId?>(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);
@@ -60,6 +62,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdId: TestHouseholdId,
                 householdResidents: [unemployed],
+                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 residentialBuildingByHouseholdId: CreateResidentialBuildingMap(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);
@@ -77,9 +80,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Person employee = CreateEmployedResident(
                 householdId: TestHouseholdId,
                 workplaceAnchorId: workplaceAnchorId);
-            Person student = CreateStudentResident(
-                householdId: TestHouseholdId,
-                institutionAnchorId: institutionAnchorId);
+            Person student = CreatePerson(
+                personId: Guid.NewGuid(),
+                householdId: TestHouseholdId.Value,
+                employmentStatus: EmploymentStatus.Unemployed);
             Person unemployed = CreatePerson(
                 personId: Guid.NewGuid(),
                 householdId: TestHouseholdId.Value);
@@ -106,6 +110,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     student,
                     unemployed
                 ],
+                educationParticipation: CreateEducationParticipationIndex(
+                    simulationHostId: TestCityId.Value,
+                    CreateEducationProjection(
+                        resident: student,
+                        institutionAnchorId: institutionAnchorId)),
                 residentialBuildingByHouseholdId: CreateResidentialBuildingMap(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);
@@ -173,6 +182,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdId: TestHouseholdId,
                 householdResidents: [employee],
+                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 residentialBuildingByHouseholdId: CreateResidentialBuildingMap(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);
@@ -211,6 +221,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdId: TestHouseholdId,
                 householdResidents: [employee],
+                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 residentialBuildingByHouseholdId: CreateResidentialBuildingMap(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);
@@ -252,20 +263,25 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     workplaceAnchorId: workplaceAnchorId));
         }
 
-        private static Person CreateStudentResident(
-            HouseholdId householdId,
+        private static EducationParticipationProjection CreateEducationProjection(
+            Person resident,
             CityAnchorId institutionAnchorId)
         {
-            Person resident = CreatePerson(
-                personId: Guid.NewGuid(),
-                householdId: householdId.Value);
-
-            resident.StartStudying(
-                currentDate: CurrentDate,
-                institutionId: EducationInstitutionId.From(Guid.NewGuid()),
-                institutionAnchorId: institutionAnchorId);
-
-            return resident;
+            return new EducationParticipationProjection(
+                SimulationHostId: TestCityId.Value,
+                ResidentId: resident.Id.Value,
+                ParticipationRevision: 1,
+                ResidentLifecycleRevision: resident.LifecycleRevision,
+                IsEnrolled: true,
+                ActiveStage: "upper-secondary",
+                InstitutionId: Guid.NewGuid(),
+                InstitutionAnchorId: institutionAnchorId.Value,
+                EnrolledOn: CurrentDate,
+                CompletedStage: "lower-secondary",
+                CompletedStageOn: CurrentDate.AddYears(-1),
+                SnapshotDate: CurrentDate,
+                OccurredAtUtc: UtcNow,
+                UpdatedAtUtc: UtcNow);
         }
 
         private static CityPopulationCommuteContext CreateCommute(

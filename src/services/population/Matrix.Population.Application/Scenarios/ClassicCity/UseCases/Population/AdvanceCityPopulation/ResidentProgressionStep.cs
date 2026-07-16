@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -19,6 +20,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
+            EducationParticipationProjectionIndex educationParticipation,
             DateOnly previousDate,
             DateTimeOffset fromSimTimeUtc,
             DateTimeOffset toSimTimeUtc,
@@ -85,6 +87,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cityId: cityId,
                     person: person,
                     residentsByHouseholdId: residentsByHouseholdId,
+                    educationParticipation: educationParticipation,
                     previousDate: previousDate,
                     currentDate: currentDate,
                     housingByHouseholdId: housingByHouseholdId,

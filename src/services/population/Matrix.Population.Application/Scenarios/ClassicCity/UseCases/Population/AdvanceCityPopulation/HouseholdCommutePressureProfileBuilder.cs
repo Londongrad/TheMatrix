@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Enums;
@@ -15,6 +16,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             HouseholdId householdId,
             IReadOnlyCollection<PersonEntity> householdResidents,
+            EducationParticipationProjectionIndex educationParticipation,
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
@@ -31,20 +33,22 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             int blockedRouteCount = 0;
             decimal accessibilityDeficitTotal = 0m;
             decimal travelFatigueTotal = 0m;
+            IReadOnlyDictionary<Guid, IReadOnlyList<CityAnchorId>> destinationAnchorsByResidentId =
+                householdResidents
+                   .Where(resident => resident.IsAlive)
+                   .ToDictionary(
+                        keySelector: resident => resident.Id.Value,
+                        elementSelector: resident => ResolveDestinationAnchorIds(
+                            resident: resident,
+                            educationParticipation: educationParticipation));
 
             await commuteRoutingService.PreloadAnchorCommutesAsync(
                 cityId: cityId.Value,
-                requests: householdResidents
-                   .Where(x => x.IsAlive)
-                   .Select(x => x.Employment.Status == EmploymentStatus.Employed
-                        ? x.Employment.Job?.WorkplaceAnchorId
-                        : x.Employment.Status == EmploymentStatus.Student
-                            ? x.Education.CurrentInstitutionAnchorId
-                            : null)
-                   .Where(x => x.HasValue)
-                   .Select(x => new CityPopulationCommuteRouteRequest(
+                requests: destinationAnchorsByResidentId.Values
+                   .SelectMany(destinationAnchorIds => destinationAnchorIds)
+                   .Select(destinationAnchorId => new CityPopulationCommuteRouteRequest(
                         ResidentialBuildingId: residentialBuildingId.Value,
-                        DestinationAnchorId: x!.Value,
+                        DestinationAnchorId: destinationAnchorId,
                         Profile: CityPopulationCommuteRoutingProfiles.Pedestrian))
                    .ToArray(),
                 cancellationToken: cancellationToken);
@@ -54,33 +58,40 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 if (!householdResident.IsAlive)
                     continue;
 
-                CityAnchorId? destinationAnchorId = householdResident.Employment.Status == EmploymentStatus.Employed
-                    ? householdResident.Employment.Job?.WorkplaceAnchorId
-                    : householdResident.Employment.Status == EmploymentStatus.Student
-                        ? householdResident.Education.CurrentInstitutionAnchorId
-                        : null;
-                if (!destinationAnchorId.HasValue)
+                IReadOnlyList<CityAnchorId> destinationAnchorIds =
+                    destinationAnchorsByResidentId[householdResident.Id.Value];
+                if (destinationAnchorIds.Count == 0)
                     continue;
 
-                CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
-                    cityId: cityId.Value,
-                    residentialBuildingId: residentialBuildingId,
-                    destinationAnchorId: destinationAnchorId,
-                    cancellationToken: cancellationToken);
-                routedResidentCount++;
-                accessibilityDeficitTotal += 1m - commute.AccessibilityIndex;
-                if (!commute.IsAccessible)
-                    blockedRouteCount++;
+                decimal residentAccessibilityDeficit = 0m;
+                decimal residentTravelFatigue = 0m;
+                bool hasBlockedRoute = false;
+                foreach (CityAnchorId destinationAnchorId in destinationAnchorIds)
+                {
+                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
+                        cityId: cityId.Value,
+                        residentialBuildingId: residentialBuildingId,
+                        destinationAnchorId: destinationAnchorId,
+                        cancellationToken: cancellationToken);
+                    residentAccessibilityDeficit += 1m - commute.AccessibilityIndex;
+                    hasBlockedRoute |= !commute.IsAccessible;
 
-                decimal travelFatigue = commute.EstimatedTravelTimeMinutes.HasValue
-                    ? decimal.Clamp(
-                        value: commute.EstimatedTravelTimeMinutes.Value / 90m,
-                        min: 0m,
-                        max: 1m)
-                    : commute.IsAccessible
-                        ? 0m
-                        : 1m;
-                travelFatigueTotal += travelFatigue;
+                    decimal travelFatigue = commute.EstimatedTravelTimeMinutes.HasValue
+                        ? decimal.Clamp(
+                            value: commute.EstimatedTravelTimeMinutes.Value / 90m,
+                            min: 0m,
+                            max: 1m)
+                        : commute.IsAccessible
+                            ? 0m
+                            : 1m;
+                    residentTravelFatigue += travelFatigue;
+                }
+
+                routedResidentCount++;
+                accessibilityDeficitTotal += residentAccessibilityDeficit / destinationAnchorIds.Count;
+                travelFatigueTotal += residentTravelFatigue / destinationAnchorIds.Count;
+                if (hasBlockedRoute)
+                    blockedRouteCount++;
             }
 
             if (routedResidentCount == 0)
@@ -97,6 +108,31 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     d: travelFatigueTotal / routedResidentCount,
                     decimals: 4,
                     mode: MidpointRounding.AwayFromZero));
+        }
+
+        private static IReadOnlyList<CityAnchorId> ResolveDestinationAnchorIds(
+            PersonEntity resident,
+            EducationParticipationProjectionIndex educationParticipation)
+        {
+            List<CityAnchorId> destinationAnchorIds = [];
+            if (resident.Employment.Status == EmploymentStatus.Employed &&
+                resident.Employment.Job?.WorkplaceAnchorId is
+                { } workplaceAnchorId)
+                destinationAnchorIds.Add(workplaceAnchorId);
+
+            EducationParticipationProjection? projection = educationParticipation.FindCurrent(resident);
+            if (projection is
+                {
+                    IsEnrolled: true,
+                    InstitutionAnchorId: { } institutionAnchorId
+                })
+            {
+                CityAnchorId anchorId = CityAnchorId.From(institutionAnchorId);
+                if (!destinationAnchorIds.Contains(anchorId))
+                    destinationAnchorIds.Add(anchorId);
+            }
+
+            return destinationAnchorIds;
         }
     }
 }

@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Integration;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -229,6 +230,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         Dictionary<PersonId, PersonEntity> personsById = workingSet.ResidentsById;
                         Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId =
                             workingSet.ResidentsByHouseholdId;
+                        EducationParticipationProjectionIndex educationParticipation =
+                            workingSet.EducationParticipation;
                         IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId =
                             workingSet.HousingByHouseholdId;
                         IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId =
@@ -257,6 +260,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     cityId: cityId,
                                     householdsById: householdsById,
                                     residentsByHouseholdId: residentsByHouseholdId,
+                                    educationParticipation: educationParticipation,
                                     previousDate: previousDate,
                                     fromSimTimeUtc: request.FromSimTimeUtc,
                                     toSimTimeUtc: request.ToSimTimeUtc,
@@ -421,6 +425,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             affectedPeopleCount += await HousingAutonomyStep.ApplyAsync(
                                 cityId: cityId,
                                 residentsById: personsById,
+                                educationParticipation: educationParticipation,
                                 previousDate: previousDate,
                                 currentDate: toDate,
                                 householdWriteRepository: householdWriteRepository,

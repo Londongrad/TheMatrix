@@ -318,6 +318,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             return HousingAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: residentsById,
+                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
                 householdWriteRepository: householdWriteRepository,

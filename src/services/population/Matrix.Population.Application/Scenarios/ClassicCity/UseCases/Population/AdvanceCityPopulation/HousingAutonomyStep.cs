@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -17,6 +18,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         internal static async Task<int> ApplyAsync(
             CityId cityId,
             IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
+            EducationParticipationProjectionIndex educationParticipation,
             DateOnly previousDate,
             DateOnly currentDate,
             IHouseholdWriteRepository householdWriteRepository,
@@ -90,6 +92,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId,
                         householdId: placement.HouseholdId,
                         householdResidents: householdResidents,
+                        educationParticipation: educationParticipation,
                         residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                         commuteRoutingService: commuteRoutingService,
                         cancellationToken: cancellationToken);

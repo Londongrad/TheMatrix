@@ -40,6 +40,15 @@ namespace Matrix.Population.Application.Tests.TestSupport
             return new FakeTimeProvider(utcNow ?? UtcNow);
         }
 
+        internal static EducationParticipationProjectionIndex CreateEducationParticipationIndex(
+            Guid simulationHostId,
+            params EducationParticipationProjection[] projections)
+        {
+            return new EducationParticipationProjectionIndex(
+                simulationHostId: simulationHostId,
+                projections: projections.ToDictionary(projection => projection.ResidentId));
+        }
+
         internal static Person CreatePerson(
             Guid? personId = null,
             Guid? householdId = null,

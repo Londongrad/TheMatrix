@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
@@ -15,6 +16,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             PersonEntity person,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
+            EducationParticipationProjectionIndex educationParticipation,
             DateOnly previousDate,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
@@ -42,6 +44,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cityId: cityId,
                     householdId: person.HouseholdId,
                     householdResidents: householdResidents,
+                    educationParticipation: educationParticipation,
                     residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                     commuteRoutingService: commuteRoutingService,
                     cancellationToken: cancellationToken);

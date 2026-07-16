@@ -206,6 +206,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 person: resident,
                 residentsByHouseholdId: residentsByHouseholdId ??
                                         new Dictionary<HouseholdId, IReadOnlyCollection<Person>>(),
+                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
                 housingByHouseholdId: housingByHouseholdId ?? new Dictionary<HouseholdId, HousingStatus>(),
