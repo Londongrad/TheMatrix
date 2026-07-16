@@ -9,28 +9,20 @@ namespace Matrix.Population.Domain.Services
     {
         private static readonly TimeSpan SleepStart = TimeSpan.FromHours(22);
         private static readonly TimeSpan SleepEnd = TimeSpan.FromHours(6);
-        private static readonly TimeSpan ActivityStart = TimeSpan.FromHours(8);
-        private static readonly TimeSpan StudentActivityEnd = TimeSpan.FromHours(15);
-        private static readonly TimeSpan EmploymentActivityEnd = TimeSpan.FromHours(17);
-
-        private static readonly TimeSpan[] PhaseBoundaries =
-        {
-            SleepEnd,
-            ActivityStart,
-            StudentActivityEnd,
-            EmploymentActivityEnd,
-            SleepStart
-        };
 
         public PersonNeedsProgressionEffect Calculate(
             Person person,
             DateTimeOffset fromSimTimeUtc,
             DateTimeOffset toSimTimeUtc,
-            int utcOffsetMinutes)
+            int utcOffsetMinutes,
+            PersonRoutineProfile routineProfile)
         {
             person = GuardHelper.AgainstNull(
                 value: person,
                 propertyName: nameof(person));
+            routineProfile = GuardHelper.AgainstNull(
+                value: routineProfile,
+                propertyName: nameof(routineProfile));
 
             if (!person.IsAlive || toSimTimeUtc <= fromSimTimeUtc)
                 return PersonNeedsProgressionEffect.None;
@@ -52,15 +44,18 @@ namespace Matrix.Population.Domain.Services
             while (localCursor < localEnd)
             {
                 PersonRoutinePhase phase = ResolvePhase(
-                    person: person,
+                    routineProfile: routineProfile,
                     localTime: localCursor);
                 DateTimeOffset segmentEnd = Min(
                     left: localEnd,
-                    right: GetNextBoundary(localCursor));
+                    right: GetNextBoundary(
+                        localTime: localCursor,
+                        routineProfile: routineProfile));
                 decimal hours = (decimal)(segmentEnd - localCursor).TotalHours;
 
                 ApplyPhase(
                     person: person,
+                    routineProfile: routineProfile,
                     phase: phase,
                     hours: hours,
                     localDate: DateOnly.FromDateTime(localCursor.DateTime),
@@ -86,6 +81,7 @@ namespace Matrix.Population.Domain.Services
 
         private static void ApplyPhase(
             Person person,
+            PersonRoutineProfile routineProfile,
             PersonRoutinePhase phase,
             decimal hours,
             DateOnly localDate,
@@ -103,6 +99,7 @@ namespace Matrix.Population.Domain.Services
 
             RoutineDrift drift = BuildDrift(
                 person: person,
+                routineProfile: routineProfile,
                 phase: phase,
                 localDate: localDate);
 
@@ -130,6 +127,7 @@ namespace Matrix.Population.Domain.Services
 
         private static RoutineDrift BuildDrift(
             Person person,
+            PersonRoutineProfile routineProfile,
             PersonRoutinePhase phase,
             DateOnly localDate)
         {
@@ -144,7 +142,8 @@ namespace Matrix.Population.Domain.Services
                     EnergyPerHour: +6.0m,
                     StressPerHour: -3.0m,
                     SocialNeedPerHour: 0.10m * socialPressureFactor),
-                PersonRoutinePhase.StructuredActivity when person.Employment.Status == EmploymentStatus.Student => new
+                PersonRoutinePhase.StructuredActivity when routineProfile.StructuredActivityLoad ==
+                                                           PersonStructuredActivityLoad.Moderate => new
                     RoutineDrift(
                         EnergyPerHour: -3.5m * disciplineFactor,
                         StressPerHour: +2.4m * disciplineFactor,
@@ -245,7 +244,7 @@ namespace Matrix.Population.Domain.Services
         }
 
         private static PersonRoutinePhase ResolvePhase(
-            Person person,
+            PersonRoutineProfile routineProfile,
             DateTimeOffset localTime)
         {
             TimeSpan timeOfDay = localTime.TimeOfDay;
@@ -253,25 +252,33 @@ namespace Matrix.Population.Domain.Services
                 return PersonRoutinePhase.Sleep;
 
             bool isWeekday = localTime.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday);
-            if (isWeekday)
-            {
-                if (person.Employment.Status == EmploymentStatus.Student &&
-                    timeOfDay >= ActivityStart &&
-                    timeOfDay < StudentActivityEnd)
-                    return PersonRoutinePhase.StructuredActivity;
-
-                if (person.Employment.Status == EmploymentStatus.Employed &&
-                    timeOfDay >= ActivityStart &&
-                    timeOfDay < EmploymentActivityEnd)
-                    return PersonRoutinePhase.StructuredActivity;
-            }
+            if (isWeekday &&
+                routineProfile.HasStructuredActivity &&
+                timeOfDay >= routineProfile.StructuredActivityStart!.Value &&
+                timeOfDay < routineProfile.StructuredActivityEnd!.Value)
+                return PersonRoutinePhase.StructuredActivity;
 
             return PersonRoutinePhase.Leisure;
         }
 
-        private static DateTimeOffset GetNextBoundary(DateTimeOffset localTime)
+        private static DateTimeOffset GetNextBoundary(
+            DateTimeOffset localTime,
+            PersonRoutineProfile routineProfile)
         {
-            foreach (TimeSpan boundary in PhaseBoundaries)
+            IEnumerable<TimeSpan> boundaries = routineProfile.HasStructuredActivity
+                ?
+                [
+                    SleepEnd,
+                    routineProfile.StructuredActivityStart!.Value,
+                    routineProfile.StructuredActivityEnd!.Value,
+                    SleepStart
+                ]
+                :
+                [
+                    SleepEnd,
+                    SleepStart
+                ];
+            foreach (TimeSpan boundary in boundaries.Distinct().Order())
             {
                 DateTimeOffset candidate = CreateBoundary(
                     localTime: localTime,

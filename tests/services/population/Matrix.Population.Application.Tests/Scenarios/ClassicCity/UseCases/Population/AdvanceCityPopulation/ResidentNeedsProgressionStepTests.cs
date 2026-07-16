@@ -72,7 +72,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     minute: 0,
                     second: 0,
                     offset: TimeSpan.Zero),
-                utcOffsetMinutes: 600);
+                utcOffsetMinutes: 600,
+                routineProfile: PersonRoutineProfile.Unstructured);
 
             ResidentProgressionStepResult result = Apply(
                 resident: resident,
@@ -138,12 +139,14 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 person: resident,
                 fromSimTimeUtc: fromUtc,
                 toSimTimeUtc: toUtc,
-                utcOffsetMinutes: 600);
+                utcOffsetMinutes: 600,
+                routineProfile: PersonRoutineProfile.Unstructured);
             PersonNeedsProgressionEffect expectedEffectWithoutOffset = policy.Calculate(
                 person: resident,
                 fromSimTimeUtc: fromUtc,
                 toSimTimeUtc: toUtc,
-                utcOffsetMinutes: 0);
+                utcOffsetMinutes: 0,
+                routineProfile: PersonRoutineProfile.Unstructured);
             var before = NeedsSnapshot.Capture(resident);
 
             ResidentProgressionStepResult result = Apply(
@@ -247,6 +250,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             DateTimeOffset? fromUtc = null,
             DateTimeOffset? toUtc = null,
             CityPopulationEnvironment? environment = null,
+            PersonRoutineProfile? routineProfile = null,
             PersonNeedsProgressionPolicy? policy = null)
         {
             return ResidentNeedsProgressionStep.Apply(
@@ -254,6 +258,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 fromSimTimeUtc: fromUtc ?? FromUtc,
                 toSimTimeUtc: toUtc ?? ToUtc,
                 environment: environment,
+                routineProfile: routineProfile ?? PersonRoutineProfile.Unstructured,
                 personNeedsProgressionPolicy: policy ?? new PersonNeedsProgressionPolicy());
         }
 

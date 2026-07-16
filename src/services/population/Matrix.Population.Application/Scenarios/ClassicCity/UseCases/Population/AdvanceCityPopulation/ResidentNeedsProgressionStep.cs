@@ -12,6 +12,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateTimeOffset fromSimTimeUtc,
             DateTimeOffset toSimTimeUtc,
             CityPopulationEnvironment? environment,
+            PersonRoutineProfile routineProfile,
             PersonNeedsProgressionPolicy personNeedsProgressionPolicy)
         {
             int utcOffsetMinutes = environment?.UtcOffsetMinutes ?? 0;
@@ -19,7 +20,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 person: person,
                 fromSimTimeUtc: fromSimTimeUtc,
                 toSimTimeUtc: toSimTimeUtc,
-                utcOffsetMinutes: utcOffsetMinutes);
+                utcOffsetMinutes: utcOffsetMinutes,
+                routineProfile: routineProfile);
             bool changed = person.ApplyNeedsProgression(
                 effect: effect);
 

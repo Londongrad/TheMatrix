@@ -60,6 +60,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     fromSimTimeUtc: fromSimTimeUtc,
                     toSimTimeUtc: toSimTimeUtc,
                     environment: environment,
+                    routineProfile: ResidentRoutineProfileFactory.Create(
+                        resident: person,
+                        educationParticipation: educationParticipation.FindCurrent(person)),
                     personNeedsProgressionPolicy: personNeedsProgressionPolicy);
                 populationChanged |= needsProgression.PopulationChanged;
                 externalHealthDelta += needsProgression.ExternalHealthDelta;

@@ -37,7 +37,8 @@ namespace Matrix.Population.Domain.Tests.Services
                     minute: 0,
                     second: 0,
                     offset: TimeSpan.Zero),
-                utcOffsetMinutes: 0);
+                utcOffsetMinutes: 0,
+                routineProfile: PersonRoutineProfile.Unstructured);
             PersonNeedsProgressionEffect noAdvanceEffect = policy.Calculate(
                 person: PopulationTestData.CreateAdultPerson(),
                 fromSimTimeUtc: new DateTimeOffset(
@@ -56,7 +57,8 @@ namespace Matrix.Population.Domain.Tests.Services
                     minute: 0,
                     second: 0,
                     offset: TimeSpan.Zero),
-                utcOffsetMinutes: 0);
+                utcOffsetMinutes: 0,
+                routineProfile: PersonRoutineProfile.Unstructured);
 
             Assert.Equal(
                 expected: PersonNeedsProgressionEffect.None,
@@ -90,7 +92,8 @@ namespace Matrix.Population.Domain.Tests.Services
                     minute: 0,
                     second: 0,
                     offset: TimeSpan.Zero),
-                utcOffsetMinutes: 600);
+                utcOffsetMinutes: 600,
+                routineProfile: PersonRoutineProfile.Unstructured);
 
             Assert.Equal(
                 expected: 12,
@@ -111,20 +114,17 @@ namespace Matrix.Population.Domain.Tests.Services
         }
 
         [Fact]
-        public void Calculate_WhenStudentIsInStructuredActivity_DrainsEnergyAndLowersSocialNeed()
+        public void Calculate_WhenModerateStructuredActivityIsActive_DrainsEnergyAndLowersSocialNeed()
         {
             PersonNeedsProgressionPolicy policy = new();
-            Person student = PopulationTestData.CreateAdultPerson();
-            student.StartStudying(
-                currentDate: new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 1),
-                institutionId: PopulationTestData.CreateEducationInstitutionId(),
-                institutionAnchorId: PopulationTestData.CreateCityAnchorId());
+            Person person = PopulationTestData.CreateAdultPerson();
+            PersonRoutineProfile routineProfile = PersonRoutineProfile.Structured(
+                activityStart: TimeSpan.FromHours(8),
+                activityEnd: TimeSpan.FromHours(15),
+                activityLoad: PersonStructuredActivityLoad.Moderate);
 
             PersonNeedsProgressionEffect effect = policy.Calculate(
-                person: student,
+                person: person,
                 fromSimTimeUtc: new DateTimeOffset(
                     year: 2048,
                     month: 5,
@@ -141,7 +141,8 @@ namespace Matrix.Population.Domain.Tests.Services
                     minute: 0,
                     second: 0,
                     offset: TimeSpan.Zero),
-                utcOffsetMinutes: 0);
+                utcOffsetMinutes: 0,
+                routineProfile: routineProfile);
 
             Assert.Equal(
                 expected: -7,

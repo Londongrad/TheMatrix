@@ -95,7 +95,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 person: resident,
                 fromSimTimeUtc: FromUtc,
                 toSimTimeUtc: ToUtc,
-                utcOffsetMinutes: 0);
+                utcOffsetMinutes: 0,
+                routineProfile: PersonRoutineProfile.Unstructured);
             var before = ResidentSnapshot.Capture(resident);
 
             ResidentProgressionStepResult result = await ApplyAsync(
