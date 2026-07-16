@@ -1,6 +1,5 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
@@ -88,64 +87,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 eventType: CityPopulationActivityEventType.ResidentRetired,
                 title: "Resident retired",
                 summary: $"{resident.Name} retired from active employment.",
-                occurredAtUtc: occurredAtUtc);
-        }
-
-        public static CityPopulationActivityWriteModel ResidentEnrolled(
-            Guid cityId,
-            DateOnly currentDate,
-            Person resident,
-            CityPopulationActivitySource source,
-            DateTimeOffset occurredAtUtc)
-        {
-            return CreateResidentEvent(
-                cityId: cityId,
-                currentDate: currentDate,
-                resident: resident,
-                source: source,
-                severity: CityPopulationActivitySeverity.Success,
-                eventType: CityPopulationActivityEventType.ResidentEnrolled,
-                title: "Resident enrolled",
-                summary:
-                $"{resident.Name} started studying at {HumanizeEducationLevel(resident.EducationLevel)} level.",
-                occurredAtUtc: occurredAtUtc);
-        }
-
-        public static CityPopulationActivityWriteModel ResidentGraduated(
-            Guid cityId,
-            DateOnly currentDate,
-            Person resident,
-            CityPopulationActivitySource source,
-            DateTimeOffset occurredAtUtc)
-        {
-            return CreateResidentEvent(
-                cityId: cityId,
-                currentDate: currentDate,
-                resident: resident,
-                source: source,
-                severity: CityPopulationActivitySeverity.Success,
-                eventType: CityPopulationActivityEventType.ResidentGraduated,
-                title: "Resident advanced in education",
-                summary: $"{resident.Name} advanced to {HumanizeEducationLevel(resident.EducationLevel)} education.",
-                occurredAtUtc: occurredAtUtc);
-        }
-
-        public static CityPopulationActivityWriteModel ResidentWithdrewFromStudy(
-            Guid cityId,
-            DateOnly currentDate,
-            Person resident,
-            CityPopulationActivitySource source,
-            DateTimeOffset occurredAtUtc)
-        {
-            return CreateResidentEvent(
-                cityId: cityId,
-                currentDate: currentDate,
-                resident: resident,
-                source: source,
-                severity: CityPopulationActivitySeverity.Warning,
-                eventType: CityPopulationActivityEventType.ResidentWithdrewFromStudy,
-                title: "Resident left study",
-                summary: $"{resident.Name} is no longer studying.",
                 occurredAtUtc: occurredAtUtc);
         }
 
@@ -354,22 +295,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 Title: title,
                 Summary: summary,
                 PrimaryResidentId: resident.Id.Value);
-        }
-
-        private static string HumanizeEducationLevel(EducationLevel level)
-        {
-            return level switch
-            {
-                EducationLevel.None => "no formal",
-                EducationLevel.Preschool => "preschool",
-                EducationLevel.Primary => "primary",
-                EducationLevel.LowerSecondary => "lower secondary",
-                EducationLevel.UpperSecondary => "upper secondary",
-                EducationLevel.Vocational => "vocational",
-                EducationLevel.Higher => "higher",
-                EducationLevel.Postgraduate => "postgraduate",
-                _ => level.ToString()
-            };
         }
 
     }
