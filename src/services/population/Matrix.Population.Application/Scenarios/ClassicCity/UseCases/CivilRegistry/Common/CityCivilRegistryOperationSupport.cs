@@ -1,5 +1,6 @@
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Mapping;
@@ -48,16 +49,30 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                     secondResidentId: secondResident.Id.Value);
         }
 
-        public static CityCivilRegistryOperationResultDto CreateResult(
+        public static async Task<CityCivilRegistryOperationResultDto> CreateResultAsync(
             string action,
             DateTimeOffset recordedAtUtc,
+            Guid cityId,
             DateOnly currentDate,
             Person firstResident,
             Person secondResident,
             bool includeSpouseLinks,
             CityResidentHousingSnapshot? firstHousing,
-            CityResidentHousingSnapshot? secondHousing)
+            CityResidentHousingSnapshot? secondHousing,
+            IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
+            CancellationToken cancellationToken)
         {
+            IReadOnlyDictionary<Guid, EducationParticipationProjection> projections =
+                await educationParticipationProjectionRepository.GetByResidentIdsAsync(
+                    simulationHostId: cityId,
+                    residentIds:
+                    [
+                        firstResident.Id.Value,
+                        secondResident.Id.Value
+                    ],
+                    cancellationToken: cancellationToken);
+            var educationParticipation = new EducationParticipationProjectionIndex(cityId, projections);
+
             return new CityCivilRegistryOperationResultDto(
                 Action: action,
                 RecordedAtUtc: recordedAtUtc,
@@ -66,13 +81,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                     currentSpouse: includeSpouseLinks
                         ? secondResident
                         : null,
-                    currentHousing: firstHousing),
+                    currentHousing: firstHousing,
+                    educationSnapshot: CityResidentEducationSnapshot.FromProjection(
+                        educationParticipation.FindCurrent(firstResident))),
                 SecondResident: secondResident.ToResidentDetailsDto(
                     currentDate: currentDate,
                     currentSpouse: includeSpouseLinks
                         ? firstResident
                         : null,
-                    currentHousing: secondHousing));
+                    currentHousing: secondHousing,
+                    educationSnapshot: CityResidentEducationSnapshot.FromProjection(
+                        educationParticipation.FindCurrent(secondResident))));
         }
     }
 }

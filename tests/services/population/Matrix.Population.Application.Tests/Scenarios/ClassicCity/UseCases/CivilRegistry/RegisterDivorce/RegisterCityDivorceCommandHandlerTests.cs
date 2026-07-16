@@ -184,6 +184,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Civ
             FakeCityPopulationPersonReadRepository? cityPopulationPersonReadRepository = null,
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
+            FakeEducationParticipationProjectionRepository? educationProjectionRepository = null,
             FakePersonWriteRepository? personWriteRepository = null,
             FakeHouseholdWriteRepository? householdWriteRepository = null,
             FakeUnitOfWork? unitOfWork = null)
@@ -196,6 +197,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Civ
                                                       new FakeCityPopulationActivityJournalService(),
                 cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                         new FakeCityPopulationSummaryProjectionService(),
+                educationParticipationProjectionRepository: educationProjectionRepository ??
+                                                            new FakeEducationParticipationProjectionRepository(),
                 personWriteRepository: personWriteRepository ?? new FakePersonWriteRepository(),
                 householdWriteRepository: householdWriteRepository ?? new FakeHouseholdWriteRepository(),
                 marriageDomainService: new MarriageDomainService(),

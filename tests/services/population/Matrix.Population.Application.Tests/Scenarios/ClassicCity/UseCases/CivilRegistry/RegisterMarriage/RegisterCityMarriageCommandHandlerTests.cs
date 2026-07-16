@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterMarriage;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
@@ -60,12 +61,33 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Civ
             householdWriteRepository.ResidentCountByHouseholdId[secondHouseholdId] = 1;
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var activityJournalService = new FakeCityPopulationActivityJournalService();
+            var educationProjectionRepository = new FakeEducationParticipationProjectionRepository();
+            await educationProjectionRepository.UpsertNewerAsync(
+                projections:
+                [
+                    new EducationParticipationProjection(
+                        SimulationHostId: cityId,
+                        ResidentId: firstResident.Id.Value,
+                        ParticipationRevision: 1,
+                        ResidentLifecycleRevision: firstResident.LifecycleRevision,
+                        IsEnrolled: false,
+                        ActiveStage: null,
+                        InstitutionId: null,
+                        InstitutionAnchorId: null,
+                        EnrolledOn: null,
+                        CompletedStage: "higher-education",
+                        CompletedStageOn: new DateOnly(2045, 6, 20),
+                        SnapshotDate: new DateOnly(2048, 5, 4),
+                        OccurredAtUtc: UtcNow,
+                        UpdatedAtUtc: UtcNow)
+                ]);
             var unitOfWork = new FakeUnitOfWork();
             RegisterCityMarriageCommandHandler handler = CreateHandler(
                 personReadRepository: personReadRepository,
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
                 activityJournalService: activityJournalService,
                 summaryProjectionService: summaryProjectionService,
+                educationProjectionRepository: educationProjectionRepository,
                 personWriteRepository: personWriteRepository,
                 householdWriteRepository: householdWriteRepository,
                 unitOfWork: unitOfWork);
@@ -114,6 +136,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Civ
             Assert.Equal(
                 expected: firstResident.Id.Value,
                 actual: result.FirstResident.Id);
+            Assert.Equal(
+                expected: "higher-education",
+                actual: result.FirstResident.EducationLevel);
             Assert.NotNull(result.FirstResident.CurrentSpouse);
             Assert.Equal(
                 expected: secondResident.Id.Value,
@@ -203,6 +228,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Civ
             FakeCityPopulationPersonReadRepository? cityPopulationPersonReadRepository = null,
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
+            FakeEducationParticipationProjectionRepository? educationProjectionRepository = null,
             FakePersonWriteRepository? personWriteRepository = null,
             FakeHouseholdWriteRepository? householdWriteRepository = null,
             FakeUnitOfWork? unitOfWork = null)
@@ -215,6 +241,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Civ
                                                       new FakeCityPopulationActivityJournalService(),
                 cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                         new FakeCityPopulationSummaryProjectionService(),
+                educationParticipationProjectionRepository: educationProjectionRepository ??
+                                                            new FakeEducationParticipationProjectionRepository(),
                 personWriteRepository: personWriteRepository ?? new FakePersonWriteRepository(),
                 householdWriteRepository: householdWriteRepository ?? new FakeHouseholdWriteRepository(),
                 marriageDomainService: new MarriageDomainService(),

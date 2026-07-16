@@ -18,6 +18,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
+        IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
         IPersonWriteRepository personWriteRepository,
         IHouseholdWriteRepository householdWriteRepository,
         MarriageDomainService marriageDomainService,
@@ -92,15 +93,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                     personId: secondResident.Id,
                     cancellationToken: cancellationToken);
 
-            return CityCivilRegistryOperationSupport.CreateResult(
+            return await CityCivilRegistryOperationSupport.CreateResultAsync(
                 action: "MarriageRegistered",
                 recordedAtUtc: recordedAtUtc,
+                cityId: request.CityId,
                 currentDate: request.CurrentDate,
                 firstResident: firstResident,
                 secondResident: secondResident,
                 includeSpouseLinks: true,
                 firstHousing: firstHousing,
-                secondHousing: secondHousing);
+                secondHousing: secondHousing,
+                educationParticipationProjectionRepository: educationParticipationProjectionRepository,
+                cancellationToken: cancellationToken);
         }
     }
 }
