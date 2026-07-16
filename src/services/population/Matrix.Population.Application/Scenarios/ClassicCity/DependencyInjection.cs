@@ -22,7 +22,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity
             services.AddSingleton<CityHouseholdEconomyPolicy>();
             services.AddSingleton<CityCivilRegistryAutonomyPolicy>();
             services.AddSingleton<CityBirthAutonomyPolicy>();
-            services.AddSingleton<CityEducationAutonomyPolicy>();
             services.AddSingleton<CityEmploymentAutonomyPolicy>();
             services.AddSingleton<CityHealthcareAutonomyPolicy>();
             services.AddSingleton<CityHouseholdPressurePolicy>();
