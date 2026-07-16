@@ -165,6 +165,39 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
+        public async Task ApplyAsync_WhenHouseholdProfileIsAlreadyCached_DoesNotRepeatRouting()
+        {
+            CityAnchorId workplaceAnchorId = CreateAnchorId();
+            Person resident = CreateEmployedResident(workplaceAnchorId);
+            var routingService = new RecordingCommuteRoutingService();
+            var commuteProfiles = new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile?>();
+            IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<Person>> residentsByHouseholdId =
+                CreateResidentsMap(resident);
+            IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildings =
+                new Dictionary<HouseholdId, ResidentialBuildingId?>
+                {
+                    [TestHouseholdId] = TestResidentialBuildingId
+                };
+
+            await ApplyAsync(
+                resident: resident,
+                residentsByHouseholdId: residentsByHouseholdId,
+                residentialBuildingByHouseholdId: residentialBuildings,
+                commutePressureProfilesByHouseholdId: commuteProfiles,
+                commuteRoutingService: routingService);
+            await ApplyAsync(
+                resident: resident,
+                residentsByHouseholdId: residentsByHouseholdId,
+                residentialBuildingByHouseholdId: residentialBuildings,
+                commutePressureProfilesByHouseholdId: commuteProfiles,
+                commuteRoutingService: routingService);
+
+            Assert.Single(routingService.PreloadRequests);
+            Assert.Single(routingService.ResolvedAnchorIds);
+            Assert.True(commuteProfiles.ContainsKey(TestHouseholdId));
+        }
+
+        [Fact]
         public async Task ApplyAsync_WhenResidentIsAlreadyDead_ReturnsFalse()
         {
             Person resident = CreateResident(lifeStatus: LifeStatus.Deceased);
@@ -196,6 +229,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?>? residentialBuildingByHouseholdId = null,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState>?
                 financialStressByHouseholdId = null,
+            IDictionary<HouseholdId, CityHouseholdCommutePressureProfile?>? commutePressureProfilesByHouseholdId = null,
             RecordingCommuteRoutingService? commuteRoutingService = null,
             CityHouseholdPressurePolicy? householdPressurePolicy = null,
             DateOnly? previousDate = null,
@@ -207,6 +241,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 residentsByHouseholdId: residentsByHouseholdId ??
                                         new Dictionary<HouseholdId, IReadOnlyCollection<Person>>(),
                 educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                commutePressureProfilesByHouseholdId: commutePressureProfilesByHouseholdId ??
+                                                      new Dictionary<HouseholdId,
+                                                          CityHouseholdCommutePressureProfile?>(),
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
                 housingByHouseholdId: housingByHouseholdId ?? new Dictionary<HouseholdId, HousingStatus>(),

@@ -232,6 +232,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             workingSet.ResidentsByHouseholdId;
                         EducationParticipationProjectionIndex educationParticipation =
                             workingSet.EducationParticipation;
+                        var commutePressureProfilesByHouseholdId =
+                            new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile?>();
                         IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId =
                             workingSet.HousingByHouseholdId;
                         IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId =
@@ -261,6 +263,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     householdsById: householdsById,
                                     residentsByHouseholdId: residentsByHouseholdId,
                                     educationParticipation: educationParticipation,
+                                    commutePressureProfilesByHouseholdId: commutePressureProfilesByHouseholdId,
                                     previousDate: previousDate,
                                     fromSimTimeUtc: request.FromSimTimeUtc,
                                     toSimTimeUtc: request.ToSimTimeUtc,

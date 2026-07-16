@@ -17,6 +17,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             PersonEntity person,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
             EducationParticipationProjectionIndex educationParticipation,
+            IDictionary<HouseholdId, CityHouseholdCommutePressureProfile?> commutePressureProfilesByHouseholdId,
             DateOnly previousDate,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
@@ -39,8 +40,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             financialStressByHouseholdId.TryGetValue(
                 key: person.HouseholdId,
                 value: out CityPopulationHouseholdFinancialStressState? financialStressState);
-            CityHouseholdCommutePressureProfile? commutePressureProfile =
-                await HouseholdCommutePressureProfileBuilder.BuildAsync(
+            if (!commutePressureProfilesByHouseholdId.TryGetValue(
+                    key: person.HouseholdId,
+                    value: out CityHouseholdCommutePressureProfile? commutePressureProfile))
+            {
+                commutePressureProfile = await HouseholdCommutePressureProfileBuilder.BuildAsync(
                     cityId: cityId,
                     householdId: person.HouseholdId,
                     householdResidents: householdResidents,
@@ -48,6 +52,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                     commuteRoutingService: commuteRoutingService,
                     cancellationToken: cancellationToken);
+                commutePressureProfilesByHouseholdId[person.HouseholdId] = commutePressureProfile;
+            }
 
             return householdPressurePolicy.Apply(
                 resident: person,
