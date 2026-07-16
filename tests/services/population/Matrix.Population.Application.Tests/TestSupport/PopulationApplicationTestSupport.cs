@@ -248,9 +248,6 @@ namespace Matrix.Population.Application.Tests.TestSupport
             public IReadOnlyCollection<CityEmploymentWorkplaceSnapshot> EmploymentWorkplaces { get; set; } =
                 Array.Empty<CityEmploymentWorkplaceSnapshot>();
 
-            public IReadOnlyCollection<CityEducationInstitutionSnapshot> EducationInstitutions { get; set; } =
-                Array.Empty<CityEducationInstitutionSnapshot>();
-
             public Dictionary<PersonId, CityResidentHousingSnapshot?> HousingSnapshotsByPersonId { get; } = [];
 
             public (IReadOnlyCollection<Person> Items, int TotalCount) PageByCityResult { get; set; } =
@@ -377,27 +374,6 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 return Task.FromResult<CityEmploymentWorkplaceSnapshot?>(null);
             }
 
-            public Task<IReadOnlyCollection<CityEducationInstitutionSnapshot>> ListEducationInstitutionsAsync(
-                CityId cityId,
-                CancellationToken cancellationToken = default)
-            {
-                RequestedCityId = cityId;
-                return Task.FromResult(EducationInstitutions);
-            }
-
-            public Task<CityEducationInstitutionSnapshot?> FindEducationInstitutionByIdAsync(
-                CityId cityId,
-                EducationInstitutionId institutionId,
-                CancellationToken cancellationToken = default)
-            {
-                RequestedCityId = cityId;
-
-                foreach (CityEducationInstitutionSnapshot institution in EducationInstitutions)
-                    if (institution.InstitutionId == institutionId)
-                        return Task.FromResult<CityEducationInstitutionSnapshot?>(institution);
-
-                return Task.FromResult<CityEducationInstitutionSnapshot?>(null);
-            }
         }
 
         internal sealed class FakeCityPopulationProgressionStateRepository : ICityPopulationProgressionStateRepository
