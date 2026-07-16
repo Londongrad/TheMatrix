@@ -17,8 +17,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 MaritalStatus: person.MaritalStatus,
                 SpouseId: person.SpouseId,
                 EmploymentStatus: person.Employment.Status,
-                JobTitle: person.Employment.Job?.Title,
-                EducationLevel: person.EducationLevel);
+                JobTitle: person.Employment.Job?.Title);
         }
 
         internal static void Collect(
@@ -58,35 +57,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         occurredAtUtc: occurredAtUtc));
             }
 
-            if (before.EducationLevel != resident.EducationLevel && resident.EducationLevel > before.EducationLevel)
-                activityEntries.Add(
-                    ClassicCityActivityFactory.ResidentGraduated(
-                        cityId: cityId.Value,
-                        currentDate: currentDate,
-                        resident: resident,
-                        source: CityPopulationActivitySource.Autonomy,
-                        occurredAtUtc: occurredAtUtc));
-
-            if (before.EmploymentStatus != EmploymentStatus.Student &&
-                resident.Employment.Status == EmploymentStatus.Student)
-                activityEntries.Add(
-                    ClassicCityActivityFactory.ResidentEnrolled(
-                        cityId: cityId.Value,
-                        currentDate: currentDate,
-                        resident: resident,
-                        source: CityPopulationActivitySource.Autonomy,
-                        occurredAtUtc: occurredAtUtc));
-            else
-                if (before.EmploymentStatus == EmploymentStatus.Student &&
-                    resident.Employment.Status != EmploymentStatus.Student)
-                activityEntries.Add(
-                    ClassicCityActivityFactory.ResidentWithdrewFromStudy(
-                        cityId: cityId.Value,
-                        currentDate: currentDate,
-                        resident: resident,
-                        source: CityPopulationActivitySource.Autonomy,
-                        occurredAtUtc: occurredAtUtc));
-
             if (before.EmploymentStatus != EmploymentStatus.Employed &&
                 resident.Employment.Status == EmploymentStatus.Employed)
                 activityEntries.Add(
@@ -124,7 +94,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             MaritalStatus MaritalStatus,
             PersonId? SpouseId,
             EmploymentStatus EmploymentStatus,
-            string? JobTitle,
-            EducationLevel EducationLevel);
+            string? JobTitle);
     }
 }

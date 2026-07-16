@@ -90,56 +90,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public void Collect_WhenEducationLevelIncreases_AddsGraduatedEvent()
-        {
-            Person resident = CreatePerson();
-
-            IReadOnlyList<CityPopulationActivityWriteModel> entries = CollectAfter(
-                resident: resident,
-                mutate: person => person.GraduateTo(EducationLevel.Higher));
-
-            AssertSingleEvent(
-                entries: entries,
-                eventType: CityPopulationActivityEventType.ResidentGraduated,
-                resident: resident);
-        }
-
-        [Fact]
-        public void Collect_WhenResidentStartsStudying_AddsEnrolledEvent()
-        {
-            Person resident = CreatePerson();
-
-            IReadOnlyList<CityPopulationActivityWriteModel> entries = CollectAfter(
-                resident: resident,
-                mutate: person => person.StartStudying(
-                    currentDate: CurrentDate,
-                    institutionId: EducationInstitutionId.From(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"))));
-
-            AssertSingleEvent(
-                entries: entries,
-                eventType: CityPopulationActivityEventType.ResidentEnrolled,
-                resident: resident);
-        }
-
-        [Fact]
-        public void Collect_WhenResidentStopsStudying_AddsWithdrewFromStudyEvent()
-        {
-            Person resident = CreatePerson();
-            resident.StartStudying(
-                currentDate: CurrentDate.AddDays(-1),
-                institutionId: EducationInstitutionId.From(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc")));
-
-            IReadOnlyList<CityPopulationActivityWriteModel> entries = CollectAfter(
-                resident: resident,
-                mutate: person => person.StopStudying(CurrentDate));
-
-            AssertSingleEvent(
-                entries: entries,
-                eventType: CityPopulationActivityEventType.ResidentWithdrewFromStudy,
-                resident: resident);
-        }
-
-        [Fact]
         public void Collect_WhenResidentStartsWorking_AddsHiredEvent()
         {
             Person resident = CreatePerson();
