@@ -238,6 +238,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 residentsByHouseholdId: residentsByHouseholdId ??
                                         new Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>>(),
                 educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>
+                {
+                    [resident.Id] = ResidentRoutineProfileFactory.Create(resident, null)
+                },
                 commutePressureProfilesByHouseholdId:
                 new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile?>(),
                 previousDate: previousDate ?? PreviousDate,

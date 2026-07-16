@@ -22,6 +22,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
             EducationParticipationProjectionIndex educationParticipation,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IDictionary<HouseholdId, CityHouseholdCommutePressureProfile?> commutePressureProfilesByHouseholdId,
             DateOnly previousDate,
             DateTimeOffset fromSimTimeUtc,
@@ -54,9 +55,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         {
             bool populationChanged = false;
             int externalHealthDelta = 0;
-            PersonRoutineProfile routineProfile = ResidentRoutineProfileFactory.Create(
-                resident: person,
-                educationParticipation: educationParticipation.FindCurrent(person));
+            PersonRoutineProfile routineProfile = routineProfilesByResidentId.TryGetValue(
+                key: person.Id,
+                value: out PersonRoutineProfile? resolvedRoutineProfile)
+                ? resolvedRoutineProfile
+                : PersonRoutineProfile.Unstructured;
             if (requiresNeedsProgression)
             {
                 ResidentProgressionStepResult needsProgression = ResidentNeedsProgressionStep.Apply(

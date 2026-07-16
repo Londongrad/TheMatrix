@@ -3,6 +3,7 @@ using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -328,6 +329,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(0, projectionRepository.GetByResidentIdsCallCount);
             Assert.Equal(1, projectionRepository.GetEnrolledByResidentIdsCallCount);
             Assert.NotNull(workingSet.EducationParticipation.FindCurrent(resident));
+            Assert.Equal(
+                expected: PersonStructuredActivityLoad.Moderate,
+                actual: workingSet.RoutineProfilesByResidentId[resident.Id].StructuredActivityLoad);
         }
 
         [Fact]

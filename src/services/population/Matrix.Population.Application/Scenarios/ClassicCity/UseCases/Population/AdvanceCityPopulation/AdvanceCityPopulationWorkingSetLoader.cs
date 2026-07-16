@@ -3,6 +3,7 @@ using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -62,6 +63,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             var educationParticipation = new EducationParticipationProjectionIndex(
                 simulationHostId: cityId.Value,
                 projections: educationProjections);
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId = residents
+               .ToDictionary(
+                    keySelector: resident => resident.Id,
+                    elementSelector: resident => ResidentRoutineProfileFactory.Create(
+                        resident: resident,
+                        educationParticipation: educationParticipation.FindCurrent(resident)));
             IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
                 await householdWriteRepository.ListPlacementsByCityAsync(
                     cityId: cityId,
@@ -121,6 +128,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 ResidentsById: residentsById,
                 ResidentsByHouseholdId: residentsByHouseholdId,
                 EducationParticipation: educationParticipation,
+                RoutineProfilesByResidentId: routineProfilesByResidentId,
                 Households: households,
                 HouseholdsById: householdsById,
                 Placements: placements,

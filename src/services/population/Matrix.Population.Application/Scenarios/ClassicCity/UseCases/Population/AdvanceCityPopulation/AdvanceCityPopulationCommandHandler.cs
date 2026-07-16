@@ -10,6 +10,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstr
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Weather;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -233,6 +234,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             workingSet.ResidentsByHouseholdId;
                         EducationParticipationProjectionIndex educationParticipation =
                             workingSet.EducationParticipation;
+                        IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId =
+                            workingSet.RoutineProfilesByResidentId;
                         var commutePressureProfilesByHouseholdId =
                             new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile?>();
                         IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId =
@@ -264,6 +267,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     householdsById: householdsById,
                                     residentsByHouseholdId: residentsByHouseholdId,
                                     educationParticipation: educationParticipation,
+                                    routineProfilesByResidentId: routineProfilesByResidentId,
                                     commutePressureProfilesByHouseholdId: commutePressureProfilesByHouseholdId,
                                     previousDate: previousDate,
                                     fromSimTimeUtc: request.FromSimTimeUtc,
