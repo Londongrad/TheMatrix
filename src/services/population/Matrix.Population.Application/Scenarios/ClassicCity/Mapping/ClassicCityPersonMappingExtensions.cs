@@ -13,25 +13,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Mapping
         public static CityResidentDetailsDto ToResidentDetailsDto(
             this Person person,
             DateOnly currentDate,
+            CityResidentEducationSnapshot educationSnapshot,
             Person? currentSpouse = null,
             CityResidentHousingSnapshot? currentHousing = null,
             Person? mother = null,
             Person? father = null,
             IReadOnlyCollection<Person>? children = null,
-            CityResidentEducationSnapshot? educationSnapshot = null,
             CityPopulationCommuteContext? workplaceRouteAccess = null,
             CityPopulationCommuteContext? educationRouteAccess = null,
             CityResidentHealthcareProviderDto? primaryHealthcareProvider = null,
             CityResidentActiveTripDto? currentActiveTrip = null)
         {
             PersonDto snapshot = person.ToDto(currentDate);
-            educationSnapshot ??= new CityResidentEducationSnapshot(
-                AttainedStage: person.Education.Level.ToString(),
-                ActiveStage: person.Education.CurrentInstitutionId is null
-                    ? null
-                    : person.Education.Level.ToString(),
-                InstitutionId: person.Education.CurrentInstitutionId?.Value,
-                InstitutionAnchorId: person.Education.CurrentInstitutionAnchorId?.Value);
             CityResidentHousingDto housing = currentHousing is null
                 ? new CityResidentHousingDto(
                     HouseholdId: person.HouseholdId.Value,
