@@ -95,6 +95,32 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                 projection => projection.ToProjection());
         }
 
+        public async Task<IReadOnlyDictionary<Guid, EducationParticipationProjection>>
+            GetEnrolledByResidentIdsAsync(
+                Guid simulationHostId,
+                IReadOnlyCollection<Guid> residentIds,
+                CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(residentIds);
+            if (residentIds.Count == 0)
+                return new Dictionary<Guid, EducationParticipationProjection>();
+
+            PersonId[] personIds = residentIds
+               .Distinct()
+               .Select(PersonId.From)
+               .ToArray();
+            List<EducationParticipationProjectionEntity> projections = await dbContext
+               .EducationParticipationProjections
+               .AsNoTracking()
+               .Where(projection => projection.SimulationHostId == simulationHostId
+                                    && projection.IsEnrolled
+                                    && personIds.Contains(projection.ResidentId))
+               .ToListAsync(cancellationToken);
+            return projections.ToDictionary(
+                projection => projection.ResidentId.Value,
+                projection => projection.ToProjection());
+        }
+
         public async Task DeleteBySimulationHostAsync(
             Guid simulationHostId,
             CancellationToken cancellationToken = default)

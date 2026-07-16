@@ -13,6 +13,11 @@ namespace Matrix.Population.Application.Abstractions
             IReadOnlyCollection<Guid> residentIds,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyDictionary<Guid, EducationParticipationProjection>> GetEnrolledByResidentIdsAsync(
+            Guid simulationHostId,
+            IReadOnlyCollection<Guid> residentIds,
+            CancellationToken cancellationToken = default);
+
         Task DeleteBySimulationHostAsync(
             Guid simulationHostId,
             CancellationToken cancellationToken = default);

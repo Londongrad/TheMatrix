@@ -829,6 +829,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
 
             public int UpsertCallCount { get; private set; }
             public int GetByResidentIdsCallCount { get; private set; }
+            public int GetEnrolledByResidentIdsCallCount { get; private set; }
             public Guid? RequestedSimulationHostId { get; private set; }
             public IReadOnlyCollection<Guid> RequestedResidentIds { get; private set; } = [];
             public List<Guid> DeletedSimulationHostIds { get; } = [];
@@ -868,6 +869,25 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 IReadOnlyDictionary<Guid, EducationParticipationProjection> result = _projections
                    .Values
                    .Where(projection => projection.SimulationHostId == simulationHostId
+                                        && requestedIds.Contains(projection.ResidentId))
+                   .ToDictionary(projection => projection.ResidentId);
+                return Task.FromResult(result);
+            }
+
+            public Task<IReadOnlyDictionary<Guid, EducationParticipationProjection>>
+                GetEnrolledByResidentIdsAsync(
+                    Guid simulationHostId,
+                    IReadOnlyCollection<Guid> residentIds,
+                    CancellationToken cancellationToken = default)
+            {
+                GetEnrolledByResidentIdsCallCount++;
+                RequestedSimulationHostId = simulationHostId;
+                RequestedResidentIds = residentIds.ToArray();
+                HashSet<Guid> requestedIds = residentIds.ToHashSet();
+                IReadOnlyDictionary<Guid, EducationParticipationProjection> result = _projections
+                   .Values
+                   .Where(projection => projection.SimulationHostId == simulationHostId
+                                        && projection.IsEnrolled
                                         && requestedIds.Contains(projection.ResidentId))
                    .ToDictionary(projection => projection.ResidentId);
                 return Task.FromResult(result);

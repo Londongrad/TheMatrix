@@ -58,6 +58,27 @@ namespace Matrix.Population.Infrastructure.Tests.Persistence.Repositories
         }
 
         [Fact]
+        public async Task GetEnrolledByResidentIdsAsync_ReturnsOnlyActiveParticipation()
+        {
+            await using PopulationTestDatabase database = CreateDbContext();
+            PopulationDbContext dbContext = database.DbContext;
+            await AddResidentAsync(dbContext);
+            var repository = new EducationParticipationProjectionRepository(dbContext);
+            await repository.UpsertNewerAsync([CreateProjection(revision: 1)]);
+            await dbContext.SaveChangesAsync();
+
+            IReadOnlyDictionary<Guid, EducationParticipationProjection> enrolled =
+                await repository.GetEnrolledByResidentIdsAsync(HostId, [ResidentId]);
+            await repository.UpsertNewerAsync([CreateProjection(revision: 2, isEnrolled: false)]);
+            await dbContext.SaveChangesAsync();
+            IReadOnlyDictionary<Guid, EducationParticipationProjection> withdrawn =
+                await repository.GetEnrolledByResidentIdsAsync(HostId, [ResidentId]);
+
+            Assert.True(Assert.Single(enrolled).Value.IsEnrolled);
+            Assert.Empty(withdrawn);
+        }
+
+        [Fact]
         public async Task DeleteBySimulationHostAsync_RemovesOnlyRequestedHost()
         {
             await using PopulationTestDatabase database = CreateDbContext();
