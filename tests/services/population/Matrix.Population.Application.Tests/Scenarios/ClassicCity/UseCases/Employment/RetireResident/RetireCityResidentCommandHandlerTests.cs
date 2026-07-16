@@ -37,6 +37,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Emp
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
                 cityPopulationActivityJournalService: activityJournalService,
                 cityPopulationSummaryProjectionService: summaryProjectionService,
+                educationParticipationProjectionRepository:
+                    new FakeEducationParticipationProjectionRepository(),
                 personWriteRepository: personWriteRepository,
                 timeProvider: CreateTimeProvider(),
                 unitOfWork: unitOfWork);
@@ -98,6 +100,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Emp
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
                 cityPopulationActivityJournalService: activityJournalService,
                 cityPopulationSummaryProjectionService: summaryProjectionService,
+                educationParticipationProjectionRepository:
+                    new FakeEducationParticipationProjectionRepository(),
                 personWriteRepository: personWriteRepository,
                 timeProvider: CreateTimeProvider(),
                 unitOfWork: unitOfWork);

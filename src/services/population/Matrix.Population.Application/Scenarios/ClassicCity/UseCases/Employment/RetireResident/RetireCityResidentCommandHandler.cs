@@ -16,6 +16,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
+        IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
         IPersonWriteRepository personWriteRepository,
         TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
@@ -58,11 +59,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return CityEmploymentOperationSupport.CreateResult(
+            return await CityEmploymentOperationSupport.CreateResultAsync(
                 action: "ResidentRetired",
                 recordedAtUtc: recordedAtUtc,
+                cityId: request.CityId,
                 currentDate: request.CurrentDate,
-                resident: resident);
+                resident: resident,
+                educationParticipationProjectionRepository: educationParticipationProjectionRepository,
+                cancellationToken: cancellationToken);
         }
     }
 }

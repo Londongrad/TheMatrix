@@ -23,6 +23,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
         ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
+        IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPersonWriteRepository personWriteRepository,
         CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
@@ -106,11 +107,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return CityEmploymentOperationSupport.CreateResult(
+            return await CityEmploymentOperationSupport.CreateResultAsync(
                 action: "EmploymentAssigned",
                 recordedAtUtc: recordedAtUtc,
+                cityId: request.CityId,
                 currentDate: request.CurrentDate,
-                resident: resident);
+                resident: resident,
+                educationParticipationProjectionRepository: educationParticipationProjectionRepository,
+                cancellationToken: cancellationToken);
         }
     }
 }

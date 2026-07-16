@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.HireResident;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -46,6 +47,26 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Emp
             var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
             var personWriteRepository = new FakePersonWriteRepository();
             var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+            var educationProjectionRepository = new FakeEducationParticipationProjectionRepository();
+            await educationProjectionRepository.UpsertNewerAsync(
+                projections:
+                [
+                    new EducationParticipationProjection(
+                        SimulationHostId: cityId,
+                        ResidentId: residentId,
+                        ParticipationRevision: 1,
+                        ResidentLifecycleRevision: resident.LifecycleRevision,
+                        IsEnrolled: false,
+                        ActiveStage: null,
+                        InstitutionId: null,
+                        InstitutionAnchorId: null,
+                        EnrolledOn: null,
+                        CompletedStage: "higher-education",
+                        CompletedStageOn: new DateOnly(2047, 6, 20),
+                        SnapshotDate: new DateOnly(2048, 5, 4),
+                        OccurredAtUtc: UtcNow,
+                        UpdatedAtUtc: UtcNow)
+                ]);
             var unitOfWork = new FakeUnitOfWork();
             HireCityResidentCommandHandler handler = CreateHandler(
                 personReadRepository: personReadRepository,
@@ -53,6 +74,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Emp
                 activityJournalService: activityJournalService,
                 summaryProjectionService: summaryProjectionService,
                 cityEconomySettlementOutboxWriter: outboxWriter,
+                educationProjectionRepository: educationProjectionRepository,
                 personWriteRepository: personWriteRepository,
                 unitOfWork: unitOfWork);
 
@@ -101,6 +123,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Emp
             Assert.Equal(
                 expected: "Employed",
                 actual: result.Resident.EmploymentStatus);
+            Assert.Equal(
+                expected: "higher-education",
+                actual: result.Resident.EducationLevel);
+            Assert.Equal(
+                expected: 1,
+                actual: educationProjectionRepository.GetByResidentIdsCallCount);
             Assert.NotNull(result.Resident.CurrentWorkplace);
             Assert.Equal(
                 expected: workplaceId,
@@ -258,6 +286,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Emp
             FakeCityPopulationActivityJournalService? activityJournalService = null,
             FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
             FakeCityEconomySettlementOutboxWriter? cityEconomySettlementOutboxWriter = null,
+            FakeEducationParticipationProjectionRepository? educationProjectionRepository = null,
             FakePersonWriteRepository? personWriteRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
@@ -271,6 +300,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Emp
                                                       new FakeCityPopulationActivityJournalService(),
                 cityPopulationSummaryProjectionService: summaryProjectionService ??
                                                         new FakeCityPopulationSummaryProjectionService(),
+                educationParticipationProjectionRepository: educationProjectionRepository ??
+                                                            new FakeEducationParticipationProjectionRepository(),
                 cityEconomySettlementOutboxWriter: cityEconomySettlementOutboxWriter ??
                                                    new FakeCityEconomySettlementOutboxWriter(),
                 personWriteRepository: personWriteRepository ?? new FakePersonWriteRepository(),

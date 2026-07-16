@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Mapping;
@@ -101,16 +102,29 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                 throw DomainErrorsFactory.OnlySeniorsCanRetire(nameof(resident));
         }
 
-        public static CityEmploymentOperationResultDto CreateResult(
+        public static async Task<CityEmploymentOperationResultDto> CreateResultAsync(
             string action,
             DateTimeOffset recordedAtUtc,
+            Guid cityId,
             DateOnly currentDate,
-            Person resident)
+            Person resident,
+            IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
+            CancellationToken cancellationToken)
         {
+            IReadOnlyDictionary<Guid, EducationParticipationProjection> projections =
+                await educationParticipationProjectionRepository.GetByResidentIdsAsync(
+                    simulationHostId: cityId,
+                    residentIds: [resident.Id.Value],
+                    cancellationToken: cancellationToken);
+            var educationParticipation = new EducationParticipationProjectionIndex(cityId, projections);
+
             return new CityEmploymentOperationResultDto(
                 Action: action,
                 RecordedAtUtc: recordedAtUtc,
-                Resident: resident.ToResidentDetailsDto(currentDate));
+                Resident: resident.ToResidentDetailsDto(
+                    currentDate: currentDate,
+                    educationSnapshot: CityResidentEducationSnapshot.FromProjection(
+                        educationParticipation.FindCurrent(resident))));
         }
     }
 }
