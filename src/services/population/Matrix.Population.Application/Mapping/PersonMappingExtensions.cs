@@ -44,7 +44,6 @@ namespace Matrix.Population.Application.Mapping
                 AgeGroup: ageGroup,
                 LifeStatus: person.Life.Status.ToString(),
                 MaritalStatus: person.MaritalStatus.ToString(), // если позже перейдёшь на MaritalInfo → Marital.Status
-                EducationLevel: person.EducationLevel.ToString(), // если будет EducationInfo → Education.Level
                 Health: person.Health.Value,
                 Happiness: person.Happiness.Value,
                 Energy: person.Energy.Value,
@@ -52,19 +51,6 @@ namespace Matrix.Population.Application.Mapping
                 SocialNeed: person.SocialNeed.Value,
                 EmploymentStatus: person.Employment.Status.ToString(),
                 JobTitle: person.Employment.Job?.Title);
-        }
-
-        public static PersonDto ToDto(
-            this Person person,
-            DateOnly currentDate,
-            string attainedEducationStage)
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(attainedEducationStage);
-
-            return person.ToDto(currentDate) with
-            {
-                EducationLevel = attainedEducationStage
-            };
         }
 
         public static PersonReferenceDto ToReferenceDto(this Person person)

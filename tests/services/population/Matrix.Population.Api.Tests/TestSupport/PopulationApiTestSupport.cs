@@ -22,7 +22,6 @@ namespace Matrix.Population.Api.Tests.TestSupport
                 AgeGroup: "Adult",
                 LifeStatus: "Alive",
                 MaritalStatus: "Single",
-                EducationLevel: "Higher",
                 Health: 82,
                 Happiness: 71,
                 Energy: 68,

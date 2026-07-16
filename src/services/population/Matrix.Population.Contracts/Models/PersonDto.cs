@@ -10,7 +10,6 @@ namespace Matrix.Population.Contracts.Models
         string AgeGroup,
         string LifeStatus,
         string MaritalStatus,
-        string EducationLevel,
         int Health,
         int Happiness,
         int Energy,
