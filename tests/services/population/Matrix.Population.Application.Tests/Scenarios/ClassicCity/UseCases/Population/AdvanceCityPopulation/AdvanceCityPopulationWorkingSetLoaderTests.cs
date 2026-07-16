@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Enums;
@@ -278,12 +279,55 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             AdvanceCityPopulationWorkingSet workingSet = await LoadAsync(
                 personReadRepository: personReadRepository,
                 educationProjectionRepository: projectionRepository,
-                includeEducationParticipation: false);
+                includeEducationParticipation: false,
+                includeActiveEducationParticipation: false);
 
             Assert.Equal(
                 expected: 0,
                 actual: projectionRepository.GetByResidentIdsCallCount);
+            Assert.Equal(
+                expected: 0,
+                actual: projectionRepository.GetEnrolledByResidentIdsCallCount);
             Assert.Null(workingSet.EducationParticipation.FindCurrent(resident));
+        }
+
+        [Fact]
+        public async Task LoadAsync_WhenOnlyActiveEducationIsRequired_UsesFilteredProjectionRead()
+        {
+            PersonEntity resident = CreatePerson();
+            var projectionRepository = new FakeEducationParticipationProjectionRepository();
+            await projectionRepository.UpsertNewerAsync(
+            [
+                new EducationParticipationProjection(
+                    SimulationHostId: TestCityId.Value,
+                    ResidentId: resident.Id.Value,
+                    ParticipationRevision: 1,
+                    ResidentLifecycleRevision: resident.LifecycleRevision,
+                    IsEnrolled: true,
+                    ActiveStage: "higher",
+                    InstitutionId: Guid.NewGuid(),
+                    InstitutionAnchorId: Guid.NewGuid(),
+                    EnrolledOn: CurrentDate,
+                    CompletedStage: "upper-secondary",
+                    CompletedStageOn: CurrentDate.AddDays(-1),
+                    SnapshotDate: CurrentDate,
+                    OccurredAtUtc: EvaluatedAtUtc,
+                    UpdatedAtUtc: EvaluatedAtUtc)
+            ]);
+            var personReadRepository = new FakeCityPopulationPersonReadRepository
+            {
+                ListByCityResult = [resident]
+            };
+
+            AdvanceCityPopulationWorkingSet workingSet = await LoadAsync(
+                personReadRepository: personReadRepository,
+                educationProjectionRepository: projectionRepository,
+                includeEducationParticipation: false,
+                includeActiveEducationParticipation: true);
+
+            Assert.Equal(0, projectionRepository.GetByResidentIdsCallCount);
+            Assert.Equal(1, projectionRepository.GetEnrolledByResidentIdsCallCount);
+            Assert.NotNull(workingSet.EducationParticipation.FindCurrent(resident));
         }
 
         [Fact]
@@ -325,7 +369,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationAnchorCatalogRepository? anchorRepository = null,
             FakeCityHealthcarePressureSnapshotRepository? healthcarePressureSnapshotRepository = null,
             FakeEducationParticipationProjectionRepository? educationProjectionRepository = null,
-            bool includeEducationParticipation = true)
+            bool includeEducationParticipation = true,
+            bool includeActiveEducationParticipation = false)
         {
             return AdvanceCityPopulationWorkingSetLoader.LoadAsync(
                 cityId: TestCityId,
@@ -342,6 +387,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 educationParticipationProjectionRepository: educationProjectionRepository ??
                                                             new FakeEducationParticipationProjectionRepository(),
                 includeEducationParticipation: includeEducationParticipation,
+                includeActiveEducationParticipation: includeActiveEducationParticipation,
                 cancellationToken: CancellationToken.None);
         }
 

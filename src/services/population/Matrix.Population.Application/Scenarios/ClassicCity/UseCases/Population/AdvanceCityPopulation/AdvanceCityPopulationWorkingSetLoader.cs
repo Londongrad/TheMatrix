@@ -26,6 +26,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ICityHealthcarePressureSnapshotRepository healthcarePressureSnapshotRepository,
             IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
             bool includeEducationParticipation,
+            bool includeActiveEducationParticipation,
             CancellationToken cancellationToken)
         {
             var residents = (await personReadRepository.ListByCityAsync(
@@ -39,15 +40,25 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                .ToDictionary(
                     keySelector: x => x.Key,
                     elementSelector: x => (IReadOnlyCollection<PersonEntity>)x.ToList());
-            IReadOnlyDictionary<Guid, EducationParticipationProjection> educationProjections =
-                !includeEducationParticipation || residents.Count == 0
-                    ? new Dictionary<Guid, EducationParticipationProjection>()
-                    : await educationParticipationProjectionRepository.GetByResidentIdsAsync(
+            IReadOnlyDictionary<Guid, EducationParticipationProjection> educationProjections;
+            if (residents.Count == 0 || (!includeEducationParticipation && !includeActiveEducationParticipation))
+                educationProjections = new Dictionary<Guid, EducationParticipationProjection>();
+            else
+                if (includeEducationParticipation)
+                    educationProjections = await educationParticipationProjectionRepository.GetByResidentIdsAsync(
                         simulationHostId: cityId.Value,
                         residentIds: residents
                            .Select(resident => resident.Id.Value)
                            .ToArray(),
                         cancellationToken: cancellationToken);
+                else
+                    educationProjections =
+                        await educationParticipationProjectionRepository.GetEnrolledByResidentIdsAsync(
+                            simulationHostId: cityId.Value,
+                            residentIds: residents
+                               .Select(resident => resident.Id.Value)
+                               .ToArray(),
+                            cancellationToken: cancellationToken);
             var educationParticipation = new EducationParticipationProjectionIndex(
                 simulationHostId: cityId.Value,
                 projections: educationProjections);

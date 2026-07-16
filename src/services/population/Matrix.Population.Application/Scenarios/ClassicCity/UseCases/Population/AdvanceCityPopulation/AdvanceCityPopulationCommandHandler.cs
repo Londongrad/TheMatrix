@@ -223,6 +223,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 healthcarePressureSnapshotRepository: healthcarePressureSnapshotRepository,
                                 educationParticipationProjectionRepository: educationParticipationProjectionRepository,
                                 includeEducationParticipation: requiresDateProgression,
+                                includeActiveEducationParticipation: requiresNeedsProgression,
                                 cancellationToken: ct);
                         List<PersonEntity> residents = workingSet.Residents;
                         personsSnapshot = residents;
