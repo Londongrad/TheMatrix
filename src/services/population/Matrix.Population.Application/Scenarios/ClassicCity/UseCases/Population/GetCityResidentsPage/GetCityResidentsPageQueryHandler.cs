@@ -1,9 +1,9 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Integration.Education;
-using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
-using Matrix.Population.Contracts.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.Mapping;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using MediatR;
@@ -13,9 +13,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
     public sealed class GetCityResidentsPageQueryHandler(
         ICityPopulationPersonReadRepository personReadRepository,
         IEducationParticipationProjectionRepository educationParticipationProjectionRepository)
-        : IRequestHandler<GetCityResidentsPageQuery, PagedResult<PersonDto>>
+        : IRequestHandler<GetCityResidentsPageQuery, PagedResult<CityResidentSummaryDto>>
     {
-        public async Task<PagedResult<PersonDto>> Handle(
+        public async Task<PagedResult<CityResidentSummaryDto>> Handle(
             GetCityResidentsPageQuery request,
             CancellationToken cancellationToken)
         {
@@ -34,15 +34,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             var educationParticipationIndex = new EducationParticipationProjectionIndex(
                 request.CityId,
                 educationParticipations);
-            IReadOnlyCollection<PersonDto> dtos = persons
-               .Select(person => person.ToDto(
+            IReadOnlyCollection<CityResidentSummaryDto> dtos = persons
+               .Select(person => person.ToResidentSummaryDto(
                     currentDate: request.CurrentDate,
                     attainedEducationStage: ResolveAttainedEducationStage(
                         person,
                         educationParticipationIndex)))
                .ToArray();
 
-            return new PagedResult<PersonDto>(
+            return new PagedResult<CityResidentSummaryDto>(
                 items: dtos,
                 totalCount: totalCount,
                 pageNumber: request.Pagination.PageNumber,

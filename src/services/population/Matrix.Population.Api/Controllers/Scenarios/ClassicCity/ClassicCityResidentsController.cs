@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
-using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using MediatR;
@@ -18,7 +17,7 @@ public sealed class ClassicCityResidentsController(ISender sender) : ControllerB
     private readonly ISender _sender = sender;
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<PersonDto>>> GetCityResidentsPage(
+    public async Task<ActionResult<PagedResult<CityResidentSummaryDto>>> GetCityResidentsPage(
         [FromRoute] Guid cityId,
         [FromQuery] DateOnly currentDate,
         [FromQuery] int pageNumber = 1,
@@ -29,7 +28,7 @@ public sealed class ClassicCityResidentsController(ISender sender) : ControllerB
             pageNumber: pageNumber,
             pageSize: pageSize);
 
-        PagedResult<PersonDto> result = await _sender.Send(
+        PagedResult<CityResidentSummaryDto> result = await _sender.Send(
             request: new GetCityResidentsPageQuery(
                 CityId: cityId,
                 CurrentDate: currentDate,

@@ -11,6 +11,7 @@ using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.Population.Contracts;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Xunit;
 using static Matrix.ApiGateway.Tests.Http.HttpClientTestSupport;
 using static Matrix.ApiGateway.Tests.TestSupport.ApiGatewayTestSupport;
@@ -27,7 +28,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
                 year: 2048,
                 month: 6,
                 day: 8);
-            PagedResult<PersonDto> page = CreateResidentsPageResult();
+            PagedResult<CityResidentSummaryDto> page = CreateCityResidentsPageResult();
             var handler = new RecordingHttpMessageHandler
             {
                 OnSendAsync = (
@@ -39,7 +40,7 @@ namespace Matrix.ApiGateway.Tests.DownstreamClients.Population
             };
             IClassicCityPopulationApiClient client = CreateClassicCityPopulationApiClient(CreateHttpClient(handler));
 
-            PagedResult<PersonDto> result = await client.GetCityResidentsPageAsync(
+            PagedResult<CityResidentSummaryDto> result = await client.GetCityResidentsPageAsync(
                 cityId: cityId,
                 currentDate: currentDate,
                 pageNumber: 3,

@@ -377,7 +377,7 @@ namespace Matrix.ApiGateway.Tests.Controllers
                 throw new NotSupportedException();
             }
 
-            public Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
+            public Task<PagedResult<CityResidentSummaryDto>> GetCityResidentsPageAsync(
                 Guid cityId,
                 DateOnly currentDate,
                 int pageNumber,

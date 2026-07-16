@@ -16,7 +16,6 @@ using Matrix.Economy.Contracts.Scenarios.ClassicCity.Budget.Views;
 using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
 using Matrix.Education.Contracts.Students;
-using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
@@ -288,7 +287,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         }
 
         [HttpGet("{cityId:guid}/residents")]
-        public async Task<ActionResult<PagedResult<PersonDto>>> GetResidentsPage(
+        public async Task<ActionResult<PagedResult<CityResidentSummaryDto>>> GetResidentsPage(
             [FromRoute] Guid cityId,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 100,
@@ -300,7 +299,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
 
             var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
 
-            PagedResult<PersonDto> residents = await _populationClient.GetCityResidentsPageAsync(
+            PagedResult<CityResidentSummaryDto> residents = await _populationClient.GetCityResidentsPageAsync(
                 cityId: cityId,
                 currentDate: currentDate,
                 pageNumber: pageNumber,

@@ -32,6 +32,30 @@ namespace Matrix.Population.Api.Tests.TestSupport
                 JobTitle: "Operator");
         }
 
+        public static CityResidentSummaryDto CreateResidentSummaryDto(
+            Guid? id = null,
+            string fullName = "Thomas Anderson")
+        {
+            return new CityResidentSummaryDto(
+                Id: id ?? Guid.Parse("544ed8cb-03e9-48d7-91a3-6d4dd3047203"),
+                FullName: fullName,
+                Sex: "Male",
+                BirthDate: "1990-03-11",
+                DeathDate: null,
+                Age: 34,
+                AgeGroup: "Adult",
+                LifeStatus: "Alive",
+                MaritalStatus: "Single",
+                EducationLevel: "Higher",
+                Health: 82,
+                Happiness: 71,
+                Energy: 68,
+                Stress: 29,
+                SocialNeed: 41,
+                EmploymentStatus: "Employed",
+                JobTitle: "Operator");
+        }
+
         public static CityResidentDetailsDto CreateResidentDetailsDto(
             Guid? id = null,
             string fullName = "Thomas Anderson")

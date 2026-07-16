@@ -6,7 +6,6 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Ge
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
-using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
@@ -65,7 +64,7 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                 month: 6,
                 day: 1);
             var sender = new FakeSender();
-            sender.Handle<GetCityResidentsPageQuery, PagedResult<PersonDto>>(query =>
+            sender.Handle<GetCityResidentsPageQuery, PagedResult<CityResidentSummaryDto>>(query =>
             {
                 Assert.Equal(
                     expected: cityId,
@@ -80,10 +79,10 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                     expected: 25,
                     actual: query.Pagination.PageSize);
 
-                return new PagedResult<PersonDto>(
+                return new PagedResult<CityResidentSummaryDto>(
                     items:
                     [
-                        CreatePersonDto(
+                        CreateResidentSummaryDto(
                             id: personId,
                             fullName: "Neo")
                     ],
@@ -110,7 +109,8 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
             var employmentController = new ClassicCityEmploymentController(sender);
             var residentsController = new ClassicCityResidentsController(sender);
 
-            ActionResult<PagedResult<PersonDto>> residentsResult = await residentsController.GetCityResidentsPage(
+            ActionResult<PagedResult<CityResidentSummaryDto>> residentsResult =
+                await residentsController.GetCityResidentsPage(
                 cityId: cityId,
                 currentDate: currentDate,
                 pageNumber: 2,
@@ -126,7 +126,8 @@ namespace Matrix.Population.Api.Tests.Controllers.Scenarios.ClassicCity
                     cityId: cityId,
                     cancellationToken: CancellationToken.None);
             OkObjectResult residentsOk = Assert.IsType<OkObjectResult>(residentsResult.Result);
-            PagedResult<PersonDto> residents = Assert.IsType<PagedResult<PersonDto>>(residentsOk.Value);
+            PagedResult<CityResidentSummaryDto> residents =
+                Assert.IsType<PagedResult<CityResidentSummaryDto>>(residentsOk.Value);
             Assert.Equal(
                 expected: 2,
                 actual: residents.PageNumber);

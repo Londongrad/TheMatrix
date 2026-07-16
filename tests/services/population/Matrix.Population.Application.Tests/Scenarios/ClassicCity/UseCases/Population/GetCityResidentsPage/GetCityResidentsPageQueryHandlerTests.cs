@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
-using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
@@ -76,7 +76,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 personReadRepository,
                 educationParticipationRepository);
 
-            PagedResult<PersonDto> result = await handler.Handle(
+            PagedResult<CityResidentSummaryDto> result = await handler.Handle(
                 request: new GetCityResidentsPageQuery(
                     CityId: cityId,
                     CurrentDate: new DateOnly(
@@ -101,7 +101,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: 2,
                 actual: result.PageSize);
-            PersonDto first = Assert.IsType<PersonDto>(result.Items.First());
+            CityResidentSummaryDto first = Assert.IsType<CityResidentSummaryDto>(result.Items.First());
             Assert.Equal(
                 expected: "Anderson Neo",
                 actual: first.FullName);
@@ -132,7 +132,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 personReadRepository,
                 educationParticipationRepository);
 
-            PagedResult<PersonDto> result = await handler.Handle(
+            PagedResult<CityResidentSummaryDto> result = await handler.Handle(
                 new GetCityResidentsPageQuery(
                     CityId: Guid.NewGuid(),
                     CurrentDate: new DateOnly(2048, 5, 4),

@@ -1,14 +1,13 @@
 using System.Globalization;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 
 namespace Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity
 {
     internal sealed partial class ClassicCityPopulationApiClient
     {
-        public async Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
+        public async Task<PagedResult<CityResidentSummaryDto>> GetCityResidentsPageAsync(
             Guid cityId,
             DateOnly currentDate,
             int pageNumber,
@@ -30,8 +29,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken);
 
-            PagedResult<PersonDto>? result = await response.Content
-               .ReadFromJsonAsync<PagedResult<PersonDto>>(cancellationToken: cancellationToken);
+            PagedResult<CityResidentSummaryDto>? result = await response.Content
+               .ReadFromJsonAsync<PagedResult<CityResidentSummaryDto>>(cancellationToken: cancellationToken);
 
             return result ?? throw new InvalidOperationException("Empty response from Population API.");
         }

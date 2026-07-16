@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 
 namespace Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity
@@ -22,7 +21,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.Scenarios.ClassicCity
             Guid cityId,
             CancellationToken cancellationToken = default);
 
-        Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
+        Task<PagedResult<CityResidentSummaryDto>> GetCityResidentsPageAsync(
             Guid cityId,
             DateOnly currentDate,
             int pageNumber,

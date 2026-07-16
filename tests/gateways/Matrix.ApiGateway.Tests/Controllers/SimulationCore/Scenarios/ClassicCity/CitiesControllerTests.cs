@@ -5,7 +5,6 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Education.Contracts.Enrollments;
 using Matrix.Education.Contracts.Institutions;
 using Matrix.Education.Contracts.Students;
-using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
@@ -305,7 +304,7 @@ namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore.Scenarios.ClassicCi
                 minute: 45,
                 second: 0,
                 offset: TimeSpan.Zero);
-            PagedResult<PersonDto> page = CreateResidentsPageResult();
+            PagedResult<CityResidentSummaryDto> page = CreateCityResidentsPageResult();
             var simulationClient = new RecordingSimulationApiClient
             {
                 ClockResult = CreateSimulationClockView(
@@ -320,14 +319,15 @@ namespace Matrix.ApiGateway.Tests.Controllers.SimulationCore.Scenarios.ClassicCi
                 simulationClient: simulationClient,
                 populationClient: populationClient);
 
-            ActionResult<PagedResult<PersonDto>> actionResult = await controller.GetResidentsPage(
+            ActionResult<PagedResult<CityResidentSummaryDto>> actionResult = await controller.GetResidentsPage(
                 cityId: cityId,
                 pageNumber: 3,
                 pageSize: 40,
                 cancellationToken: CancellationToken.None);
 
             OkObjectResult ok = Assert.IsType<OkObjectResult>(actionResult.Result);
-            PagedResult<PersonDto> view = Assert.IsType<PagedResult<PersonDto>>(ok.Value);
+            PagedResult<CityResidentSummaryDto> view =
+                Assert.IsType<PagedResult<CityResidentSummaryDto>>(ok.Value);
             Assert.Same(
                 expected: page,
                 actual: view);

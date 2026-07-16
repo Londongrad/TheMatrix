@@ -679,6 +679,35 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 pageSize: 25);
         }
 
+        public static PagedResult<CityResidentSummaryDto> CreateCityResidentsPageResult(Guid? personId = null)
+        {
+            return new PagedResult<CityResidentSummaryDto>(
+                items:
+                [
+                    new CityResidentSummaryDto(
+                        Id: personId ?? Guid.Parse("09413be1-3cb9-4738-b4b9-9f729afde852"),
+                        FullName: "Mira Sol",
+                        Sex: "Female",
+                        BirthDate: "2024-05-21",
+                        DeathDate: null,
+                        Age: 24,
+                        AgeGroup: "Adult",
+                        LifeStatus: "Alive",
+                        MaritalStatus: "Single",
+                        EducationLevel: "Higher",
+                        Health: 82,
+                        Happiness: 71,
+                        Energy: 66,
+                        Stress: 23,
+                        SocialNeed: 29,
+                        EmploymentStatus: "Employed",
+                        JobTitle: "Transit Planner")
+                ],
+                totalCount: 1,
+                pageNumber: 2,
+                pageSize: 25);
+        }
+
         public static CityResidentDetailsDto CreateCityResidentDetailsDto(Guid? personId = null)
         {
             return new CityResidentDetailsDto(
@@ -1859,7 +1888,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
         {
             public CityPopulationDashboardDto? DashboardResult { get; set; }
             public CityPopulationDistrictPressureDto? DistrictPressureResult { get; set; }
-            public PagedResult<PersonDto>? ResidentsPageResult { get; set; }
+            public PagedResult<CityResidentSummaryDto>? ResidentsPageResult { get; set; }
             public CityResidentDetailsDto? ResidentDetailsResult { get; set; }
             public Exception? DistrictPressureException { get; set; }
             public Guid? LastDashboardCityId { get; private set; }
@@ -1908,7 +1937,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 return Task.FromResult(DistrictPressureResult ?? CreateCityPopulationDistrictPressureDto(cityId));
             }
 
-            public Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
+            public Task<PagedResult<CityResidentSummaryDto>> GetCityResidentsPageAsync(
                 Guid cityId,
                 DateOnly currentDate,
                 int pageNumber,
@@ -1920,7 +1949,7 @@ namespace Matrix.ApiGateway.Tests.TestSupport
                 LastResidentsPageNumber = pageNumber;
                 LastResidentsPageSize = pageSize;
 
-                return Task.FromResult(ResidentsPageResult ?? CreateResidentsPageResult());
+                return Task.FromResult(ResidentsPageResult ?? CreateCityResidentsPageResult());
             }
 
             public Task<CityResidentDetailsDto> GetCityResidentDetailsAsync(
