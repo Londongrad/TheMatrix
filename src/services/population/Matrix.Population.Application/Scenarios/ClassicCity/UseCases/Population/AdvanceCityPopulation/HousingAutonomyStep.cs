@@ -159,6 +159,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 currentDate: currentDate,
                                 housingPool: housingPool,
                                 householdResidents: householdResidents,
+                                educationParticipation: educationParticipation,
                                 hospitalAnchors: hospitalAnchors,
                                 districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                 anchorSelectionPolicy: anchorSelectionPolicy,

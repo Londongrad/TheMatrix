@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Entities;
@@ -343,6 +344,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                     currentDate: CurrentDate,
                     housingPool: housingPool,
                     householdResidents: [resident],
+                    educationParticipation: CreateEducationParticipationIndex(),
                     hospitalAnchors: [],
                     districtUtilityConditionsByDistrictId:
                     new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
@@ -403,6 +405,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                     currentDate: CurrentDate,
                     housingPool: housingPool,
                     householdResidents: [resident],
+                    educationParticipation: CreateEducationParticipationIndex(),
                     hospitalAnchors: [],
                     districtUtilityConditionsByDistrictId:
                     new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
@@ -460,6 +463,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                 currentDate: CurrentDate,
                 housingPool: housingPool,
                 householdResidents: [resident],
+                educationParticipation: CreateEducationParticipationIndex(),
                 hospitalAnchors: [],
                 districtUtilityConditionsByDistrictId:
                 new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
@@ -478,6 +482,68 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                     filter: request => request.ResidentialBuildingId == residentialBuildingId &&
                                        request.DestinationAnchorId == workplaceAnchorId &&
                                        request.Profile == CityPopulationCommuteRoutingProfiles.Pedestrian);
+        }
+
+        [Fact]
+        public async Task SelectHousingOpportunityAsync_UsesProjectedEducationDestination()
+        {
+            HouseholdId householdId = CreateHouseholdId(1);
+            CityAnchorId institutionAnchorId = CreateCityAnchorId(7);
+            ResidentialBuildingId residentialBuildingId = CreateResidentialBuildingId(1);
+            Person resident = CreateResident(
+                personId: CreatePersonId(1),
+                householdId: householdId,
+                birthDate: new DateOnly(1990, 1, 1));
+            var educationProjection = new EducationParticipationProjection(
+                SimulationHostId: TestCityId.Value,
+                ResidentId: resident.Id.Value,
+                ParticipationRevision: 2,
+                ResidentLifecycleRevision: resident.LifecycleRevision,
+                IsEnrolled: true,
+                ActiveStage: "higher-education",
+                InstitutionId: Guid.NewGuid(),
+                InstitutionAnchorId: institutionAnchorId.Value,
+                EnrolledOn: CurrentDate.AddYears(-1),
+                CompletedStage: "upper-secondary",
+                CompletedStageOn: CurrentDate.AddYears(-2),
+                SnapshotDate: CurrentDate,
+                OccurredAtUtc: CreatedAtUtc,
+                UpdatedAtUtc: CreatedAtUtc);
+            var routingService = new RecordingCommuteRoutingService
+            {
+                DefaultAnchorContext = new CityPopulationCommuteContext(
+                    HasRouteData: true,
+                    IsAccessible: true,
+                    AccessibilityIndex: 0.80m,
+                    PassabilityIndex: 0.80m,
+                    EstimatedTravelTimeMinutes: 25m)
+            };
+
+            await ClassicCityHousingOpportunityPlanner.SelectHousingOpportunityAsync(
+                cityId: TestCityId,
+                householdId: householdId,
+                currentDate: CurrentDate,
+                housingPool:
+                [
+                    (CreateDistrictId(1), residentialBuildingId)
+                ],
+                householdResidents: [resident],
+                educationParticipation: CreateEducationParticipationIndex(educationProjection),
+                hospitalAnchors: [],
+                districtUtilityConditionsByDistrictId:
+                new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
+                anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy(),
+                commuteRoutingService: routingService,
+                cancellationToken: CancellationToken.None);
+
+            CityPopulationCommuteRouteRequest preloadRequest = Assert.Single(
+                Assert.Single(routingService.PreloadRequests));
+            Assert.Equal(
+                expected: institutionAnchorId,
+                actual: preloadRequest.DestinationAnchorId);
+            Assert.Equal(
+                expected: institutionAnchorId,
+                actual: Assert.Single(routingService.AnchorRequests).DestinationAnchorId);
         }
 
         [Fact]
@@ -585,6 +651,14 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                 UtilityIncidentPressureIndex: pressureIndex,
                 UtilityIncidentCoordinationDifficultyIndex: coordinationDifficultyIndex,
                 UtilityIncidentRestorationPriorityIndex: restorationPriorityIndex);
+        }
+
+        private static EducationParticipationProjectionIndex CreateEducationParticipationIndex(
+            params EducationParticipationProjection[] projections)
+        {
+            return new EducationParticipationProjectionIndex(
+                simulationHostId: TestCityId.Value,
+                projections: projections.ToDictionary(projection => projection.ResidentId));
         }
 
         private static Person CreateResident(

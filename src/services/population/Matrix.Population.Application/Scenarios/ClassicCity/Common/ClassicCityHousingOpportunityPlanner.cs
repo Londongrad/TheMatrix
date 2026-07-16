@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Entities;
@@ -59,6 +60,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 DateOnly currentDate,
                 IReadOnlyList<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> housingPool,
                 IReadOnlyCollection<Person> householdResidents,
+                EducationParticipationProjectionIndex educationParticipation,
                 IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
                 IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
                     districtUtilityConditionsByDistrictId,
@@ -93,6 +95,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                     candidates: candidates,
                     currentDate: currentDate,
                     householdResidents: householdResidents,
+                    educationParticipation: educationParticipation,
                     hospitalAnchors: hospitalAnchors,
                     anchorSelectionPolicy: anchorSelectionPolicy),
                 cancellationToken: cancellationToken);
@@ -106,6 +109,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                     residentialBuildingId: residentialBuildingId,
                     currentDate: currentDate,
                     householdResidents: householdResidents,
+                    educationParticipation: educationParticipation,
                     hospitalAnchors: hospitalAnchors,
                     districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                     anchorSelectionPolicy: anchorSelectionPolicy,
@@ -127,6 +131,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 )> candidates,
             DateOnly currentDate,
             IReadOnlyCollection<Person> householdResidents,
+            EducationParticipationProjectionIndex educationParticipation,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy)
         {
@@ -146,7 +151,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                                 DestinationAnchorId: workplaceAnchorId,
                                 Profile: CityPopulationCommuteRoutingProfiles.Pedestrian));
 
-                    if (resident.Education.CurrentInstitutionAnchorId is
+                    if (ResolveEducationAnchorId(
+                            resident: resident,
+                            educationParticipation: educationParticipation) is
                         { } institutionAnchorId)
                         requests.Add(
                             new CityPopulationCommuteRouteRequest(
@@ -182,6 +189,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             ResidentialBuildingId residentialBuildingId,
             DateOnly currentDate,
             IReadOnlyCollection<Person> householdResidents,
+            EducationParticipationProjectionIndex educationParticipation,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
             IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
                 districtUtilityConditionsByDistrictId,
@@ -211,7 +219,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                     totalWeight += 1.20m;
                 }
 
-                if (resident.Education.CurrentInstitutionAnchorId is
+                if (ResolveEducationAnchorId(
+                        resident: resident,
+                        educationParticipation: educationParticipation) is
                     { } institutionAnchorId)
                 {
                     CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
@@ -273,6 +283,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 d: weightedScoreTotal / totalWeight,
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static CityAnchorId? ResolveEducationAnchorId(
+            Person resident,
+            EducationParticipationProjectionIndex educationParticipation)
+        {
+            EducationParticipationProjection? projection = educationParticipation.FindCurrent(resident);
+            return projection is
+            {
+                IsEnrolled: true,
+                InstitutionAnchorId: { } institutionAnchorId
+            }
+                ? CityAnchorId.From(institutionAnchorId)
+                : null;
         }
 
         public static decimal ResolveDistrictHousingStabilityContribution(
