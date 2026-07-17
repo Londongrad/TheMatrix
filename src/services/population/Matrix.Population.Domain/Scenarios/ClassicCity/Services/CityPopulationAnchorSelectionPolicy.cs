@@ -21,21 +21,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 preferredAnchorIds: preferredAnchorIds);
         }
 
-        public CityPopulationAnchorCatalogItem? SelectSchoolAnchor(
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> anchors,
-            DistrictId? preferredDistrictId,
-            Guid stableKey,
-            IReadOnlyCollection<CityAnchorId>? preferredAnchorIds = null)
-        {
-            return SelectByType(
-                anchors: anchors,
-                type: CityAnchorType.School,
-                preferredDistrictId: preferredDistrictId,
-                stableKey: stableKey,
-                salt: 211,
-                preferredAnchorIds: preferredAnchorIds);
-        }
-
         public CityPopulationAnchorCatalogItem? SelectHospitalAnchor(
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> anchors,
             DistrictId? preferredDistrictId,

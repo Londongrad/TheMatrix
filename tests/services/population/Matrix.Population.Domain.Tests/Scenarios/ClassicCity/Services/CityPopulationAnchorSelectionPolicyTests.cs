@@ -28,37 +28,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
         }
 
         [Fact]
-        public void SelectSchoolAnchor_WhenPreferredAnchorsAreProvided_PrefersThemOverDistrict()
-        {
-            var policy = new CityPopulationAnchorSelectionPolicy();
-            CityPopulationAnchorCatalogItem preferred = CreateAnchor(
-                name: "Preferred School",
-                type: CityAnchorType.School,
-                cityAnchorId: "11111111-0000-0000-0000-000000000010",
-                districtId: "aaaaaaaa-0000-0000-0000-000000000001");
-            CityPopulationAnchorCatalogItem districtMatch = CreateAnchor(
-                name: "District School",
-                type: CityAnchorType.School,
-                cityAnchorId: "11111111-0000-0000-0000-000000000011",
-                districtId: "bbbbbbbb-0000-0000-0000-000000000002");
-
-            CityPopulationAnchorCatalogItem? selected = policy.SelectSchoolAnchor(
-                anchors:
-                [
-                    districtMatch,
-                    preferred
-                ],
-                preferredDistrictId: districtMatch.DistrictId,
-                stableKey: Guid.Parse("aaaaaaaa-0000-0000-0000-000000000002"),
-                preferredAnchorIds: [preferred.CityAnchorId]);
-
-            Assert.NotNull(selected);
-            Assert.Equal(
-                expected: preferred.CityAnchorId,
-                actual: selected!.CityAnchorId);
-        }
-
-        [Fact]
         public void SelectHospitalAnchor_WhenPreferredDistrictExists_SelectsDeterministicallyFromDistrictSubset()
         {
             var policy = new CityPopulationAnchorSelectionPolicy();
