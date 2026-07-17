@@ -59,43 +59,9 @@ namespace Matrix.Population.Domain.Tests.Entities
         }
 
         [Fact]
-        public void StartStudying_WhenCalled_AssignsInstitutionChangesStatusAndIncreasesHappiness()
+        public void AssignJob_WhenCalled_SetsEmploymentAndIncreasesHappiness()
         {
             Person person = PopulationTestData.CreateAdultPerson(happiness: HappinessLevel.From(50));
-
-            person.StartStudying(
-                currentDate: new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 1),
-                institutionId: PopulationTestData.CreateEducationInstitutionId(),
-                institutionAnchorId: PopulationTestData.CreateCityAnchorId());
-
-            Assert.Equal(
-                expected: EmploymentStatus.Student,
-                actual: person.Employment.Status);
-            Assert.Equal(
-                expected: PopulationTestData.CreateEducationInstitutionId(),
-                actual: person.Education.CurrentInstitutionId);
-            Assert.Equal(
-                expected: PopulationTestData.CreateCityAnchorId(),
-                actual: person.Education.CurrentInstitutionAnchorId);
-            Assert.Equal(
-                expected: 55,
-                actual: person.Happiness.Value);
-        }
-
-        [Fact]
-        public void AssignJob_WhenCalled_ClearsEducationSetsEmploymentAndIncreasesHappiness()
-        {
-            Person person = PopulationTestData.CreateAdultPerson(happiness: HappinessLevel.From(50));
-            person.StartStudying(
-                currentDate: new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 1),
-                institutionId: PopulationTestData.CreateEducationInstitutionId(),
-                institutionAnchorId: PopulationTestData.CreateCityAnchorId());
 
             person.AssignJob(
                 currentDate: new DateOnly(
@@ -111,10 +77,8 @@ namespace Matrix.Population.Domain.Tests.Entities
             Assert.Equal(
                 expected: "Architect",
                 actual: person.Employment.Job!.Title);
-            Assert.Null(person.Education.CurrentInstitutionId);
-            Assert.Null(person.Education.CurrentInstitutionAnchorId);
             Assert.Equal(
-                expected: 65,
+                expected: 60,
                 actual: person.Happiness.Value);
         }
 
@@ -122,13 +86,6 @@ namespace Matrix.Population.Domain.Tests.Entities
         public void TryApplyVitalStateProjection_WhenHealthIsCritical_TransitionsToDeathAndClearsRuntimeState()
         {
             Person person = PopulationTestData.CreateAdultPerson();
-            person.StartStudying(
-                currentDate: new DateOnly(
-                    year: 2048,
-                    month: 5,
-                    day: 1),
-                institutionId: PopulationTestData.CreateEducationInstitutionId(),
-                institutionAnchorId: PopulationTestData.CreateCityAnchorId());
 
             person.TryApplyVitalStateProjection(
                 sourceRevision: 0,
@@ -168,7 +125,6 @@ namespace Matrix.Population.Domain.Tests.Entities
                 expected: EmploymentStatus.None,
                 actual: person.Employment.Status);
             Assert.Null(person.Employment.Job);
-            Assert.Null(person.Education.CurrentInstitutionId);
             Assert.Equal(1, person.LifecycleRevision);
         }
 

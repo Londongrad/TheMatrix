@@ -289,7 +289,6 @@ namespace Matrix.Population.Domain.Entities
             {
                 FunctionalCapacity = FunctionalCapacityLevel.From(FunctionalCapacityLevel.Minimum);
                 ClearNeedsForDeath();
-                Education = Education.ClearInstitution();
                 Employment = Employment.Change(
                     newStatus: EmploymentStatus.None,
                     newJob: null,
@@ -307,7 +306,6 @@ namespace Matrix.Population.Domain.Entities
                 newDeathDate: currentDate);
             FunctionalCapacity = FunctionalCapacityLevel.From(FunctionalCapacityLevel.Minimum);
 
-            Education = Education.ClearInstitution();
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.None,
                 newJob: null,
@@ -404,74 +402,12 @@ namespace Matrix.Population.Domain.Entities
 
         #endregion [ Household ]
 
-        #region [ Education ]
-
-        public void SetEducationLevel(EducationLevel newLevel)
-        {
-            Education = EducationInfo.FromLevel(
-                level: newLevel,
-                currentInstitutionId: Education.CurrentInstitutionId,
-                currentInstitutionAnchorId: Education.CurrentInstitutionAnchorId);
-        }
-
-        public void StartStudying(
-            DateOnly currentDate,
-            EducationInstitutionId institutionId,
-            LocationAnchorId? institutionAnchorId = null)
-        {
-            Education = Education.AssignInstitution(
-                institutionId: GuardHelper.AgainstNull(
-                    value: institutionId,
-                    propertyName: nameof(institutionId)),
-                currentInstitutionAnchorId: institutionAnchorId);
-            Employment = Employment.Change(
-                newStatus: EmploymentStatus.Student,
-                newJob: null,
-                lifeStatus: LifeStatus,
-                ageGroup: GetAgeGroup(currentDate));
-
-            ChangeHappiness(PersonHappinessDeltas.OnStatusStudent);
-        }
-
-        public void StopStudying(DateOnly currentDate)
-        {
-            AgeGroup ageGroup = GetAgeGroup(currentDate);
-
-            EmploymentStatus nextStatus = ageGroup == AgeGroup.Adult
-                ? EmploymentStatus.Unemployed
-                : EmploymentStatus.None;
-
-            Employment = Employment.Change(
-                newStatus: nextStatus,
-                newJob: null,
-                lifeStatus: LifeStatus,
-                ageGroup: ageGroup);
-            Education = Education.ClearInstitution();
-
-            ChangeHappiness(PersonHappinessDeltas.OnStatusNone);
-        }
-
-        public void GraduateTo(
-            EducationLevel newLevel,
-            EducationInstitutionId? institutionId = null,
-            LocationAnchorId? institutionAnchorId = null)
-        {
-            Education = Education.GraduateTo(
-                newLevel: newLevel,
-                currentInstitutionId: institutionId ?? Education.CurrentInstitutionId,
-                currentInstitutionAnchorId: institutionAnchorId ?? Education.CurrentInstitutionAnchorId);
-            ChangeHappiness(PersonHappinessDeltas.OnGraduate);
-        }
-
-        #endregion [ Education ]
-
         #region [ Employment ]
 
         public void AssignJob(
             DateOnly currentDate,
             Job job)
         {
-            Education = Education.ClearInstitution();
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.Employed,
                 newJob: GuardHelper.AgainstNull(
@@ -496,7 +432,6 @@ namespace Matrix.Population.Domain.Entities
 
         public void Retire(DateOnly currentDate)
         {
-            Education = Education.ClearInstitution();
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.Retired,
                 newJob: null,

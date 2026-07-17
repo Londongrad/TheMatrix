@@ -78,17 +78,12 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 currentDate: currentDate,
                 functionalCapacityScore: 85);
 
-            Person adultStudent = PopulationTestData.CreateAdultPerson(
+            Person unemployedAdult = PopulationTestData.CreateAdultPerson(
                 firstName: "Olga",
                 lastName: "Ivanova",
                 sex: Sex.Female,
                 personId: Guid.Parse("88888888-1111-1111-1111-111111111111"),
                 householdId: Guid.Parse("33333333-3333-3333-3333-333333333333"));
-            adultStudent.StartStudying(
-                currentDate: currentDate,
-                institutionId: PopulationTestData.CreateEducationInstitutionId(),
-                institutionAnchorId: PopulationTestData.CreateCityAnchorId());
-
             Person child = PopulationTestData.CreateAdultPerson(
                 firstName: "Petr",
                 lastName: "Ivanov",
@@ -119,7 +114,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 householdResidents:
                 [
                     employedAdult,
-                    adultStudent,
+                    unemployedAdult,
                     child,
                     infant,
                     deceasedResident
@@ -134,7 +129,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 expected: 1,
                 actual: profile.AdultProviderCount);
             Assert.Equal(
-                expected: 1,
+                expected: 0,
                 actual: profile.AdultStructuredParticipantCount);
             Assert.Equal(
                 expected: 2,
