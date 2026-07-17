@@ -2,6 +2,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
@@ -18,6 +19,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         internal static async Task<int> ApplyAsync(
             CityId cityId,
             IDictionary<PersonId, PersonEntity> residentsById,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatusesByHouseholdId,
             DateOnly previousDate,
             DateOnly currentDate,
@@ -33,6 +35,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         {
             IReadOnlyList<CityBirthAutonomyDecision> decisions = birthAutonomyPolicy.Plan(
                 residents: residentsById.Values.ToArray(),
+                routineProfilesByResidentId: routineProfilesByResidentId,
                 housingStatuses: housingStatusesByHouseholdId,
                 previousDate: previousDate,
                 currentDate: currentDate);

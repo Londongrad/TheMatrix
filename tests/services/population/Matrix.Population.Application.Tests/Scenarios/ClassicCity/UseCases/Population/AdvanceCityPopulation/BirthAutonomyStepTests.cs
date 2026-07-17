@@ -3,6 +3,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -71,6 +72,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await BirthAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: residentsById,
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 housingStatusesByHouseholdId: CreateHousingMap(householdId),
                 previousDate: CurrentDate,
                 currentDate: CurrentDate,
@@ -124,6 +126,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await BirthAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: residentsById,
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 housingStatusesByHouseholdId: CreateHousingMap(householdId),
                 previousDate: PreviousDate,
                 currentDate: CurrentDate,
@@ -227,6 +230,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await BirthAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: residentsById,
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 housingStatusesByHouseholdId: CreateHousingMap(householdId),
                 previousDate: PreviousDate,
                 currentDate: CurrentDate,
@@ -299,6 +303,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         mother,
                         father
                     ],
+                    routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                     housingStatuses: CreateHousingMap(householdId),
                     previousDate: PreviousDate,
                     currentDate: CurrentDate);

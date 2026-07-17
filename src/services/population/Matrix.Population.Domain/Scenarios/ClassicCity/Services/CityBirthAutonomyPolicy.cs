@@ -24,11 +24,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         public IReadOnlyList<CityBirthAutonomyDecision> Plan(
             IReadOnlyCollection<Person> residents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             DateOnly previousDate,
             DateOnly currentDate)
         {
             ArgumentNullException.ThrowIfNull(residents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
             ArgumentNullException.ThrowIfNull(housingStatuses);
 
             if (currentDate <= previousDate)
@@ -83,6 +85,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     : null;
                 CityHouseholdLivelihoodProfile livelihoodProfile = householdLivelihoodPolicy.Build(
                     householdResidents: members,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     housingStatus: housingStatus,
                     currentDate: currentDate);
 

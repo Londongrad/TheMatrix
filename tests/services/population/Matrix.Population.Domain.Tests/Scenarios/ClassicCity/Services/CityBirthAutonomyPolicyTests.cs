@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
@@ -64,6 +65,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     mother,
                     father
                 ],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [householdId] = HousingStatus.Housed
@@ -129,6 +131,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                         mother,
                         father
                     ],
+                    routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                     housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                     {
                         [householdId] = HousingStatus.Housed
@@ -218,6 +221,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
 
             IReadOnlyList<CityBirthAutonomyDecision> decisions = policy.Plan(
                 residents: residents,
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [householdId] = HousingStatus.Housed
