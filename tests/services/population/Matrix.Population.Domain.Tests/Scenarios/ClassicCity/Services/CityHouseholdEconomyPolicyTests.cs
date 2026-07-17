@@ -1,10 +1,12 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Tests.TestSupport;
+using Matrix.Population.Domain.ValueObjects;
 using Xunit;
 
 namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
@@ -26,6 +28,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             CityHouseholdEconomyProfile profile = policy.Build(
                 household: household,
                 householdResidents: [],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -94,6 +97,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     employedAdult,
                     child
                 ],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -139,6 +143,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     unemployedAdult,
                     child
                 ],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatus: HousingStatus.Homeless,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -153,6 +158,11 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             Assert.True(profile.StrainScore >= 0.55d);
             Assert.True(profile.IsStrained);
             Assert.True(profile.GrowthReadinessScore < 0.5d);
+        }
+
+        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> EmptyRoutineProfiles()
+        {
+            return new Dictionary<PersonId, PersonRoutineProfile>();
         }
     }
 }

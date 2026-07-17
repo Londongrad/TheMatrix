@@ -1,8 +1,10 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
@@ -17,8 +19,28 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             CityPopulationCostOfLivingState? costOfLivingState = null)
         {
+            ArgumentNullException.ThrowIfNull(householdResidents);
+
+            return Build(
+                household: household,
+                householdResidents: householdResidents,
+                routineProfilesByResidentId: CreateCompatibilityRoutineProfiles(householdResidents),
+                housingStatus: housingStatus,
+                currentDate: currentDate,
+                costOfLivingState: costOfLivingState);
+        }
+
+        public CityHouseholdEconomyProfile Build(
+            Household household,
+            IReadOnlyCollection<Person> householdResidents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
+            HousingStatus? housingStatus,
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState = null)
+        {
             ArgumentNullException.ThrowIfNull(household);
             ArgumentNullException.ThrowIfNull(householdResidents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
 
             Person[] activeResidents = householdResidents
                .Where(x => x.IsAlive)
@@ -44,6 +66,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             CityHouseholdLivelihoodProfile livelihood = householdLivelihoodPolicy.Build(
                 householdResidents: activeResidents,
+                routineProfilesByResidentId: routineProfilesByResidentId,
                 housingStatus: housingStatus,
                 currentDate: currentDate);
             CityHouseholdCashflowProfile cashflow = householdCashflowPolicy.Build(
@@ -142,6 +165,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 GrowthReadinessScore: growthReadiness,
                 CostOfLivingIndex: cashflow.CostOfLivingIndex,
                 AffordabilityIndex: cashflow.AffordabilityIndex);
+        }
+
+        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> CreateCompatibilityRoutineProfiles(
+            IEnumerable<Person> residents)
+        {
+            return residents
+               .Where(x => x.Employment.Status == EmploymentStatus.Student)
+               .ToDictionary(
+                    keySelector: x => x.Id,
+                    elementSelector: _ => PersonRoutineProfile.Structured(
+                        activityStart: TimeSpan.FromHours(8),
+                        activityEnd: TimeSpan.FromHours(15),
+                        activityLoad: PersonStructuredActivityLoad.Moderate));
         }
     }
 }
