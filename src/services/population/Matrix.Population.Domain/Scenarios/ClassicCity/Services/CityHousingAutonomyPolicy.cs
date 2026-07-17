@@ -84,6 +84,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 CityHouseholdEconomyProfile economyProfile = householdEconomyPolicy.Build(
                     household: household,
                     householdResidents: members,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     housingStatus: housingStatus,
                     currentDate: currentDate,
                     costOfLivingState: costOfLivingState);
