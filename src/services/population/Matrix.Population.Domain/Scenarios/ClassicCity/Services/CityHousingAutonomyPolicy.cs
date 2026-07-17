@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -12,6 +13,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         public IReadOnlyList<CityHousingAutonomyDecision> Plan(
             IReadOnlyDictionary<HouseholdId, Household> households,
             IReadOnlyCollection<Person> residents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressStates,
             IReadOnlyDictionary<HouseholdId, CityHouseholdCommutePressureProfile>? commutePressureProfiles,
@@ -24,6 +26,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             ArgumentNullException.ThrowIfNull(households);
             ArgumentNullException.ThrowIfNull(residents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
             ArgumentNullException.ThrowIfNull(housingStatuses);
             ArgumentNullException.ThrowIfNull(financialStressStates);
 
@@ -65,6 +68,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 HouseholdHousingProfile profile = BuildProfile(
                     householdId: householdId,
                     members: members,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     currentDate: currentDate);
                 financialStressStates.TryGetValue(
                     key: householdId,
@@ -140,6 +144,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static HouseholdHousingProfile BuildProfile(
             HouseholdId householdId,
             IReadOnlyCollection<Person> members,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             DateOnly currentDate)
         {
             int size = members.Count;
@@ -147,7 +152,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int seniorCount = 0;
             int childCount = 0;
             int employedAdults = 0;
-            int studentResidents = 0;
+            int structuredNonWorkerResidents = 0;
             int functionalLimitationCount = 0;
             bool hasInfant = false;
             double healthTotal = 0d;
@@ -177,8 +182,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     member.Employment.Status == EmploymentStatus.Employed)
                     employedAdults++;
 
-                if (member.Employment.Status == EmploymentStatus.Student)
-                    studentResidents++;
+                if (member.Employment.Status != EmploymentStatus.Employed &&
+                    routineProfilesByResidentId.TryGetValue(
+                        key: member.Id,
+                        value: out PersonRoutineProfile? routineProfile) &&
+                    routineProfile.HasStructuredActivity)
+                    structuredNonWorkerResidents++;
 
                 if (member.FunctionalCapacity.Value < 100)
                     functionalLimitationCount++;
@@ -202,7 +211,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 SeniorCount: seniorCount,
                 ChildCount: childCount,
                 EmployedAdults: employedAdults,
-                StudentResidents: studentResidents,
+                StructuredNonWorkerResidents: structuredNonWorkerResidents,
                 FunctionalLimitationCount: functionalLimitationCount,
                 HasInfant: hasInfant,
                 AverageHealth: healthTotal / size,
@@ -341,7 +350,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             (averageEnergy * 0.010d) +
                             (averageSocialNeed * 0.008d) +
                             (profile.ChildCount * 0.004d) +
-                            (profile.StudentResidents * 0.003d) +
+                            (profile.StructuredNonWorkerResidents * 0.003d) +
                             (profile.HasInfant
                                 ? 0.008d
                                 : 0d) -
@@ -413,7 +422,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 val1: 0.018d,
                 val2: (double)(overdueAmount / 2_500m));
 
-            if (profile.EmployedAdults == 0 && profile.StudentResidents == 0)
+            if (profile.EmployedAdults == 0 && profile.StructuredNonWorkerResidents == 0)
                 chance *= 0.45d;
 
             return Math.Clamp(
@@ -778,7 +787,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int SeniorCount,
             int ChildCount,
             int EmployedAdults,
-            int StudentResidents,
+            int StructuredNonWorkerResidents,
             int FunctionalLimitationCount,
             bool HasInfant,
             double AverageHealth,

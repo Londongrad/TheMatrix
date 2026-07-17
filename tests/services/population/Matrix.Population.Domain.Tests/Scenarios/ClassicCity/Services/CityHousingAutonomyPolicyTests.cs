@@ -24,6 +24,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             IReadOnlyList<CityHousingAutonomyDecision> noAdvance = policy.Plan(
                 households: new Dictionary<HouseholdId, Household>(),
                 residents: [],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>(),
                 financialStressStates: new Dictionary<HouseholdId, CityPopulationHouseholdFinancialStressState>(),
                 commutePressureProfiles: null,
@@ -72,6 +73,13 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     [household.Id] = household
                 },
                 residents: [resident],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>
+                {
+                    [resident.Id] = PersonRoutineProfile.Structured(
+                        activityStart: TimeSpan.FromHours(8),
+                        activityEnd: TimeSpan.FromHours(15),
+                        activityLoad: PersonStructuredActivityLoad.Moderate)
+                },
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [household.Id] = HousingStatus.Housed
@@ -122,6 +130,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     [household.Id] = household
                 },
                 residents: [deceasedResident],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [household.Id] = HousingStatus.Housed

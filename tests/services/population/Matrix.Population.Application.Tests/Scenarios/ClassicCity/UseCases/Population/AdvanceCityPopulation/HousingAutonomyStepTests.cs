@@ -4,6 +4,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -318,6 +319,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             return HousingAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: residentsById,
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
@@ -379,6 +381,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                             cashReserve: 5_000m)
                     },
                     residents: [resident],
+                    routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                     housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                     {
                         [householdId] = HousingStatus.Homeless,
