@@ -52,6 +52,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 HouseholdIndependenceProfile profile = BuildProfile(
                     householdId: householdId,
                     members: members,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     housingStatus: housingStatus,
                     residentsById: residentsById,
                     currentDate: currentDate);
@@ -82,6 +83,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private HouseholdIndependenceProfile BuildProfile(
             HouseholdId householdId,
             IReadOnlyCollection<Person> members,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             HousingStatus housingStatus,
             IReadOnlyDictionary<PersonId, Person> residentsById,
             DateOnly currentDate)
@@ -134,6 +136,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             CityHouseholdLivelihoodProfile livelihoodProfile = householdLivelihoodPolicy.Build(
                 householdResidents: members,
+                routineProfilesByResidentId: routineProfilesByResidentId,
                 housingStatus: housingStatus,
                 currentDate: currentDate);
 
