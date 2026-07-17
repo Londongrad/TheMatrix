@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
@@ -240,7 +241,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>
                 {
-                    [resident.Id] = ResidentRoutineProfileFactory.Create(resident, null)
+                    [resident.Id] = PersonRoutineProfileFactory.Create(resident, null)
                 },
                 commutePressureProfilesByHouseholdId:
                 new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile?>(),

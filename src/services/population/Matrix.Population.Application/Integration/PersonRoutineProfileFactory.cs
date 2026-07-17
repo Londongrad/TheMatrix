@@ -3,18 +3,20 @@ using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
 
-namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
+namespace Matrix.Population.Application.Integration
 {
-    internal static class ResidentRoutineProfileFactory
+    public static class PersonRoutineProfileFactory
     {
         private static readonly TimeSpan ActivityStart = TimeSpan.FromHours(8);
         private static readonly TimeSpan EducationActivityEnd = TimeSpan.FromHours(15);
         private static readonly TimeSpan EmploymentActivityEnd = TimeSpan.FromHours(17);
 
-        internal static PersonRoutineProfile Create(
+        public static PersonRoutineProfile Create(
             Person resident,
             EducationParticipationProjection? educationParticipation)
         {
+            ArgumentNullException.ThrowIfNull(resident);
+
             if (resident.Employment.Status == EmploymentStatus.Employed)
                 return PersonRoutineProfile.Structured(
                     activityStart: ActivityStart,

@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
@@ -247,7 +248,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                              new Dictionary<PersonId, PersonRoutineProfile>
                                              {
                                                  [resident.Id] =
-                                                 ResidentRoutineProfileFactory.Create(resident, null)
+                                                 PersonRoutineProfileFactory.Create(resident, null)
                                              },
                 commutePressureProfilesByHouseholdId: commutePressureProfilesByHouseholdId ??
                                                       new Dictionary<HouseholdId,

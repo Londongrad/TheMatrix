@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Entities;
@@ -9,14 +10,14 @@ using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicati
 
 namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
-    public sealed class ResidentRoutineProfileFactoryTests
+    public sealed class PersonRoutineProfileFactoryTests
     {
         [Fact]
         public void Create_WhenResidentIsEnrolled_ReturnsModerateEducationSchedule()
         {
             Person resident = CreatePerson(employmentStatus: EmploymentStatus.Unemployed);
 
-            PersonRoutineProfile profile = ResidentRoutineProfileFactory.Create(
+            PersonRoutineProfile profile = PersonRoutineProfileFactory.Create(
                 resident,
                 CreateEducationParticipation(resident));
 
@@ -35,7 +36,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     workplaceId: WorkplaceId.From(Guid.NewGuid()),
                     title: "Engineer"));
 
-            PersonRoutineProfile profile = ResidentRoutineProfileFactory.Create(
+            PersonRoutineProfile profile = PersonRoutineProfileFactory.Create(
                 resident,
                 CreateEducationParticipation(resident));
 
@@ -50,7 +51,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         {
             Person resident = CreatePerson(employmentStatus: EmploymentStatus.Unemployed);
 
-            PersonRoutineProfile profile = ResidentRoutineProfileFactory.Create(resident, null);
+            PersonRoutineProfile profile = PersonRoutineProfileFactory.Create(resident, null);
 
             Assert.Equal(PersonRoutineProfile.Unstructured, profile);
         }

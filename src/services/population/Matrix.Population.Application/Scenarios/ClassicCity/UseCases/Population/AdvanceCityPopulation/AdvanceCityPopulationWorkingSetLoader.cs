@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -66,7 +67,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId = residents
                .ToDictionary(
                     keySelector: resident => resident.Id,
-                    elementSelector: resident => ResidentRoutineProfileFactory.Create(
+                    elementSelector: resident => PersonRoutineProfileFactory.Create(
                         resident: resident,
                         educationParticipation: educationParticipation.FindCurrent(resident)));
             IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
