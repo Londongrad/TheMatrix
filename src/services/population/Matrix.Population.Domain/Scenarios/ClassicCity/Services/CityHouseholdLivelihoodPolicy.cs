@@ -3,6 +3,7 @@ using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
@@ -14,6 +15,22 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate)
         {
             ArgumentNullException.ThrowIfNull(householdResidents);
+
+            return Build(
+                householdResidents: householdResidents,
+                routineProfilesByResidentId: CreateCompatibilityRoutineProfiles(householdResidents),
+                housingStatus: housingStatus,
+                currentDate: currentDate);
+        }
+
+        public CityHouseholdLivelihoodProfile Build(
+            IReadOnlyCollection<Person> householdResidents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
+            HousingStatus? housingStatus,
+            DateOnly currentDate)
+        {
+            ArgumentNullException.ThrowIfNull(householdResidents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
 
             Person[] activeResidents = householdResidents
                .Where(x => x.IsAlive)
@@ -54,15 +71,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     infantCount++;
 
                 if (ageGroup is AgeGroup.Adult or AgeGroup.Senior)
-                    switch (resident.Employment.Status)
-                    {
-                        case EmploymentStatus.Employed:
-                            adultProviderCount++;
-                            break;
-                        case EmploymentStatus.Student:
+                {
+                    if (resident.Employment.Status == EmploymentStatus.Employed)
+                        adultProviderCount++;
+                    else
+                        if (routineProfilesByResidentId.TryGetValue(
+                                key: resident.Id,
+                                value: out PersonRoutineProfile? routineProfile) &&
+                            routineProfile.HasStructuredActivity)
                             adultStructuredParticipantCount++;
-                            break;
-                    }
+                }
 
                 if (resident.FunctionalCapacity.Value < 100)
                     functionalLimitationCount++;
@@ -147,6 +165,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 value: selfReliance,
                 min: 0d,
                 max: 1d);
+        }
+
+        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> CreateCompatibilityRoutineProfiles(
+            IEnumerable<Person> residents)
+        {
+            return residents
+               .Where(x => x.Employment.Status == EmploymentStatus.Student)
+               .ToDictionary(
+                    keySelector: x => x.Id,
+                    elementSelector: _ => PersonRoutineProfile.Structured(
+                        activityStart: TimeSpan.FromHours(8),
+                        activityEnd: TimeSpan.FromHours(15),
+                        activityLoad: PersonStructuredActivityLoad.Moderate));
         }
 
         private static double Normalize(double value)

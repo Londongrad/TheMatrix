@@ -25,6 +25,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
 
             CityHouseholdLivelihoodProfile profile = policy.Build(
                 householdResidents: [deceasedResident],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -119,6 +120,13 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     infant,
                     deceasedResident
                 ],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>
+                {
+                    [unemployedAdult.Id] = PersonRoutineProfile.Structured(
+                        activityStart: TimeSpan.FromHours(8),
+                        activityEnd: TimeSpan.FromHours(15),
+                        activityLoad: PersonStructuredActivityLoad.Moderate)
+                },
                 housingStatus: HousingStatus.Housed,
                 currentDate: currentDate);
 
@@ -129,7 +137,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 expected: 1,
                 actual: profile.AdultProviderCount);
             Assert.Equal(
-                expected: 0,
+                expected: 1,
                 actual: profile.AdultStructuredParticipantCount);
             Assert.Equal(
                 expected: 2,
