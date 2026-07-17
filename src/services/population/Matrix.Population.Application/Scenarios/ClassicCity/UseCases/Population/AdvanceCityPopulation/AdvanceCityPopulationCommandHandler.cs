@@ -331,7 +331,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     cityId: cityId,
                                     residents: residents,
                                     residentsByHouseholdId: residentsByHouseholdId,
-                                    educationParticipation: educationParticipation,
+                                    routineProfilesByResidentId: workingSet.RoutineProfilesByResidentId,
                                     currentDate: toDate,
                                     housingByHouseholdId: housingByHouseholdId,
                                     districtByHouseholdId: districtByHouseholdId,

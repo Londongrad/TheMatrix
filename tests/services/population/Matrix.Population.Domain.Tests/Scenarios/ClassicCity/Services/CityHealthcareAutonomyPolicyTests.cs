@@ -1,11 +1,13 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.Tests.TestSupport;
+using Matrix.Population.Domain.ValueObjects;
 using Xunit;
 
 namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
@@ -27,6 +29,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             double support = policy.ResolveSupportStrength(
                 resident: deceasedResident,
                 householdResidents: [deceasedResident],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -74,6 +77,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     illResident,
                     employedCaregiver
                 ],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: currentDate,
                 hasPrimaryCareAccess: true,
@@ -90,6 +94,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             double lowSupport = policy.ResolveSupportStrength(
                 resident: illResident,
                 householdResidents: [illResident],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatus: HousingStatus.Homeless,
                 currentDate: currentDate,
                 hasPrimaryCareAccess: false,
@@ -150,6 +155,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     seniorResident,
                     caregiver
                 ],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: currentDate,
                 hasPrimaryCareAccess: true,
@@ -167,6 +173,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     seniorResident,
                     caregiver
                 ],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: currentDate,
                 hasPrimaryCareAccess: true,
@@ -179,6 +186,11 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 serviceQualityState: CreateServiceQualityState(1.1m));
 
             Assert.True(fragileSupport < stableSupport);
+        }
+
+        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> EmptyRoutineProfiles()
+        {
+            return new Dictionary<PersonId, PersonRoutineProfile>();
         }
 
         private static CityPopulationServiceQualityState CreateServiceQualityState(decimal healthcareQualityIndex)

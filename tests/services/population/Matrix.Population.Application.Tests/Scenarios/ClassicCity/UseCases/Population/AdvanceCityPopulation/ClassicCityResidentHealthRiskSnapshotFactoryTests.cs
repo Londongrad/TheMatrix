@@ -1,10 +1,10 @@
 using Matrix.Population.Application.Integration;
-using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -41,23 +41,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var household = HouseholdId.From(householdId);
             CityPopulationAnchorCatalogItem hospital = CreateHospitalAnchor();
             var routingService = new RecordingCommuteRoutingService();
-            EducationParticipationProjectionIndex educationParticipation = CreateEducationParticipationIndex(
-                simulationHostId: CityId.Value,
-                new EducationParticipationProjection(
-                    SimulationHostId: CityId.Value,
-                    ResidentId: familyMember.Id.Value,
-                    ParticipationRevision: 1,
-                    ResidentLifecycleRevision: familyMember.LifecycleRevision,
-                    IsEnrolled: true,
-                    ActiveStage: "higher-education",
-                    InstitutionId: Guid.NewGuid(),
-                    InstitutionAnchorId: Guid.NewGuid(),
-                    EnrolledOn: CurrentDate.AddYears(-1),
-                    CompletedStage: "upper-secondary",
-                    CompletedStageOn: CurrentDate.AddYears(-2),
-                    SnapshotDate: CurrentDate,
-                    OccurredAtUtc: UtcNow,
-                    UpdatedAtUtc: UtcNow));
+            var routineProfilesByResidentId = new Dictionary<PersonId, PersonRoutineProfile>
+            {
+                [familyMember.Id] = PersonRoutineProfile.Structured(
+                    activityStart: TimeSpan.FromHours(8),
+                    activityEnd: TimeSpan.FromHours(15),
+                    activityLoad: PersonStructuredActivityLoad.Moderate)
+            };
 
             IReadOnlyCollection<PopulationResidentHealthRiskSnapshot> snapshots =
                 await ClassicCityResidentHealthRiskSnapshotFactory.BuildAsync(
@@ -67,7 +57,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     {
                         [household] = residents
                     },
-                    educationParticipation: educationParticipation,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     currentDate: CurrentDate,
                     housingByHouseholdId: new Dictionary<HouseholdId, HousingStatus>
                     {

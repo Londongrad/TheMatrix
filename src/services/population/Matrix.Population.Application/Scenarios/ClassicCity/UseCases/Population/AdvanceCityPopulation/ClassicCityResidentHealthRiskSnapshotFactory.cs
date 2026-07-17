@@ -1,9 +1,9 @@
 using Matrix.Population.Application.Integration;
-using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -20,7 +20,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             IReadOnlyCollection<PersonEntity> residents,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
-            EducationParticipationProjectionIndex educationParticipation,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
@@ -102,6 +102,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 double healthcareSupportStrength = healthcareAutonomyPolicy.ResolveSupportStrength(
                                                        resident: resident,
                                                        householdResidents: aliveHouseholdResidents,
+                                                       routineProfilesByResidentId: routineProfilesByResidentId,
                                                        housingStatus: housingStatus,
                                                        currentDate: currentDate,
                                                        hasPrimaryCareAccess: prepared.PrimaryCareAnchor is not null,
@@ -114,6 +115,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                                    livingConditionsPressurePolicy.ResolveMedicineAccessStrength(
                                                        livingConditions: districtLivingConditions,
                                                        essentials: districtEssentials);
+                bool hasStructuredDailyActivity =
+                    routineProfilesByResidentId.TryGetValue(
+                        key: resident.Id,
+                        value: out PersonRoutineProfile? routineProfile) &&
+                    routineProfile.HasStructuredActivity;
 
                 snapshots.Add(
                     new PopulationResidentHealthRiskSnapshot(
@@ -124,8 +130,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         SocialNeedScore: resident.SocialNeed.Value,
                         IsVulnerable: resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior,
                         HousingStability: MapHousingStability(housingStatus),
-                        HasStructuredDailyActivity: resident.Employment.Status == EmploymentStatus.Employed ||
-                                                    educationParticipation.FindCurrent(resident)?.IsEnrolled == true,
+                        HasStructuredDailyActivity: hasStructuredDailyActivity,
                         HouseholdSize: Math.Max(1, aliveHouseholdResidents.Length),
                         CaregiverSupportStrength: ResolveCaregiverSupportStrength(
                             resident: resident,

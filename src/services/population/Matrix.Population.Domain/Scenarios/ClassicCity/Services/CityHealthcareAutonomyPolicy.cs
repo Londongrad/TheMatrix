@@ -1,8 +1,10 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
@@ -11,6 +13,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         public double ResolveSupportStrength(
             Person resident,
             IReadOnlyCollection<Person> householdResidents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             HousingStatus? housingStatus,
             DateOnly currentDate,
             bool hasPrimaryCareAccess,
@@ -22,12 +25,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             ArgumentNullException.ThrowIfNull(resident);
             ArgumentNullException.ThrowIfNull(householdResidents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
 
             if (!resident.IsAlive)
                 return 0d;
 
             CityHouseholdLivelihoodProfile livelihood = householdLivelihoodPolicy.Build(
                 householdResidents: householdResidents,
+                routineProfilesByResidentId: routineProfilesByResidentId,
                 housingStatus: housingStatus,
                 currentDate: currentDate);
 
