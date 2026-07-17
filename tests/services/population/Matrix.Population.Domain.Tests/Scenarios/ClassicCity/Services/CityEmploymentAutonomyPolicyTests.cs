@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -47,6 +48,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 person: youth,
                 household: household,
                 householdResidents: [youth],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 previousDate: new DateOnly(
                     year: 2048,
                     month: 4,
@@ -97,6 +99,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 person: adult,
                 household: household,
                 householdResidents: [adult],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 previousDate: new DateOnly(
                     year: 2047,
                     month: 1,

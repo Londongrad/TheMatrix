@@ -1,5 +1,6 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -18,6 +19,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             PersonEntity person,
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             DateOnly previousDate,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
@@ -63,6 +65,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     person: person,
                     household: household,
                     householdResidents: householdResidents,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     previousDate: previousDate,
                     currentDate: currentDate,
                     housingStatus: housingStatus,

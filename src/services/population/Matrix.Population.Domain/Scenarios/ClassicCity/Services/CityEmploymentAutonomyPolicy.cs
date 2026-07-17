@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -23,6 +24,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person person,
             Household household,
             IReadOnlyCollection<Person> householdResidents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             DateOnly previousDate,
             DateOnly currentDate,
             HousingStatus? housingStatus,
@@ -35,6 +37,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             ArgumentNullException.ThrowIfNull(person);
             ArgumentNullException.ThrowIfNull(householdResidents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
             ArgumentNullException.ThrowIfNull(workplacePools);
 
             if (!person.IsAlive)
@@ -53,6 +56,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             CityHouseholdEconomyProfile householdEconomy = householdEconomyPolicy.Build(
                 household: household,
                 householdResidents: householdResidents,
+                routineProfilesByResidentId: routineProfilesByResidentId,
                 housingStatus: housingStatus,
                 currentDate: currentDate,
                 costOfLivingState: costOfLivingState);
