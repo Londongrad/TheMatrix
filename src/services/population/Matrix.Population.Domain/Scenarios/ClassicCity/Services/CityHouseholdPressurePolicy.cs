@@ -1,8 +1,10 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
@@ -11,6 +13,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         public bool Apply(
             Person resident,
             IReadOnlyCollection<Person> householdResidents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             HousingStatus? housingStatus,
             CityPopulationHouseholdFinancialStressState? financialStressState,
             CityHouseholdCommutePressureProfile? commutePressureProfile,
@@ -19,6 +22,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             ArgumentNullException.ThrowIfNull(resident);
             ArgumentNullException.ThrowIfNull(householdResidents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
 
             if (!resident.IsAlive || currentDate <= previousDate)
                 return false;
@@ -40,6 +44,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             HouseholdPressureEffect effect = ResolveEffect(
                     resident: resident,
                     householdResidents: activeResidents,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     housingStatus: housingStatus,
                     financialStressState: financialStressState,
                     commutePressureProfile: commutePressureProfile,
@@ -76,6 +81,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static HouseholdPressureEffect ResolveEffect(
             Person resident,
             IReadOnlyCollection<Person> householdResidents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             HousingStatus? housingStatus,
             CityPopulationHouseholdFinancialStressState? financialStressState,
             CityHouseholdCommutePressureProfile? commutePressureProfile,
@@ -92,7 +98,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int employedAdults = householdResidents.Count(x =>
                 x.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior &&
                 x.Employment.Status == EmploymentStatus.Employed);
-            int studentResidents = householdResidents.Count(x => x.Employment.Status == EmploymentStatus.Student);
+            int structuredNonWorkers = householdResidents.Count(x =>
+                x.Employment.Status != EmploymentStatus.Employed &&
+                HasStructuredActivity(x, routineProfilesByResidentId));
 
             bool hasDependents = dependentCount > 0;
             bool isParentOfDependent = householdResidents.Any(x =>
@@ -113,7 +121,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 val2: householdSize - 3);
             int supportShortfall = Math.Max(
                 val1: 0,
-                val2: dependentCount - employedAdults - studentResidents);
+                val2: dependentCount - employedAdults - structuredNonWorkers);
 
             int happinessDelta = 0;
             int energyDelta = 0;
@@ -185,7 +193,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 double accessibilityDeficit = (double)commutePressureProfile.AccessibilityDeficitIndex;
                 double travelFatigue = (double)commutePressureProfile.TravelFatigueIndex;
 
-                if (resident.Employment.Status is EmploymentStatus.Employed or EmploymentStatus.Student)
+                if (HasStructuredActivity(resident, routineProfilesByResidentId))
                 {
                     stressDelta += Math.Min(
                         val1: 2,
@@ -278,6 +286,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 EnergyDelta: energyDelta,
                 StressDelta: stressDelta,
                 SocialNeedDelta: socialNeedDelta);
+        }
+
+        private static bool HasStructuredActivity(
+            Person resident,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId)
+        {
+            return routineProfilesByResidentId.TryGetValue(
+                       key: resident.Id,
+                       value: out PersonRoutineProfile? routineProfile) &&
+                   routineProfile.HasStructuredActivity;
         }
 
         private static int ResolveDailyReviewWindows(

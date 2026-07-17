@@ -3,6 +3,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstr
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -225,6 +226,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         private static Task<bool> ApplyAsync(
             Person resident,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<Person>>? residentsByHouseholdId = null,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile>? routineProfilesByResidentId = null,
             IReadOnlyDictionary<HouseholdId, HousingStatus>? housingByHouseholdId = null,
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?>? residentialBuildingByHouseholdId = null,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState>?
@@ -241,6 +243,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 residentsByHouseholdId: residentsByHouseholdId ??
                                         new Dictionary<HouseholdId, IReadOnlyCollection<Person>>(),
                 educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                routineProfilesByResidentId: routineProfilesByResidentId ??
+                                             new Dictionary<PersonId, PersonRoutineProfile>
+                                             {
+                                                 [resident.Id] =
+                                                 ResidentRoutineProfileFactory.Create(resident, null)
+                                             },
                 commutePressureProfilesByHouseholdId: commutePressureProfilesByHouseholdId ??
                                                       new Dictionary<HouseholdId,
                                                           CityHouseholdCommutePressureProfile?>(),

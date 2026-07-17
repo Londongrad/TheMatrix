@@ -97,6 +97,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     person: person,
                     residentsByHouseholdId: residentsByHouseholdId,
                     educationParticipation: educationParticipation,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     commutePressureProfilesByHouseholdId: commutePressureProfilesByHouseholdId,
                     previousDate: previousDate,
                     currentDate: currentDate,

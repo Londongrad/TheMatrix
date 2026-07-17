@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -27,6 +28,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             bool deceasedResult = policy.Apply(
                 resident: deceasedResident,
                 householdResidents: [deceasedResident],
+                routineProfilesByResidentId: CreateRoutineProfiles(deceasedResident),
                 housingStatus: HousingStatus.Housed,
                 financialStressState: null,
                 commutePressureProfile: null,
@@ -50,6 +52,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             bool nonAdvancingResult = policy.Apply(
                 resident: aliveResident,
                 householdResidents: [aliveResident],
+                routineProfilesByResidentId: CreateRoutineProfiles(aliveResident),
                 housingStatus: HousingStatus.Housed,
                 financialStressState: null,
                 commutePressureProfile: null,
@@ -98,6 +101,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             bool changed = policy.Apply(
                 resident: resident,
                 householdResidents: [resident],
+                routineProfilesByResidentId: CreateRoutineProfiles(resident),
                 housingStatus: HousingStatus.Homeless,
                 financialStressState: CreateFinancialStressState(
                     householdId: resident.HouseholdId,
@@ -149,6 +153,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             bool changed = policy.Apply(
                 resident: resident,
                 householdResidents: [resident],
+                routineProfilesByResidentId: CreateRoutineProfiles(resident),
                 housingStatus: HousingStatus.Housed,
                 financialStressState: CreateFinancialStressState(
                     householdId: resident.HouseholdId,
@@ -201,6 +206,20 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 distressScore: 0.65m,
                 lastEvaluatedAtUtc: lastEvaluatedAtUtc,
                 updatedAtUtc: lastEvaluatedAtUtc);
+        }
+
+        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> CreateRoutineProfiles(Person resident)
+        {
+            PersonRoutineProfile routineProfile = resident.Employment.Status == EmploymentStatus.Employed
+                ? PersonRoutineProfile.Structured(
+                    activityStart: TimeSpan.FromHours(8),
+                    activityEnd: TimeSpan.FromHours(17),
+                    activityLoad: PersonStructuredActivityLoad.Demanding)
+                : PersonRoutineProfile.Unstructured;
+            return new Dictionary<PersonId, PersonRoutineProfile>
+            {
+                [resident.Id] = routineProfile
+            };
         }
     }
 }

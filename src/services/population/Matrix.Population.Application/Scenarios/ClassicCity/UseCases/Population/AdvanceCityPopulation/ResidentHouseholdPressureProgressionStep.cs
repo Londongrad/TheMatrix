@@ -1,5 +1,6 @@
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -17,6 +18,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             PersonEntity person,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
             EducationParticipationProjectionIndex educationParticipation,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IDictionary<HouseholdId, CityHouseholdCommutePressureProfile?> commutePressureProfilesByHouseholdId,
             DateOnly previousDate,
             DateOnly currentDate,
@@ -58,6 +60,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return householdPressurePolicy.Apply(
                 resident: person,
                 householdResidents: householdResidents,
+                routineProfilesByResidentId: routineProfilesByResidentId,
                 housingStatus: housingStatus,
                 financialStressState: financialStressState,
                 commutePressureProfile: commutePressureProfile,
