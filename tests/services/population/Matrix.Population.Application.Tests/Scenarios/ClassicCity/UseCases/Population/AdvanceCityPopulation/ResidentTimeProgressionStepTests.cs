@@ -217,14 +217,14 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public async Task ApplyAsync_WhenSeniorResidentIsStudent_RetiresResidentAndReturnsTrue()
+        public async Task ApplyAsync_WhenSeniorResidentIsUnemployed_DoesNotChangeEmployment()
         {
             PersonEntity resident = CreateResident(
                 birthDate: new DateOnly(
                     year: 1970,
                     month: 5,
                     day: 2),
-                employmentStatus: EmploymentStatus.Student,
+                employmentStatus: EmploymentStatus.Unemployed,
                 creationDate: new DateOnly(
                     year: 2030,
                     month: 5,
@@ -235,9 +235,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 householdsById: CreateHouseholdsMap(resident.HouseholdId),
                 residentsByHouseholdId: CreateResidentsMap(resident));
 
-            Assert.True(changed);
+            Assert.False(changed);
             Assert.Equal(
-                expected: EmploymentStatus.Retired,
+                expected: EmploymentStatus.Unemployed,
                 actual: resident.Employment.Status);
         }
 

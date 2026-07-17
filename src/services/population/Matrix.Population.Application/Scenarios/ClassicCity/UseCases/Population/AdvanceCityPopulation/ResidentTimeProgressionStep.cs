@@ -79,7 +79,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 changed = true;
             if (person.GetAgeGroup(currentDate) != AgeGroup.Senior)
                 return changed;
-            if (person.Employment.Status is not (EmploymentStatus.Employed or EmploymentStatus.Student))
+            if (person.Employment.Status != EmploymentStatus.Employed)
                 return changed;
             person.Retire(currentDate);
             return true;
