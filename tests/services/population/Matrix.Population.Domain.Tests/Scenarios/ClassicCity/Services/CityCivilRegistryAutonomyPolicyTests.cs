@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.ValueObjects;
@@ -27,6 +28,9 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     first,
                     second
                 ],
+                routineProfilesByResidentId: CreateRoutineProfiles(
+                    first,
+                    second),
                 previousDate: new DateOnly(
                     year: 2048,
                     month: 5,
@@ -76,6 +80,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
 
                 IReadOnlyList<CityCivilRegistryAutonomyDecision> decisions = policy.Plan(
                     residents: residents,
+                    routineProfilesByResidentId: CreateRoutineProfiles(residents),
                     previousDate: previousDate,
                     currentDate: currentDate);
 
@@ -141,6 +146,9 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     first,
                     second
                 ],
+                routineProfilesByResidentId: CreateRoutineProfiles(
+                    first,
+                    second),
                 previousDate: new DateOnly(
                     year: 2047,
                     month: 11,
@@ -213,6 +221,9 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                         first,
                         second
                     ],
+                    routineProfilesByResidentId: CreateRoutineProfiles(
+                        first,
+                        second),
                     previousDate: previousDate,
                     currentDate: currentDate);
 
@@ -285,6 +296,14 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 weight: BodyWeight.FromKilograms(70m),
                 job: null,
                 currentDate: currentDate);
+        }
+
+        private static Dictionary<PersonId, PersonRoutineProfile> CreateRoutineProfiles(
+            params Person[] residents)
+        {
+            return residents.ToDictionary(
+                keySelector: x => x.Id,
+                elementSelector: _ => PersonRoutineProfile.Unstructured);
         }
 
         private static Guid CreateGuid(int seed)

@@ -1,6 +1,7 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -56,6 +57,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 residentsById: CreateResidentsById(
                     first,
                     second),
+                routineProfilesByResidentId: CreateRoutineProfiles(
+                    first,
+                    second),
                 previousDate: CurrentDate,
                 currentDate: CurrentDate,
                 householdWriteRepository: householdWriteRepository,
@@ -99,6 +103,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await CivilRegistryAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: CreateResidentsById(residents),
+                routineProfilesByResidentId: CreateRoutineProfiles(residents),
                 previousDate: PreviousDate,
                 currentDate: CurrentDate,
                 householdWriteRepository: householdWriteRepository,
@@ -183,6 +188,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await CivilRegistryAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: CreateResidentsById(
+                    first,
+                    second),
+                routineProfilesByResidentId: CreateRoutineProfiles(
                     first,
                     second),
                 previousDate: PreviousDate,
@@ -290,6 +298,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
                 IReadOnlyList<CityCivilRegistryAutonomyDecision> decisions = policy.Plan(
                     residents: residents,
+                    routineProfilesByResidentId: CreateRoutineProfiles(residents),
                     previousDate: PreviousDate,
                     currentDate: CurrentDate);
 
@@ -355,6 +364,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         first,
                         second
                     ],
+                    routineProfilesByResidentId: CreateRoutineProfiles(
+                        first,
+                        second),
                     previousDate: PreviousDate,
                     currentDate: CurrentDate);
 
@@ -368,6 +380,14 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         private static Dictionary<PersonId, PersonEntity> CreateResidentsById(params PersonEntity[] residents)
         {
             return residents.ToDictionary(x => x.Id);
+        }
+
+        private static Dictionary<PersonId, PersonRoutineProfile> CreateRoutineProfiles(
+            params PersonEntity[] residents)
+        {
+            return residents.ToDictionary(
+                keySelector: x => x.Id,
+                elementSelector: _ => PersonRoutineProfile.Unstructured);
         }
 
         private static PersonEntity CreateAdultResident(

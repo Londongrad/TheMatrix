@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -9,10 +10,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
     {
         public IReadOnlyList<CityCivilRegistryAutonomyDecision> Plan(
             IReadOnlyCollection<Person> residents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             DateOnly previousDate,
             DateOnly currentDate)
         {
             ArgumentNullException.ThrowIfNull(residents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
 
             if (currentDate <= previousDate || residents.Count < 2)
                 return [];
@@ -57,6 +60,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             Dictionary<int, List<Person>> marriageLanes = BuildMarriageLanes(
                 residents: residents,
+                routineProfilesByResidentId: routineProfilesByResidentId,
                 blockedResidents: blockedResidents,
                 currentDate: currentDate,
                 reviewWindows: reviewWindows);
@@ -144,6 +148,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static Dictionary<int, List<Person>> BuildMarriageLanes(
             IReadOnlyCollection<Person> residents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             ISet<PersonId> blockedResidents,
             DateOnly currentDate,
             int reviewWindows)
@@ -158,6 +163,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         currentDate: currentDate) ||
                     !IsSeekingMarriage(
                         resident: resident,
+                        routineProfilesByResidentId: routineProfilesByResidentId,
                         currentDate: currentDate,
                         reviewWindows: reviewWindows))
                     continue;
@@ -192,11 +198,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static bool IsSeekingMarriage(
             Person resident,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             DateOnly currentDate,
             int reviewWindows)
         {
             double chancePerReview = ResolveMarriageChancePerReview(
                 resident: resident,
+                routineProfilesByResidentId: routineProfilesByResidentId,
                 currentDate: currentDate);
 
             return RollOccurs(
@@ -228,6 +236,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static double ResolveMarriageChancePerReview(
             Person resident,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             DateOnly currentDate)
         {
             double sociability = Normalize(resident.Personality.Sociability);
@@ -255,7 +264,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 0d
             };
 
-            double studentPenalty = resident.Employment.Status == EmploymentStatus.Student
+            double structuredNonWorkerPenalty =
+                resident.Employment.Status != EmploymentStatus.Employed &&
+                routineProfilesByResidentId.TryGetValue(
+                    key: resident.Id,
+                    value: out PersonRoutineProfile? routineProfile) &&
+                routineProfile.HasStructuredActivity
                 ? 0.003d
                 : 0d;
 
@@ -268,7 +282,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             (health * 0.006d) -
                             (stress * 0.012d) +
                             statusFactor -
-                            studentPenalty;
+                            structuredNonWorkerPenalty;
 
             if (resident.Health.Value < 25 || resident.Happiness.Value < 20)
                 chance *= 0.45d;
