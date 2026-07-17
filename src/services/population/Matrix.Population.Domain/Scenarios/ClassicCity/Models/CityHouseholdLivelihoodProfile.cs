@@ -6,7 +6,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         HousingStatus? HousingStatus,
         int ResidentCount,
         int AdultProviderCount,
-        int AdultStudentCount,
+        int AdultStructuredParticipantCount,
         int DependentCount,
         int InfantCount,
         int FunctionalLimitationCount,
@@ -20,6 +20,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
 
         public bool HasStructuredSupport =>
             AdultProviderCount > 0 ||
-            AdultStudentCount > 0;
+            AdultStructuredParticipantCount > 0;
     }
 }

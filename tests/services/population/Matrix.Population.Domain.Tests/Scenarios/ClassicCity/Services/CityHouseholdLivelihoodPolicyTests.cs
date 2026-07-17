@@ -42,7 +42,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 actual: profile.AdultProviderCount);
             Assert.Equal(
                 expected: 0,
-                actual: profile.AdultStudentCount);
+                actual: profile.AdultStructuredParticipantCount);
             Assert.Equal(
                 expected: 0,
                 actual: profile.DependentCount);
@@ -135,7 +135,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 actual: profile.AdultProviderCount);
             Assert.Equal(
                 expected: 1,
-                actual: profile.AdultStudentCount);
+                actual: profile.AdultStructuredParticipantCount);
             Assert.Equal(
                 expected: 2,
                 actual: profile.DependentCount);

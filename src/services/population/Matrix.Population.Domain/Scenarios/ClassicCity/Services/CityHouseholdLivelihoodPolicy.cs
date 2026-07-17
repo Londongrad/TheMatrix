@@ -23,7 +23,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     HousingStatus: housingStatus,
                     ResidentCount: 0,
                     AdultProviderCount: 0,
-                    AdultStudentCount: 0,
+                    AdultStructuredParticipantCount: 0,
                     DependentCount: 0,
                     InfantCount: 0,
                     FunctionalLimitationCount: 0,
@@ -33,7 +33,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     StabilityScore: 0d);
 
             int adultProviderCount = 0;
-            int adultStudentCount = 0;
+            int adultStructuredParticipantCount = 0;
             int dependentCount = 0;
             int infantCount = 0;
             int functionalLimitationCount = 0;
@@ -59,7 +59,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             adultProviderCount++;
                             break;
                         case EmploymentStatus.Student:
-                            adultStudentCount++;
+                            adultStructuredParticipantCount++;
                             break;
                     }
 
@@ -76,7 +76,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double averageStress = stressTotal / activeResidents.Length;
             double dependencyLoad = dependentCount + (infantCount * 0.8d);
             double supportStrength = Math.Clamp(
-                value: (adultProviderCount + (adultStudentCount * 0.45d)) /
+                value: (adultProviderCount + (adultStructuredParticipantCount * 0.45d)) /
                        Math.Max(
                            val1: 1d,
                            val2: dependencyLoad + (activeResidents.Length * 0.5d)),
@@ -100,14 +100,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                crowdingBurden -
                                (dependencyLoad * 0.03d);
 
-            if (adultProviderCount == 0 && adultStudentCount == 0)
+            if (adultProviderCount == 0 && adultStructuredParticipantCount == 0)
                 stability -= 0.10d;
 
             return new CityHouseholdLivelihoodProfile(
                 HousingStatus: housingStatus,
                 ResidentCount: activeResidents.Length,
                 AdultProviderCount: adultProviderCount,
-                AdultStudentCount: adultStudentCount,
+                AdultStructuredParticipantCount: adultStructuredParticipantCount,
                 DependentCount: dependentCount,
                 InfantCount: infantCount,
                 FunctionalLimitationCount: functionalLimitationCount,

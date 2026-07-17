@@ -37,7 +37,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 ? 0.04d
                                 : 0d) +
                             (livelihood.AdultProviderCount * 0.03d) +
-                            (livelihood.AdultStudentCount * 0.01d) -
+                            (livelihood.AdultStructuredParticipantCount * 0.01d) -
                             (livelihood.FunctionalLimitationCount > 1
                                 ? 0.03d
                                 : 0d);

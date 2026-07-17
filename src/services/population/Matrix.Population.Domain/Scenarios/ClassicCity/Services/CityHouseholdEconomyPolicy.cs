@@ -58,7 +58,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             double supportUnits = (double)(cashflow.TakeHomeIncome.Amount / 24m) +
                                   (livelihood.AdultProviderCount * 0.25d) +
-                                  (livelihood.AdultStudentCount * 0.15d) +
+                                  (livelihood.AdultStructuredParticipantCount * 0.15d) +
                                   (retiredAdults * 0.10d);
             double costOfLivingPressure = Math.Max(
                 val1: 0d,
@@ -92,7 +92,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             (costOfLivingPressure * 0.14d) +
                             (affordabilityPressure * 0.18d);
 
-            if (livelihood.AdultProviderCount == 0 && livelihood.AdultStudentCount == 0)
+            if (livelihood.AdultProviderCount == 0 && livelihood.AdultStructuredParticipantCount == 0)
                 strain += 0.14d;
 
             if (household.CashReserve.IsNegative)
