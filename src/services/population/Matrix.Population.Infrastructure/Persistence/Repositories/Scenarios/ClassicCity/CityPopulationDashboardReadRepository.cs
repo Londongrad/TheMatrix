@@ -1,12 +1,16 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
+using Matrix.Population.Application.Integration;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
@@ -158,6 +162,25 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .Where(x => x.Life.Status == LifeStatus.Alive && householdIds.Contains(x.HouseholdId))
                .ToArrayAsync(cancellationToken);
 
+            PersonId[] residentIds = persons
+               .Select(x => x.Id)
+               .ToArray();
+            EducationParticipationProjectionEntity[] educationProjectionEntities = await _dbContext
+               .EducationParticipationProjections
+               .AsNoTracking()
+               .Where(x => x.SimulationHostId == cityId.Value && residentIds.Contains(x.ResidentId))
+               .ToArrayAsync(cancellationToken);
+            var educationParticipation = new EducationParticipationProjectionIndex(
+                simulationHostId: cityId.Value,
+                projections: educationProjectionEntities.ToDictionary(
+                    keySelector: x => x.ResidentId.Value,
+                    elementSelector: x => x.ToProjection()));
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId = persons.ToDictionary(
+                keySelector: x => x.Id,
+                elementSelector: resident => PersonRoutineProfileFactory.Create(
+                    resident: resident,
+                    educationParticipation: educationParticipation.FindCurrent(resident)));
+
             var residentsByHousehold = persons
                .GroupBy(x => x.HouseholdId)
                .ToDictionary(
@@ -204,6 +227,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 CityHouseholdEconomyProfile economyProfile = _householdEconomyPolicy.Build(
                     household: household,
                     householdResidents: householdResidents,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
                     housingStatus: placement.HousingStatus,
                     currentDate: currentDate,
                     costOfLivingState: costOfLivingState);
