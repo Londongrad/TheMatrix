@@ -15,24 +15,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         public CityHouseholdEconomyProfile Build(
             Household household,
             IReadOnlyCollection<Person> householdResidents,
-            HousingStatus? housingStatus,
-            DateOnly currentDate,
-            CityPopulationCostOfLivingState? costOfLivingState = null)
-        {
-            ArgumentNullException.ThrowIfNull(householdResidents);
-
-            return Build(
-                household: household,
-                householdResidents: householdResidents,
-                routineProfilesByResidentId: CreateCompatibilityRoutineProfiles(householdResidents),
-                housingStatus: housingStatus,
-                currentDate: currentDate,
-                costOfLivingState: costOfLivingState);
-        }
-
-        public CityHouseholdEconomyProfile Build(
-            Household household,
-            IReadOnlyCollection<Person> householdResidents,
             IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             HousingStatus? housingStatus,
             DateOnly currentDate,
@@ -167,17 +149,5 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 AffordabilityIndex: cashflow.AffordabilityIndex);
         }
 
-        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> CreateCompatibilityRoutineProfiles(
-            IEnumerable<Person> residents)
-        {
-            return residents
-               .Where(x => x.Employment.Status == EmploymentStatus.Student)
-               .ToDictionary(
-                    keySelector: x => x.Id,
-                    elementSelector: _ => PersonRoutineProfile.Structured(
-                        activityStart: TimeSpan.FromHours(8),
-                        activityEnd: TimeSpan.FromHours(15),
-                        activityLoad: PersonStructuredActivityLoad.Moderate));
-        }
     }
 }
