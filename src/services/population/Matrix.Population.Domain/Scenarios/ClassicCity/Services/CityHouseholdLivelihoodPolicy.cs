@@ -11,20 +11,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
     {
         public CityHouseholdLivelihoodProfile Build(
             IReadOnlyCollection<Person> householdResidents,
-            HousingStatus? housingStatus,
-            DateOnly currentDate)
-        {
-            ArgumentNullException.ThrowIfNull(householdResidents);
-
-            return Build(
-                householdResidents: householdResidents,
-                routineProfilesByResidentId: CreateCompatibilityRoutineProfiles(householdResidents),
-                housingStatus: housingStatus,
-                currentDate: currentDate);
-        }
-
-        public CityHouseholdLivelihoodProfile Build(
-            IReadOnlyCollection<Person> householdResidents,
             IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             HousingStatus? housingStatus,
             DateOnly currentDate)
@@ -165,19 +151,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 value: selfReliance,
                 min: 0d,
                 max: 1d);
-        }
-
-        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> CreateCompatibilityRoutineProfiles(
-            IEnumerable<Person> residents)
-        {
-            return residents
-               .Where(x => x.Employment.Status == EmploymentStatus.Student)
-               .ToDictionary(
-                    keySelector: x => x.Id,
-                    elementSelector: _ => PersonRoutineProfile.Structured(
-                        activityStart: TimeSpan.FromHours(8),
-                        activityEnd: TimeSpan.FromHours(15),
-                        activityLoad: PersonStructuredActivityLoad.Moderate));
         }
 
         private static double Normalize(double value)
