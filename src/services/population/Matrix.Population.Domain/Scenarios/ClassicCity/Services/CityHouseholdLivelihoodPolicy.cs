@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
@@ -120,17 +121,20 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     max: 1d));
         }
 
-        public double ResolveResidentSelfReliance(Person resident)
+        public double ResolveResidentSelfReliance(
+            Person resident,
+            PersonRoutineProfile routineProfile)
         {
             ArgumentNullException.ThrowIfNull(resident);
+            ArgumentNullException.ThrowIfNull(routineProfile);
 
-            double employmentStrength = resident.Employment.Status switch
-            {
-                EmploymentStatus.Employed => 0.70d,
-                EmploymentStatus.Student => 0.46d,
-                EmploymentStatus.Retired => 0.24d,
-                _ => 0.16d
-            };
+            double employmentStrength = resident.Employment.Status == EmploymentStatus.Employed
+                ? 0.70d
+                : resident.Employment.Status == EmploymentStatus.Retired
+                    ? 0.24d
+                    : routineProfile.HasStructuredActivity
+                        ? 0.46d
+                        : 0.16d;
 
             double selfReliance = employmentStrength +
                                   (Normalize(resident.Health.Value) * 0.14d) +

@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.ValueObjects;
@@ -10,11 +11,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
     {
         public IReadOnlyList<CityHouseholdIndependenceAutonomyDecision> Plan(
             IReadOnlyCollection<Person> residents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             DateOnly previousDate,
             DateOnly currentDate)
         {
             ArgumentNullException.ThrowIfNull(residents);
+            ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
             ArgumentNullException.ThrowIfNull(housingStatuses);
 
             if (currentDate <= previousDate || residents.Count == 0)
@@ -59,6 +62,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
                 if (!ShouldMoveOut(
                         resident: candidate,
+                        routineProfile: routineProfilesByResidentId.GetValueOrDefault(
+                            key: candidate.Id,
+                            defaultValue: PersonRoutineProfile.Unstructured),
                         profile: profile,
                         currentDate: currentDate,
                         reviewWindows: reviewWindows))
@@ -158,6 +164,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private bool ShouldMoveOut(
             Person resident,
+            PersonRoutineProfile routineProfile,
             HouseholdIndependenceProfile profile,
             DateOnly currentDate,
             int reviewWindows)
@@ -166,7 +173,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             double employmentStrength = resident.Employment.Status == EmploymentStatus.Employed
                 ? 0.030d
-                : resident.Employment.Status == EmploymentStatus.Student
+                : routineProfile.HasStructuredActivity
                     ? 0.006d
                     : -0.006d;
 
@@ -189,7 +196,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 max: 1d);
             double householdStress = Normalize(profile.AverageStress);
             double householdLowHappiness = 1d - Normalize(profile.AverageHappiness);
-            double selfReliance = householdLivelihoodPolicy.ResolveResidentSelfReliance(resident);
+            double selfReliance = householdLivelihoodPolicy.ResolveResidentSelfReliance(
+                resident: resident,
+                routineProfile: routineProfile);
             double launchReadiness = Math.Clamp(
                 value: (profile.LivelihoodProfile.StabilityScore * 0.40d) +
                        (selfReliance * 0.60d),

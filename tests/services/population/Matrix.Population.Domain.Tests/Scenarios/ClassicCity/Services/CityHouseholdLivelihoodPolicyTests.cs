@@ -192,8 +192,15 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             unemployedResident.ChangeEnergy(-45);
             unemployedResident.ChangeStress(55);
 
-            double employedSelfReliance = policy.ResolveResidentSelfReliance(employedResident);
-            double unemployedSelfReliance = policy.ResolveResidentSelfReliance(unemployedResident);
+            double employedSelfReliance = policy.ResolveResidentSelfReliance(
+                resident: employedResident,
+                routineProfile: PersonRoutineProfile.Structured(
+                    activityStart: TimeSpan.FromHours(8),
+                    activityEnd: TimeSpan.FromHours(17),
+                    activityLoad: PersonStructuredActivityLoad.Demanding));
+            double unemployedSelfReliance = policy.ResolveResidentSelfReliance(
+                resident: unemployedResident,
+                routineProfile: PersonRoutineProfile.Unstructured);
 
             Assert.InRange(
                 actual: employedSelfReliance,
@@ -204,6 +211,25 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 low: 0d,
                 high: 1d);
             Assert.True(employedSelfReliance > unemployedSelfReliance);
+        }
+
+        [Fact]
+        public void ResolveResidentSelfReliance_WhenNonWorkerHasStructuredRoutine_IsHigher()
+        {
+            var policy = new CityHouseholdLivelihoodPolicy();
+            Person resident = PopulationTestData.CreateAdultPerson();
+
+            double structuredSelfReliance = policy.ResolveResidentSelfReliance(
+                resident: resident,
+                routineProfile: PersonRoutineProfile.Structured(
+                    activityStart: TimeSpan.FromHours(8),
+                    activityEnd: TimeSpan.FromHours(15),
+                    activityLoad: PersonStructuredActivityLoad.Moderate));
+            double unstructuredSelfReliance = policy.ResolveResidentSelfReliance(
+                resident: resident,
+                routineProfile: PersonRoutineProfile.Unstructured);
+
+            Assert.True(structuredSelfReliance > unstructuredSelfReliance);
         }
     }
 }

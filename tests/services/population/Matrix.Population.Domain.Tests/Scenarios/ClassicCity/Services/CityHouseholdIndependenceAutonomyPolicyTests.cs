@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
@@ -28,6 +29,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                             month: 5,
                             day: 3))
                 ],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [householdId] = HousingStatus.Housed
@@ -85,6 +87,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                         fatherId: fatherId,
                         employmentStatus: EmploymentStatus.Employed)
                 ],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [householdId] = HousingStatus.Homeless
@@ -152,6 +155,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                         maritalStatus: MaritalStatus.Married,
                         spouseId: PersonId.From(Guid.Parse("66666666-aaaa-bbbb-cccc-666666666666")))
                 ],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [householdId] = HousingStatus.Housed
@@ -260,6 +264,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
 
                 IReadOnlyList<CityHouseholdIndependenceAutonomyDecision> decisions = policy.Plan(
                     residents: residents,
+                    routineProfilesByResidentId: EmptyRoutineProfiles(),
                     housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                     {
                         [householdId] = HousingStatus.Housed
@@ -288,6 +293,11 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
         {
             return new CityHouseholdIndependenceAutonomyPolicy(
                 householdLivelihoodPolicy: new CityHouseholdLivelihoodPolicy());
+        }
+
+        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> EmptyRoutineProfiles()
+        {
+            return new Dictionary<PersonId, PersonRoutineProfile>();
         }
 
         private static Person CreateResident(

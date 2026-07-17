@@ -424,6 +424,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             affectedPeopleCount += await HouseholdIndependenceAutonomyStep.ApplyAsync(
                                 cityId: cityId,
                                 residentsById: personsById,
+                                routineProfilesByResidentId: workingSet.RoutineProfilesByResidentId,
                                 previousDate: previousDate,
                                 currentDate: toDate,
                                 householdWriteRepository: householdWriteRepository,

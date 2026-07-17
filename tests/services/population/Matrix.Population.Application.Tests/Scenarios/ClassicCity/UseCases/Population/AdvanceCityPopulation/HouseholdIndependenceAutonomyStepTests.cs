@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -67,6 +68,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await HouseholdIndependenceAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: CreateResidentsById(resident),
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 previousDate: PreviousDate,
                 currentDate: CurrentDate,
                 householdWriteRepository: householdWriteRepository,
@@ -108,6 +110,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await HouseholdIndependenceAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: CreateResidentsById(resident),
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 previousDate: CurrentDate,
                 currentDate: CurrentDate,
                 householdWriteRepository: householdWriteRepository,
@@ -145,6 +148,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await HouseholdIndependenceAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: CreateResidentsById(residents),
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 previousDate: PreviousDate,
                 currentDate: CurrentDate,
                 householdWriteRepository: householdWriteRepository,
@@ -231,6 +235,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             int affected = await HouseholdIndependenceAutonomyStep.ApplyAsync(
                 cityId: TestCityId,
                 residentsById: CreateResidentsById(residents),
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
                 previousDate: PreviousDate,
                 currentDate: CurrentDate,
                 householdWriteRepository: householdWriteRepository,
@@ -337,6 +342,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
                 IReadOnlyList<CityHouseholdIndependenceAutonomyDecision> decisions = policy.Plan(
                     residents: residents,
+                    routineProfilesByResidentId: EmptyRoutineProfiles(),
                     housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                     {
                         [householdId] = HousingStatus.Housed
@@ -358,6 +364,11 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         private static Dictionary<PersonId, PersonEntity> CreateResidentsById(params PersonEntity[] residents)
         {
             return residents.ToDictionary(x => x.Id);
+        }
+
+        private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> EmptyRoutineProfiles()
+        {
+            return new Dictionary<PersonId, PersonRoutineProfile>();
         }
 
         private static PersonEntity CreateResident(
