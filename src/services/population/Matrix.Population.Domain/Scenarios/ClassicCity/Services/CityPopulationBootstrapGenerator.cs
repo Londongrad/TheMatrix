@@ -179,8 +179,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                                          _ => 0m
                                                      }),
                     EmploymentStatus.Retired => 38m,
-                    EmploymentStatus.Student when ageGroup is AgeGroup.Adult or AgeGroup.Senior => 18m,
-                    EmploymentStatus.Student => 8m,
                     _ => ageGroup switch
                     {
                         AgeGroup.Child => -8m,
@@ -729,16 +727,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             EducationLevel educationLevel = CreateRandomEducationLevel(
                 random: random,
                 ageYears: ageYears);
-            CityEducationInstitutionBinding? educationInstitution = employmentStatus == EmploymentStatus.Student
-                ? CreateRandomEducationInstitution(
-                    random: random,
-                    institutionPools: institutionPools,
-                    educationLevel: educationLevel,
-                    cityAnchors: cityAnchors,
-                    preferredDistrictId: preferredDistrictId,
-                    stableKey: personId.Value)
-                : null;
-
             return Person.CreatePerson(
                 id: personId,
                 householdId: householdId,
@@ -748,8 +736,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 maritalStatus: maritalStatus,
                 spouseId: spouseId,
                 educationLevel: educationLevel,
-                educationInstitutionId: educationInstitution?.InstitutionId,
-                educationInstitutionAnchorId: educationInstitution?.InstitutionAnchorId,
+                educationInstitutionId: null,
+                educationInstitutionAnchorId: null,
                 employmentStatus: employmentStatus,
                 happinessLevel: happiness,
                 energyLevel: energy,
@@ -1221,22 +1209,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             return ageGroup switch
             {
-                AgeGroup.Child => PickWeighted(
-                    random: random,
-                    (EmploymentStatus.Student, Math.Max(
-                         val1: 0.10,
-                         val2: 6.00 + (tuning.EconomicStabilityFactor * 0.60) - (tuning.HousingPressureFactor * 0.40))),
-                    (EmploymentStatus.Unemployed, Math.Max(
-                         val1: 0.10,
-                         val2: 0.20 + (tuning.HousingPressureFactor * 0.50)))),
-                AgeGroup.Youth => PickWeighted(
-                    random: random,
-                    (EmploymentStatus.Student, Math.Max(
-                         val1: 0.10,
-                         val2: 4.60 + (tuning.EconomicStabilityFactor * 1.00) - (tuning.HousingPressureFactor * 0.80))),
-                    (EmploymentStatus.Unemployed, Math.Max(
-                         val1: 0.10,
-                         val2: 0.60 + (tuning.HousingPressureFactor * 1.10) + (tuning.SocialVolatilityFactor * 0.20)))),
+                AgeGroup.Child => EmploymentStatus.None,
+                AgeGroup.Youth => EmploymentStatus.None,
                 AgeGroup.Adult => CreateRandomAdultEmploymentStatus(
                     random: random,
                     tuning: tuning),
@@ -1256,10 +1230,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                      val2: 4.80 + (tuning.EconomicStabilityFactor * 2.20) - (tuning.HousingPressureFactor * 1.60))),
                 (EmploymentStatus.Unemployed, Math.Max(
                      val1: 0.10,
-                     val2: 1.60 + (tuning.HousingPressureFactor * 2.10) - (tuning.EconomicStabilityFactor * 1.10))),
-                (EmploymentStatus.Student, Math.Max(
-                     val1: 0.10,
-                     val2: 0.70 + (tuning.EconomicStabilityFactor * 0.60) + (tuning.SocialVolatilityFactor * 0.40))));
+                     val2: 1.60 + (tuning.HousingPressureFactor * 2.10) - (tuning.EconomicStabilityFactor * 1.10))));
         }
 
         private static EnergyLevel CreateInitialEnergy(
@@ -1292,7 +1263,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             baseValue += employmentStatus switch
             {
                 EmploymentStatus.Employed => -5,
-                EmploymentStatus.Student => -3,
                 EmploymentStatus.Retired => +4,
                 _ => 0
             };
@@ -1354,7 +1324,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             baseValue += employmentStatus switch
             {
                 EmploymentStatus.Employed => +8,
-                EmploymentStatus.Student => +6,
                 EmploymentStatus.Unemployed => +3,
                 EmploymentStatus.Retired => -4,
                 _ => 0
@@ -1421,7 +1390,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 EmploymentStatus.Unemployed => +6,
                 EmploymentStatus.Retired => +4,
                 EmploymentStatus.Employed => -3,
-                EmploymentStatus.Student => -2,
                 _ => 0
             };
 

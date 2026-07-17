@@ -1,3 +1,4 @@
+using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -84,9 +85,17 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 actual: householdIds.Count);
             Assert.All(
                 collection: result.Persons,
-                action: person => Assert.Contains(
-                    expected: person.HouseholdId,
-                    set: householdIds));
+                action: person =>
+                {
+                    Assert.Contains(
+                        expected: person.HouseholdId,
+                        set: householdIds);
+                    Assert.NotEqual(
+                        expected: EmploymentStatus.Student,
+                        actual: person.Employment.Status);
+                    Assert.Null(person.Education.CurrentInstitutionId);
+                    Assert.Null(person.Education.CurrentInstitutionAnchorId);
+                });
         }
 
         [Fact]
