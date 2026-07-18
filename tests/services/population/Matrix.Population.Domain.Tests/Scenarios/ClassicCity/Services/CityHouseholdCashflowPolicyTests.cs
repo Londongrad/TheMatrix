@@ -20,6 +20,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
 
             CityResidentIncomeSettlementProfile profile = policy.BuildResidentIncome(
                 resident: resident,
+                economicContext: CityResidentEconomicContext.Neutral,
                 currentDate: new DateOnly(
                     year: 2048,
                     month: 5,
@@ -51,6 +52,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
 
             CityHouseholdCashflowProfile profile = policy.Build(
                 householdResidents: [],
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -109,6 +111,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
 
             CityHouseholdCashflowProfile profile = policy.Build(
                 householdResidents: [employedResident],
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: new DateOnly(
                     year: 2048,

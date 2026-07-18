@@ -12,20 +12,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
     {
         public CityResidentIncomeSettlementProfile BuildResidentIncome(
             Person resident,
-            DateOnly currentDate,
-            CityPopulationCostOfLivingState? costOfLivingState = null,
-            decimal incomeMultiplier = 1m)
-        {
-            return BuildResidentIncome(
-                resident: resident,
-                economicContext: CityResidentEconomicContext.Neutral,
-                currentDate: currentDate,
-                costOfLivingState: costOfLivingState,
-                incomeMultiplier: incomeMultiplier);
-        }
-
-        public CityResidentIncomeSettlementProfile BuildResidentIncome(
-            Person resident,
             CityResidentEconomicContext economicContext,
             DateOnly currentDate,
             CityPopulationCostOfLivingState? costOfLivingState = null,
@@ -51,20 +37,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 GrossIncome: grossIncome,
                 TaxWithheld: taxWithheld,
                 NetIncome: grossIncome.Subtract(taxWithheld));
-        }
-
-        public CityHouseholdCashflowProfile Build(
-            IReadOnlyCollection<Person> householdResidents,
-            HousingStatus? housingStatus,
-            DateOnly currentDate,
-            CityPopulationCostOfLivingState? costOfLivingState = null)
-        {
-            return Build(
-                householdResidents: householdResidents,
-                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
-                housingStatus: housingStatus,
-                currentDate: currentDate,
-                costOfLivingState: costOfLivingState);
         }
 
         public CityHouseholdCashflowProfile Build(

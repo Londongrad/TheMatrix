@@ -117,11 +117,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var policy = new CityHouseholdCashflowPolicy();
             CityHouseholdCashflowProfile expectedCashflow = policy.Build(
                 householdResidents: [resident],
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: CurrentDate,
                 costOfLivingState: null);
             CityResidentIncomeSettlementProfile expectedIncome = policy.BuildResidentIncome(
                 resident: resident,
+                economicContext: CityResidentEconomicContext.Neutral,
                 currentDate: CurrentDate,
                 costOfLivingState: null,
                 incomeMultiplier: 1m);
@@ -298,11 +300,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 commute: CityPopulationCommuteContext.Neutral);
             CityResidentIncomeSettlementProfile expectedIncome = cashflowPolicy.BuildResidentIncome(
                 resident: resident,
+                economicContext: CityResidentEconomicContext.Neutral,
                 currentDate: CurrentDate,
                 costOfLivingState: null,
                 incomeMultiplier: poorCommuteProfile.PayrollMultiplier);
             CityResidentIncomeSettlementProfile neutralIncome = cashflowPolicy.BuildResidentIncome(
                 resident: resident,
+                economicContext: CityResidentEconomicContext.Neutral,
                 currentDate: CurrentDate,
                 costOfLivingState: null,
                 incomeMultiplier: neutralCommuteProfile.PayrollMultiplier);

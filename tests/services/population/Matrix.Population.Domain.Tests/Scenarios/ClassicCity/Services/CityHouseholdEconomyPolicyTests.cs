@@ -30,6 +30,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 household: household,
                 householdResidents: [],
                 routineProfilesByResidentId: EmptyRoutineProfiles(),
+                economicContextsByResidentId: EmptyEconomicContexts(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -99,6 +100,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     child
                 ],
                 routineProfilesByResidentId: EmptyRoutineProfiles(),
+                economicContextsByResidentId: EmptyEconomicContexts(),
                 housingStatus: HousingStatus.Housed,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -145,6 +147,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     child
                 ],
                 routineProfilesByResidentId: EmptyRoutineProfiles(),
+                economicContextsByResidentId: EmptyEconomicContexts(),
                 housingStatus: HousingStatus.Homeless,
                 currentDate: new DateOnly(
                     year: 2048,
@@ -198,6 +201,11 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
         private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> EmptyRoutineProfiles()
         {
             return new Dictionary<PersonId, PersonRoutineProfile>();
+        }
+
+        private static IReadOnlyDictionary<PersonId, CityResidentEconomicContext> EmptyEconomicContexts()
+        {
+            return new Dictionary<PersonId, CityResidentEconomicContext>();
         }
     }
 }

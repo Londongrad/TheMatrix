@@ -16,24 +16,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Household household,
             IReadOnlyCollection<Person> householdResidents,
             IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
-            HousingStatus? housingStatus,
-            DateOnly currentDate,
-            CityPopulationCostOfLivingState? costOfLivingState = null)
-        {
-            return Build(
-                household: household,
-                householdResidents: householdResidents,
-                routineProfilesByResidentId: routineProfilesByResidentId,
-                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
-                housingStatus: housingStatus,
-                currentDate: currentDate,
-                costOfLivingState: costOfLivingState);
-        }
-
-        public CityHouseholdEconomyProfile Build(
-            Household household,
-            IReadOnlyCollection<Person> householdResidents,
-            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IReadOnlyDictionary<PersonId, CityResidentEconomicContext> economicContextsByResidentId,
             HousingStatus? housingStatus,
             DateOnly currentDate,
