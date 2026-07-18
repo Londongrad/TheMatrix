@@ -27,7 +27,6 @@ namespace Matrix.Population.Domain.Tests.ValueObjects
             Assert.Throws<DomainException>(() => WorkplaceId.From(Guid.Empty));
             Assert.Throws<DomainException>(() => LocationAnchorId.From(Guid.Empty));
             Assert.Throws<DomainException>(() => CityAnchorId.From(Guid.Empty));
-            Assert.Throws<DomainException>(() => EducationInstitutionId.From(Guid.Empty));
         }
 
         [Fact]

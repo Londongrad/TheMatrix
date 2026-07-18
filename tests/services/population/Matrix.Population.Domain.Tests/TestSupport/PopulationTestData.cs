@@ -95,11 +95,6 @@ namespace Matrix.Population.Domain.Tests.TestSupport
                 cashReserve: Money.FromDecimal(cashReserve));
         }
 
-        internal static EducationInstitutionId CreateEducationInstitutionId()
-        {
-            return EducationInstitutionId.From(Guid.Parse("44444444-4444-4444-4444-444444444444"));
-        }
-
         internal static CityAnchorId CreateCityAnchorId()
         {
             return CityAnchorId.From(Guid.Parse("55555555-5555-5555-5555-555555555555"));
