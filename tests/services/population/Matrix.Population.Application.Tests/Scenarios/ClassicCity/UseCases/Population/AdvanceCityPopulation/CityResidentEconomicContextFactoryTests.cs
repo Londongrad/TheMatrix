@@ -28,6 +28,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: Money.FromDecimal(10m),
                 actual: context.DailyTransferIncome);
+            Assert.Equal(
+                expected: Money.FromDecimal(6m),
+                actual: context.EmploymentIncomeBonus);
+            Assert.Equal(0.010d, context.EmploymentOpportunityBonus);
             Assert.Equal(-0.03m, context.RetailStoreSpendShareAdjustment);
             Assert.Equal(-0.01m, context.ServiceSpendShareAdjustment);
             Assert.Equal(0.04m, context.MunicipalSpendShareAdjustment);
@@ -46,20 +50,43 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(CityResidentEconomicContext.Neutral, context);
         }
 
-        private static EducationParticipationProjection CreateEducationParticipation(Person resident)
+        [Fact]
+        public void Create_WhenResidentCompletedEducation_ProjectsEmploymentModifiersWithoutTransfer()
+        {
+            Person resident = CreatePerson(currentDate: CurrentDate);
+
+            CityResidentEconomicContext context = CityResidentEconomicContextFactory.Create(
+                resident: resident,
+                educationParticipation: CreateEducationParticipation(
+                    resident: resident,
+                    isEnrolled: false,
+                    completedStage: "higher"),
+                currentDate: CurrentDate);
+
+            Assert.Equal(Money.Zero, context.DailyTransferIncome);
+            Assert.Equal(
+                expected: Money.FromDecimal(14m),
+                actual: context.EmploymentIncomeBonus);
+            Assert.Equal(0.024d, context.EmploymentOpportunityBonus);
+        }
+
+        private static EducationParticipationProjection CreateEducationParticipation(
+            Person resident,
+            bool isEnrolled = true,
+            string? completedStage = "upper-secondary")
         {
             return new EducationParticipationProjection(
                 SimulationHostId: Guid.NewGuid(),
                 ResidentId: resident.Id.Value,
                 ParticipationRevision: 1,
                 ResidentLifecycleRevision: resident.LifecycleRevision,
-                IsEnrolled: true,
-                ActiveStage: "higher",
-                InstitutionId: Guid.NewGuid(),
-                InstitutionAnchorId: Guid.NewGuid(),
-                EnrolledOn: CurrentDate.AddYears(-1),
-                CompletedStage: "upper-secondary",
-                CompletedStageOn: CurrentDate.AddYears(-2),
+                IsEnrolled: isEnrolled,
+                ActiveStage: isEnrolled ? "higher" : null,
+                InstitutionId: isEnrolled ? Guid.NewGuid() : null,
+                InstitutionAnchorId: isEnrolled ? Guid.NewGuid() : null,
+                EnrolledOn: isEnrolled ? CurrentDate.AddYears(-1) : null,
+                CompletedStage: completedStage,
+                CompletedStageOn: completedStage is null ? null : CurrentDate.AddYears(-2),
                 SnapshotDate: CurrentDate,
                 OccurredAtUtc: UtcNow,
                 UpdatedAtUtc: UtcNow);

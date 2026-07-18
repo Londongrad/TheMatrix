@@ -15,20 +15,41 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
         {
             ArgumentNullException.ThrowIfNull(resident);
 
-            if (educationParticipation?.IsEnrolled != true)
+            bool isEnrolled = educationParticipation?.IsEnrolled == true;
+            (decimal employmentIncomeBonus, double employmentOpportunityBonus) =
+                ResolveEmploymentModifiers(educationParticipation?.CompletedStage);
+
+            if (!isEnrolled && employmentIncomeBonus == 0m && employmentOpportunityBonus == 0d)
                 return CityResidentEconomicContext.Neutral;
 
-            decimal dailyTransferIncome = resident.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior
-                ? 10m
-                : 4m;
+            decimal dailyTransferIncome = isEnrolled
+                ? resident.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior
+                    ? 10m
+                    : 4m
+                : 0m;
 
             return CityResidentEconomicContext.Create(
                 dailyTransferIncome: Money.FromDecimal(dailyTransferIncome),
-                employmentIncomeBonus: Money.Zero,
-                employmentOpportunityBonus: 0d,
-                retailStoreSpendShareAdjustment: -0.03m,
-                serviceSpendShareAdjustment: -0.01m,
-                municipalSpendShareAdjustment: 0.04m);
+                employmentIncomeBonus: Money.FromDecimal(employmentIncomeBonus),
+                employmentOpportunityBonus: employmentOpportunityBonus,
+                retailStoreSpendShareAdjustment: isEnrolled ? -0.03m : 0m,
+                serviceSpendShareAdjustment: isEnrolled ? -0.01m : 0m,
+                municipalSpendShareAdjustment: isEnrolled ? 0.04m : 0m);
+        }
+
+        private static (decimal incomeBonus, double opportunityBonus) ResolveEmploymentModifiers(
+            string? completedStage)
+        {
+            return completedStage?.Trim().ToLowerInvariant() switch
+            {
+                "primary" => (1m, 0.003d),
+                "lower-secondary" => (3m, 0.006d),
+                "upper-secondary" => (6m, 0.010d),
+                "vocational" => (10m, 0.018d),
+                "higher" or "higher-education" => (14m, 0.024d),
+                "postgraduate" => (18m, 0.028d),
+                _ => (0m, 0d)
+            };
         }
     }
 }
