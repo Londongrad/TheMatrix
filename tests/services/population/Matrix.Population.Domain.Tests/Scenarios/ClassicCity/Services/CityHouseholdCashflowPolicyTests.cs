@@ -151,6 +151,8 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             Person resident = PopulationTestData.CreateAdultPerson();
             CityResidentEconomicContext economicContext = CityResidentEconomicContext.Create(
                 dailyTransferIncome: Money.FromDecimal(10m),
+                employmentIncomeBonus: Money.Zero,
+                employmentOpportunityBonus: 0d,
                 retailStoreSpendShareAdjustment: -0.03m,
                 serviceSpendShareAdjustment: -0.01m,
                 municipalSpendShareAdjustment: 0.04m);

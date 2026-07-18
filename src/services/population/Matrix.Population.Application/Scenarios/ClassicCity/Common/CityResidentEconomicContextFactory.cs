@@ -24,6 +24,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
 
             return CityResidentEconomicContext.Create(
                 dailyTransferIncome: Money.FromDecimal(dailyTransferIncome),
+                employmentIncomeBonus: Money.Zero,
+                employmentOpportunityBonus: 0d,
                 retailStoreSpendShareAdjustment: -0.03m,
                 serviceSpendShareAdjustment: -0.01m,
                 municipalSpendShareAdjustment: 0.04m);

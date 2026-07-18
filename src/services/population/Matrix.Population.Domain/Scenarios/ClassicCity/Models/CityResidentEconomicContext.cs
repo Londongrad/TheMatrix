@@ -6,11 +6,15 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
     {
         private CityResidentEconomicContext(
             Money dailyTransferIncome,
+            Money employmentIncomeBonus,
+            double employmentOpportunityBonus,
             decimal retailStoreSpendShareAdjustment,
             decimal serviceSpendShareAdjustment,
             decimal municipalSpendShareAdjustment)
         {
             DailyTransferIncome = dailyTransferIncome;
+            EmploymentIncomeBonus = employmentIncomeBonus;
+            EmploymentOpportunityBonus = employmentOpportunityBonus;
             RetailStoreSpendShareAdjustment = retailStoreSpendShareAdjustment;
             ServiceSpendShareAdjustment = serviceSpendShareAdjustment;
             MunicipalSpendShareAdjustment = municipalSpendShareAdjustment;
@@ -18,25 +22,36 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
 
         public static CityResidentEconomicContext Neutral { get; } = new(
             dailyTransferIncome: Money.Zero,
+            employmentIncomeBonus: Money.Zero,
+            employmentOpportunityBonus: 0d,
             retailStoreSpendShareAdjustment: 0m,
             serviceSpendShareAdjustment: 0m,
             municipalSpendShareAdjustment: 0m);
 
         public Money DailyTransferIncome { get; }
+        public Money EmploymentIncomeBonus { get; }
+        public double EmploymentOpportunityBonus { get; }
         public decimal RetailStoreSpendShareAdjustment { get; }
         public decimal ServiceSpendShareAdjustment { get; }
         public decimal MunicipalSpendShareAdjustment { get; }
 
         public static CityResidentEconomicContext Create(
             Money dailyTransferIncome,
+            Money employmentIncomeBonus,
+            double employmentOpportunityBonus,
             decimal retailStoreSpendShareAdjustment,
             decimal serviceSpendShareAdjustment,
             decimal municipalSpendShareAdjustment)
         {
             ArgumentNullException.ThrowIfNull(dailyTransferIncome);
+            ArgumentNullException.ThrowIfNull(employmentIncomeBonus);
 
             if (dailyTransferIncome.IsNegative)
                 throw new ArgumentOutOfRangeException(nameof(dailyTransferIncome));
+            if (employmentIncomeBonus.IsNegative)
+                throw new ArgumentOutOfRangeException(nameof(employmentIncomeBonus));
+            if (employmentOpportunityBonus is < 0d or > 1d)
+                throw new ArgumentOutOfRangeException(nameof(employmentOpportunityBonus));
 
             ValidateShareAdjustment(
                 value: retailStoreSpendShareAdjustment,
@@ -57,6 +72,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
 
             return new CityResidentEconomicContext(
                 dailyTransferIncome: dailyTransferIncome,
+                employmentIncomeBonus: employmentIncomeBonus,
+                employmentOpportunityBonus: employmentOpportunityBonus,
                 retailStoreSpendShareAdjustment: retailStoreSpendShareAdjustment,
                 serviceSpendShareAdjustment: serviceSpendShareAdjustment,
                 municipalSpendShareAdjustment: municipalSpendShareAdjustment);
