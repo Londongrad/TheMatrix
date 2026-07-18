@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -158,6 +159,40 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             Assert.True(profile.StrainScore >= 0.55d);
             Assert.True(profile.IsStrained);
             Assert.True(profile.GrowthReadinessScore < 0.5d);
+        }
+
+        [Fact]
+        public void Build_WhenResidentHasProjectedTransfer_IncludesItInHouseholdSupport()
+        {
+            var policy = new CityHouseholdEconomyPolicy(
+                householdLivelihoodPolicy: new CityHouseholdLivelihoodPolicy(),
+                householdCashflowPolicy: new CityHouseholdCashflowPolicy());
+            Household household = PopulationTestData.CreateHousehold(cashReserve: 0m);
+            Person resident = PopulationTestData.CreateAdultPerson(householdId: household.Id.Value);
+            CityResidentEconomicContext economicContext = CityResidentEconomicContext.Create(
+                dailyTransferIncome: Money.FromDecimal(10m),
+                retailStoreSpendShareAdjustment: -0.03m,
+                serviceSpendShareAdjustment: -0.01m,
+                municipalSpendShareAdjustment: 0.04m);
+
+            CityHouseholdEconomyProfile profile = policy.Build(
+                household: household,
+                householdResidents: [resident],
+                routineProfilesByResidentId: EmptyRoutineProfiles(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>
+                {
+                    [resident.Id] = economicContext
+                },
+                housingStatus: HousingStatus.Housed,
+                currentDate: new DateOnly(
+                    year: 2048,
+                    month: 5,
+                    day: 2));
+
+            Assert.Equal(
+                expected: 10m,
+                actual: profile.GrossDailyIncomeAmount);
+            Assert.True(profile.SupportUnits > 0d);
         }
 
         private static IReadOnlyDictionary<PersonId, PersonRoutineProfile> EmptyRoutineProfiles()

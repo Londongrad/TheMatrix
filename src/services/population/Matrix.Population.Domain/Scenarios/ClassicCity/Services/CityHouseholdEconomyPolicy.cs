@@ -20,9 +20,29 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             CityPopulationCostOfLivingState? costOfLivingState = null)
         {
+            return Build(
+                household: household,
+                householdResidents: householdResidents,
+                routineProfilesByResidentId: routineProfilesByResidentId,
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
+                housingStatus: housingStatus,
+                currentDate: currentDate,
+                costOfLivingState: costOfLivingState);
+        }
+
+        public CityHouseholdEconomyProfile Build(
+            Household household,
+            IReadOnlyCollection<Person> householdResidents,
+            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
+            IReadOnlyDictionary<PersonId, CityResidentEconomicContext> economicContextsByResidentId,
+            HousingStatus? housingStatus,
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState = null)
+        {
             ArgumentNullException.ThrowIfNull(household);
             ArgumentNullException.ThrowIfNull(householdResidents);
             ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
+            ArgumentNullException.ThrowIfNull(economicContextsByResidentId);
 
             Person[] activeResidents = householdResidents
                .Where(x => x.IsAlive)
@@ -53,6 +73,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 currentDate: currentDate);
             CityHouseholdCashflowProfile cashflow = householdCashflowPolicy.Build(
                 householdResidents: activeResidents,
+                economicContextsByResidentId: economicContextsByResidentId,
                 housingStatus: housingStatus,
                 currentDate: currentDate,
                 costOfLivingState: costOfLivingState);
