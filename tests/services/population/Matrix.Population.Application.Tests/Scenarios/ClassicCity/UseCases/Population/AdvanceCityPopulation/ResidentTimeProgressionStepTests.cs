@@ -252,7 +252,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     day: 2),
                 employmentStatus: EmploymentStatus.Retired);
             EmploymentStatus initialStatus = resident.Employment.Status;
-            EducationLevel initialEducationLevel = resident.EducationLevel;
 
             bool changed = await ApplyAsync(
                 resident: resident,
@@ -267,9 +266,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: initialStatus,
                 actual: resident.Employment.Status);
-            Assert.Equal(
-                expected: initialEducationLevel,
-                actual: resident.EducationLevel);
         }
 
         private static Task<bool> ApplyAsync(

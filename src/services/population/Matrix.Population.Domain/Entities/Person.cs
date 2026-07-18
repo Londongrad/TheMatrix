@@ -55,7 +55,6 @@ namespace Matrix.Population.Domain.Entities
             var marital = MaritalInfo.FromStatus(
                 status: maritalStatus,
                 spouseId: spouseId);
-            EducationInfo education = EducationInfo.None();
 
             return new Person(
                 id: id,
@@ -64,7 +63,6 @@ namespace Matrix.Population.Domain.Entities
                 sex: sex,
                 life: life,
                 marital: marital,
-                education: education,
                 employment: employment,
                 happiness: happinessLevel,
                 energy: energyLevel,
@@ -93,7 +91,6 @@ namespace Matrix.Population.Domain.Entities
         public LifeState Life { get; private set; } = null!;
 
         public MaritalInfo Marital { get; private set; } = null!;
-        public EducationInfo Education { get; private set; } = null!;
         public EmploymentInfo Employment { get; private set; } = null!;
 
         public BodyWeight Weight { get; private set; } = null!;
@@ -122,8 +119,6 @@ namespace Matrix.Population.Domain.Entities
         public MaritalStatus MaritalStatus => Marital.Status;
         public PersonId? SpouseId => Marital.SpouseId;
 
-        public EducationLevel EducationLevel => Education.Level;
-
         #endregion [ Convenience shortcuts ]
 
         #region [ Constructors ]
@@ -137,7 +132,6 @@ namespace Matrix.Population.Domain.Entities
             Sex sex,
             LifeState life,
             MaritalInfo marital,
-            EducationInfo education,
             EmploymentInfo employment,
             HappinessLevel happiness,
             EnergyLevel energy,
@@ -166,9 +160,6 @@ namespace Matrix.Population.Domain.Entities
             Marital = GuardHelper.AgainstNull(
                 value: marital,
                 propertyName: nameof(Marital));
-            Education = GuardHelper.AgainstNull(
-                value: education,
-                propertyName: nameof(Education));
             Employment = GuardHelper.AgainstNull(
                 value: employment,
                 propertyName: nameof(Employment));

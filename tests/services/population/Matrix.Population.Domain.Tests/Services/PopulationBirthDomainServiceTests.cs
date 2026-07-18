@@ -64,9 +64,6 @@ namespace Matrix.Population.Domain.Tests.Services
                 expected: Sex.Male,
                 actual: newbornResident.Sex);
             Assert.Equal(
-                expected: EducationLevel.None,
-                actual: newbornResident.EducationLevel);
-            Assert.Equal(
                 expected: EmploymentStatus.None,
                 actual: newbornResident.Employment.Status);
             Assert.Equal(

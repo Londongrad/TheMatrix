@@ -90,8 +90,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     Assert.Contains(
                         expected: person.HouseholdId,
                         set: householdIds);
-                    Assert.Null(person.Education.CurrentInstitutionId);
-                    Assert.Null(person.Education.CurrentInstitutionAnchorId);
                 });
         }
 

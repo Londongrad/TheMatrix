@@ -182,36 +182,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
             builder.Ignore(p => p.Health);
             builder.Ignore(p => p.MaritalStatus);
             builder.Ignore(p => p.SpouseId);
-            builder.Ignore(p => p.EducationLevel);
-            builder.OwnsOne(
-                navigationExpression: p => p.Education,
-                buildAction: edu =>
-                {
-                    edu.Property(e => e.Level)
-                       .HasConversion<string>()
-                       .HasColumnName("EducationLevel")
-                       .IsRequired();
-
-                    edu.Property(e => e.CurrentInstitutionId)
-                       .HasConversion(
-                            convertToProviderExpression: id => id != null
-                                ? id.Value
-                                : (Guid?)null,
-                            convertFromProviderExpression: value => value.HasValue
-                                ? EducationInstitutionId.From(value.Value)
-                                : null)
-                       .HasColumnName("EducationInstitutionId");
-
-                    edu.Property(e => e.CurrentInstitutionAnchorId)
-                       .HasConversion(
-                            convertToProviderExpression: id => id.HasValue
-                                ? id.Value.Value
-                                : (Guid?)null,
-                            convertFromProviderExpression: value => value.HasValue
-                                ? LocationAnchorId.From(value.Value)
-                                : null)
-                       .HasColumnName("EducationInstitutionAnchorId");
-                });
 
             builder.OwnsOne(
                 navigationExpression: p => p.Marital,

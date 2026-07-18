@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Matrix.Population.Domain.Tests.ValueObjects
 {
-    public sealed class EducationEmploymentAndMaritalTests
+    public sealed class EmploymentAndMaritalTests
     {
         [Fact]
         public void AgeGroupRules_WhenBoundaryAgesAreProvided_ReturnsExpectedGroup()
@@ -23,28 +23,6 @@ namespace Matrix.Population.Domain.Tests.ValueObjects
             Assert.Equal(
                 expected: AgeGroup.Senior,
                 actual: AgeGroupRules.GetAgeGroup(Age.FromYears(66)));
-        }
-
-        [Fact]
-        public void EducationInfoGraduateTo_WhenTransitionIsValid_UpdatesLevel()
-        {
-            var education = EducationInfo.FromLevel(EducationLevel.UpperSecondary);
-
-            EducationInfo graduated = education.GraduateTo(EducationLevel.Higher);
-
-            Assert.Equal(
-                expected: EducationLevel.Higher,
-                actual: graduated.Level);
-        }
-
-        [Fact]
-        public void EducationInfoGraduateTo_WhenTransitionIsInvalid_ThrowsDomainException()
-        {
-            var education = EducationInfo.FromLevel(EducationLevel.Higher);
-            var postgraduate = EducationInfo.FromLevel(EducationLevel.Postgraduate);
-
-            Assert.Throws<DomainException>(() => education.GraduateTo(EducationLevel.Primary));
-            Assert.Throws<DomainException>(() => postgraduate.GraduateTo(EducationLevel.Higher));
         }
 
         [Fact]

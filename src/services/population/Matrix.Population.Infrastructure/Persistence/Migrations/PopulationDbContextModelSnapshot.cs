@@ -1289,32 +1289,6 @@ namespace Matrix.Population.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("Matrix.Population.Domain.ValueObjects.EducationInfo", "Education", b1 =>
-                        {
-                            b1.Property<Guid>("PersonId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<Guid?>("CurrentInstitutionAnchorId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("EducationInstitutionAnchorId");
-
-                            b1.Property<Guid?>("CurrentInstitutionId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("EducationInstitutionId");
-
-                            b1.Property<string>("Level")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("EducationLevel");
-
-                            b1.HasKey("PersonId");
-
-                            b1.ToTable("Persons");
-
-                            b1.WithOwner()
-                                .HasForeignKey("PersonId");
-                        });
-
                     b.OwnsOne("Matrix.Population.Domain.ValueObjects.EmploymentInfo", "Employment", b1 =>
                         {
                             b1.Property<Guid>("PersonId")
@@ -1485,9 +1459,6 @@ namespace Matrix.Population.Infrastructure.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");
                         });
-
-                    b.Navigation("Education")
-                        .IsRequired();
 
                     b.Navigation("Employment")
                         .IsRequired();

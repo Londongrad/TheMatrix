@@ -232,54 +232,6 @@ namespace Matrix.Population.Domain.Errors
 
         #endregion [ Person - Employment ]
 
-        #region [ Person - Education ]
-
-        public static DomainException StudentCannotBeChild(string? propertyName = null)
-        {
-            return new DomainException(
-                code: "Population.Person.Education.StudentCannotBeChild",
-                message: "Student must not be a child.",
-                propertyName: propertyName);
-        }
-
-        public static DomainException SeniorMustBeInRetiredAgeGroup(string? propertyName = null)
-        {
-            return new DomainException(
-                code: "Population.Person.Age.SeniorMustBeInRetiredAgeGroup",
-                message: "Senior person must be in retired age group.",
-                propertyName: propertyName);
-        }
-
-        public static DomainException ChildOrSeniorCannotBeStudent(string? propertyName = null)
-        {
-            return new DomainException(
-                code: "Population.Person.Education.ChildOrSeniorCannotBeStudent",
-                message: "Child/Senior cannot be a student.",
-                propertyName: propertyName);
-        }
-
-        public static DomainException CannotDowngradeEducation(
-            EducationLevel from,
-            EducationLevel to)
-        {
-            return new DomainException(
-                code: "Population.Person.Education.CannotDowngrade",
-                message: $"Cannot change education from '{from}' to lower level '{to}'.",
-                propertyName: nameof(EducationLevel));
-        }
-
-        public static DomainException InvalidEducationTransition(
-            EducationLevel from,
-            EducationLevel to)
-        {
-            return new DomainException(
-                code: "Population.Person.Education.InvalidTransition",
-                message: $"Invalid education transition from '{from}' to '{to}'.",
-                propertyName: nameof(EducationLevel));
-        }
-
-        #endregion [ Person - Education ]
-
         #region [ Person - Marital ]
 
         public static DomainException DeceasedPersonCannotMarry(string? propertyName = null)
