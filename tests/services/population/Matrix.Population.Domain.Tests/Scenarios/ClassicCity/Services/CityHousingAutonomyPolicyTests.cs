@@ -25,6 +25,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 households: new Dictionary<HouseholdId, Household>(),
                 residents: [],
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>(),
                 financialStressStates: new Dictionary<HouseholdId, CityPopulationHouseholdFinancialStressState>(),
                 commutePressureProfiles: null,
@@ -80,6 +81,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                         activityEnd: TimeSpan.FromHours(15),
                         activityLoad: PersonStructuredActivityLoad.Moderate)
                 },
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [household.Id] = HousingStatus.Housed
@@ -131,6 +133,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 },
                 residents: [deceasedResident],
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                 {
                     [household.Id] = HousingStatus.Housed

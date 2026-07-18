@@ -440,6 +440,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cityId: cityId,
                                 residentsById: personsById,
                                 routineProfilesByResidentId: workingSet.RoutineProfilesByResidentId,
+                                economicContextsByResidentId: workingSet.EconomicContextsByResidentId,
                                 educationParticipation: educationParticipation,
                                 previousDate: previousDate,
                                 currentDate: toDate,

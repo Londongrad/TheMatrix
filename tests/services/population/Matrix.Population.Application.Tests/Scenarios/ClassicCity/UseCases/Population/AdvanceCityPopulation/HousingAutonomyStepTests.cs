@@ -320,6 +320,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 residentsById: residentsById,
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
@@ -382,6 +383,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     },
                     residents: [resident],
                     routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
+                    economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                     housingStatuses: new Dictionary<HouseholdId, HousingStatus>
                     {
                         [householdId] = HousingStatus.Homeless,

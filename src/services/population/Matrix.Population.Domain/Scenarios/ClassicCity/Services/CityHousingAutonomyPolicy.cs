@@ -14,6 +14,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyDictionary<HouseholdId, Household> households,
             IReadOnlyCollection<Person> residents,
             IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
+            IReadOnlyDictionary<PersonId, CityResidentEconomicContext> economicContextsByResidentId,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressStates,
             IReadOnlyDictionary<HouseholdId, CityHouseholdCommutePressureProfile>? commutePressureProfiles,
@@ -27,6 +28,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             ArgumentNullException.ThrowIfNull(households);
             ArgumentNullException.ThrowIfNull(residents);
             ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
+            ArgumentNullException.ThrowIfNull(economicContextsByResidentId);
             ArgumentNullException.ThrowIfNull(housingStatuses);
             ArgumentNullException.ThrowIfNull(financialStressStates);
 
@@ -85,6 +87,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     household: household,
                     householdResidents: members,
                     routineProfilesByResidentId: routineProfilesByResidentId,
+                    economicContextsByResidentId: economicContextsByResidentId,
                     housingStatus: housingStatus,
                     currentDate: currentDate,
                     costOfLivingState: costOfLivingState);
