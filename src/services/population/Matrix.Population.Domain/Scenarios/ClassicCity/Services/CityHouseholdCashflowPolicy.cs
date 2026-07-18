@@ -169,6 +169,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 EmploymentStatus.Employed => ResolveEmploymentIncome(
                     resident: resident,
                     ageGroup: ageGroup,
+                    economicContext: economicContext,
                     costOfLivingState: costOfLivingState),
                 EmploymentStatus.Retired => 26m,
                 _ => economicContext.DailyTransferIncome.Amount
@@ -180,25 +181,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static decimal ResolveEmploymentIncome(
             Person resident,
             AgeGroup ageGroup,
+            CityResidentEconomicContext economicContext,
             CityPopulationCostOfLivingState? costOfLivingState)
         {
             decimal ageBase = ageGroup switch
             {
                 AgeGroup.Senior => 42m,
                 _ => 48m
-            };
-
-            decimal educationBonus = resident.EducationLevel switch
-            {
-                EducationLevel.None => 0m,
-                EducationLevel.Preschool => 0m,
-                EducationLevel.Primary => 1m,
-                EducationLevel.LowerSecondary => 3m,
-                EducationLevel.UpperSecondary => 6m,
-                EducationLevel.Vocational => 10m,
-                EducationLevel.Higher => 14m,
-                EducationLevel.Postgraduate => 18m,
-                _ => 4m
             };
 
             decimal traitBonus =
@@ -211,7 +200,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             decimal baseAmount = decimal.Round(
                 d: Math.Max(
                     val1: 12m,
-                    val2: ageBase + educationBonus + traitBonus + wellbeingBonus + jobVariance),
+                    val2: ageBase +
+                          economicContext.EmploymentIncomeBonus.Amount +
+                          traitBonus +
+                          wellbeingBonus +
+                          jobVariance),
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
 

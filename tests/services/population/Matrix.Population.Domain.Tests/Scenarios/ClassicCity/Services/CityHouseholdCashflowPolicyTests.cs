@@ -179,5 +179,39 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 expected: Money.FromDecimal(1.40m),
                 actual: profile.MunicipalSpend);
         }
+
+        [Fact]
+        public void BuildResidentIncome_WhenEmploymentBonusIsProjected_IncreasesGrossIncome()
+        {
+            var policy = new CityHouseholdCashflowPolicy();
+            var currentDate = new DateOnly(
+                year: 2048,
+                month: 5,
+                day: 2);
+            Person resident = PopulationTestData.CreateAdultPerson();
+            resident.AssignJob(
+                currentDate: currentDate,
+                job: PopulationTestData.CreateJob("Architect"));
+            CityResidentEconomicContext qualifiedContext = CityResidentEconomicContext.Create(
+                dailyTransferIncome: Money.Zero,
+                employmentIncomeBonus: Money.FromDecimal(14m),
+                employmentOpportunityBonus: 0.024d,
+                retailStoreSpendShareAdjustment: 0m,
+                serviceSpendShareAdjustment: 0m,
+                municipalSpendShareAdjustment: 0m);
+
+            CityResidentIncomeSettlementProfile neutralIncome = policy.BuildResidentIncome(
+                resident: resident,
+                economicContext: CityResidentEconomicContext.Neutral,
+                currentDate: currentDate);
+            CityResidentIncomeSettlementProfile qualifiedIncome = policy.BuildResidentIncome(
+                resident: resident,
+                economicContext: qualifiedContext,
+                currentDate: currentDate);
+
+            Assert.Equal(
+                expected: neutralIncome.GrossIncome.Add(Money.FromDecimal(14m)),
+                actual: qualifiedIncome.GrossIncome);
+        }
     }
 }
