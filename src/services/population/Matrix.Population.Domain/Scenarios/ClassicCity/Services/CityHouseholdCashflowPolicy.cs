@@ -171,8 +171,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     ageGroup: ageGroup,
                     costOfLivingState: costOfLivingState),
                 EmploymentStatus.Retired => 26m,
-                EmploymentStatus.Student when ageGroup is AgeGroup.Adult or AgeGroup.Senior => 10m,
-                EmploymentStatus.Student => 4m,
                 _ => economicContext.DailyTransferIncome.Amount
             };
 
@@ -366,11 +364,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     municipalShare -= 0.01m;
                     break;
 
-                case EmploymentStatus.Student:
-                    retailStoreShare -= 0.03m;
-                    serviceShare -= 0.01m;
-                    municipalShare += 0.04m;
-                    break;
             }
 
             retailStoreShare += economicContext.RetailStoreSpendShareAdjustment;
