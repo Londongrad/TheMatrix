@@ -216,6 +216,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         AdvanceCityPopulationWorkingSet workingSet =
                             await AdvanceCityPopulationWorkingSetLoader.LoadAsync(
                                 cityId: cityId,
+                                currentDate: toDate,
                                 personReadRepository: personReadRepository,
                                 householdWriteRepository: householdWriteRepository,
                                 householdFinancialStressStateRepository: householdFinancialStressStateRepository,

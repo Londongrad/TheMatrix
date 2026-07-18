@@ -2,6 +2,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -20,6 +21,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
     {
         internal static async Task<AdvanceCityPopulationWorkingSet> LoadAsync(
             CityId cityId,
+            DateOnly currentDate,
             ICityPopulationPersonReadRepository personReadRepository,
             IHouseholdWriteRepository householdWriteRepository,
             ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
@@ -64,12 +66,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             var educationParticipation = new EducationParticipationProjectionIndex(
                 simulationHostId: cityId.Value,
                 projections: educationProjections);
-            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId = residents
-               .ToDictionary(
-                    keySelector: resident => resident.Id,
-                    elementSelector: resident => PersonRoutineProfileFactory.Create(
-                        resident: resident,
-                        educationParticipation: educationParticipation.FindCurrent(resident)));
+            var routineProfilesByResidentId = new Dictionary<PersonId, PersonRoutineProfile>(residents.Count);
+            var economicContextsByResidentId =
+                new Dictionary<PersonId, CityResidentEconomicContext>(residents.Count);
+            foreach (PersonEntity resident in residents)
+            {
+                EducationParticipationProjection? participation = educationParticipation.FindCurrent(resident);
+                routineProfilesByResidentId[resident.Id] = PersonRoutineProfileFactory.Create(
+                    resident: resident,
+                    educationParticipation: participation);
+                economicContextsByResidentId[resident.Id] = CityResidentEconomicContextFactory.Create(
+                    resident: resident,
+                    educationParticipation: participation,
+                    currentDate: currentDate);
+            }
             IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
                 await householdWriteRepository.ListPlacementsByCityAsync(
                     cityId: cityId,
@@ -130,6 +140,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 ResidentsByHouseholdId: residentsByHouseholdId,
                 EducationParticipation: educationParticipation,
                 RoutineProfilesByResidentId: routineProfilesByResidentId,
+                EconomicContextsByResidentId: economicContextsByResidentId,
                 Households: households,
                 HouseholdsById: householdsById,
                 Placements: placements,

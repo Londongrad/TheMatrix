@@ -16,6 +16,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> ResidentsByHouseholdId,
         EducationParticipationProjectionIndex EducationParticipation,
         IReadOnlyDictionary<PersonId, PersonRoutineProfile> RoutineProfilesByResidentId,
+        IReadOnlyDictionary<PersonId, CityResidentEconomicContext> EconomicContextsByResidentId,
         IReadOnlyCollection<HouseholdEntity> Households,
         Dictionary<HouseholdId, HouseholdEntity> HouseholdsById,
         IReadOnlyCollection<ClassicCityHouseholdPlacement> Placements,

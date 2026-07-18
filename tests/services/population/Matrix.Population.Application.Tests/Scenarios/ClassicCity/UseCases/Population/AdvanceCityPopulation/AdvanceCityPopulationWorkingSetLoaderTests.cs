@@ -332,6 +332,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: PersonStructuredActivityLoad.Moderate,
                 actual: workingSet.RoutineProfilesByResidentId[resident.Id].StructuredActivityLoad);
+            Assert.Equal(
+                expected: Money.FromDecimal(10m),
+                actual: workingSet.EconomicContextsByResidentId[resident.Id].DailyTransferIncome);
         }
 
         [Fact]
@@ -378,6 +381,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         {
             return AdvanceCityPopulationWorkingSetLoader.LoadAsync(
                 cityId: TestCityId,
+                currentDate: CurrentDate,
                 personReadRepository: personReadRepository ?? new FakeCityPopulationPersonReadRepository(),
                 householdWriteRepository: householdWriteRepository ?? new FakeHouseholdWriteRepository(),
                 householdFinancialStressStateRepository: householdStressRepository ??
