@@ -49,6 +49,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 household: household,
                 householdResidents: [youth],
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 previousDate: new DateOnly(
                     year: 2048,
                     month: 4,
@@ -100,6 +101,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 household: household,
                 householdResidents: [adult],
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 previousDate: new DateOnly(
                     year: 2047,
                     month: 1,

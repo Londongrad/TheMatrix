@@ -243,6 +243,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 {
                     [resident.Id] = PersonRoutineProfileFactory.Create(resident, null)
                 },
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 commutePressureProfilesByHouseholdId:
                 new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile?>(),
                 previousDate: previousDate ?? PreviousDate,

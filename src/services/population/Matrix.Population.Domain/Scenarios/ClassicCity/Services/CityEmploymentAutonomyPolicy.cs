@@ -25,6 +25,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Household household,
             IReadOnlyCollection<Person> householdResidents,
             IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
+            IReadOnlyDictionary<PersonId, CityResidentEconomicContext> economicContextsByResidentId,
             DateOnly previousDate,
             DateOnly currentDate,
             HousingStatus? housingStatus,
@@ -38,6 +39,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             ArgumentNullException.ThrowIfNull(person);
             ArgumentNullException.ThrowIfNull(householdResidents);
             ArgumentNullException.ThrowIfNull(routineProfilesByResidentId);
+            ArgumentNullException.ThrowIfNull(economicContextsByResidentId);
             ArgumentNullException.ThrowIfNull(workplacePools);
 
             if (!person.IsAlive)
@@ -57,6 +59,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 household: household,
                 householdResidents: householdResidents,
                 routineProfilesByResidentId: routineProfilesByResidentId,
+                economicContextsByResidentId: economicContextsByResidentId,
                 housingStatus: housingStatus,
                 currentDate: currentDate,
                 costOfLivingState: costOfLivingState);

@@ -297,6 +297,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 residentsByHouseholdId: residentsByHouseholdId ??
                                         new Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>>(),
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
                 housingByHouseholdId: housingByHouseholdId ?? new Dictionary<HouseholdId, HousingStatus>(),

@@ -269,6 +269,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     residentsByHouseholdId: residentsByHouseholdId,
                                     educationParticipation: educationParticipation,
                                     routineProfilesByResidentId: routineProfilesByResidentId,
+                                    economicContextsByResidentId: workingSet.EconomicContextsByResidentId,
                                     commutePressureProfilesByHouseholdId: commutePressureProfilesByHouseholdId,
                                     previousDate: previousDate,
                                     fromSimTimeUtc: request.FromSimTimeUtc,
