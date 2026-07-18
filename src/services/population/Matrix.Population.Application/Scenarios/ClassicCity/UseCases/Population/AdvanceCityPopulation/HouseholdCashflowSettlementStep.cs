@@ -20,6 +20,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
+            IReadOnlyDictionary<PersonId, CityResidentEconomicContext> economicContextsByResidentId,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingIdByHouseholdId,
             DateOnly previousDate,
@@ -68,6 +69,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     : null;
                 CityHouseholdCashflowProfile cashflow = householdCashflowPolicy.Build(
                     householdResidents: residents,
+                    economicContextsByResidentId: economicContextsByResidentId,
                     housingStatus: housingStatus,
                     currentDate: currentDate,
                     costOfLivingState: costOfLivingState);
@@ -87,6 +89,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                 foreach (PersonEntity resident in residents)
                 {
+                    CityResidentEconomicContext economicContext = economicContextsByResidentId.GetValueOrDefault(
+                        resident.Id,
+                        CityResidentEconomicContext.Neutral);
                     decimal incomeMultiplier = 1m;
                     DistrictId? districtId = districtByHouseholdId.TryGetValue(
                         key: resident.HouseholdId,
@@ -132,6 +137,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     CityResidentIncomeSettlementProfile residentIncome = householdCashflowPolicy.BuildResidentIncome(
                         resident: resident,
+                        economicContext: economicContext,
                         currentDate: currentDate,
                         costOfLivingState: costOfLivingState,
                         incomeMultiplier: incomeMultiplier);

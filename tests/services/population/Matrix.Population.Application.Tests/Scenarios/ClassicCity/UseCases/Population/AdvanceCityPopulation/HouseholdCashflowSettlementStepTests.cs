@@ -219,6 +219,50 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
+        public async Task ApplyAsync_WhenResidentHasProjectedTransfer_SettlesTransferWithoutIncomeTax()
+        {
+            HouseholdId householdId = CreateHouseholdId(4);
+            HouseholdEntity household = CreateHousehold(householdId);
+            PersonEntity resident = CreatePerson(
+                personId: CreateGuid(
+                    prefix: "11111111",
+                    index: 4),
+                householdId: householdId.Value,
+                currentDate: CurrentDate,
+                employmentStatus: EmploymentStatus.Unemployed);
+            CityResidentEconomicContext economicContext = CityResidentEconomicContext.Create(
+                dailyTransferIncome: Money.FromDecimal(10m),
+                retailStoreSpendShareAdjustment: -0.03m,
+                serviceSpendShareAdjustment: -0.01m,
+                municipalSpendShareAdjustment: 0.04m);
+
+            CityEconomyDailySettlementSnapshot? result = await ApplyAsync(
+                householdsById: new Dictionary<HouseholdId, HouseholdEntity>
+                {
+                    [householdId] = household
+                },
+                residentsByHouseholdId: new Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>>
+                {
+                    [householdId] = [resident]
+                },
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>
+                {
+                    [resident.Id] = economicContext
+                });
+
+            Assert.NotNull(result);
+            Assert.Equal(
+                expected: Money.FromDecimal(30m),
+                actual: result!.GrossPayroll);
+            Assert.Equal(
+                expected: Money.Zero,
+                actual: result.IncomeTax);
+            Assert.Equal(
+                expected: Money.FromDecimal(30m),
+                actual: result.NetPayroll);
+        }
+
+        [Fact]
         public async Task ApplyAsync_WhenResidentIsEmployedWithJob_AddsWorkplacePayrollItemAndUsesEmploymentCommute()
         {
             HouseholdId householdId = CreateHouseholdId(1);
@@ -351,6 +395,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         private static Task<CityEconomyDailySettlementSnapshot?> ApplyAsync(
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
+            IReadOnlyDictionary<PersonId, CityResidentEconomicContext>? economicContextsByResidentId = null,
             IReadOnlyDictionary<HouseholdId, HousingStatus>? housingByHouseholdId = null,
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?>? residentialBuildingIdByHouseholdId = null,
             DateOnly? previousDate = null,
@@ -369,6 +414,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdsById: householdsById,
                 residentsByHouseholdId: residentsByHouseholdId,
+                economicContextsByResidentId: economicContextsByResidentId ??
+                                                    new Dictionary<PersonId, CityResidentEconomicContext>(),
                 housingByHouseholdId: housingByHouseholdId ?? new Dictionary<HouseholdId, HousingStatus>(),
                 residentialBuildingIdByHouseholdId: residentialBuildingIdByHouseholdId ??
                                                     new Dictionary<HouseholdId, ResidentialBuildingId?>(),

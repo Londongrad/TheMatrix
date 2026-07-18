@@ -369,6 +369,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cityId: cityId,
                                 householdsById: householdsById,
                                 residentsByHouseholdId: residentsByHouseholdId,
+                                economicContextsByResidentId: workingSet.EconomicContextsByResidentId,
                                 housingByHouseholdId: housingByHouseholdId,
                                 residentialBuildingIdByHouseholdId: placementsSnapshot
                                    .GroupBy(x => x.HouseholdId)
