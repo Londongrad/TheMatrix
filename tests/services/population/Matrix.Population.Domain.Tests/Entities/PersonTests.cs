@@ -36,7 +36,7 @@ namespace Matrix.Population.Domain.Tests.Entities
                 expected: MaritalStatus.Single,
                 actual: person.MaritalStatus);
             Assert.Equal(
-                expected: EducationLevel.UpperSecondary,
+                expected: EducationLevel.None,
                 actual: person.EducationLevel);
             Assert.Equal(
                 expected: 80,

@@ -21,9 +21,6 @@ namespace Matrix.Population.Domain.Entities
             LifeStatus lifeStatus,
             MaritalStatus maritalStatus,
             PersonId? spouseId,
-            EducationLevel educationLevel,
-            EducationInstitutionId? educationInstitutionId,
-            LocationAnchorId? educationInstitutionAnchorId,
             EmploymentStatus employmentStatus,
             HappinessLevel happinessLevel,
             EnergyLevel energyLevel,
@@ -58,10 +55,7 @@ namespace Matrix.Population.Domain.Entities
             var marital = MaritalInfo.FromStatus(
                 status: maritalStatus,
                 spouseId: spouseId);
-            var education = EducationInfo.FromLevel(
-                level: educationLevel,
-                currentInstitutionId: educationInstitutionId,
-                currentInstitutionAnchorId: educationInstitutionAnchorId);
+            EducationInfo education = EducationInfo.None();
 
             return new Person(
                 id: id,

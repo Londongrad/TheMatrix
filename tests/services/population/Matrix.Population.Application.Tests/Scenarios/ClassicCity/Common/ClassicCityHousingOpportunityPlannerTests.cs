@@ -677,9 +677,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                 lifeStatus: LifeStatus.Alive,
                 maritalStatus: MaritalStatus.Single,
                 spouseId: null,
-                educationLevel: EducationLevel.UpperSecondary,
-                educationInstitutionId: null,
-                educationInstitutionAnchorId: null,
                 employmentStatus: job is null
                     ? EmploymentStatus.Unemployed
                     : EmploymentStatus.Employed,

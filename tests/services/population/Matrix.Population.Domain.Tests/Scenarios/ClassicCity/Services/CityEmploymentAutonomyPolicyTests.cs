@@ -41,7 +41,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     month: 5,
                     day: 1),
                 currentDate: currentDate,
-                educationLevel: EducationLevel.UpperSecondary,
                 employmentStatus: EmploymentStatus.Unemployed);
             Household household = PopulationTestData.CreateHousehold(cashReserve: -200m);
 
@@ -84,7 +83,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                     month: 5,
                     day: 1),
                 currentDate: currentDate,
-                educationLevel: EducationLevel.Postgraduate,
                 employmentStatus: EmploymentStatus.Unemployed,
                 personality: Personality.Create(
                     optimism: 100,
@@ -164,7 +162,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             Guid personId,
             DateOnly birthDate,
             DateOnly currentDate,
-            EducationLevel educationLevel,
             EmploymentStatus employmentStatus,
             Personality? personality = null,
             int health = 80,
@@ -181,9 +178,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 lifeStatus: LifeStatus.Alive,
                 maritalStatus: MaritalStatus.Single,
                 spouseId: null,
-                educationLevel: educationLevel,
-                educationInstitutionId: null,
-                educationInstitutionAnchorId: null,
                 employmentStatus: employmentStatus,
                 happinessLevel: HappinessLevel.From(50),
                 energyLevel: EnergyLevel.From(energy),
