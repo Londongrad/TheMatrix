@@ -164,16 +164,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
                 reserve += resident.Employment.Status switch
                 {
-                    EmploymentStatus.Employed => 74m +
-                                                 Math.Min(
-                                                     val1: 22m,
-                                                     val2: resident.EducationLevel switch
-                                                     {
-                                                         EducationLevel.Vocational => 6m,
-                                                         EducationLevel.Higher => 12m,
-                                                         EducationLevel.Postgraduate => 16m,
-                                                         _ => 0m
-                                                     }),
+                    EmploymentStatus.Employed => 74m,
                     EmploymentStatus.Retired => 38m,
                     _ => ageGroup switch
                     {
@@ -697,9 +688,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 personality: personality,
                 tuning: tuning,
                 housingStatus: housingStatus);
-            EducationLevel educationLevel = CreateRandomEducationLevel(
-                random: random,
-                ageYears: ageYears);
             return Person.CreatePerson(
                 id: personId,
                 householdId: householdId,
@@ -708,7 +696,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 lifeStatus: LifeStatus.Alive,
                 maritalStatus: maritalStatus,
                 spouseId: spouseId,
-                educationLevel: educationLevel,
+                educationLevel: EducationLevel.None,
                 educationInstitutionId: null,
                 educationInstitutionAnchorId: null,
                 employmentStatus: employmentStatus,
@@ -1486,78 +1474,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return sex == Sex.Female
                 ? surname.Feminine
                 : surname.Masculine;
-        }
-
-        private static EducationLevel CreateRandomEducationLevel(
-            Random random,
-            int ageYears)
-        {
-            return ageYears switch
-            {
-                <= 2 => EducationLevel.None,
-                <= 6 => Pick(
-                    random: random,
-                    (EducationLevel.Preschool, 0.80),
-                    (EducationLevel.None, 0.20)),
-                <= 10 => Pick(
-                    random: random,
-                    (EducationLevel.Primary, 0.97),
-                    (EducationLevel.LowerSecondary, 0.03)),
-                <= 14 => Pick(
-                    random: random,
-                    (EducationLevel.LowerSecondary, 0.85),
-                    (EducationLevel.Primary, 0.15)),
-                <= 17 => Pick(
-                    random: random,
-                    (EducationLevel.UpperSecondary, 0.72),
-                    (EducationLevel.LowerSecondary, 0.18),
-                    (EducationLevel.Vocational, 0.10)),
-                <= 21 => Pick(
-                    random: random,
-                    (EducationLevel.UpperSecondary, 0.25),
-                    (EducationLevel.Vocational, 0.33),
-                    (EducationLevel.Higher, 0.40),
-                    (EducationLevel.LowerSecondary, 0.02)),
-                <= 65 => Pick(
-                    random: random,
-                    (EducationLevel.None, 0.01),
-                    (EducationLevel.Primary, 0.08),
-                    (EducationLevel.LowerSecondary, 0.22),
-                    (EducationLevel.UpperSecondary, 0.30),
-                    (EducationLevel.Vocational, 0.22),
-                    (EducationLevel.Higher, 0.15),
-                    (EducationLevel.Postgraduate, 0.02)),
-                _ => Pick(
-                    random: random,
-                    (EducationLevel.None, 0.02),
-                    (EducationLevel.Primary, 0.18),
-                    (EducationLevel.LowerSecondary, 0.34),
-                    (EducationLevel.UpperSecondary, 0.25),
-                    (EducationLevel.Vocational, 0.12),
-                    (EducationLevel.Higher, 0.08),
-                    (EducationLevel.Postgraduate, 0.01))
-            };
-        }
-
-        private static EducationLevel Pick(
-            Random random,
-            params (EducationLevel level, double weight)[] items)
-        {
-            double total = 0;
-            for (int i = 0; i < items.Length; i++)
-                total += items[i].weight;
-
-            double roll = random.NextDouble() * total;
-            double accumulated = 0;
-
-            for (int i = 0; i < items.Length; i++)
-            {
-                accumulated += items[i].weight;
-                if (roll < accumulated)
-                    return items[i].level;
-            }
-
-            return items[^1].level;
         }
 
         private static PersonalityArchetype CreateRandomPersonalityArchetype(
