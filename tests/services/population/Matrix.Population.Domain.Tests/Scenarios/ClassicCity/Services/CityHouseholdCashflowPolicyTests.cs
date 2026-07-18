@@ -5,6 +5,7 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Tests.TestSupport;
+using Matrix.Population.Domain.ValueObjects;
 using Xunit;
 
 namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
@@ -138,6 +139,40 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             Assert.Equal(
                 expected: 1.05m,
                 actual: profile.UtilityCostMultiplier);
+        }
+
+        [Fact]
+        public void Build_WhenResidentHasEconomicContext_AppliesTransferIncomeAndSpendAllocation()
+        {
+            var policy = new CityHouseholdCashflowPolicy();
+            Person resident = PopulationTestData.CreateAdultPerson();
+            CityResidentEconomicContext economicContext = CityResidentEconomicContext.Create(
+                dailyTransferIncome: Money.FromDecimal(10m),
+                retailStoreSpendShareAdjustment: -0.03m,
+                serviceSpendShareAdjustment: -0.01m,
+                municipalSpendShareAdjustment: 0.04m);
+
+            CityHouseholdCashflowProfile profile = policy.Build(
+                householdResidents: [resident],
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>
+                {
+                    [resident.Id] = economicContext
+                },
+                housingStatus: HousingStatus.Housed,
+                currentDate: new DateOnly(
+                    year: 2048,
+                    month: 5,
+                    day: 2));
+
+            Assert.Equal(
+                expected: Money.FromDecimal(10m),
+                actual: profile.GrossIncome);
+            Assert.Equal(
+                expected: Money.Zero,
+                actual: profile.TaxWithheld);
+            Assert.Equal(
+                expected: Money.FromDecimal(1.40m),
+                actual: profile.MunicipalSpend);
         }
     }
 }

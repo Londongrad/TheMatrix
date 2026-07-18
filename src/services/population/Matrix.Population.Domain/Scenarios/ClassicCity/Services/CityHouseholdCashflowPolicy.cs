@@ -4,6 +4,7 @@ using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
@@ -15,12 +16,29 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             CityPopulationCostOfLivingState? costOfLivingState = null,
             decimal incomeMultiplier = 1m)
         {
+            return BuildResidentIncome(
+                resident: resident,
+                economicContext: CityResidentEconomicContext.Neutral,
+                currentDate: currentDate,
+                costOfLivingState: costOfLivingState,
+                incomeMultiplier: incomeMultiplier);
+        }
+
+        public CityResidentIncomeSettlementProfile BuildResidentIncome(
+            Person resident,
+            CityResidentEconomicContext economicContext,
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState = null,
+            decimal incomeMultiplier = 1m)
+        {
             ArgumentNullException.ThrowIfNull(resident);
+            ArgumentNullException.ThrowIfNull(economicContext);
 
             AgeGroup ageGroup = resident.GetAgeGroup(currentDate);
             Money grossIncome = ResolveResidentGrossIncome(
                     resident: resident,
                     ageGroup: ageGroup,
+                    economicContext: economicContext,
                     costOfLivingState: costOfLivingState)
                .Multiply(
                     Math.Clamp(
@@ -41,7 +59,23 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             CityPopulationCostOfLivingState? costOfLivingState = null)
         {
+            return Build(
+                householdResidents: householdResidents,
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
+                housingStatus: housingStatus,
+                currentDate: currentDate,
+                costOfLivingState: costOfLivingState);
+        }
+
+        public CityHouseholdCashflowProfile Build(
+            IReadOnlyCollection<Person> householdResidents,
+            IReadOnlyDictionary<PersonId, CityResidentEconomicContext> economicContextsByResidentId,
+            HousingStatus? housingStatus,
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState = null)
+        {
             ArgumentNullException.ThrowIfNull(householdResidents);
+            ArgumentNullException.ThrowIfNull(economicContextsByResidentId);
 
             Person[] activeResidents = householdResidents
                .Where(x => x.IsAlive)
@@ -61,6 +95,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             foreach (Person resident in activeResidents)
             {
+                CityResidentEconomicContext economicContext = economicContextsByResidentId.GetValueOrDefault(
+                    resident.Id,
+                    CityResidentEconomicContext.Neutral);
                 AgeGroup ageGroup = resident.GetAgeGroup(currentDate);
                 if (ageGroup is AgeGroup.Child or AgeGroup.Youth)
                     childCount++;
@@ -72,6 +109,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
                 CityResidentIncomeSettlementProfile residentIncome = BuildResidentIncome(
                     resident: resident,
+                    economicContext: economicContext,
                     currentDate: currentDate,
                     costOfLivingState: costOfLivingState);
 
@@ -84,6 +122,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     Money residentMunicipalSpend) = ResolveResidentDailyExpenseBreakdown(
                     resident: resident,
                     ageGroup: ageGroup,
+                    economicContext: economicContext,
                     currentDate: currentDate,
                     costOfLivingState: costOfLivingState);
 
@@ -150,6 +189,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static Money ResolveResidentGrossIncome(
             Person resident,
             AgeGroup ageGroup,
+            CityResidentEconomicContext economicContext,
             CityPopulationCostOfLivingState? costOfLivingState)
         {
             decimal amount = resident.Employment.Status switch
@@ -161,7 +201,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 EmploymentStatus.Retired => 26m,
                 EmploymentStatus.Student when ageGroup is AgeGroup.Adult or AgeGroup.Senior => 10m,
                 EmploymentStatus.Student => 4m,
-                _ => 0m
+                _ => economicContext.DailyTransferIncome.Amount
             };
 
             return Money.FromDecimal(amount);
@@ -237,6 +277,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             ResolveResidentDailyExpenseBreakdown(
                 Person resident,
                 AgeGroup ageGroup,
+                CityResidentEconomicContext economicContext,
                 DateOnly currentDate,
                 CityPopulationCostOfLivingState? costOfLivingState)
         {
@@ -276,6 +317,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 decimal municipalShare) = ResolveSpendShares(
                 resident: resident,
                 ageGroup: ageGroup,
+                economicContext: economicContext,
                 currentDate: currentDate);
 
             decimal retailStoreAmount = decimal.Round(
@@ -312,6 +354,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static (decimal retailStoreShare, decimal serviceShare, decimal municipalShare) ResolveSpendShares(
             Person resident,
             AgeGroup ageGroup,
+            CityResidentEconomicContext economicContext,
             DateOnly currentDate)
         {
             decimal retailStoreShare = 0.72m;
@@ -357,6 +400,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     municipalShare += 0.04m;
                     break;
             }
+
+            retailStoreShare += economicContext.RetailStoreSpendShareAdjustment;
+            serviceShare += economicContext.ServiceSpendShareAdjustment;
+            municipalShare += economicContext.MunicipalSpendShareAdjustment;
 
             if (resident.FunctionalCapacity.Value < 100)
             {
