@@ -190,11 +190,11 @@ namespace Matrix.Population.Domain.Errors
                 propertyName: propertyName);
         }
 
-        public static DomainException RetiredPersonCannotBeEmployedOrStudent(string? propertyName = null)
+        public static DomainException SeniorPersonCannotBeEmployed(string? propertyName = null)
         {
             return new DomainException(
-                code: "Population.Person.Employment.RetiredPersonCannotBeEmployedOrStudent",
-                message: "Retired person cannot be employed or a student.",
+                code: "Population.Person.Employment.SeniorPersonCannotBeEmployed",
+                message: "Senior person cannot be employed.",
                 propertyName: propertyName);
         }
 

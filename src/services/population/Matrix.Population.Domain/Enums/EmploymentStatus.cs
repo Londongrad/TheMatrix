@@ -10,9 +10,6 @@ namespace Matrix.Population.Domain.Enums
     ///             <description><see cref="Employed" /> – has a paid job</description>
     ///         </item>
     ///         <item>
-    ///             <description><see cref="Student" /> – main activity is studying</description>
-    ///         </item>
-    ///         <item>
     ///             <description><see cref="Retired" /> – no longer in the workforce due to retirement</description>
     ///         </item>
     ///         <item>
@@ -25,26 +22,21 @@ namespace Matrix.Population.Domain.Enums
         /// <summary>
         ///     Not currently employed.
         /// </summary>
-        Unemployed,
+        Unemployed = 0,
 
         /// <summary>
         ///     Has a paid job.
         /// </summary>
-        Employed,
-
-        /// <summary>
-        ///     Main activity is studying.
-        /// </summary>
-        Student,
+        Employed = 1,
 
         /// <summary>
         ///     No longer in the workforce due to retirement.
         /// </summary>
-        Retired,
+        Retired = 3,
 
         /// <summary>
         ///     Not specified or not applicable.
         /// </summary>
-        None
+        None = 4
     }
 }

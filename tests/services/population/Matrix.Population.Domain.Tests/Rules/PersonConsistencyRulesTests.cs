@@ -55,7 +55,7 @@ namespace Matrix.Population.Domain.Tests.Rules
         public void ValidateEmploymentForAge_WhenCombinationIsConsistent_DoesNotThrow()
         {
             var employment = EmploymentInfo.Create(
-                status: EmploymentStatus.Student,
+                status: EmploymentStatus.Unemployed,
                 job: null,
                 lifeStatus: LifeStatus.Alive,
                 ageGroup: AgeGroup.Adult);

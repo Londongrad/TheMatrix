@@ -58,10 +58,8 @@ namespace Matrix.Population.Domain.Rules
                 employment.Status == EmploymentStatus.Employed)
                 throw DomainErrorsFactory.ChildCannotBeEmployed(nameof(EmploymentInfo.Status));
 
-            if (ageGroup == AgeGroup.Senior &&
-                (employment.Status == EmploymentStatus.Employed ||
-                 employment.Status == EmploymentStatus.Student))
-                throw DomainErrorsFactory.RetiredPersonCannotBeEmployedOrStudent(nameof(EmploymentInfo.Status));
+            if (ageGroup == AgeGroup.Senior && employment.Status == EmploymentStatus.Employed)
+                throw DomainErrorsFactory.SeniorPersonCannotBeEmployed(nameof(EmploymentInfo.Status));
 
             if (employment.Status == EmploymentStatus.Employed && employment.Job is null)
                 throw DomainErrorsFactory.EmployedPersonMustHaveJob(nameof(EmploymentInfo.Job));

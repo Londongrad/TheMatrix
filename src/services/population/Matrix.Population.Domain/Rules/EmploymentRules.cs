@@ -38,10 +38,9 @@ namespace Matrix.Population.Domain.Rules
                 status == EmploymentStatus.Employed)
                 throw DomainErrorsFactory.ChildCannotBeEmployed(nameof(status));
 
-            // 3. Пенсионер не может работать или быть студентом
-            if (ageGroup is AgeGroup.Senior &&
-                status is EmploymentStatus.Employed or EmploymentStatus.Student)
-                throw DomainErrorsFactory.RetiredPersonCannotBeEmployedOrStudent(nameof(status));
+            // 3. Пенсионер не может работать
+            if (ageGroup is AgeGroup.Senior && status == EmploymentStatus.Employed)
+                throw DomainErrorsFactory.SeniorPersonCannotBeEmployed(nameof(status));
 
             // 4. Работает → Job обязателен
             if (status == EmploymentStatus.Employed && job is null)
