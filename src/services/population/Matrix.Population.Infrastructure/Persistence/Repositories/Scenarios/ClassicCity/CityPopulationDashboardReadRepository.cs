@@ -2,6 +2,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -175,11 +176,20 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 projections: educationProjectionEntities.ToDictionary(
                     keySelector: x => x.ResidentId.Value,
                     elementSelector: x => x.ToProjection()));
-            IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId = persons.ToDictionary(
-                keySelector: x => x.Id,
-                elementSelector: resident => PersonRoutineProfileFactory.Create(
+            var routineProfilesByResidentId = new Dictionary<PersonId, PersonRoutineProfile>(persons.Length);
+            var economicContextsByResidentId =
+                new Dictionary<PersonId, CityResidentEconomicContext>(persons.Length);
+            foreach (Person resident in persons)
+            {
+                EducationParticipationProjection? participation = educationParticipation.FindCurrent(resident);
+                routineProfilesByResidentId[resident.Id] = PersonRoutineProfileFactory.Create(
                     resident: resident,
-                    educationParticipation: educationParticipation.FindCurrent(resident)));
+                    educationParticipation: participation);
+                economicContextsByResidentId[resident.Id] = CityResidentEconomicContextFactory.Create(
+                    resident: resident,
+                    educationParticipation: participation,
+                    currentDate: currentDate);
+            }
 
             var residentsByHousehold = persons
                .GroupBy(x => x.HouseholdId)
@@ -228,6 +238,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     household: household,
                     householdResidents: householdResidents,
                     routineProfilesByResidentId: routineProfilesByResidentId,
+                    economicContextsByResidentId: economicContextsByResidentId,
                     housingStatus: placement.HousingStatus,
                     currentDate: currentDate,
                     costOfLivingState: costOfLivingState);
@@ -257,6 +268,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
                     adjustedNetDailyIncomeAmount += _householdCashflowPolicy.BuildResidentIncome(
                             resident: resident,
+                            economicContext: economicContextsByResidentId[resident.Id],
                             currentDate: currentDate,
                             costOfLivingState: costOfLivingState,
                             incomeMultiplier: incomeMultiplier)
