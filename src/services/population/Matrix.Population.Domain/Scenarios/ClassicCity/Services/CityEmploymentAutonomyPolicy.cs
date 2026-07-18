@@ -55,6 +55,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int reviewWindows = ResolveReviewWindows(
                 previousDate: previousDate,
                 currentDate: currentDate);
+            CityResidentEconomicContext economicContext = economicContextsByResidentId.GetValueOrDefault(
+                person.Id,
+                CityResidentEconomicContext.Neutral);
             CityHouseholdEconomyProfile householdEconomy = householdEconomyPolicy.Build(
                 household: household,
                 householdResidents: householdResidents,
@@ -71,6 +74,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
                     householdEconomy: householdEconomy,
+                    economicContext: economicContext,
                     preferredDistrictId: preferredDistrictId,
                     workplaceAnchors: workplaceAnchors,
                     workplacePools: workplacePools,
@@ -91,6 +95,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             int reviewWindows,
             CityHouseholdEconomyProfile householdEconomy,
+            CityResidentEconomicContext economicContext,
             DistrictId? preferredDistrictId,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
             IDictionary<string, List<Job>> workplacePools,
@@ -107,6 +112,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double chancePerReview = ResolveHireChancePerReview(
                 person: person,
                 householdEconomy: householdEconomy,
+                economicContext: economicContext,
                 marketAvailability: marketAvailability);
 
             if (!RollOccurs(
@@ -282,6 +288,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static double ResolveHireChancePerReview(
             Person person,
             CityHouseholdEconomyProfile householdEconomy,
+            CityResidentEconomicContext economicContext,
             EmployerMarketAvailability marketAvailability)
         {
             double discipline = Normalize(person.Personality.Discipline);
@@ -290,26 +297,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double energy = Normalize(person.Energy.Value);
             double stress = Normalize(person.Stress.Value);
 
-            double educationBonus = person.EducationLevel switch
-            {
-                EducationLevel.None => 0.000d,
-                EducationLevel.Preschool => 0.000d,
-                EducationLevel.Primary => 0.003d,
-                EducationLevel.LowerSecondary => 0.006d,
-                EducationLevel.UpperSecondary => 0.010d,
-                EducationLevel.Vocational => 0.018d,
-                EducationLevel.Higher => 0.024d,
-                EducationLevel.Postgraduate => 0.028d,
-                _ => 0.006d
-            };
-
             double chance = 0.010d +
                             (discipline * 0.030d) +
                             (optimism * 0.015d) +
                             (health * 0.020d) +
                             (energy * 0.020d) -
                             (stress * 0.030d) +
-                            educationBonus;
+                            economicContext.EmploymentOpportunityBonus;
 
             chance += householdEconomy.StrainScore * 0.030d;
             chance -= Math.Max(

@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -101,7 +102,16 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 household: household,
                 householdResidents: [adult],
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
-                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>
+                {
+                    [adult.Id] = CityResidentEconomicContext.Create(
+                        dailyTransferIncome: Money.Zero,
+                        employmentIncomeBonus: Money.FromDecimal(18m),
+                        employmentOpportunityBonus: 0.028d,
+                        retailStoreSpendShareAdjustment: 0m,
+                        serviceSpendShareAdjustment: 0m,
+                        municipalSpendShareAdjustment: 0m)
+                },
                 previousDate: new DateOnly(
                     year: 2047,
                     month: 1,
