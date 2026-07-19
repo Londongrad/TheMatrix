@@ -125,10 +125,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     Status: AdvanceCityPopulationStatus.CityArchived,
                     AffectedPeopleCount: 0);
 
-            CityPopulationCostOfLivingState? costOfLivingState =
-                await cityPopulationCostOfLivingStateRepository.GetByCityAsync(
-                    cityId: cityId,
-                    cancellationToken: cancellationToken);
             CityPopulationEssentialsState? essentialsState =
                 await cityPopulationEssentialsStateRepository.GetByCityAsync(
                     cityId: cityId,
@@ -153,6 +149,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             int affectedPeopleCount = 0;
             bool requiresDateProgression = state is null || toDate > previousDate;
             bool requiresNeedsProgression = request.ToSimTimeUtc > request.FromSimTimeUtc;
+            CityPopulationCostOfLivingState? costOfLivingState = requiresDateProgression
+                ? await cityPopulationCostOfLivingStateRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken)
+                : null;
             bool shouldAdvanceWeatherExposureCheckpoint = CityPopulationWeatherExposurePlanner.ShouldAdvanceCheckpoint(
                 weatherExposureState: weatherExposureState,
                 fromSimTimeUtc: request.FromSimTimeUtc,
