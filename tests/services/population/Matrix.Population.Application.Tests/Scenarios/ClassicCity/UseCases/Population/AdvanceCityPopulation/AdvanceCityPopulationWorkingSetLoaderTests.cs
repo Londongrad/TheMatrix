@@ -300,6 +300,36 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
+        public async Task LoadAsync_WhenEmploymentContextIsNotRequired_SkipsMarketWork()
+        {
+            PersonEntity resident = CreatePerson(
+                employmentStatus: EmploymentStatus.Employed,
+                job: new Job(
+                    workplaceId: WorkplaceId.New(),
+                    title: "Engineer"));
+            var personReadRepository = new FakeCityPopulationPersonReadRepository
+            {
+                ListByCityResult = [resident]
+            };
+            var employerStressRepository = new FakeCityPopulationEmployerFinancialStressStateRepository();
+            var anchorRepository = new FakeCityPopulationAnchorCatalogRepository();
+
+            AdvanceCityPopulationWorkingSet workingSet = await LoadAsync(
+                personReadRepository: personReadRepository,
+                employerStressRepository: employerStressRepository,
+                anchorRepository: anchorRepository,
+                includeEmploymentContext: false);
+
+            Assert.Null(employerStressRepository.RequestedCityId);
+            Assert.DoesNotContain(
+                anchorRepository.ListRequests,
+                request => request.Type == CityAnchorType.Workplace);
+            Assert.Empty(workingSet.EmployerStressByWorkplaceId);
+            Assert.Empty(workingSet.WorkplaceAnchors);
+            Assert.Empty(workingSet.WorkplacePools);
+        }
+
+        [Fact]
         public async Task LoadAsync_BuildsWorkplacePoolsFromLoadedResidents()
         {
             var workplaceId = WorkplaceId.From(Guid.Parse("22222222-3333-4444-5555-666666666663"));
