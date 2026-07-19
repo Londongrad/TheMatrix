@@ -1218,12 +1218,16 @@ namespace Matrix.Population.Application.Tests.TestSupport
             : ICityHealthcarePressureSnapshotRepository
         {
             public ClassicCityHealthcarePressureSnapshot? Snapshot { get; set; }
+            public int GetByCityCalls { get; private set; }
             public int DeleteByCityCalls { get; private set; }
+            public CityId? RequestedCityId { get; private set; }
 
             public Task<ClassicCityHealthcarePressureSnapshot?> GetByCityAsync(
                 CityId cityId,
                 CancellationToken cancellationToken = default)
             {
+                GetByCityCalls++;
+                RequestedCityId = cityId;
                 return Task.FromResult(Snapshot?.CityId == cityId ? Snapshot : null);
             }
 

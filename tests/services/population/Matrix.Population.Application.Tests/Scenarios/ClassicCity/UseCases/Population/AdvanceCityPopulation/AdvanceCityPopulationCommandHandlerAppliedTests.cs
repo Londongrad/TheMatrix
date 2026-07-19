@@ -43,10 +43,14 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 ]
             };
             var riskWriter = new FakePopulationResidentHealthRiskOutboxWriter();
+            var anchorRepository = new FakeCityPopulationAnchorCatalogRepository();
+            var healthcarePressureRepository = new FakeCityHealthcarePressureSnapshotRepository();
             AdvanceCityPopulationCommandHandler handler = CreateHandler(
                 personReadRepository: personRepository,
                 householdWriteRepository: householdRepository,
-                residentHealthRiskOutboxWriter: riskWriter);
+                residentHealthRiskOutboxWriter: riskWriter,
+                anchorRepository: anchorRepository,
+                healthcarePressureRepository: healthcarePressureRepository);
 
             await handler.Handle(
                 CreateCommand(cityId, tickId: 42),
@@ -59,6 +63,44 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var risk = Assert.Single(batch.Residents);
             Assert.Equal(resident.Id.Value, risk.ResidentId);
             Assert.Equal("Unhoused", risk.HousingStability);
+            Assert.Contains(
+                anchorRepository.ListRequests,
+                request => request.Type == CityAnchorType.Hospital);
+            Assert.Equal(1, healthcarePressureRepository.GetByCityCalls);
+        }
+
+        [Fact]
+        public async Task Handle_IntradayNeedsTick_SkipsHealthcareContextReads()
+        {
+            var cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            var progressionStateRepository = new FakeCityPopulationProgressionStateRepository
+            {
+                State = CityPopulationProgressionState.Create(
+                    cityId: CityId.From(cityId),
+                    lastProcessedTickId: 42,
+                    lastProcessedDate: new DateOnly(2048, 5, 6),
+                    updatedAtUtc: UtcNow)
+            };
+            var anchorRepository = new FakeCityPopulationAnchorCatalogRepository();
+            var healthcarePressureRepository = new FakeCityHealthcarePressureSnapshotRepository();
+            AdvanceCityPopulationCommandHandler handler = CreateHandler(
+                progressionStateRepository: progressionStateRepository,
+                anchorRepository: anchorRepository,
+                healthcarePressureRepository: healthcarePressureRepository);
+
+            AdvanceCityPopulationResult result = await handler.Handle(
+                request: new AdvanceCityPopulationCommand(
+                    CityId: cityId,
+                    FromSimTimeUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero),
+                    ToSimTimeUtc: new DateTimeOffset(2048, 5, 6, 10, 0, 0, TimeSpan.Zero),
+                    TickId: 43),
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(AdvanceCityPopulationStatus.Applied, result.Status);
+            Assert.DoesNotContain(
+                anchorRepository.ListRequests,
+                request => request.Type == CityAnchorType.Hospital);
+            Assert.Equal(0, healthcarePressureRepository.GetByCityCalls);
         }
 
         [Fact]
@@ -585,6 +627,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakePopulationResidentHealthRiskOutboxWriter? residentHealthRiskOutboxWriter = null,
             FakePopulationResidentVitalStateOutboxWriter? residentVitalStateOutboxWriter = null,
             FakeCityPopulationCommuteTripSyncService? commuteTripSyncService = null,
+            FakeCityPopulationAnchorCatalogRepository? anchorRepository = null,
+            FakeCityHealthcarePressureSnapshotRepository? healthcarePressureRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
             var householdLivelihoodPolicy = new CityHouseholdLivelihoodPolicy();
@@ -597,11 +641,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             return new AdvanceCityPopulationCommandHandler(
                 personReadRepository: personReadRepository ?? new FakeCityPopulationPersonReadRepository(),
                 cityPopulationArchiveStateRepository: new FakeCityPopulationArchiveStateRepository(),
-                cityPopulationAnchorCatalogRepository: new FakeCityPopulationAnchorCatalogRepository(),
+                cityPopulationAnchorCatalogRepository: anchorRepository ??
+                                                       new FakeCityPopulationAnchorCatalogRepository(),
                 cityPopulationCostOfLivingStateRepository: new FakeCityPopulationCostOfLivingStateRepository(),
                 cityPopulationEssentialsStateRepository: new FakeCityPopulationEssentialsStateRepository(),
                 cityPopulationServiceQualityStateRepository: new FakeCityPopulationServiceQualityStateRepository(),
-                healthcarePressureSnapshotRepository: new FakeCityHealthcarePressureSnapshotRepository(),
+                healthcarePressureSnapshotRepository: healthcarePressureRepository ??
+                                                      new FakeCityHealthcarePressureSnapshotRepository(),
                 cityPopulationDeletionStateRepository: new FakeCityPopulationDeletionStateRepository(),
                 employerFinancialStressStateRepository: new FakeCityPopulationEmployerFinancialStressStateRepository(),
                 cityPopulationEnvironmentRepository: new FakeCityPopulationEnvironmentRepository(),
