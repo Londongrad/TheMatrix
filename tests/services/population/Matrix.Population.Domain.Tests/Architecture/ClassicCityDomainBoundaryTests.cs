@@ -40,5 +40,27 @@ namespace Matrix.Population.Domain.Tests.Architecture
                     nameof(Person.TryApplyVitalStateProjection),
                     StringComparison.Ordinal));
         }
+
+        [Fact]
+        public void Person_DoesNotExposeEducationState()
+        {
+            string[] forbiddenMemberFragments =
+            [
+                "Education",
+                "Enrollment",
+                "School",
+                "Student"
+            ];
+
+            MemberInfo[] publicMembers = typeof(Person).GetMembers(
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+
+            Assert.DoesNotContain(
+                publicMembers,
+                member => forbiddenMemberFragments.Any(fragment =>
+                    member.Name.Contains(
+                        fragment,
+                        StringComparison.OrdinalIgnoreCase)));
+        }
     }
 }
