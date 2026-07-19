@@ -129,10 +129,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 await cityPopulationEssentialsStateRepository.GetByCityAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            CityPopulationServiceQualityState? serviceQualityState =
-                await cityPopulationServiceQualityStateRepository.GetByCityAsync(
-                    cityId: cityId,
-                    cancellationToken: cancellationToken);
             CityPopulationLivingConditionsState? livingConditionsState =
                 await cityPopulationLivingConditionsStateRepository.GetByCityAsync(
                     cityId: cityId,
@@ -173,6 +169,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             List<PersonEntity> registeredResidents = [];
             List<PersonEntity> residentLifecycleChanges = [];
             IReadOnlyCollection<PopulationResidentHealthRiskSnapshot> pendingHealthRiskSnapshots = [];
+            CityPopulationServiceQualityState? serviceQualityState = null;
             Dictionary<PersonId, int> pendingHealthAdjustmentsByResidentId = [];
             IReadOnlyList<CityPopulationPendingWeatherImpact> pendingWeatherImpacts = [];
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
@@ -327,6 +324,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                         if (requiresDateProgression || pendingHealthAdjustmentsByResidentId.Count > 0)
                         {
+                            serviceQualityState =
+                                await cityPopulationServiceQualityStateRepository.GetByCityAsync(
+                                    cityId: cityId,
+                                    cancellationToken: ct);
                             IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors =
                                 await cityPopulationAnchorCatalogRepository.ListByCityAsync(
                                     cityId: cityId,
