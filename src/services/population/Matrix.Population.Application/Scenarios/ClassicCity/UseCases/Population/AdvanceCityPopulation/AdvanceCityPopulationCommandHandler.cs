@@ -222,7 +222,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 householdFinancialStressStateRepository: householdFinancialStressStateRepository,
                                 employerFinancialStressStateRepository: employerFinancialStressStateRepository,
                                 cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
-                                healthcarePressureSnapshotRepository: healthcarePressureSnapshotRepository,
                                 educationParticipationProjectionRepository: educationParticipationProjectionRepository,
                                 includeEducationParticipation: requiresDateProgression,
                                 includeActiveEducationParticipation: requiresNeedsProgression,
@@ -250,9 +249,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>
                             employerStressByWorkplaceId = workingSet.EmployerStressByWorkplaceId;
                         IReadOnlyList<CityPopulationAnchorCatalogItem> workplaceAnchors = workingSet.WorkplaceAnchors;
-                        IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors = workingSet.HospitalAnchors;
-                        CityPopulationHealthcarePressureProfile healthcarePressureProfile =
-                            workingSet.HealthcarePressureProfile;
                         Dictionary<HouseholdId, HouseholdEntity> householdsById = workingSet.HouseholdsById;
                         Dictionary<string, List<Job>> workplacePools = workingSet.WorkplacePools;
 
@@ -328,6 +324,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                         if (requiresDateProgression || pendingHealthAdjustmentsByResidentId.Count > 0)
                         {
+                            IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors =
+                                await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                                    cityId: cityId,
+                                    type: CityAnchorType.Hospital,
+                                    cancellationToken: ct);
+                            ClassicCityHealthcarePressureSnapshot? healthcarePressureSnapshot =
+                                await healthcarePressureSnapshotRepository.GetByCityAsync(
+                                    cityId: cityId,
+                                    cancellationToken: ct);
+                            CityPopulationHealthcarePressureProfile healthcarePressureProfile =
+                                healthcarePressureSnapshot?.Pressure ??
+                                CityPopulationHealthcarePressureProfile.Baseline;
                             pendingHealthRiskSnapshots =
                                 await ClassicCityResidentHealthRiskSnapshotFactory.BuildAsync(
                                     cityId: cityId,

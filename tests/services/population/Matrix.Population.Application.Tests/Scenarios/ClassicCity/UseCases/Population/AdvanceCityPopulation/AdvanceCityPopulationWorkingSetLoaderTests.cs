@@ -53,7 +53,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var residentialBuildingId = ResidentialBuildingId.From(Guid.Parse("44444444-4444-4444-4444-444444444444"));
             var workplaceId = WorkplaceId.From(Guid.Parse("55555555-5555-5555-5555-555555555555"));
             var workplaceAnchorId = CityAnchorId.From(Guid.Parse("66666666-6666-6666-6666-666666666666"));
-            var hospitalAnchorId = CityAnchorId.From(Guid.Parse("88888888-8888-8888-8888-888888888888"));
             PersonEntity firstResident = CreatePerson(
                 personId: Guid.Parse("99999999-9999-9999-9999-999999999991"),
                 householdId: firstHouseholdId.Value);
@@ -113,10 +112,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     CreateAnchor(
                         anchorId: workplaceAnchorId,
                         type: CityAnchorType.Workplace,
-                        cityId: TestCityId),
-                    CreateAnchor(
-                        anchorId: hospitalAnchorId,
-                        type: CityAnchorType.Hospital,
                         cityId: TestCityId),
                     CreateAnchor(
                         anchorId: CityAnchorId.From(Guid.Parse("99999999-9999-9999-9999-999999999999")),
@@ -226,42 +221,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: workplaceAnchorId,
                 actual: Assert.Single(workingSet.WorkplaceAnchors)
                    .CityAnchorId);
-            Assert.Equal(
-                expected: hospitalAnchorId,
-                actual: Assert.Single(workingSet.HospitalAnchors)
-                   .CityAnchorId);
             Assert.DoesNotContain(
                 anchorRepository.ListRequests,
-                request => request.Type == CityAnchorType.School);
-        }
-
-        [Fact]
-        public async Task LoadAsync_UsesHealthcareOwnedPressureProjection()
-        {
-            var expectedProfile = new CityPopulationHealthcarePressureProfile(
-                ActiveIllnessCount: 8,
-                SevereIllnessCount: 2,
-                MedicalLoadIndex: 0.82m,
-                TriagePressureIndex: 0.34m,
-                RecoverySupportIndex: 1.12m);
-            var snapshotRepository = new FakeCityHealthcarePressureSnapshotRepository
-            {
-                Snapshot = new ClassicCityHealthcarePressureSnapshot(
-                    CityId: TestCityId,
-                    SourceRevision: 17,
-                    CurrentDate: CurrentDate,
-                    PatientCount: 100,
-                    Pressure: expectedProfile,
-                    OccurredAtUtc: EvaluatedAtUtc,
-                    UpdatedAtUtc: EvaluatedAtUtc)
-            };
-
-            AdvanceCityPopulationWorkingSet workingSet = await LoadAsync(
-                healthcarePressureSnapshotRepository: snapshotRepository);
-
-            Assert.Equal(
-                expected: expectedProfile,
-                actual: workingSet.HealthcarePressureProfile);
+                request => request.Type is CityAnchorType.School or CityAnchorType.Hospital);
         }
 
         [Fact]
@@ -374,7 +336,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationHouseholdFinancialStressStateRepository? householdStressRepository = null,
             FakeCityPopulationEmployerFinancialStressStateRepository? employerStressRepository = null,
             FakeCityPopulationAnchorCatalogRepository? anchorRepository = null,
-            FakeCityHealthcarePressureSnapshotRepository? healthcarePressureSnapshotRepository = null,
             FakeEducationParticipationProjectionRepository? educationProjectionRepository = null,
             bool includeEducationParticipation = true,
             bool includeActiveEducationParticipation = false)
@@ -390,8 +351,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                         new FakeCityPopulationEmployerFinancialStressStateRepository(),
                 cityPopulationAnchorCatalogRepository: anchorRepository ??
                                                        new FakeCityPopulationAnchorCatalogRepository(),
-                healthcarePressureSnapshotRepository: healthcarePressureSnapshotRepository ??
-                                                      new FakeCityHealthcarePressureSnapshotRepository(),
                 educationParticipationProjectionRepository: educationProjectionRepository ??
                                                             new FakeEducationParticipationProjectionRepository(),
                 includeEducationParticipation: includeEducationParticipation,

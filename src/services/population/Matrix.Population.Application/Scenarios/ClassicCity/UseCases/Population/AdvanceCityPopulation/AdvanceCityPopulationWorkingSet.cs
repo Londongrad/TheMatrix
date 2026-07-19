@@ -26,7 +26,5 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> FinancialStressByHouseholdId,
         IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> EmployerStressByWorkplaceId,
         IReadOnlyList<CityPopulationAnchorCatalogItem> WorkplaceAnchors,
-        IReadOnlyList<CityPopulationAnchorCatalogItem> HospitalAnchors,
-        CityPopulationHealthcarePressureProfile HealthcarePressureProfile,
         Dictionary<string, List<Job>> WorkplacePools);
 }

@@ -27,7 +27,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
             ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
             ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
-            ICityHealthcarePressureSnapshotRepository healthcarePressureSnapshotRepository,
             IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
             bool includeEducationParticipation,
             bool includeActiveEducationParticipation,
@@ -113,17 +112,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cityId: cityId,
                     type: CityAnchorType.Workplace,
                     cancellationToken: cancellationToken);
-            IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors =
-                await cityPopulationAnchorCatalogRepository.ListByCityAsync(
-                    cityId: cityId,
-                    type: CityAnchorType.Hospital,
-                    cancellationToken: cancellationToken);
-            ClassicCityHealthcarePressureSnapshot? healthcarePressureSnapshot =
-                await healthcarePressureSnapshotRepository.GetByCityAsync(
-                    cityId,
-                    cancellationToken);
-            CityPopulationHealthcarePressureProfile healthcarePressureProfile =
-                healthcarePressureSnapshot?.Pressure ?? CityPopulationHealthcarePressureProfile.Baseline;
             IReadOnlyCollection<HouseholdEntity> households =
                 await householdWriteRepository.ListByCityAsync(
                     cityId: cityId,
@@ -150,8 +138,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 FinancialStressByHouseholdId: financialStressByHouseholdId,
                 EmployerStressByWorkplaceId: employerStressByWorkplaceId,
                 WorkplaceAnchors: workplaceAnchors,
-                HospitalAnchors: hospitalAnchors,
-                HealthcarePressureProfile: healthcarePressureProfile,
                 WorkplacePools: workplacePools);
         }
     }
