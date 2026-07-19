@@ -30,6 +30,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
             bool includeEducationParticipation,
             bool includeActiveEducationParticipation,
+            bool includeEmploymentContext,
             CancellationToken cancellationToken)
         {
             var residents = (await personReadRepository.ListByCityAsync(
@@ -102,16 +103,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cancellationToken: cancellationToken))
                    .ToDictionary(x => x.HouseholdId);
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>
-                employerStressByWorkplaceId =
-                    (await employerFinancialStressStateRepository.ListByCityAsync(
+                employerStressByWorkplaceId = includeEmploymentContext
+                    ? (await employerFinancialStressStateRepository.ListByCityAsync(
                         cityId: cityId,
                         cancellationToken: cancellationToken))
-                   .ToDictionary(x => x.WorkplaceId);
-            IReadOnlyList<CityPopulationAnchorCatalogItem> workplaceAnchors =
-                await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                       .ToDictionary(x => x.WorkplaceId)
+                    : new Dictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>();
+            IReadOnlyList<CityPopulationAnchorCatalogItem> workplaceAnchors = includeEmploymentContext
+                ? await cityPopulationAnchorCatalogRepository.ListByCityAsync(
                     cityId: cityId,
                     type: CityAnchorType.Workplace,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken)
+                : [];
             IReadOnlyCollection<HouseholdEntity> households =
                 await householdWriteRepository.ListByCityAsync(
                     cityId: cityId,
@@ -119,8 +122,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             var householdsById = households.ToDictionary(
                 keySelector: x => x.Id,
                 elementSelector: x => x);
-            Dictionary<string, List<Job>> workplacePools =
-                ResidentPlacementPoolBuilder.BuildWorkplacePools(residents);
+            Dictionary<string, List<Job>> workplacePools = includeEmploymentContext
+                ? ResidentPlacementPoolBuilder.BuildWorkplacePools(residents)
+                : [];
 
             return new AdvanceCityPopulationWorkingSet(
                 Residents: residents,

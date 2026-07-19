@@ -338,7 +338,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationAnchorCatalogRepository? anchorRepository = null,
             FakeEducationParticipationProjectionRepository? educationProjectionRepository = null,
             bool includeEducationParticipation = true,
-            bool includeActiveEducationParticipation = false)
+            bool includeActiveEducationParticipation = false,
+            bool includeEmploymentContext = true)
         {
             return AdvanceCityPopulationWorkingSetLoader.LoadAsync(
                 cityId: TestCityId,
@@ -355,6 +356,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                             new FakeEducationParticipationProjectionRepository(),
                 includeEducationParticipation: includeEducationParticipation,
                 includeActiveEducationParticipation: includeActiveEducationParticipation,
+                includeEmploymentContext: includeEmploymentContext,
                 cancellationToken: CancellationToken.None);
         }
 
