@@ -32,6 +32,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: Money.FromDecimal(6m),
                 actual: context.EmploymentIncomeBonus);
             Assert.Equal(0.010d, context.EmploymentOpportunityBonus);
+            Assert.Equal(0d, context.EmploymentAvailabilityFactor);
             Assert.Equal(-0.03m, context.RetailStoreSpendShareAdjustment);
             Assert.Equal(-0.01m, context.ServiceSpendShareAdjustment);
             Assert.Equal(0.04m, context.MunicipalSpendShareAdjustment);
@@ -68,6 +69,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: Money.FromDecimal(14m),
                 actual: context.EmploymentIncomeBonus);
             Assert.Equal(0.024d, context.EmploymentOpportunityBonus);
+            Assert.Equal(1d, context.EmploymentAvailabilityFactor);
         }
 
         private static EducationParticipationProjection CreateEducationParticipation(

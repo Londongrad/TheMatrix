@@ -32,6 +32,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 dailyTransferIncome: Money.FromDecimal(dailyTransferIncome),
                 employmentIncomeBonus: Money.FromDecimal(employmentIncomeBonus),
                 employmentOpportunityBonus: employmentOpportunityBonus,
+                employmentAvailabilityFactor: isEnrolled ? 0d : 1d,
                 retailStoreSpendShareAdjustment: isEnrolled ? -0.03m : 0m,
                 serviceSpendShareAdjustment: isEnrolled ? -0.01m : 0m,
                 municipalSpendShareAdjustment: isEnrolled ? 0.04m : 0m);

@@ -8,6 +8,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
             Money dailyTransferIncome,
             Money employmentIncomeBonus,
             double employmentOpportunityBonus,
+            double employmentAvailabilityFactor,
             decimal retailStoreSpendShareAdjustment,
             decimal serviceSpendShareAdjustment,
             decimal municipalSpendShareAdjustment)
@@ -15,6 +16,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
             DailyTransferIncome = dailyTransferIncome;
             EmploymentIncomeBonus = employmentIncomeBonus;
             EmploymentOpportunityBonus = employmentOpportunityBonus;
+            EmploymentAvailabilityFactor = employmentAvailabilityFactor;
             RetailStoreSpendShareAdjustment = retailStoreSpendShareAdjustment;
             ServiceSpendShareAdjustment = serviceSpendShareAdjustment;
             MunicipalSpendShareAdjustment = municipalSpendShareAdjustment;
@@ -24,6 +26,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
             dailyTransferIncome: Money.Zero,
             employmentIncomeBonus: Money.Zero,
             employmentOpportunityBonus: 0d,
+            employmentAvailabilityFactor: 1d,
             retailStoreSpendShareAdjustment: 0m,
             serviceSpendShareAdjustment: 0m,
             municipalSpendShareAdjustment: 0m);
@@ -31,6 +34,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         public Money DailyTransferIncome { get; }
         public Money EmploymentIncomeBonus { get; }
         public double EmploymentOpportunityBonus { get; }
+        public double EmploymentAvailabilityFactor { get; }
         public decimal RetailStoreSpendShareAdjustment { get; }
         public decimal ServiceSpendShareAdjustment { get; }
         public decimal MunicipalSpendShareAdjustment { get; }
@@ -39,6 +43,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
             Money dailyTransferIncome,
             Money employmentIncomeBonus,
             double employmentOpportunityBonus,
+            double employmentAvailabilityFactor,
             decimal retailStoreSpendShareAdjustment,
             decimal serviceSpendShareAdjustment,
             decimal municipalSpendShareAdjustment)
@@ -52,6 +57,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
                 throw new ArgumentOutOfRangeException(nameof(employmentIncomeBonus));
             if (employmentOpportunityBonus is < 0d or > 1d)
                 throw new ArgumentOutOfRangeException(nameof(employmentOpportunityBonus));
+            if (employmentAvailabilityFactor is < 0d or > 1d)
+                throw new ArgumentOutOfRangeException(nameof(employmentAvailabilityFactor));
 
             ValidateShareAdjustment(
                 value: retailStoreSpendShareAdjustment,
@@ -74,6 +81,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
                 dailyTransferIncome: dailyTransferIncome,
                 employmentIncomeBonus: employmentIncomeBonus,
                 employmentOpportunityBonus: employmentOpportunityBonus,
+                employmentAvailabilityFactor: employmentAvailabilityFactor,
                 retailStoreSpendShareAdjustment: retailStoreSpendShareAdjustment,
                 serviceSpendShareAdjustment: serviceSpendShareAdjustment,
                 municipalSpendShareAdjustment: municipalSpendShareAdjustment);

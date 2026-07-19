@@ -236,6 +236,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 dailyTransferIncome: Money.FromDecimal(10m),
                 employmentIncomeBonus: Money.Zero,
                 employmentOpportunityBonus: 0d,
+                employmentAvailabilityFactor: 1d,
                 retailStoreSpendShareAdjustment: -0.03m,
                 serviceSpendShareAdjustment: -0.01m,
                 municipalSpendShareAdjustment: 0.04m);

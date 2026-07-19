@@ -106,6 +106,7 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                         dailyTransferIncome: Money.Zero,
                         employmentIncomeBonus: Money.FromDecimal(18m),
                         employmentOpportunityBonus: 0.028d,
+                        employmentAvailabilityFactor: 1d,
                         retailStoreSpendShareAdjustment: 0m,
                         serviceSpendShareAdjustment: 0m,
                         municipalSpendShareAdjustment: 0m)
