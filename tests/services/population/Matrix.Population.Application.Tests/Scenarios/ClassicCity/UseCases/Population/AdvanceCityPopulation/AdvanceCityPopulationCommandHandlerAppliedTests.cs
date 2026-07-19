@@ -83,10 +83,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             };
             var anchorRepository = new FakeCityPopulationAnchorCatalogRepository();
             var healthcarePressureRepository = new FakeCityHealthcarePressureSnapshotRepository();
+            var costOfLivingRepository = new FakeCityPopulationCostOfLivingStateRepository();
             AdvanceCityPopulationCommandHandler handler = CreateHandler(
                 progressionStateRepository: progressionStateRepository,
                 anchorRepository: anchorRepository,
-                healthcarePressureRepository: healthcarePressureRepository);
+                healthcarePressureRepository: healthcarePressureRepository,
+                costOfLivingRepository: costOfLivingRepository);
 
             AdvanceCityPopulationResult result = await handler.Handle(
                 request: new AdvanceCityPopulationCommand(
@@ -101,6 +103,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 anchorRepository.ListRequests,
                 request => request.Type == CityAnchorType.Hospital);
             Assert.Equal(0, healthcarePressureRepository.GetByCityCalls);
+            Assert.Null(costOfLivingRepository.RequestedCityId);
         }
 
         [Fact]
@@ -629,6 +632,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationCommuteTripSyncService? commuteTripSyncService = null,
             FakeCityPopulationAnchorCatalogRepository? anchorRepository = null,
             FakeCityHealthcarePressureSnapshotRepository? healthcarePressureRepository = null,
+            FakeCityPopulationCostOfLivingStateRepository? costOfLivingRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
             var householdLivelihoodPolicy = new CityHouseholdLivelihoodPolicy();
@@ -643,7 +647,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationArchiveStateRepository: new FakeCityPopulationArchiveStateRepository(),
                 cityPopulationAnchorCatalogRepository: anchorRepository ??
                                                        new FakeCityPopulationAnchorCatalogRepository(),
-                cityPopulationCostOfLivingStateRepository: new FakeCityPopulationCostOfLivingStateRepository(),
+                cityPopulationCostOfLivingStateRepository: costOfLivingRepository ??
+                                                           new FakeCityPopulationCostOfLivingStateRepository(),
                 cityPopulationEssentialsStateRepository: new FakeCityPopulationEssentialsStateRepository(),
                 cityPopulationServiceQualityStateRepository: new FakeCityPopulationServiceQualityStateRepository(),
                 healthcarePressureSnapshotRepository: healthcarePressureRepository ??
