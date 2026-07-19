@@ -23,9 +23,14 @@ namespace Matrix.Population.Application.Tests.Integration.Education
                 new PopulationApplicationTestSupport.FakeEducationParticipationProjectionRepository();
             var unitOfWork = new PopulationApplicationTestSupport.FakeUnitOfWork();
             var handler = CreateHandler(personRepository, projectionRepository, unitOfWork: unitOfWork);
+            StudentEducationParticipationInput student = CreateStudent() with
+            {
+                ActiveStage = " Primary ",
+                CompletedStage = " PRESCHOOL "
+            };
 
             ApplyEducationParticipationResult result = await handler.Handle(
-                CreateCommand(CreateStudent()),
+                CreateCommand(student),
                 CancellationToken.None);
 
             Assert.Equal(ApplyEducationParticipationStatus.Applied, result.Status);
@@ -36,6 +41,7 @@ namespace Matrix.Population.Application.Tests.Integration.Education
                 Assert.Single(projectionRepository.Projections);
             Assert.Equal(HostId, projection.SimulationHostId);
             Assert.Equal("primary", projection.ActiveStage);
+            Assert.Equal("preschool", projection.CompletedStage);
             Assert.Equal(PopulationApplicationTestSupport.UtcNow, projection.UpdatedAtUtc);
             Assert.Equal(1, unitOfWork.SaveChangesCalls);
         }

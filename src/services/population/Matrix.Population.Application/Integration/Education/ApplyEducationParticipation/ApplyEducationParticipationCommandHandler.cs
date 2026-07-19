@@ -68,11 +68,11 @@ namespace Matrix.Population.Application.Integration.Education.ApplyEducationPart
                     ParticipationRevision: student.ParticipationRevision,
                     ResidentLifecycleRevision: student.ResidentLifecycleRevision,
                     IsEnrolled: student.IsEnrolled,
-                    ActiveStage: student.ActiveStage,
+                    ActiveStage: NormalizeStage(student.ActiveStage),
                     InstitutionId: student.InstitutionId,
                     InstitutionAnchorId: student.InstitutionAnchorId,
                     EnrolledOn: student.EnrolledOn,
-                    CompletedStage: student.CompletedStage,
+                    CompletedStage: NormalizeStage(student.CompletedStage),
                     CompletedStageOn: student.CompletedStageOn,
                     SnapshotDate: request.SnapshotDate,
                     OccurredAtUtc: request.OccurredAtUtc,
@@ -91,6 +91,13 @@ namespace Matrix.Population.Application.Integration.Education.ApplyEducationPart
                 AppliedStudentCount: appliedStudentCount,
                 StaleStudentCount: projections.Count - appliedStudentCount,
                 MissingOrChangedResidentCount: missingOrChangedResidentCount);
+        }
+
+        private static string? NormalizeStage(string? stage)
+        {
+            return string.IsNullOrWhiteSpace(stage)
+                ? null
+                : stage.Trim().ToLowerInvariant();
         }
 
         private static void Validate(ApplyEducationParticipationCommand request)
