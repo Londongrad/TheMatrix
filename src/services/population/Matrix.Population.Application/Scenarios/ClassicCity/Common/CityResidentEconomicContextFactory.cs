@@ -41,7 +41,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
         private static (decimal incomeBonus, double opportunityBonus) ResolveEmploymentModifiers(
             string? completedStage)
         {
-            return completedStage?.Trim().ToLowerInvariant() switch
+            return completedStage switch
             {
                 "primary" => (1m, 0.003d),
                 "lower-secondary" => (3m, 0.006d),
