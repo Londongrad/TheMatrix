@@ -138,6 +138,66 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 actual: createdJob.WorkplaceAnchorId);
         }
 
+        [Fact]
+        public void Apply_WhenEmploymentAvailabilityIsZero_DoesNotAssignJob()
+        {
+            CityEmploymentAutonomyPolicy policy = CreatePolicy();
+            var currentDate = new DateOnly(
+                year: 2048,
+                month: 5,
+                day: 2);
+            Household household = PopulationTestData.CreateHousehold(cashReserve: -500m);
+            Person adult = CreatePerson(
+                personId: Guid.Parse("9d4d5f12-7f2f-4c1e-88d8-a9f3df448c0f"),
+                birthDate: new DateOnly(
+                    year: 2020,
+                    month: 5,
+                    day: 1),
+                currentDate: currentDate,
+                employmentStatus: EmploymentStatus.Unemployed,
+                personality: Personality.Create(
+                    optimism: 100,
+                    discipline: 100,
+                    riskTolerance: 50,
+                    sociability: 50),
+                health: 100,
+                energy: 100,
+                stress: 0);
+            Dictionary<string, List<Job>> workplacePools = [];
+
+            bool changed = policy.Apply(
+                person: adult,
+                household: household,
+                householdResidents: [adult],
+                routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
+                economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>
+                {
+                    [adult.Id] = CityResidentEconomicContext.Create(
+                        dailyTransferIncome: Money.Zero,
+                        employmentIncomeBonus: Money.Zero,
+                        employmentOpportunityBonus: 0d,
+                        employmentAvailabilityFactor: 0d,
+                        retailStoreSpendShareAdjustment: 0m,
+                        serviceSpendShareAdjustment: 0m,
+                        municipalSpendShareAdjustment: 0m)
+                },
+                previousDate: new DateOnly(
+                    year: 2047,
+                    month: 1,
+                    day: 1),
+                currentDate: currentDate,
+                housingStatus: HousingStatus.Housed,
+                preferredDistrictId: null,
+                workplaceAnchors: [CreateWorkplaceAnchor()],
+                workplacePools: workplacePools,
+                employerStressByWorkplaceId: new Dictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>(),
+                costOfLivingState: PopulationTestData.CreateCostOfLivingState());
+
+            Assert.False(changed);
+            Assert.Equal(EmploymentStatus.Unemployed, adult.Employment.Status);
+            Assert.Empty(workplacePools);
+        }
+
         private static CityEmploymentAutonomyPolicy CreatePolicy()
         {
             return new CityEmploymentAutonomyPolicy(

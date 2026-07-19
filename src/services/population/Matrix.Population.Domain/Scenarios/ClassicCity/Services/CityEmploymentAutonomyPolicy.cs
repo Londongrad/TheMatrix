@@ -329,10 +329,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 };
             }
 
-            return Math.Clamp(
+            double boundedChance = Math.Clamp(
                 value: chance,
                 min: 0.003d,
                 max: 0.120d);
+            return boundedChance * economicContext.EmploymentAvailabilityFactor;
         }
 
         private static double ResolveJobLossChancePerReview(
