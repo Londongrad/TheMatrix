@@ -29,8 +29,16 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     updatedAtUtc: UtcNow)
             };
             var unitOfWork = new FakeUnitOfWork();
+            var archiveStateRepository = new FakeCityPopulationArchiveStateRepository();
+            var deletionStateRepository = new FakeCityPopulationDeletionStateRepository();
+            var costOfLivingStateRepository = new FakeCityPopulationCostOfLivingStateRepository();
+            var environmentRepository = new FakeCityPopulationEnvironmentRepository();
             AdvanceCityPopulationCommandHandler handler = CreateHandler(
                 progressionStateRepository: progressionStateRepository,
+                archiveStateRepository: archiveStateRepository,
+                deletionStateRepository: deletionStateRepository,
+                costOfLivingStateRepository: costOfLivingStateRepository,
+                environmentRepository: environmentRepository,
                 unitOfWork: unitOfWork);
 
             AdvanceCityPopulationResult result = await handler.Handle(
@@ -48,6 +56,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: CityId.From(cityId),
                 actual: progressionStateRepository.RequestedCityId);
+            Assert.Null(deletionStateRepository.RequestedCityId);
+            Assert.Null(archiveStateRepository.RequestedCityId);
+            Assert.Null(costOfLivingStateRepository.RequestedCityId);
+            Assert.Null(environmentRepository.RequestedCityId);
             Assert.Equal(
                 expected: 0,
                 actual: unitOfWork.ExecuteTransactionCalls);
@@ -219,6 +231,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationArchiveStateRepository? archiveStateRepository = null,
             FakeCityPopulationDeletionStateRepository? deletionStateRepository = null,
             FakeCityPopulationProgressionStateRepository? progressionStateRepository = null,
+            FakeCityPopulationCostOfLivingStateRepository? costOfLivingStateRepository = null,
+            FakeCityPopulationEnvironmentRepository? environmentRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
             var householdLivelihoodPolicy = new CityHouseholdLivelihoodPolicy();
@@ -233,14 +247,16 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationArchiveStateRepository: archiveStateRepository ??
                                                       new FakeCityPopulationArchiveStateRepository(),
                 cityPopulationAnchorCatalogRepository: new FakeCityPopulationAnchorCatalogRepository(),
-                cityPopulationCostOfLivingStateRepository: new FakeCityPopulationCostOfLivingStateRepository(),
+                cityPopulationCostOfLivingStateRepository: costOfLivingStateRepository ??
+                                                           new FakeCityPopulationCostOfLivingStateRepository(),
                 cityPopulationEssentialsStateRepository: new FakeCityPopulationEssentialsStateRepository(),
                 cityPopulationServiceQualityStateRepository: new FakeCityPopulationServiceQualityStateRepository(),
                 healthcarePressureSnapshotRepository: new FakeCityHealthcarePressureSnapshotRepository(),
                 cityPopulationDeletionStateRepository: deletionStateRepository ??
                                                        new FakeCityPopulationDeletionStateRepository(),
                 employerFinancialStressStateRepository: new FakeCityPopulationEmployerFinancialStressStateRepository(),
-                cityPopulationEnvironmentRepository: new FakeCityPopulationEnvironmentRepository(),
+                cityPopulationEnvironmentRepository: environmentRepository ??
+                                                     new FakeCityPopulationEnvironmentRepository(),
                 householdFinancialStressStateRepository:
                 new FakeCityPopulationHouseholdFinancialStressStateRepository(),
                 cityPopulationLivingConditionsStateRepository: new FakeCityPopulationLivingConditionsStateRepository(),
