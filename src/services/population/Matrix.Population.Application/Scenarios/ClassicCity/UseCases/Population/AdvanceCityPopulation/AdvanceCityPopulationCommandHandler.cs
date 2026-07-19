@@ -95,9 +95,36 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationProgressionState? state = await progressionStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
+
+            if (state is not null)
+            {
+                if (request.TickId <= state.LastProcessedTickId)
+                    return new AdvanceCityPopulationResult(
+                        Status: AdvanceCityPopulationStatus.Duplicate,
+                        AffectedPeopleCount: 0);
+                if (toDate < state.LastProcessedDate)
+                    return new AdvanceCityPopulationResult(
+                        Status: AdvanceCityPopulationStatus.OutOfOrder,
+                        AffectedPeopleCount: 0);
+            }
+
+            CityPopulationDeletionState? deletionState =
+                await cityPopulationDeletionStateRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+            if (deletionState is not null)
+                return new AdvanceCityPopulationResult(
+                    Status: AdvanceCityPopulationStatus.CityDeleted,
+                    AffectedPeopleCount: 0);
+
             CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
+            if (archiveState is not null)
+                return new AdvanceCityPopulationResult(
+                    Status: AdvanceCityPopulationStatus.CityArchived,
+                    AffectedPeopleCount: 0);
+
             CityPopulationCostOfLivingState? costOfLivingState =
                 await cityPopulationCostOfLivingStateRepository.GetByCityAsync(
                     cityId: cityId,
@@ -114,10 +141,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 await cityPopulationLivingConditionsStateRepository.GetByCityAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            CityPopulationDeletionState? deletionState =
-                await cityPopulationDeletionStateRepository.GetByCityAsync(
-                    cityId: cityId,
-                    cancellationToken: cancellationToken);
             CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
@@ -125,27 +148,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 await weatherExposureStateRepository.GetByCityAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-
-            if (state is not null)
-            {
-                if (request.TickId <= state.LastProcessedTickId)
-                    return new AdvanceCityPopulationResult(
-                        Status: AdvanceCityPopulationStatus.Duplicate,
-                        AffectedPeopleCount: 0);
-                if (toDate < state.LastProcessedDate)
-                    return new AdvanceCityPopulationResult(
-                        Status: AdvanceCityPopulationStatus.OutOfOrder,
-                        AffectedPeopleCount: 0);
-            }
-
-            if (deletionState is not null)
-                return new AdvanceCityPopulationResult(
-                    Status: AdvanceCityPopulationStatus.CityDeleted,
-                    AffectedPeopleCount: 0);
-            if (archiveState is not null)
-                return new AdvanceCityPopulationResult(
-                    Status: AdvanceCityPopulationStatus.CityArchived,
-                    AffectedPeopleCount: 0);
 
             DateOnly previousDate = state?.LastProcessedDate ?? fromDate;
             int affectedPeopleCount = 0;
