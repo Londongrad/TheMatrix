@@ -222,11 +222,6 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                .SingleOrDefaultAsync(
                     predicate: x => x.CityId == cityId,
                     cancellationToken: cancellationToken);
-            CityPopulationServiceQualityState? serviceQualityState = await _dbContext.CityPopulationServiceQualityStates
-               .AsNoTracking()
-               .SingleOrDefaultAsync(
-                    predicate: x => x.CityId == cityId,
-                    cancellationToken: cancellationToken);
             CityPopulationEssentialsState? essentialsState = await _dbContext.CityPopulationEssentialsStates
                .AsNoTracking()
                .SingleOrDefaultAsync(
@@ -255,7 +250,6 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 educationParticipationIndex: educationParticipationIndex,
                 householdPlacements: resolvedPlacements,
                 livingConditionsState: livingConditionsState,
-                serviceQualityState: serviceQualityState,
                 essentialsState: essentialsState,
                 districtImpactPolicy: _districtImpactPolicy,
                 participationPolicy: _participationPolicy,
@@ -349,7 +343,6 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             EducationParticipationProjectionIndex educationParticipationIndex,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             CityPopulationLivingConditionsState? livingConditionsState,
-            CityPopulationServiceQualityState? serviceQualityState,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationParticipationPolicy participationPolicy,
