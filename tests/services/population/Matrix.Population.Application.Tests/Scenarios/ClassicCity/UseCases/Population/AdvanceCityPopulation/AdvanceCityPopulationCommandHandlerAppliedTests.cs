@@ -84,11 +84,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             var anchorRepository = new FakeCityPopulationAnchorCatalogRepository();
             var healthcarePressureRepository = new FakeCityHealthcarePressureSnapshotRepository();
             var costOfLivingRepository = new FakeCityPopulationCostOfLivingStateRepository();
+            var serviceQualityRepository = new FakeCityPopulationServiceQualityStateRepository();
             AdvanceCityPopulationCommandHandler handler = CreateHandler(
                 progressionStateRepository: progressionStateRepository,
                 anchorRepository: anchorRepository,
                 healthcarePressureRepository: healthcarePressureRepository,
-                costOfLivingRepository: costOfLivingRepository);
+                costOfLivingRepository: costOfLivingRepository,
+                serviceQualityRepository: serviceQualityRepository);
 
             AdvanceCityPopulationResult result = await handler.Handle(
                 request: new AdvanceCityPopulationCommand(
@@ -104,6 +106,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 request => request.Type == CityAnchorType.Hospital);
             Assert.Equal(0, healthcarePressureRepository.GetByCityCalls);
             Assert.Null(costOfLivingRepository.RequestedCityId);
+            Assert.Null(serviceQualityRepository.RequestedCityId);
         }
 
         [Fact]
@@ -633,6 +636,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             FakeCityPopulationAnchorCatalogRepository? anchorRepository = null,
             FakeCityHealthcarePressureSnapshotRepository? healthcarePressureRepository = null,
             FakeCityPopulationCostOfLivingStateRepository? costOfLivingRepository = null,
+            FakeCityPopulationServiceQualityStateRepository? serviceQualityRepository = null,
             FakeUnitOfWork? unitOfWork = null)
         {
             var householdLivelihoodPolicy = new CityHouseholdLivelihoodPolicy();
@@ -650,7 +654,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityPopulationCostOfLivingStateRepository: costOfLivingRepository ??
                                                            new FakeCityPopulationCostOfLivingStateRepository(),
                 cityPopulationEssentialsStateRepository: new FakeCityPopulationEssentialsStateRepository(),
-                cityPopulationServiceQualityStateRepository: new FakeCityPopulationServiceQualityStateRepository(),
+                cityPopulationServiceQualityStateRepository: serviceQualityRepository ??
+                                                             new FakeCityPopulationServiceQualityStateRepository(),
                 healthcarePressureSnapshotRepository: healthcarePressureRepository ??
                                                       new FakeCityHealthcarePressureSnapshotRepository(),
                 cityPopulationDeletionStateRepository: new FakeCityPopulationDeletionStateRepository(),
