@@ -255,7 +255,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public async Task LoadAsync_WhenOnlyActiveEducationIsRequired_UsesFilteredProjectionRead()
+        public async Task LoadAsync_WhenOnlyRoutinesAreRequired_UsesActiveEducationWithoutEconomics()
         {
             PersonEntity resident = CreatePerson();
             var projectionRepository = new FakeEducationParticipationProjectionRepository();
@@ -286,7 +286,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 personReadRepository: personReadRepository,
                 educationProjectionRepository: projectionRepository,
                 includeEducationParticipation: false,
-                includeActiveEducationParticipation: true);
+                includeActiveEducationParticipation: true,
+                includeEconomicContexts: false);
 
             Assert.Equal(0, projectionRepository.GetByResidentIdsCallCount);
             Assert.Equal(1, projectionRepository.GetEnrolledByResidentIdsCallCount);
@@ -294,9 +295,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: PersonStructuredActivityLoad.Moderate,
                 actual: workingSet.RoutineProfilesByResidentId[resident.Id].StructuredActivityLoad);
-            Assert.Equal(
-                expected: Money.FromDecimal(10m),
-                actual: workingSet.EconomicContextsByResidentId[resident.Id].DailyTransferIncome);
+            Assert.Empty(workingSet.EconomicContextsByResidentId);
         }
 
         [Fact]
