@@ -33,7 +33,6 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityServiceQualitySnapshotConsumerDefinition.EndpointNameValue,
                     HealthcareQualityIndex: message.HealthcareQualityIndex,
-                    EducationQualityIndex: message.EducationQualityIndex,
                     HousingSupportIndex: message.HousingSupportIndex,
                     OccurredAtUtc: message.OccurredAtUtc),
                 cancellationToken: cancellationToken);

@@ -819,10 +819,6 @@ namespace Matrix.Population.Infrastructure.Migrations
                     b.Property<Guid>("CityId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("EducationQualityIndex")
-                        .HasPrecision(8, 4)
-                        .HasColumnType("numeric(8,4)");
-
                     b.Property<decimal>("HealthcareQualityIndex")
                         .HasPrecision(8, 4)
                         .HasColumnType("numeric(8,4)");

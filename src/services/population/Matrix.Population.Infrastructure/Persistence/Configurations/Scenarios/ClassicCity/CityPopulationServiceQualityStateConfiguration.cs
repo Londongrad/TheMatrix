@@ -25,12 +25,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
                     scale: 4)
                .IsRequired();
 
-            builder.Property(x => x.EducationQualityIndex)
-               .HasPrecision(
-                    precision: 8,
-                    scale: 4)
-               .IsRequired();
-
             builder.Property(x => x.HousingSupportIndex)
                .HasPrecision(
                     precision: 8,

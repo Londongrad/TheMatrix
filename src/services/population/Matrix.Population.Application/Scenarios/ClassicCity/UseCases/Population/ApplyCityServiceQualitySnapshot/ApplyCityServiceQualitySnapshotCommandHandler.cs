@@ -64,7 +64,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         state = CityPopulationServiceQualityState.Create(
                             cityId: cityId,
                             healthcareQualityIndex: request.HealthcareQualityIndex,
-                            educationQualityIndex: request.EducationQualityIndex,
                             housingSupportIndex: request.HousingSupportIndex,
                             lastEvaluatedAtUtc: occurredAtUtc,
                             updatedAtUtc: updatedAtUtc);
@@ -76,7 +75,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     else
                         state.ApplySnapshot(
                             healthcareQualityIndex: request.HealthcareQualityIndex,
-                            educationQualityIndex: request.EducationQualityIndex,
                             housingSupportIndex: request.HousingSupportIndex,
                             lastEvaluatedAtUtc: occurredAtUtc,
                             updatedAtUtc: updatedAtUtc);

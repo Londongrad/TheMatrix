@@ -499,7 +499,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             return CityPopulationServiceQualityState.Create(
                 cityId: TestCityId,
                 healthcareQualityIndex: 1m,
-                educationQualityIndex: 1m,
                 housingSupportIndex: housingSupportIndex,
                 lastEvaluatedAtUtc: EvaluatedAtUtc,
                 updatedAtUtc: EvaluatedAtUtc);

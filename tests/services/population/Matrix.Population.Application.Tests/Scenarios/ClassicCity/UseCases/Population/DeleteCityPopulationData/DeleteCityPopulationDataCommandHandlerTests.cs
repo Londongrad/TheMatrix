@@ -156,7 +156,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 State = CityPopulationServiceQualityState.Create(
                     cityId: CityId.From(cityId),
                     healthcareQualityIndex: 1.02m,
-                    educationQualityIndex: 0.97m,
                     housingSupportIndex: 1.01m,
                     lastEvaluatedAtUtc: UtcNow.AddDays(-1),
                     updatedAtUtc: UtcNow)

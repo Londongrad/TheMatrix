@@ -11,7 +11,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         private CityPopulationServiceQualityState(
             CityId cityId,
             decimal healthcareQualityIndex,
-            decimal educationQualityIndex,
             decimal housingSupportIndex,
             DateTimeOffset lastEvaluatedAtUtc,
             DateTimeOffset updatedAtUtc)
@@ -20,9 +19,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             HealthcareQualityIndex = ValidateIndex(
                 value: healthcareQualityIndex,
                 paramName: nameof(healthcareQualityIndex));
-            EducationQualityIndex = ValidateIndex(
-                value: educationQualityIndex,
-                paramName: nameof(educationQualityIndex));
             HousingSupportIndex = ValidateIndex(
                 value: housingSupportIndex,
                 paramName: nameof(housingSupportIndex));
@@ -36,7 +32,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 
         public CityId CityId { get; private set; }
         public decimal HealthcareQualityIndex { get; private set; }
-        public decimal EducationQualityIndex { get; private set; }
         public decimal HousingSupportIndex { get; private set; }
         public DateTimeOffset LastEvaluatedAtUtc { get; private set; }
         public DateTimeOffset UpdatedAtUtc { get; private set; }
@@ -44,7 +39,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         public static CityPopulationServiceQualityState Create(
             CityId cityId,
             decimal healthcareQualityIndex,
-            decimal educationQualityIndex,
             decimal housingSupportIndex,
             DateTimeOffset lastEvaluatedAtUtc,
             DateTimeOffset updatedAtUtc)
@@ -52,7 +46,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             return new CityPopulationServiceQualityState(
                 cityId: cityId,
                 healthcareQualityIndex: healthcareQualityIndex,
-                educationQualityIndex: educationQualityIndex,
                 housingSupportIndex: housingSupportIndex,
                 lastEvaluatedAtUtc: lastEvaluatedAtUtc,
                 updatedAtUtc: updatedAtUtc);
@@ -60,7 +53,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 
         public void ApplySnapshot(
             decimal healthcareQualityIndex,
-            decimal educationQualityIndex,
             decimal housingSupportIndex,
             DateTimeOffset lastEvaluatedAtUtc,
             DateTimeOffset updatedAtUtc)
@@ -68,9 +60,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             HealthcareQualityIndex = ValidateIndex(
                 value: healthcareQualityIndex,
                 paramName: nameof(healthcareQualityIndex));
-            EducationQualityIndex = ValidateIndex(
-                value: educationQualityIndex,
-                paramName: nameof(educationQualityIndex));
             HousingSupportIndex = ValidateIndex(
                 value: housingSupportIndex,
                 paramName: nameof(housingSupportIndex));

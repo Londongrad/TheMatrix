@@ -93,7 +93,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 State = CityPopulationServiceQualityState.Create(
                     cityId: CityId.From(cityId),
                     healthcareQualityIndex: 1.10m,
-                    educationQualityIndex: 1.20m,
                     housingSupportIndex: 1.30m,
                     lastEvaluatedAtUtc: new DateTimeOffset(
                         year: 2048,
@@ -156,9 +155,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: 1.18m,
                 actual: state.HealthcareQualityIndex);
             Assert.Equal(
-                expected: 0.95m,
-                actual: state.EducationQualityIndex);
-            Assert.Equal(
                 expected: 1.07m,
                 actual: state.HousingSupportIndex);
             Assert.Equal(
@@ -206,7 +202,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 IntegrationMessageId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
                 ConsumerName: "population-service-quality",
                 HealthcareQualityIndex: 1.18m,
-                EducationQualityIndex: 0.95m,
                 HousingSupportIndex: 1.07m,
                 OccurredAtUtc: new DateTimeOffset(
                     year: 2048,

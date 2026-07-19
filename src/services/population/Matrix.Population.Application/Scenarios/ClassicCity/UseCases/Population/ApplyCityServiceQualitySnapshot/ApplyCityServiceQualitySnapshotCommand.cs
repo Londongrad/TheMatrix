@@ -7,7 +7,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         Guid IntegrationMessageId,
         string ConsumerName,
         decimal HealthcareQualityIndex,
-        decimal EducationQualityIndex,
         decimal HousingSupportIndex,
         DateTimeOffset OccurredAtUtc)
         : IRequest<ApplyCityServiceQualitySnapshotResult>;

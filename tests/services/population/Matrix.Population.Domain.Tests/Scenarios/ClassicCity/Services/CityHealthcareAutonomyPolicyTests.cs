@@ -198,7 +198,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             return CityPopulationServiceQualityState.Create(
                 cityId: CityId.From(Guid.Parse("90909090-9090-9090-9090-909090909090")),
                 healthcareQualityIndex: healthcareQualityIndex,
-                educationQualityIndex: 1m,
                 housingSupportIndex: 1m,
                 lastEvaluatedAtUtc: new DateTimeOffset(
                     year: 2048,
