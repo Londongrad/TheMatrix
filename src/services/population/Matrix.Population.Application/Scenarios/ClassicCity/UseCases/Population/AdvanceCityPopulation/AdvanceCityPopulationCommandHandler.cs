@@ -226,6 +226,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 includeEducationParticipation: requiresDateProgression,
                                 includeActiveEducationParticipation: requiresNeedsProgression,
                                 includeEmploymentContext: requiresDateProgression,
+                                includeEconomicContexts: requiresDateProgression,
                                 cancellationToken: ct);
                         List<PersonEntity> residents = workingSet.Residents;
                         personsSnapshot = residents;

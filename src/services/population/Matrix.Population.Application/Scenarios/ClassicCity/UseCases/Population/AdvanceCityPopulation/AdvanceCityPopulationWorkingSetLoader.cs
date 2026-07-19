@@ -31,6 +31,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             bool includeEducationParticipation,
             bool includeActiveEducationParticipation,
             bool includeEmploymentContext,
+            bool includeEconomicContexts,
             CancellationToken cancellationToken)
         {
             var residents = (await personReadRepository.ListByCityAsync(
@@ -68,17 +69,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 projections: educationProjections);
             var routineProfilesByResidentId = new Dictionary<PersonId, PersonRoutineProfile>(residents.Count);
             var economicContextsByResidentId =
-                new Dictionary<PersonId, CityResidentEconomicContext>(residents.Count);
+                new Dictionary<PersonId, CityResidentEconomicContext>(
+                    includeEconomicContexts ? residents.Count : 0);
             foreach (PersonEntity resident in residents)
             {
                 EducationParticipationProjection? participation = educationParticipation.FindCurrent(resident);
                 routineProfilesByResidentId[resident.Id] = PersonRoutineProfileFactory.Create(
                     resident: resident,
                     educationParticipation: participation);
-                economicContextsByResidentId[resident.Id] = CityResidentEconomicContextFactory.Create(
-                    resident: resident,
-                    educationParticipation: participation,
-                    currentDate: currentDate);
+                if (includeEconomicContexts)
+                    economicContextsByResidentId[resident.Id] = CityResidentEconomicContextFactory.Create(
+                        resident: resident,
+                        educationParticipation: participation,
+                        currentDate: currentDate);
             }
             IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
                 await householdWriteRepository.ListPlacementsByCityAsync(
