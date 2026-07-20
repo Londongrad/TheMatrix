@@ -287,6 +287,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     householdEconomyPolicy: householdEconomyPolicy,
                     anchorSelectionPolicy: anchorSelectionPolicy),
                 healthcareAutonomyPolicy: new CityHealthcareAutonomyPolicy(householdLivelihoodPolicy),
+                householdLivelihoodPolicy: householdLivelihoodPolicy,
                 householdCashflowPolicy: householdCashflowPolicy,
                 householdPressurePolicy: new CityHouseholdPressurePolicy(),
                 housingAutonomyPolicy: new CityHousingAutonomyPolicy(householdEconomyPolicy),

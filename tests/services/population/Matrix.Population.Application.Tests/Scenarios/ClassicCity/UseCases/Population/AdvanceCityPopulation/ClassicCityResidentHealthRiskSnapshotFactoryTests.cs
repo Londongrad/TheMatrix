@@ -85,6 +85,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         RecoverySupportIndex: 1m),
                     healthcareAutonomyPolicy: new CityHealthcareAutonomyPolicy(
                         new CityHouseholdLivelihoodPolicy()),
+                    householdLivelihoodPolicy: new CityHouseholdLivelihoodPolicy(),
                     anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy(),
                     hospitalAnchors: [hospital],
                     districtImpactPolicy: new CityPopulationDistrictImpactPolicy(),

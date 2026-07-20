@@ -33,6 +33,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationServiceQualityState? serviceQualityState,
             CityPopulationHealthcarePressureProfile healthcarePressureProfile,
             CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
+            CityHouseholdLivelihoodPolicy householdLivelihoodPolicy,
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
@@ -99,6 +100,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         residentialBuildingId: prepared.ResidentialBuildingId,
                         healthcareAnchorId: prepared.PrimaryCareAnchor?.CityAnchorId,
                         cancellationToken: cancellationToken);
+                CityHouseholdLivelihoodProfile householdLivelihood = householdLivelihoodPolicy.Build(
+                    householdResidents: aliveHouseholdResidents,
+                    routineProfilesByResidentId: routineProfilesByResidentId,
+                    housingStatus: housingStatus,
+                    currentDate: currentDate);
                 double healthcareSupportStrength = healthcareAutonomyPolicy.ResolveSupportStrength(
                                                        resident: resident,
                                                        householdResidents: aliveHouseholdResidents,
@@ -143,10 +149,79 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             livingConditions: districtLivingConditions,
                             essentials: districtEssentials),
                         LifecycleRevision: resident.LifecycleRevision,
-                        CommunityId: prepared.DistrictId?.Value));
+                        CommunityId: prepared.DistrictId?.Value,
+                        FunctionalCapacityScore: resident.FunctionalCapacity.Value,
+                        IsEmployed: resident.Employment.Status == EmploymentStatus.Employed,
+                        Household: new PopulationResidentHouseholdHealthSnapshot(
+                            StabilityScore: householdLivelihood.StabilityScore,
+                            AdultProviderCount: householdLivelihood.AdultProviderCount,
+                            AdultStructuredParticipantCount:
+                            householdLivelihood.AdultStructuredParticipantCount,
+                            FunctionalLimitationCount:
+                            householdLivelihood.FunctionalLimitationCount,
+                            HasStructuredSupport: householdLivelihood.HasStructuredSupport),
+                        HealthcareAccess: MapHealthcareAccess(
+                            prepared,
+                            healthcareCommute,
+                            districtUtilityConditions,
+                            serviceQualityState,
+                            healthcarePressureProfile),
+                        Environment: MapEnvironment(
+                            districtLivingConditions,
+                            districtEssentials)));
             }
 
             return snapshots;
+        }
+
+        private static PopulationResidentHealthcareAccessSnapshot MapHealthcareAccess(
+            PreparedResident prepared,
+            CityPopulationCommuteContext commute,
+            CityDistrictUtilityConditionsSnapshot? utilityConditions,
+            CityPopulationServiceQualityState? serviceQualityState,
+            CityPopulationHealthcarePressureProfile healthcarePressureProfile)
+        {
+            return new PopulationResidentHealthcareAccessSnapshot(
+                HasPrimaryCareDestination: prepared.PrimaryCareAnchor is not null,
+                IsPrimaryCareInCommunity:
+                prepared.PrimaryCareAnchor?.DistrictId == prepared.DistrictId,
+                HasRouteData: commute.HasRouteData,
+                IsRouteAccessible: commute.IsAccessible,
+                RouteAccessibilityIndex: (double)commute.AccessibilityIndex,
+                RoutePassabilityIndex: (double)commute.PassabilityIndex,
+                EstimatedTravelTimeMinutes: (double?)commute.EstimatedTravelTimeMinutes,
+                HasInfrastructureData: utilityConditions is not null,
+                UtilityIncidentDispatchReadinessIndex:
+                (double)(utilityConditions?.UtilityIncidentDispatchReadinessIndex ?? 1m),
+                UtilityIncidentPressureIndex:
+                (double)(utilityConditions?.UtilityIncidentPressureIndex ?? 0m),
+                UtilityIncidentCoordinationDifficultyIndex:
+                (double)(utilityConditions?.UtilityIncidentCoordinationDifficultyIndex ?? 0m),
+                UtilityIncidentRestorationPriorityIndex:
+                (double)(utilityConditions?.UtilityIncidentRestorationPriorityIndex ?? 0m),
+                PowerCoverageIndex: (double)(utilityConditions?.PowerCoverageIndex ?? 1m),
+                WaterCoverageIndex: (double)(utilityConditions?.WaterCoverageIndex ?? 1m),
+                HeatingCoverageIndex: (double)(utilityConditions?.HeatingCoverageIndex ?? 1m),
+                SanitationCoverageIndex: (double)(utilityConditions?.SanitationCoverageIndex ?? 1m),
+                HealthcareQualityIndex: (double)(serviceQualityState?.HealthcareQualityIndex ?? 1m),
+                RecoverySupportIndex: (double)healthcarePressureProfile.RecoverySupportIndex,
+                TriagePressureIndex: (double)healthcarePressureProfile.TriagePressureIndex);
+        }
+
+        private static PopulationResidentEnvironmentalHealthSnapshot MapEnvironment(
+            CityPopulationLivingConditionsContext livingConditions,
+            CityPopulationEssentialsContext essentials)
+        {
+            return new PopulationResidentEnvironmentalHealthSnapshot(
+                WaterCoverageIndex: (double)livingConditions.WaterCoverageIndex,
+                SanitationCoverageIndex: (double)livingConditions.SanitationCoverageIndex,
+                FloodingIndex: (double)livingConditions.FloodingIndex,
+                UtilityContinuityIndex: (double)livingConditions.UtilityContinuityIndex,
+                EmergencyWaterShortageRiskIndex:
+                (double)essentials.EmergencyWaterShortageRiskIndex,
+                FoodShortageRiskIndex: (double)essentials.FoodShortageRiskIndex,
+                MedicineShortageRiskIndex: (double)essentials.MedicineShortageRiskIndex,
+                EmergencyRationingEnabled: essentials.EmergencyRationingEnabled);
         }
 
         private static PreparedResident Prepare(
