@@ -175,66 +175,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
             Assert.Equal(3, structured.StressDelta);
         }
 
-        [Fact]
-        public void ResolvePublicHealthRiskStrength_WhenWaterSanitationAndFloodingAreBad_ReturnsBlendedRisk()
-        {
-            var policy = new CityPopulationLivingConditionsPressurePolicy();
-
-            double riskStrength = policy.ResolvePublicHealthRiskStrength(
-                livingConditions: new CityPopulationLivingConditionsContext(
-                    FloodingIndex: 0.8m,
-                    RoadAccessibilityIndex: 0.9m,
-                    PowerCoverageIndex: 0.95m,
-                    UtilityContinuityIndex: 0.95m,
-                    HeatingCoverageIndex: 0.95m,
-                    WaterCoverageIndex: 0.6m,
-                    SanitationCoverageIndex: 0.5m),
-                essentials: new CityPopulationEssentialsContext(
-                    SupplyStressIndex: 1.1m,
-                    EmergencyRationingEnabled: false,
-                    FoodStockLevelIndex: 0.8m,
-                    FoodShortageRiskIndex: 0.9m,
-                    MedicineStockLevelIndex: 0.95m,
-                    MedicineShortageRiskIndex: 0.7m,
-                    EmergencyWaterStockLevelIndex: 0.85m,
-                    EmergencyWaterShortageRiskIndex: 0.7m));
-
-            Assert.Equal(
-                expected: 0.862d,
-                actual: riskStrength,
-                precision: 3);
-        }
-
-        [Fact]
-        public void ResolveMedicineAccessStrength_WhenShortageAndContinuityDeficitExist_ReturnsReducedClampedAccess()
-        {
-            var policy = new CityPopulationLivingConditionsPressurePolicy();
-
-            double accessStrength = policy.ResolveMedicineAccessStrength(
-                livingConditions: new CityPopulationLivingConditionsContext(
-                    FloodingIndex: 0.1m,
-                    RoadAccessibilityIndex: 0.9m,
-                    PowerCoverageIndex: 0.9m,
-                    UtilityContinuityIndex: 0.7m,
-                    HeatingCoverageIndex: 0.95m,
-                    WaterCoverageIndex: 0.95m,
-                    SanitationCoverageIndex: 0.95m),
-                essentials: new CityPopulationEssentialsContext(
-                    SupplyStressIndex: 1.2m,
-                    EmergencyRationingEnabled: true,
-                    FoodStockLevelIndex: 0.85m,
-                    FoodShortageRiskIndex: 0.8m,
-                    MedicineStockLevelIndex: 0.7m,
-                    MedicineShortageRiskIndex: 1.6m,
-                    EmergencyWaterStockLevelIndex: 0.9m,
-                    EmergencyWaterShortageRiskIndex: 0.9m));
-
-            Assert.Equal(
-                expected: 0.25d,
-                actual: accessStrength,
-                precision: 3);
-        }
-
         private static CityPopulationLivingConditionsContext CreateLivingConditionsContext()
         {
             return new CityPopulationLivingConditionsContext(

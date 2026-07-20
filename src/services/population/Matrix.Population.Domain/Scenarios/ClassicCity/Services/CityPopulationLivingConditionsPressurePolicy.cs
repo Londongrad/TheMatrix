@@ -109,46 +109,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     maxMagnitude: 14));
         }
 
-        public double ResolvePublicHealthRiskStrength(
-            CityPopulationLivingConditionsContext livingConditions,
-            CityPopulationEssentialsContext essentials)
-        {
-            double waterDeficit = ResolveCoverageDeficit(livingConditions.WaterCoverageIndex);
-            double sanitationDeficit = ResolveCoverageDeficit(livingConditions.SanitationCoverageIndex);
-            double floodingPressure = ResolvePressure(livingConditions.FloodingIndex);
-            double emergencyWaterShortage = ResolvePressure(essentials.EmergencyWaterShortageRiskIndex);
-            double foodShortage = ResolvePressure(essentials.FoodShortageRiskIndex) * 0.35d;
-
-            double blended = (waterDeficit * 0.28d) +
-                             (sanitationDeficit * 0.28d) +
-                             (floodingPressure * 0.22d) +
-                             (emergencyWaterShortage * 0.17d) +
-                             foodShortage;
-
-            return Math.Clamp(
-                value: blended,
-                min: 0d,
-                max: 1d);
-        }
-
-        public double ResolveMedicineAccessStrength(
-            CityPopulationLivingConditionsContext livingConditions,
-            CityPopulationEssentialsContext essentials)
-        {
-            double medicineShortage = ResolvePressure(essentials.MedicineShortageRiskIndex);
-            double continuityDeficit = ResolveCoverageDeficit(livingConditions.UtilityContinuityIndex);
-
-            double access = 1d - (medicineShortage * 0.75d) - (continuityDeficit * 0.15d);
-
-            if (essentials.EmergencyRationingEnabled)
-                access -= 0.05d;
-
-            return Math.Clamp(
-                value: access,
-                min: 0.25d,
-                max: 1d);
-        }
-
         private static double ResolveCoverageDeficit(decimal value)
         {
             return Math.Clamp(
