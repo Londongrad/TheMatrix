@@ -103,6 +103,16 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.True(exposed.HadAdverseWeatherExposure);
             Assert.True(exposed.HasStructuredDailyActivity);
             Assert.Equal(DistrictId.Value, exposed.CommunityId);
+            Assert.Equal(familyMember.FunctionalCapacity.Value, exposed.FunctionalCapacityScore);
+            Assert.False(exposed.IsEmployed);
+            Assert.NotNull(exposed.Household);
+            Assert.Equal(1, exposed.Household.AdultStructuredParticipantCount);
+            Assert.True(exposed.Household.HasStructuredSupport);
+            Assert.NotNull(exposed.HealthcareAccess);
+            Assert.True(exposed.HealthcareAccess.HasPrimaryCareDestination);
+            Assert.True(exposed.HealthcareAccess.IsPrimaryCareInCommunity);
+            Assert.NotNull(exposed.Environment);
+            Assert.Equal(1d, exposed.Environment.WaterCoverageIndex);
         }
 
         private static CityPopulationAnchorCatalogItem CreateHospitalAnchor() =>
