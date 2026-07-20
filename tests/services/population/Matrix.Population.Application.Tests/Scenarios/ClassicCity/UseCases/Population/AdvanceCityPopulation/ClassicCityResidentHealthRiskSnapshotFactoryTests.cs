@@ -83,13 +83,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                         MedicalLoadIndex: 0.2m,
                         TriagePressureIndex: 0m,
                         RecoverySupportIndex: 1m),
-                    healthcareAutonomyPolicy: new CityHealthcareAutonomyPolicy(
-                        new CityHouseholdLivelihoodPolicy()),
                     householdLivelihoodPolicy: new CityHouseholdLivelihoodPolicy(),
                     anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy(),
                     hospitalAnchors: [hospital],
                     districtImpactPolicy: new CityPopulationDistrictImpactPolicy(),
-                    livingConditionsPressurePolicy: new CityPopulationLivingConditionsPressurePolicy(),
                     commuteRoutingService: routingService,
                     cancellationToken: CancellationToken.None);
 

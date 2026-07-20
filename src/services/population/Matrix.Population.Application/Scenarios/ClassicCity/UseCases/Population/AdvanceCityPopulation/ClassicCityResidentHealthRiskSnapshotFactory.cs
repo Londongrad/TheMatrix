@@ -32,12 +32,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationEssentialsState? essentialsState,
             CityPopulationServiceQualityState? serviceQualityState,
             CityPopulationHealthcarePressureProfile healthcarePressureProfile,
-            CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
             CityHouseholdLivelihoodPolicy householdLivelihoodPolicy,
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
-            CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
         {
@@ -105,22 +103,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     routineProfilesByResidentId: routineProfilesByResidentId,
                     housingStatus: housingStatus,
                     currentDate: currentDate);
-                double healthcareSupportStrength = healthcareAutonomyPolicy.ResolveSupportStrength(
-                                                       resident: resident,
-                                                       householdResidents: aliveHouseholdResidents,
-                                                       routineProfilesByResidentId: routineProfilesByResidentId,
-                                                       housingStatus: housingStatus,
-                                                       currentDate: currentDate,
-                                                       hasPrimaryCareAccess: prepared.PrimaryCareAnchor is not null,
-                                                       hasDistrictPrimaryCareAccess:
-                                                       prepared.PrimaryCareAnchor?.DistrictId == prepared.DistrictId,
-                                                       districtUtilityConditions: districtUtilityConditions,
-                                                       healthcareCommute: healthcareCommute,
-                                                       serviceQualityState: serviceQualityState,
-                                                       healthcarePressureProfile: healthcarePressureProfile) *
-                                                   livingConditionsPressurePolicy.ResolveMedicineAccessStrength(
-                                                       livingConditions: districtLivingConditions,
-                                                       essentials: districtEssentials);
                 bool hasStructuredDailyActivity =
                     routineProfilesByResidentId.TryGetValue(
                         key: resident.Id,
@@ -143,11 +125,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             householdResidents: aliveHouseholdResidents,
                             currentDate: currentDate),
                         HadAdverseWeatherExposure: hadAdverseWeatherExposure,
-                        HealthcareSupportStrength: Math.Clamp(healthcareSupportStrength, 0d, 1d),
-                        PublicHealthRiskStrength:
-                        livingConditionsPressurePolicy.ResolvePublicHealthRiskStrength(
-                            livingConditions: districtLivingConditions,
-                            essentials: districtEssentials),
                         LifecycleRevision: resident.LifecycleRevision,
                         CommunityId: prepared.DistrictId?.Value,
                         FunctionalCapacityScore: resident.FunctionalCapacity.Value,

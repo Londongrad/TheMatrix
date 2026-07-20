@@ -64,7 +64,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityBirthAutonomyPolicy birthAutonomyPolicy,
         CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
         CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
-        CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
         CityHouseholdLivelihoodPolicy householdLivelihoodPolicy,
         CityHouseholdCashflowPolicy householdCashflowPolicy,
         CityHouseholdPressurePolicy householdPressurePolicy,
@@ -361,12 +360,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     essentialsState: essentialsState,
                                     serviceQualityState: serviceQualityState,
                                     healthcarePressureProfile: healthcarePressureProfile,
-                                    healthcareAutonomyPolicy: healthcareAutonomyPolicy,
                                     householdLivelihoodPolicy: householdLivelihoodPolicy,
                                     anchorSelectionPolicy: anchorSelectionPolicy,
                                     hospitalAnchors: hospitalAnchors,
                                     districtImpactPolicy: districtImpactPolicy,
-                                    livingConditionsPressurePolicy: livingConditionsPressurePolicy,
                                     commuteRoutingService: commuteRoutingService,
                                     cancellationToken: ct);
                             pendingHealthRiskSnapshots = pendingHealthRiskSnapshots
