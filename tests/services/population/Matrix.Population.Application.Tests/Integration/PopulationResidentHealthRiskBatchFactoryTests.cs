@@ -63,6 +63,37 @@ namespace Matrix.Population.Application.Tests.Integration
             Assert.Empty(batches);
         }
 
+        [Fact]
+        public void BuildV2_MapsRawHealthContextsWithoutMedicalInterpretation()
+        {
+            Guid residentId = Guid.NewGuid();
+            PopulationResidentHealthRiskSnapshot snapshot = Create(residentId) with
+            {
+                FunctionalCapacityScore = 64,
+                IsEmployed = true,
+                LifecycleRevision = 7
+            };
+
+            PopulationResidentHealthRiskBatchV2[] batches =
+                PopulationResidentHealthRiskBatchFactory.BuildV2(
+                    simulationHostId: Guid.NewGuid(),
+                    sourceRevision: 43,
+                    previousDate: new DateOnly(2048, 5, 5),
+                    currentDate: new DateOnly(2048, 5, 6),
+                    residents: [snapshot],
+                    correlationId: "population:host:tick:43:health-risk",
+                    observedAtUtc: ObservedAtUtc);
+
+            PopulationResidentHealthRiskV2 risk = Assert.Single(Assert.Single(batches).Residents);
+            Assert.Equal(residentId, risk.ResidentId);
+            Assert.Equal(64, risk.FunctionalCapacityScore);
+            Assert.True(risk.IsEmployed);
+            Assert.Equal(0.7d, risk.Household.StabilityScore);
+            Assert.Equal(0.9d, risk.HealthcareAccess.RouteAccessibilityIndex);
+            Assert.Equal(0.2d, risk.Environment.MedicineShortageRiskIndex);
+            Assert.Equal(7, risk.LifecycleRevision);
+        }
+
         private static PopulationResidentHealthRiskSnapshot Create(Guid residentId) =>
             new(
                 ResidentId: residentId,
@@ -77,6 +108,41 @@ namespace Matrix.Population.Application.Tests.Integration
                 CaregiverSupportStrength: 0.12d,
                 HadAdverseWeatherExposure: false,
                 HealthcareSupportStrength: 0.51d,
-                PublicHealthRiskStrength: 0.17d);
+                PublicHealthRiskStrength: 0.17d,
+                Household: new PopulationResidentHouseholdHealthSnapshot(
+                    StabilityScore: 0.7d,
+                    AdultProviderCount: 1,
+                    AdultStructuredParticipantCount: 1,
+                    FunctionalLimitationCount: 0,
+                    HasStructuredSupport: true),
+                HealthcareAccess: new PopulationResidentHealthcareAccessSnapshot(
+                    HasPrimaryCareDestination: true,
+                    IsPrimaryCareInCommunity: true,
+                    HasRouteData: true,
+                    IsRouteAccessible: true,
+                    RouteAccessibilityIndex: 0.9d,
+                    RoutePassabilityIndex: 0.8d,
+                    EstimatedTravelTimeMinutes: 15d,
+                    HasInfrastructureData: true,
+                    UtilityIncidentDispatchReadinessIndex: 0.9d,
+                    UtilityIncidentPressureIndex: 0.1d,
+                    UtilityIncidentCoordinationDifficultyIndex: 0.1d,
+                    UtilityIncidentRestorationPriorityIndex: 0.2d,
+                    PowerCoverageIndex: 0.95d,
+                    WaterCoverageIndex: 0.9d,
+                    HeatingCoverageIndex: 0.85d,
+                    SanitationCoverageIndex: 0.9d,
+                    HealthcareQualityIndex: 1.1d,
+                    RecoverySupportIndex: 1d,
+                    TriagePressureIndex: 0.2d),
+                Environment: new PopulationResidentEnvironmentalHealthSnapshot(
+                    WaterCoverageIndex: 0.9d,
+                    SanitationCoverageIndex: 0.9d,
+                    FloodingIndex: 0.1d,
+                    UtilityContinuityIndex: 0.9d,
+                    EmergencyWaterShortageRiskIndex: 0.1d,
+                    FoodShortageRiskIndex: 0.1d,
+                    MedicineShortageRiskIndex: 0.2d,
+                    EmergencyRationingEnabled: false));
     }
 }
