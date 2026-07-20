@@ -56,7 +56,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 CreateCommand(cityId, tickId: 42),
                 CancellationToken.None);
 
-            var batch = Assert.Single(riskWriter.Batches);
+            var batch = Assert.Single(riskWriter.V2Batches);
             Assert.Equal(42, batch.SourceRevision);
             Assert.Equal(new DateOnly(2048, 5, 5), batch.PreviousDate);
             Assert.Equal(new DateOnly(2048, 5, 6), batch.CurrentDate);
@@ -240,7 +240,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 actual: result.Status);
             Assert.True(resident.IsAlive);
             Assert.Empty(residentFactsOutboxWriter.Batches);
-            var batch = Assert.Single(healthRiskOutboxWriter.Batches);
+            var batch = Assert.Single(healthRiskOutboxWriter.V2Batches);
             Assert.Equal(
                 expected: cityId,
                 actual: batch.SimulationHostId);
@@ -337,7 +337,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(AdvanceCityPopulationStatus.Applied, result.Status);
             Assert.Equal(1, result.AffectedPeopleCount);
             Assert.True(resident.IsAlive);
-            var batch = Assert.Single(healthRiskOutboxWriter.Batches);
+            var batch = Assert.Single(healthRiskOutboxWriter.V2Batches);
             Assert.Equal(41, batch.SourceRevision);
             Assert.True(Assert.Single(batch.Residents).ExternalHealthDelta < 0);
             Assert.Empty(pendingWeatherImpactRepository.Impacts);

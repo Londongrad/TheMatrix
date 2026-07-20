@@ -631,8 +631,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 batch: batch,
                                 cancellationToken: ct);
 
-                    foreach (PopulationResidentHealthRiskBatchV1 batch in
-                             PopulationResidentHealthRiskBatchFactory.Build(
+                    foreach (PopulationResidentHealthRiskBatchV2 batch in
+                             PopulationResidentHealthRiskBatchFactory.BuildV2(
                                  simulationHostId: request.CityId,
                                  sourceRevision: request.TickId,
                                  previousDate: previousDate,
