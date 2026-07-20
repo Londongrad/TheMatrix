@@ -16,5 +16,10 @@ namespace Matrix.Population.Application.Integration
         double PublicHealthRiskStrength,
         int ExternalHealthDelta = 0,
         long LifecycleRevision = 0,
-        Guid? CommunityId = null);
+        Guid? CommunityId = null,
+        int FunctionalCapacityScore = 100,
+        bool IsEmployed = false,
+        PopulationResidentHouseholdHealthSnapshot? Household = null,
+        PopulationResidentHealthcareAccessSnapshot? HealthcareAccess = null,
+        PopulationResidentEnvironmentalHealthSnapshot? Environment = null);
 }
