@@ -936,12 +936,21 @@ namespace Matrix.Population.Application.Tests.TestSupport
             : IPopulationResidentHealthRiskOutboxWriter
         {
             public List<PopulationResidentHealthRiskBatchV1> Batches { get; } = [];
+            public List<PopulationResidentHealthRiskBatchV2> V2Batches { get; } = [];
 
             public Task AddResidentHealthRiskBatchAsync(
                 PopulationResidentHealthRiskBatchV1 batch,
                 CancellationToken cancellationToken = default)
             {
                 Batches.Add(batch);
+                return Task.CompletedTask;
+            }
+
+            public Task AddResidentHealthRiskBatchAsync(
+                PopulationResidentHealthRiskBatchV2 batch,
+                CancellationToken cancellationToken = default)
+            {
+                V2Batches.Add(batch);
                 return Task.CompletedTask;
             }
         }

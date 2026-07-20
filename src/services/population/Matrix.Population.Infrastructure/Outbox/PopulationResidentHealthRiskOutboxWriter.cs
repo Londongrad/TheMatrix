@@ -27,5 +27,21 @@ namespace Matrix.Population.Infrastructure.Outbox
 
             return Task.CompletedTask;
         }
+
+        public Task AddResidentHealthRiskBatchAsync(
+            PopulationResidentHealthRiskBatchV2 batch,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(batch);
+
+            dbContext.OutboxMessages.Add(
+                OutboxMessage.Create(
+                    type: PopulationOutboxEventTypes.PopulationResidentHealthRiskBatchV2,
+                    occurredOnUtc: batch.ObservedAtUtc.UtcDateTime,
+                    payload: batch,
+                    jsonOptions: JsonOptions));
+
+            return Task.CompletedTask;
+        }
     }
 }
