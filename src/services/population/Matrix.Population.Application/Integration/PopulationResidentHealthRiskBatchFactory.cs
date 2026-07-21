@@ -6,58 +6,7 @@ namespace Matrix.Population.Application.Integration
     {
         public const int DefaultBatchSize = 1000;
 
-        public static PopulationResidentHealthRiskBatchV1[] Build(
-            Guid simulationHostId,
-            long sourceRevision,
-            DateOnly previousDate,
-            DateOnly currentDate,
-            IReadOnlyCollection<PopulationResidentHealthRiskSnapshot> residents,
-            string correlationId,
-            DateTimeOffset observedAtUtc,
-            int batchSize = DefaultBatchSize)
-        {
-            Validate(
-                simulationHostId,
-                sourceRevision,
-                previousDate,
-                currentDate,
-                residents,
-                correlationId,
-                observedAtUtc,
-                batchSize);
-
-            PopulationResidentHealthRiskV1[] risks = residents
-               .OrderBy(resident => resident.ResidentId)
-               .Select(Map)
-               .ToArray();
-
-            if (risks.Length == 0)
-                return [];
-
-            PopulationResidentHealthRiskBatchV1[] batches = risks
-               .Chunk(batchSize)
-               .Select((chunk, index) => new PopulationResidentHealthRiskBatchV1(
-                    SimulationHostId: simulationHostId,
-                    SourceRevision: sourceRevision,
-                    PreviousDate: previousDate,
-                    CurrentDate: currentDate,
-                    ObservedAtUtc: observedAtUtc,
-                    CorrelationId: correlationId,
-                    BatchNumber: index + 1,
-                    TotalBatches: 0,
-                    Residents: chunk))
-               .ToArray();
-
-            for (int index = 0; index < batches.Length; index++)
-                batches[index] = batches[index] with
-                {
-                    TotalBatches = batches.Length
-                };
-
-            return batches;
-        }
-
-        public static PopulationResidentHealthRiskBatchV2[] BuildV2(
+        public static PopulationResidentHealthRiskBatchV2[] Build(
             Guid simulationHostId,
             long sourceRevision,
             DateOnly previousDate,
@@ -79,7 +28,7 @@ namespace Matrix.Population.Application.Integration
 
             PopulationResidentHealthRiskV2[] risks = residents
                .OrderBy(resident => resident.ResidentId)
-               .Select(MapV2)
+               .Select(Map)
                .ToArray();
 
             if (risks.Length == 0)
@@ -108,7 +57,7 @@ namespace Matrix.Population.Application.Integration
             return batches;
         }
 
-        private static PopulationResidentHealthRiskV1 Map(
+        private static PopulationResidentHealthRiskV2 Map(
             PopulationResidentHealthRiskSnapshot resident)
         {
             ArgumentNullException.ThrowIfNull(resident);
@@ -120,30 +69,6 @@ namespace Matrix.Population.Application.Integration
                 throw new ArgumentException(
                     $"Housing stability '{resident.HousingStability}' is not supported.",
                     nameof(resident));
-
-            return new PopulationResidentHealthRiskV1(
-                ResidentId: resident.ResidentId,
-                EnergyScore: resident.EnergyScore,
-                HappinessScore: resident.HappinessScore,
-                StressScore: resident.StressScore,
-                SocialNeedScore: resident.SocialNeedScore,
-                IsVulnerable: resident.IsVulnerable,
-                HousingStability: resident.HousingStability,
-                HasStructuredDailyActivity: resident.HasStructuredDailyActivity,
-                HouseholdSize: resident.HouseholdSize,
-                CaregiverSupportStrength: resident.CaregiverSupportStrength,
-                HadAdverseWeatherExposure: resident.HadAdverseWeatherExposure,
-                HealthcareSupportStrength: resident.HealthcareSupportStrength,
-                PublicHealthRiskStrength: resident.PublicHealthRiskStrength,
-                ExternalHealthDelta: resident.ExternalHealthDelta,
-                LifecycleRevision: resident.LifecycleRevision,
-                CommunityId: resident.CommunityId);
-        }
-
-        private static PopulationResidentHealthRiskV2 MapV2(
-            PopulationResidentHealthRiskSnapshot resident)
-        {
-            ArgumentNullException.ThrowIfNull(resident);
             PopulationResidentHouseholdHealthSnapshot household = resident.Household ??
                 throw new ArgumentException(
                     "A resident household health context is required.",

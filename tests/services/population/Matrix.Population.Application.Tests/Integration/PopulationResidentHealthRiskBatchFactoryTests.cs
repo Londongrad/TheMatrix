@@ -19,12 +19,11 @@ namespace Matrix.Population.Application.Tests.Integration
             PopulationResidentHealthRiskSnapshot first = Create(firstId) with
             {
                 HousingStability = "Unhoused",
-                HealthcareSupportStrength = 0.42d,
                 LifecycleRevision = 5,
                 CommunityId = communityId
             };
 
-            PopulationResidentHealthRiskBatchV1[] batches =
+            PopulationResidentHealthRiskBatchV2[] batches =
                 PopulationResidentHealthRiskBatchFactory.Build(
                     simulationHostId: Guid.NewGuid(),
                     sourceRevision: 42,
@@ -40,9 +39,8 @@ namespace Matrix.Population.Application.Tests.Integration
             Assert.Equal(
                 new[] { firstId, secondId, thirdId },
                 batches.SelectMany(batch => batch.Residents).Select(risk => risk.ResidentId));
-            PopulationResidentHealthRiskV1 firstRisk = batches[0].Residents[0];
+            PopulationResidentHealthRiskV2 firstRisk = batches[0].Residents[0];
             Assert.Equal("Unhoused", firstRisk.HousingStability);
-            Assert.Equal(0.42d, firstRisk.HealthcareSupportStrength);
             Assert.Equal(5, firstRisk.LifecycleRevision);
             Assert.Equal(communityId, firstRisk.CommunityId);
         }
@@ -50,7 +48,7 @@ namespace Matrix.Population.Application.Tests.Integration
         [Fact]
         public void Build_EmptySnapshots_ReturnsNoBatches()
         {
-            PopulationResidentHealthRiskBatchV1[] batches =
+            PopulationResidentHealthRiskBatchV2[] batches =
                 PopulationResidentHealthRiskBatchFactory.Build(
                     simulationHostId: Guid.NewGuid(),
                     sourceRevision: 0,
@@ -64,7 +62,7 @@ namespace Matrix.Population.Application.Tests.Integration
         }
 
         [Fact]
-        public void BuildV2_MapsRawHealthContextsWithoutMedicalInterpretation()
+        public void Build_MapsRawHealthContextsWithoutMedicalInterpretation()
         {
             Guid residentId = Guid.NewGuid();
             PopulationResidentHealthRiskSnapshot snapshot = Create(residentId) with
@@ -75,7 +73,7 @@ namespace Matrix.Population.Application.Tests.Integration
             };
 
             PopulationResidentHealthRiskBatchV2[] batches =
-                PopulationResidentHealthRiskBatchFactory.BuildV2(
+                PopulationResidentHealthRiskBatchFactory.Build(
                     simulationHostId: Guid.NewGuid(),
                     sourceRevision: 43,
                     previousDate: new DateOnly(2048, 5, 5),
@@ -107,8 +105,6 @@ namespace Matrix.Population.Application.Tests.Integration
                 HouseholdSize: 3,
                 CaregiverSupportStrength: 0.12d,
                 HadAdverseWeatherExposure: false,
-                HealthcareSupportStrength: 0.51d,
-                PublicHealthRiskStrength: 0.17d,
                 Household: new PopulationResidentHouseholdHealthSnapshot(
                     StabilityScore: 0.7d,
                     AdultProviderCount: 1,

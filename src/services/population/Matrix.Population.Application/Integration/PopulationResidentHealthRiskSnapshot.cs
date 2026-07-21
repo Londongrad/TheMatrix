@@ -12,8 +12,6 @@ namespace Matrix.Population.Application.Integration
         int HouseholdSize,
         double CaregiverSupportStrength,
         bool HadAdverseWeatherExposure,
-        double HealthcareSupportStrength = 0d,
-        double PublicHealthRiskStrength = 0d,
         int ExternalHealthDelta = 0,
         long LifecycleRevision = 0,
         Guid? CommunityId = null,

@@ -629,7 +629,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cancellationToken: ct);
 
                     foreach (PopulationResidentHealthRiskBatchV2 batch in
-                             PopulationResidentHealthRiskBatchFactory.BuildV2(
+                             PopulationResidentHealthRiskBatchFactory.Build(
                                  simulationHostId: request.CityId,
                                  sourceRevision: request.TickId,
                                  previousDate: previousDate,
