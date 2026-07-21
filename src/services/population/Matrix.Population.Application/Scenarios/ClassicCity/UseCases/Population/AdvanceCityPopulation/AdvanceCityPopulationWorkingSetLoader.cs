@@ -82,7 +82,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 if (includeEconomicContexts)
                     economicContextsByResidentId[resident.Id] = CityResidentEconomicContextFactory.Create(
                         resident: resident,
-                        educationParticipation: participation,
+                        externalActivity: externalActivity,
                         currentDate: currentDate);
             }
             IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =

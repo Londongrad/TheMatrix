@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
-using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -10,19 +10,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
     {
         public static CityResidentEconomicContext Create(
             Person resident,
-            EducationParticipationProjection? educationParticipation,
+            ResidentExternalActivityProfile? externalActivity,
             DateOnly currentDate)
         {
             ArgumentNullException.ThrowIfNull(resident);
 
-            bool isEnrolled = educationParticipation?.IsEnrolled == true;
+            bool hasExternalActivity = externalActivity?.HasStructuredActivity == true;
             (decimal employmentIncomeBonus, double employmentOpportunityBonus) =
-                ResolveEmploymentModifiers(educationParticipation?.CompletedStage);
+                ResolveEmploymentModifiers(
+                    externalActivity?.WorkforceQualification ?? ResidentWorkforceQualificationTier.None);
 
-            if (!isEnrolled && employmentIncomeBonus == 0m && employmentOpportunityBonus == 0d)
+            if (!hasExternalActivity && employmentIncomeBonus == 0m && employmentOpportunityBonus == 0d)
                 return CityResidentEconomicContext.Neutral;
 
-            decimal dailyTransferIncome = isEnrolled
+            decimal dailyTransferIncome = hasExternalActivity
                 ? resident.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior
                     ? 10m
                     : 4m
@@ -32,24 +33,25 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 dailyTransferIncome: Money.FromDecimal(dailyTransferIncome),
                 employmentIncomeBonus: Money.FromDecimal(employmentIncomeBonus),
                 employmentOpportunityBonus: employmentOpportunityBonus,
-                employmentAvailabilityFactor: isEnrolled ? 0d : 1d,
-                retailStoreSpendShareAdjustment: isEnrolled ? -0.03m : 0m,
-                serviceSpendShareAdjustment: isEnrolled ? -0.01m : 0m,
-                municipalSpendShareAdjustment: isEnrolled ? 0.04m : 0m);
+                employmentAvailabilityFactor: hasExternalActivity ? 0d : 1d,
+                retailStoreSpendShareAdjustment: hasExternalActivity ? -0.03m : 0m,
+                serviceSpendShareAdjustment: hasExternalActivity ? -0.01m : 0m,
+                municipalSpendShareAdjustment: hasExternalActivity ? 0.04m : 0m);
         }
 
         private static (decimal incomeBonus, double opportunityBonus) ResolveEmploymentModifiers(
-            string? completedStage)
+            ResidentWorkforceQualificationTier qualification)
         {
-            return completedStage switch
+            return qualification switch
             {
-                "primary" => (1m, 0.003d),
-                "lower-secondary" => (3m, 0.006d),
-                "upper-secondary" => (6m, 0.010d),
-                "vocational" => (10m, 0.018d),
-                "higher" or "higher-education" => (14m, 0.024d),
-                "postgraduate" => (18m, 0.028d),
-                _ => (0m, 0d)
+                ResidentWorkforceQualificationTier.None => (0m, 0d),
+                ResidentWorkforceQualificationTier.Entry => (1m, 0.003d),
+                ResidentWorkforceQualificationTier.Basic => (3m, 0.006d),
+                ResidentWorkforceQualificationTier.General => (6m, 0.010d),
+                ResidentWorkforceQualificationTier.Skilled => (10m, 0.018d),
+                ResidentWorkforceQualificationTier.Professional => (14m, 0.024d),
+                ResidentWorkforceQualificationTier.Specialist => (18m, 0.028d),
+                _ => throw new ArgumentOutOfRangeException(nameof(qualification))
             };
         }
     }

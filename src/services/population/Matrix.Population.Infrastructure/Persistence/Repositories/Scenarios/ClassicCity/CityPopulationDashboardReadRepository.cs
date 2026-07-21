@@ -189,7 +189,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     externalActivity: externalActivity);
                 economicContextsByResidentId[resident.Id] = CityResidentEconomicContextFactory.Create(
                     resident: resident,
-                    educationParticipation: participation,
+                    externalActivity: externalActivity,
                     currentDate: currentDate);
             }
 
