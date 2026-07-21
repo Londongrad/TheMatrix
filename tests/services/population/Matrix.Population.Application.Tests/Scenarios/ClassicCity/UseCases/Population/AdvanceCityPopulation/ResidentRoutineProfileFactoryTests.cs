@@ -1,5 +1,4 @@
 using Matrix.Population.Application.Integration;
-using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
@@ -13,13 +12,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
     public sealed class PersonRoutineProfileFactoryTests
     {
         [Fact]
-        public void Create_WhenResidentIsEnrolled_ReturnsModerateEducationSchedule()
+        public void Create_WhenResidentHasExternalActivity_ReturnsModerateSchedule()
         {
             Person resident = CreatePerson(employmentStatus: EmploymentStatus.Unemployed);
 
             PersonRoutineProfile profile = PersonRoutineProfileFactory.Create(
                 resident,
-                CreateEducationParticipation(resident));
+                CreateExternalActivity());
 
             Assert.True(profile.HasStructuredActivity);
             Assert.Equal(TimeSpan.FromHours(8), profile.StructuredActivityStart);
@@ -38,7 +37,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
             PersonRoutineProfile profile = PersonRoutineProfileFactory.Create(
                 resident,
-                CreateEducationParticipation(resident));
+                CreateExternalActivity());
 
             Assert.True(profile.HasStructuredActivity);
             Assert.Equal(TimeSpan.FromHours(8), profile.StructuredActivityStart);
@@ -56,23 +55,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(PersonRoutineProfile.Unstructured, profile);
         }
 
-        private static EducationParticipationProjection CreateEducationParticipation(Person resident)
+        private static ResidentExternalActivityProfile CreateExternalActivity()
         {
-            return new EducationParticipationProjection(
-                SimulationHostId: Guid.NewGuid(),
-                ResidentId: resident.Id.Value,
-                ParticipationRevision: 1,
-                ResidentLifecycleRevision: resident.LifecycleRevision,
-                IsEnrolled: true,
-                ActiveStage: "higher",
-                InstitutionId: Guid.NewGuid(),
-                InstitutionAnchorId: Guid.NewGuid(),
-                EnrolledOn: new DateOnly(2048, 5, 1),
-                CompletedStage: "upper-secondary",
-                CompletedStageOn: new DateOnly(2047, 6, 30),
-                SnapshotDate: new DateOnly(2048, 5, 2),
-                OccurredAtUtc: UtcNow,
-                UpdatedAtUtc: UtcNow);
+            return new ResidentExternalActivityProfile(
+                HasStructuredActivity: true,
+                DestinationAnchorId: Guid.NewGuid(),
+                WorkforceQualification: ResidentWorkforceQualificationTier.General);
         }
     }
 }
