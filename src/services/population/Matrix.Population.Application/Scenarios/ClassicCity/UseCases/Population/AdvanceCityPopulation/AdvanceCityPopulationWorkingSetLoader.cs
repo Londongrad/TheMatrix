@@ -68,6 +68,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 simulationHostId: cityId.Value,
                 projections: educationProjections);
             var routineProfilesByResidentId = new Dictionary<PersonId, PersonRoutineProfile>(residents.Count);
+            var externalActivitiesByResidentId =
+                new Dictionary<PersonId, ResidentExternalActivityProfile>(residents.Count);
             var economicContextsByResidentId =
                 new Dictionary<PersonId, CityResidentEconomicContext>(
                     includeEconomicContexts ? residents.Count : 0);
@@ -76,6 +78,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 EducationParticipationProjection? participation = educationParticipation.FindCurrent(resident);
                 ResidentExternalActivityProfile externalActivity =
                     EducationResidentExternalActivityProfileFactory.Create(participation);
+                externalActivitiesByResidentId[resident.Id] = externalActivity;
                 routineProfilesByResidentId[resident.Id] = PersonRoutineProfileFactory.Create(
                     resident: resident,
                     externalActivity: externalActivity);
@@ -136,6 +139,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 ResidentsById: residentsById,
                 ResidentsByHouseholdId: residentsByHouseholdId,
                 EducationParticipation: educationParticipation,
+                ExternalActivitiesByResidentId: externalActivitiesByResidentId,
                 RoutineProfilesByResidentId: routineProfilesByResidentId,
                 EconomicContextsByResidentId: economicContextsByResidentId,
                 Households: households,
