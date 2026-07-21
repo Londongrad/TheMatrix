@@ -177,7 +177,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: 2,
                 actual: workingSet.ResidentsByHouseholdId[firstHouseholdId].Count);
             Assert.Single(workingSet.ResidentsByHouseholdId[secondHouseholdId]);
-            Assert.Null(workingSet.EducationParticipation.FindCurrent(firstResident));
             Assert.Same(
                 expected: ResidentExternalActivityProfile.None,
                 actual: workingSet.ExternalActivitiesByResidentId[firstResident.Id]);
@@ -255,7 +254,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(
                 expected: 0,
                 actual: projectionRepository.GetEnrolledByResidentIdsCallCount);
-            Assert.Null(workingSet.EducationParticipation.FindCurrent(resident));
             Assert.Same(
                 expected: ResidentExternalActivityProfile.None,
                 actual: workingSet.ExternalActivitiesByResidentId[resident.Id]);
@@ -299,7 +297,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
             Assert.Equal(0, projectionRepository.GetByResidentIdsCallCount);
             Assert.Equal(1, projectionRepository.GetEnrolledByResidentIdsCallCount);
-            Assert.NotNull(workingSet.EducationParticipation.FindCurrent(resident));
             ResidentExternalActivityProfile activity =
                 workingSet.ExternalActivitiesByResidentId[resident.Id];
             Assert.True(activity.HasStructuredActivity);

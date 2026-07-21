@@ -1,5 +1,4 @@
 using Matrix.Population.Application.Integration;
-using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
@@ -15,7 +14,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         List<PersonEntity> Residents,
         Dictionary<PersonId, PersonEntity> ResidentsById,
         Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> ResidentsByHouseholdId,
-        EducationParticipationProjectionIndex EducationParticipation,
         IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> ExternalActivitiesByResidentId,
         IReadOnlyDictionary<PersonId, PersonRoutineProfile> RoutineProfilesByResidentId,
         IReadOnlyDictionary<PersonId, CityResidentEconomicContext> EconomicContextsByResidentId,

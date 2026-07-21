@@ -138,7 +138,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 Residents: residents,
                 ResidentsById: residentsById,
                 ResidentsByHouseholdId: residentsByHouseholdId,
-                EducationParticipation: educationParticipation,
                 ExternalActivitiesByResidentId: externalActivitiesByResidentId,
                 RoutineProfilesByResidentId: routineProfilesByResidentId,
                 EconomicContextsByResidentId: economicContextsByResidentId,
