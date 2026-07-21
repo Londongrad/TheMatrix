@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
-using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -16,13 +16,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             day: 3);
 
         [Fact]
-        public void Create_WhenResidentIsEnrolled_ProjectsCityTransferAndSpendingPattern()
+        public void Create_WhenResidentHasExternalActivity_ProjectsCityTransferAndSpendingPattern()
         {
             Person resident = CreatePerson(currentDate: CurrentDate);
 
             CityResidentEconomicContext context = CityResidentEconomicContextFactory.Create(
                 resident: resident,
-                educationParticipation: CreateEducationParticipation(resident),
+                externalActivity: CreateExternalActivity(),
                 currentDate: CurrentDate);
 
             Assert.Equal(
@@ -45,23 +45,22 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
 
             CityResidentEconomicContext context = CityResidentEconomicContextFactory.Create(
                 resident: resident,
-                educationParticipation: null,
+                externalActivity: null,
                 currentDate: CurrentDate);
 
             Assert.Equal(CityResidentEconomicContext.Neutral, context);
         }
 
         [Fact]
-        public void Create_WhenResidentCompletedEducation_ProjectsEmploymentModifiersWithoutTransfer()
+        public void Create_WhenResidentHasQualification_ProjectsEmploymentModifiersWithoutTransfer()
         {
             Person resident = CreatePerson(currentDate: CurrentDate);
 
             CityResidentEconomicContext context = CityResidentEconomicContextFactory.Create(
                 resident: resident,
-                educationParticipation: CreateEducationParticipation(
-                    resident: resident,
-                    isEnrolled: false,
-                    completedStage: "higher"),
+                externalActivity: CreateExternalActivity(
+                    hasStructuredActivity: false,
+                    qualification: ResidentWorkforceQualificationTier.Professional),
                 currentDate: CurrentDate);
 
             Assert.Equal(Money.Zero, context.DailyTransferIncome);
@@ -72,26 +71,15 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(1d, context.EmploymentAvailabilityFactor);
         }
 
-        private static EducationParticipationProjection CreateEducationParticipation(
-            Person resident,
-            bool isEnrolled = true,
-            string? completedStage = "upper-secondary")
+        private static ResidentExternalActivityProfile CreateExternalActivity(
+            bool hasStructuredActivity = true,
+            ResidentWorkforceQualificationTier qualification =
+                ResidentWorkforceQualificationTier.General)
         {
-            return new EducationParticipationProjection(
-                SimulationHostId: Guid.NewGuid(),
-                ResidentId: resident.Id.Value,
-                ParticipationRevision: 1,
-                ResidentLifecycleRevision: resident.LifecycleRevision,
-                IsEnrolled: isEnrolled,
-                ActiveStage: isEnrolled ? "higher" : null,
-                InstitutionId: isEnrolled ? Guid.NewGuid() : null,
-                InstitutionAnchorId: isEnrolled ? Guid.NewGuid() : null,
-                EnrolledOn: isEnrolled ? CurrentDate.AddYears(-1) : null,
-                CompletedStage: completedStage,
-                CompletedStageOn: completedStage is null ? null : CurrentDate.AddYears(-2),
-                SnapshotDate: CurrentDate,
-                OccurredAtUtc: UtcNow,
-                UpdatedAtUtc: UtcNow);
+            return new ResidentExternalActivityProfile(
+                HasStructuredActivity: hasStructuredActivity,
+                DestinationAnchorId: hasStructuredActivity ? Guid.NewGuid() : null,
+                WorkforceQualification: qualification);
         }
     }
 }
