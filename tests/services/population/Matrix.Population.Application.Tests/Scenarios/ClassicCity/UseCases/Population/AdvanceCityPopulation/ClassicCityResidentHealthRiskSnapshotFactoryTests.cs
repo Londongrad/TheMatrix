@@ -113,6 +113,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Same(
                 snapshots.Single(x => x.ResidentId == infectedResident.Id.Value).Household,
                 exposed.Household);
+            Assert.Same(
+                snapshots.Single(x => x.ResidentId == infectedResident.Id.Value).Environment,
+                exposed.Environment);
         }
 
         private static CityPopulationAnchorCatalogItem CreateHospitalAnchor() =>
