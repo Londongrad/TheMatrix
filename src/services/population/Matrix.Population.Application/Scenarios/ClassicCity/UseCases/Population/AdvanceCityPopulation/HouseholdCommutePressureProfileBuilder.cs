@@ -1,4 +1,4 @@
-using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Enums;
@@ -6,6 +6,7 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
+using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
 using ResidentialBuildingId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.ResidentialBuildingId;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
@@ -16,7 +17,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             HouseholdId householdId,
             IReadOnlyCollection<PersonEntity> householdResidents,
-            EducationParticipationProjectionIndex educationParticipation,
+            IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId,
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
@@ -40,7 +41,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         keySelector: resident => resident.Id.Value,
                         elementSelector: resident => ResolveDestinationAnchorIds(
                             resident: resident,
-                            educationParticipation: educationParticipation));
+                            externalActivitiesByResidentId: externalActivitiesByResidentId));
 
             await commuteRoutingService.PreloadAnchorCommutesAsync(
                 cityId: cityId.Value,
@@ -112,7 +113,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static IReadOnlyList<CityAnchorId> ResolveDestinationAnchorIds(
             PersonEntity resident,
-            EducationParticipationProjectionIndex educationParticipation)
+            IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId)
         {
             List<CityAnchorId> destinationAnchorIds = [];
             if (resident.Employment.Status == EmploymentStatus.Employed &&
@@ -120,14 +121,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 { } workplaceAnchorId)
                 destinationAnchorIds.Add(workplaceAnchorId);
 
-            EducationParticipationProjection? projection = educationParticipation.FindCurrent(resident);
-            if (projection is
+            if (externalActivitiesByResidentId.TryGetValue(
+                    key: resident.Id,
+                    value: out ResidentExternalActivityProfile? activity) &&
+                activity is
                 {
-                    IsEnrolled: true,
-                    InstitutionAnchorId: { } institutionAnchorId
+                    HasStructuredActivity: true,
+                    DestinationAnchorId: { } destinationAnchorId
                 })
             {
-                CityAnchorId anchorId = CityAnchorId.From(institutionAnchorId);
+                CityAnchorId anchorId = CityAnchorId.From(destinationAnchorId);
                 if (!destinationAnchorIds.Contains(anchorId))
                     destinationAnchorIds.Add(anchorId);
             }

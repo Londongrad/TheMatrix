@@ -238,7 +238,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 householdsById: householdsById ?? new Dictionary<HouseholdId, HouseholdEntity>(),
                 residentsByHouseholdId: residentsByHouseholdId ??
                                         new Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>>(),
-                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                externalActivitiesByResidentId: CreateExternalActivities(TestCityId.Value),
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>
                 {
                     [resident.Id] = PersonRoutineProfileFactory.Create(resident, null)

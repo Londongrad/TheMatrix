@@ -1,4 +1,4 @@
-using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -17,7 +17,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             PersonEntity person,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
-            EducationParticipationProjectionIndex educationParticipation,
+            IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId,
             IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IDictionary<HouseholdId, CityHouseholdCommutePressureProfile?> commutePressureProfilesByHouseholdId,
             DateOnly previousDate,
@@ -50,7 +50,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cityId: cityId,
                     householdId: person.HouseholdId,
                     householdResidents: householdResidents,
-                    educationParticipation: educationParticipation,
+                    externalActivitiesByResidentId: externalActivitiesByResidentId,
                     residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                     commuteRoutingService: commuteRoutingService,
                     cancellationToken: cancellationToken);

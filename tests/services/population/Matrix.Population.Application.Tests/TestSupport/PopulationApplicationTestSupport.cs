@@ -49,6 +49,17 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 projections: projections.ToDictionary(projection => projection.ResidentId));
         }
 
+        internal static IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> CreateExternalActivities(
+            Guid simulationHostId,
+            params EducationParticipationProjection[] projections)
+        {
+            return projections
+               .Where(projection => projection.SimulationHostId == simulationHostId)
+               .ToDictionary(
+                    keySelector: projection => PersonId.From(projection.ResidentId),
+                    elementSelector: EducationResidentExternalActivityProfileFactory.Create);
+        }
+
         internal static Person CreatePerson(
             Guid? personId = null,
             Guid? householdId = null,

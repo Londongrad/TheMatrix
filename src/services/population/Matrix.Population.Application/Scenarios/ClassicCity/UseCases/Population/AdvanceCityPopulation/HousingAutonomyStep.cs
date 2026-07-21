@@ -1,4 +1,4 @@
-using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -21,7 +21,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
             IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
             IReadOnlyDictionary<PersonId, CityResidentEconomicContext> economicContextsByResidentId,
-            EducationParticipationProjectionIndex educationParticipation,
+            IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId,
             DateOnly previousDate,
             DateOnly currentDate,
             IHouseholdWriteRepository householdWriteRepository,
@@ -95,7 +95,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId,
                         householdId: placement.HouseholdId,
                         householdResidents: householdResidents,
-                        educationParticipation: educationParticipation,
+                        externalActivitiesByResidentId: externalActivitiesByResidentId,
                         residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                         commuteRoutingService: commuteRoutingService,
                         cancellationToken: cancellationToken);
@@ -164,7 +164,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 currentDate: currentDate,
                                 housingPool: housingPool,
                                 householdResidents: householdResidents,
-                                educationParticipation: educationParticipation,
+                                externalActivitiesByResidentId: externalActivitiesByResidentId,
                                 hospitalAnchors: hospitalAnchors,
                                 districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                 anchorSelectionPolicy: anchorSelectionPolicy,

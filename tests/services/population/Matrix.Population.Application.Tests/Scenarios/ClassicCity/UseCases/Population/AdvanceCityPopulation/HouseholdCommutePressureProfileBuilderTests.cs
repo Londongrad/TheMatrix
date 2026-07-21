@@ -40,7 +40,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdId: TestHouseholdId,
                 householdResidents: [resident],
-                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                externalActivitiesByResidentId: CreateExternalActivities(TestCityId.Value),
                 residentialBuildingByHouseholdId: new Dictionary<HouseholdId, ResidentialBuildingId?>(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);
@@ -62,7 +62,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdId: TestHouseholdId,
                 householdResidents: [unemployed],
-                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                externalActivitiesByResidentId: CreateExternalActivities(TestCityId.Value),
                 residentialBuildingByHouseholdId: CreateResidentialBuildingMap(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);
@@ -110,7 +110,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     student,
                     unemployed
                 ],
-                educationParticipation: CreateEducationParticipationIndex(
+                externalActivitiesByResidentId: CreateExternalActivities(
                     simulationHostId: TestCityId.Value,
                     CreateEducationProjection(
                         resident: student,
@@ -182,7 +182,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdId: TestHouseholdId,
                 householdResidents: [employee],
-                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                externalActivitiesByResidentId: CreateExternalActivities(TestCityId.Value),
                 residentialBuildingByHouseholdId: CreateResidentialBuildingMap(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);
@@ -221,7 +221,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 cityId: TestCityId,
                 householdId: TestHouseholdId,
                 householdResidents: [employee],
-                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                externalActivitiesByResidentId: CreateExternalActivities(TestCityId.Value),
                 residentialBuildingByHouseholdId: CreateResidentialBuildingMap(),
                 commuteRoutingService: routingService,
                 cancellationToken: CancellationToken.None);

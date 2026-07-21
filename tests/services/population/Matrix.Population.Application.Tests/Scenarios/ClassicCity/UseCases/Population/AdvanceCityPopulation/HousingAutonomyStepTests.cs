@@ -321,7 +321,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 residentsById: residentsById,
                 routineProfilesByResidentId: new Dictionary<PersonId, PersonRoutineProfile>(),
                 economicContextsByResidentId: new Dictionary<PersonId, CityResidentEconomicContext>(),
-                educationParticipation: CreateEducationParticipationIndex(TestCityId.Value),
+                externalActivitiesByResidentId: CreateExternalActivities(TestCityId.Value),
                 previousDate: previousDate ?? PreviousDate,
                 currentDate: currentDate ?? CurrentDate,
                 householdWriteRepository: householdWriteRepository,

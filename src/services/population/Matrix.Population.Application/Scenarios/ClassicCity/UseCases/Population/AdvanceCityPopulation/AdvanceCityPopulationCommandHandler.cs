@@ -234,8 +234,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         Dictionary<PersonId, PersonEntity> personsById = workingSet.ResidentsById;
                         Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId =
                             workingSet.ResidentsByHouseholdId;
-                        EducationParticipationProjectionIndex educationParticipation =
-                            workingSet.EducationParticipation;
+                        IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile>
+                            externalActivitiesByResidentId = workingSet.ExternalActivitiesByResidentId;
                         IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId =
                             workingSet.RoutineProfilesByResidentId;
                         var commutePressureProfilesByHouseholdId =
@@ -265,7 +265,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     cityId: cityId,
                                     householdsById: householdsById,
                                     residentsByHouseholdId: residentsByHouseholdId,
-                                    educationParticipation: educationParticipation,
+                                    externalActivitiesByResidentId: externalActivitiesByResidentId,
                                     routineProfilesByResidentId: routineProfilesByResidentId,
                                     economicContextsByResidentId: workingSet.EconomicContextsByResidentId,
                                     commutePressureProfilesByHouseholdId: commutePressureProfilesByHouseholdId,
@@ -455,7 +455,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 residentsById: personsById,
                                 routineProfilesByResidentId: workingSet.RoutineProfilesByResidentId,
                                 economicContextsByResidentId: workingSet.EconomicContextsByResidentId,
-                                educationParticipation: educationParticipation,
+                                externalActivitiesByResidentId: externalActivitiesByResidentId,
                                 previousDate: previousDate,
                                 currentDate: toDate,
                                 householdWriteRepository: householdWriteRepository,

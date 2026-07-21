@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
@@ -344,7 +345,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                     currentDate: CurrentDate,
                     housingPool: housingPool,
                     householdResidents: [resident],
-                    educationParticipation: CreateEducationParticipationIndex(),
+                    externalActivitiesByResidentId: CreateExternalActivities(),
                     hospitalAnchors: [],
                     districtUtilityConditionsByDistrictId:
                     new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
@@ -405,7 +406,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                     currentDate: CurrentDate,
                     housingPool: housingPool,
                     householdResidents: [resident],
-                    educationParticipation: CreateEducationParticipationIndex(),
+                    externalActivitiesByResidentId: CreateExternalActivities(),
                     hospitalAnchors: [],
                     districtUtilityConditionsByDistrictId:
                     new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
@@ -463,7 +464,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                 currentDate: CurrentDate,
                 housingPool: housingPool,
                 householdResidents: [resident],
-                educationParticipation: CreateEducationParticipationIndex(),
+                externalActivitiesByResidentId: CreateExternalActivities(),
                 hospitalAnchors: [],
                 districtUtilityConditionsByDistrictId:
                 new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
@@ -528,7 +529,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                     (CreateDistrictId(1), residentialBuildingId)
                 ],
                 householdResidents: [resident],
-                educationParticipation: CreateEducationParticipationIndex(educationProjection),
+                externalActivitiesByResidentId: CreateExternalActivities(educationProjection),
                 hospitalAnchors: [],
                 districtUtilityConditionsByDistrictId:
                 new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
@@ -653,12 +654,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Common
                 UtilityIncidentRestorationPriorityIndex: restorationPriorityIndex);
         }
 
-        private static EducationParticipationProjectionIndex CreateEducationParticipationIndex(
+        private static IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> CreateExternalActivities(
             params EducationParticipationProjection[] projections)
         {
-            return new EducationParticipationProjectionIndex(
-                simulationHostId: TestCityId.Value,
-                projections: projections.ToDictionary(projection => projection.ResidentId));
+            return projections.ToDictionary(
+                keySelector: projection => PersonId.From(projection.ResidentId),
+                elementSelector: EducationResidentExternalActivityProfileFactory.Create);
         }
 
         private static Person CreateResident(
