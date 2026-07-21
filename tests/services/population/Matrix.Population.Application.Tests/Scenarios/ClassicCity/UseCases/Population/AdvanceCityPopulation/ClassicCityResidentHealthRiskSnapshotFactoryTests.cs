@@ -110,6 +110,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.True(exposed.HealthcareAccess.IsPrimaryCareInCommunity);
             Assert.NotNull(exposed.Environment);
             Assert.Equal(1d, exposed.Environment.WaterCoverageIndex);
+            Assert.Same(
+                snapshots.Single(x => x.ResidentId == infectedResident.Id.Value).Household,
+                exposed.Household);
         }
 
         private static CityPopulationAnchorCatalogItem CreateHospitalAnchor() =>
