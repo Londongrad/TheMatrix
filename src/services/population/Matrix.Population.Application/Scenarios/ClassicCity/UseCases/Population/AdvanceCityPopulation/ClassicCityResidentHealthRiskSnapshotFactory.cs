@@ -49,6 +49,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     anchorSelectionPolicy: anchorSelectionPolicy,
                     hospitalAnchors: hospitalAnchors))
                .ToList();
+            IReadOnlyDictionary<HouseholdId, PersonEntity[]> aliveResidentsByHouseholdId =
+                BuildAliveHouseholdResidents(
+                    preparedResidents,
+                    residentsByHouseholdId);
+            IReadOnlyDictionary<HouseholdId, PopulationResidentHouseholdHealthSnapshot>
+                householdHealthByHouseholdId = BuildHouseholdHealthSnapshots(
+                    aliveResidentsByHouseholdId,
+                    routineProfilesByResidentId,
+                    housingByHouseholdId,
+                    currentDate,
+                    householdLivelihoodPolicy);
 
             CityPopulationCommuteRouteRequest[] routeRequests = preparedResidents
                .Where(prepared => prepared.ResidentialBuildingId.HasValue
@@ -68,13 +79,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             foreach (PreparedResident prepared in preparedResidents)
             {
                 PersonEntity resident = prepared.Resident;
-                IReadOnlyCollection<PersonEntity> householdResidents =
-                    residentsByHouseholdId.TryGetValue(resident.HouseholdId, out var resolvedResidents)
-                        ? resolvedResidents
-                        : [resident];
-                PersonEntity[] aliveHouseholdResidents = householdResidents
-                   .Where(member => member.IsAlive)
-                   .ToArray();
+                PersonEntity[] aliveHouseholdResidents = aliveResidentsByHouseholdId[resident.HouseholdId];
                 HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(
                     resident.HouseholdId,
                     out HousingStatus resolvedHousingStatus)
@@ -98,11 +103,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         residentialBuildingId: prepared.ResidentialBuildingId,
                         healthcareAnchorId: prepared.PrimaryCareAnchor?.CityAnchorId,
                         cancellationToken: cancellationToken);
-                CityHouseholdLivelihoodProfile householdLivelihood = householdLivelihoodPolicy.Build(
-                    householdResidents: aliveHouseholdResidents,
-                    routineProfilesByResidentId: routineProfilesByResidentId,
-                    housingStatus: housingStatus,
-                    currentDate: currentDate);
                 bool hasStructuredDailyActivity =
                     routineProfilesByResidentId.TryGetValue(
                         key: resident.Id,
@@ -129,14 +129,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         CommunityId: prepared.DistrictId?.Value,
                         FunctionalCapacityScore: resident.FunctionalCapacity.Value,
                         IsEmployed: resident.Employment.Status == EmploymentStatus.Employed,
-                        Household: new PopulationResidentHouseholdHealthSnapshot(
-                            StabilityScore: householdLivelihood.StabilityScore,
-                            AdultProviderCount: householdLivelihood.AdultProviderCount,
-                            AdultStructuredParticipantCount:
-                            householdLivelihood.AdultStructuredParticipantCount,
-                            FunctionalLimitationCount:
-                            householdLivelihood.FunctionalLimitationCount,
-                            HasStructuredSupport: householdLivelihood.HasStructuredSupport),
+                        Household: householdHealthByHouseholdId[resident.HouseholdId],
                         HealthcareAccess: MapHealthcareAccess(
                             prepared,
                             healthcareCommute,
@@ -149,6 +142,51 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             }
 
             return snapshots;
+        }
+
+        private static IReadOnlyDictionary<HouseholdId, PersonEntity[]> BuildAliveHouseholdResidents(
+            IReadOnlyCollection<PreparedResident> preparedResidents,
+            IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId)
+        {
+            return preparedResidents
+               .GroupBy(prepared => prepared.Resident.HouseholdId)
+               .ToDictionary(
+                    group => group.Key,
+                    group => residentsByHouseholdId.TryGetValue(group.Key, out var householdResidents)
+                        ? householdResidents.Where(member => member.IsAlive).ToArray()
+                        : group.Select(prepared => prepared.Resident).ToArray());
+        }
+
+        private static IReadOnlyDictionary<HouseholdId, PopulationResidentHouseholdHealthSnapshot>
+            BuildHouseholdHealthSnapshots(
+                IReadOnlyDictionary<HouseholdId, PersonEntity[]> aliveResidentsByHouseholdId,
+                IReadOnlyDictionary<PersonId, PersonRoutineProfile> routineProfilesByResidentId,
+                IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
+                DateOnly currentDate,
+                CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
+        {
+            return aliveResidentsByHouseholdId.ToDictionary(
+                pair => pair.Key,
+                pair =>
+                {
+                    HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(
+                        pair.Key,
+                        out HousingStatus resolvedHousingStatus)
+                        ? resolvedHousingStatus
+                        : null;
+                    CityHouseholdLivelihoodProfile livelihood = householdLivelihoodPolicy.Build(
+                        householdResidents: pair.Value,
+                        routineProfilesByResidentId: routineProfilesByResidentId,
+                        housingStatus: housingStatus,
+                        currentDate: currentDate);
+
+                    return new PopulationResidentHouseholdHealthSnapshot(
+                        StabilityScore: livelihood.StabilityScore,
+                        AdultProviderCount: livelihood.AdultProviderCount,
+                        AdultStructuredParticipantCount: livelihood.AdultStructuredParticipantCount,
+                        FunctionalLimitationCount: livelihood.FunctionalLimitationCount,
+                        HasStructuredSupport: livelihood.HasStructuredSupport);
+                });
         }
 
         private static PopulationResidentHealthcareAccessSnapshot MapHealthcareAccess(
