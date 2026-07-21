@@ -82,7 +82,7 @@ namespace Matrix.SimulationCore.Api.Tests.Configurations
             Assert.IsType<ClassicCityOutboxWriter>(
                 scope.ServiceProvider.GetRequiredService<IClassicCityOutboxWriter>());
             Assert.Equal(
-                expected: 13,
+                expected: 14,
                 actual: scope.ServiceProvider.GetRequiredService<OutboxEventTypeRegistry>()
                    .Count);
             Assert.Same(
