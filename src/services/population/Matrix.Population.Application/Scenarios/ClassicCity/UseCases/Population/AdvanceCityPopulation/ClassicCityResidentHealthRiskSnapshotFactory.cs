@@ -60,6 +60,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     housingByHouseholdId,
                     currentDate,
                     householdLivelihoodPolicy);
+            IReadOnlyDictionary<Guid, PreparedDistrictHealthContext> districtHealthByKey =
+                BuildDistrictHealthContexts(
+                    preparedResidents,
+                    livingConditionsState,
+                    districtUtilityConditionsByDistrictId,
+                    essentialsState,
+                    districtImpactPolicy);
 
             CityPopulationCommuteRouteRequest[] routeRequests = preparedResidents
                .Where(prepared => prepared.ResidentialBuildingId.HasValue
@@ -85,18 +92,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     out HousingStatus resolvedHousingStatus)
                     ? resolvedHousingStatus
                     : null;
-                CityDistrictUtilityConditionsSnapshot? districtUtilityConditions =
-                    ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
-                        districtId: prepared.DistrictId,
-                        districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId);
-                CityPopulationLivingConditionsContext districtLivingConditions =
-                    districtImpactPolicy.ResolveLivingConditions(
-                        districtId: prepared.DistrictId,
-                        livingConditionsState: livingConditionsState,
-                        districtUtilityConditions: districtUtilityConditions);
-                CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
-                    districtId: prepared.DistrictId,
-                    essentialsState: essentialsState);
+                PreparedDistrictHealthContext districtHealth =
+                    districtHealthByKey[ResolveDistrictKey(prepared.DistrictId)];
                 CityPopulationCommuteContext healthcareCommute =
                     await commuteRoutingService.ResolveHealthcareCommuteAsync(
                         cityId: cityId.Value,
@@ -133,16 +130,53 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         HealthcareAccess: MapHealthcareAccess(
                             prepared,
                             healthcareCommute,
-                            districtUtilityConditions,
+                            districtHealth.UtilityConditions,
                             serviceQualityState,
                             healthcarePressureProfile),
-                        Environment: MapEnvironment(
-                            districtLivingConditions,
-                            districtEssentials)));
+                        Environment: districtHealth.Environment));
             }
 
             return snapshots;
         }
+
+        private static IReadOnlyDictionary<Guid, PreparedDistrictHealthContext>
+            BuildDistrictHealthContexts(
+                IReadOnlyCollection<PreparedResident> preparedResidents,
+                CityPopulationLivingConditionsState? livingConditionsState,
+                IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>
+                    districtUtilityConditionsByDistrictId,
+                CityPopulationEssentialsState? essentialsState,
+                CityPopulationDistrictImpactPolicy districtImpactPolicy)
+        {
+            return preparedResidents
+               .Select(prepared => prepared.DistrictId)
+               .Distinct()
+               .ToDictionary(
+                    ResolveDistrictKey,
+                    districtId =>
+                    {
+                        CityDistrictUtilityConditionsSnapshot? utilityConditions =
+                            ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
+                                districtId,
+                                districtUtilityConditionsByDistrictId);
+                        CityPopulationLivingConditionsContext livingConditions =
+                            districtImpactPolicy.ResolveLivingConditions(
+                                districtId,
+                                livingConditionsState,
+                                utilityConditions);
+                        CityPopulationEssentialsContext essentials =
+                            districtImpactPolicy.ResolveEssentials(
+                                districtId,
+                                essentialsState);
+
+                        return new PreparedDistrictHealthContext(
+                            UtilityConditions: utilityConditions,
+                            Environment: MapEnvironment(livingConditions, essentials));
+                    });
+        }
+
+        private static Guid ResolveDistrictKey(DistrictId? districtId) =>
+            districtId?.Value ?? Guid.Empty;
 
         private static IReadOnlyDictionary<HouseholdId, PersonEntity[]> BuildAliveHouseholdResidents(
             IReadOnlyCollection<PreparedResident> preparedResidents,
@@ -307,5 +341,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DistrictId? DistrictId,
             ResidentialBuildingId? ResidentialBuildingId,
             CityPopulationAnchorCatalogItem? PrimaryCareAnchor);
+
+        private sealed record PreparedDistrictHealthContext(
+            CityDistrictUtilityConditionsSnapshot? UtilityConditions,
+            PopulationResidentEnvironmentalHealthSnapshot Environment);
     }
 }
