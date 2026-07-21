@@ -182,9 +182,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             foreach (Person resident in persons)
             {
                 EducationParticipationProjection? participation = educationParticipation.FindCurrent(resident);
+                ResidentExternalActivityProfile externalActivity =
+                    EducationResidentExternalActivityProfileFactory.Create(participation);
                 routineProfilesByResidentId[resident.Id] = PersonRoutineProfileFactory.Create(
                     resident: resident,
-                    educationParticipation: participation);
+                    externalActivity: externalActivity);
                 economicContextsByResidentId[resident.Id] = CityResidentEconomicContextFactory.Create(
                     resident: resident,
                     educationParticipation: participation,

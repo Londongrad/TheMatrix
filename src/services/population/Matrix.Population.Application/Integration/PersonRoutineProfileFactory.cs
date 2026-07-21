@@ -1,4 +1,3 @@
-using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -8,12 +7,12 @@ namespace Matrix.Population.Application.Integration
     public static class PersonRoutineProfileFactory
     {
         private static readonly TimeSpan ActivityStart = TimeSpan.FromHours(8);
-        private static readonly TimeSpan EducationActivityEnd = TimeSpan.FromHours(15);
+        private static readonly TimeSpan ExternalActivityEnd = TimeSpan.FromHours(15);
         private static readonly TimeSpan EmploymentActivityEnd = TimeSpan.FromHours(17);
 
         public static PersonRoutineProfile Create(
             Person resident,
-            EducationParticipationProjection? educationParticipation)
+            ResidentExternalActivityProfile? externalActivity)
         {
             ArgumentNullException.ThrowIfNull(resident);
 
@@ -23,10 +22,10 @@ namespace Matrix.Population.Application.Integration
                     activityEnd: EmploymentActivityEnd,
                     activityLoad: PersonStructuredActivityLoad.Demanding);
 
-            return educationParticipation?.IsEnrolled == true
+            return externalActivity?.HasStructuredActivity == true
                 ? PersonRoutineProfile.Structured(
                     activityStart: ActivityStart,
-                    activityEnd: EducationActivityEnd,
+                    activityEnd: ExternalActivityEnd,
                     activityLoad: PersonStructuredActivityLoad.Moderate)
                 : PersonRoutineProfile.Unstructured;
         }

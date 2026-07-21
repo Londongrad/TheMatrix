@@ -74,9 +74,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             foreach (PersonEntity resident in residents)
             {
                 EducationParticipationProjection? participation = educationParticipation.FindCurrent(resident);
+                ResidentExternalActivityProfile externalActivity =
+                    EducationResidentExternalActivityProfileFactory.Create(participation);
                 routineProfilesByResidentId[resident.Id] = PersonRoutineProfileFactory.Create(
                     resident: resident,
-                    educationParticipation: participation);
+                    externalActivity: externalActivity);
                 if (includeEconomicContexts)
                     economicContextsByResidentId[resident.Id] = CityResidentEconomicContextFactory.Create(
                         resident: resident,
