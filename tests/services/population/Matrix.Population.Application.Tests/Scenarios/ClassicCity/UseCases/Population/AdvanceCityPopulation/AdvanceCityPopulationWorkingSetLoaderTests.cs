@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -177,6 +178,9 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 actual: workingSet.ResidentsByHouseholdId[firstHouseholdId].Count);
             Assert.Single(workingSet.ResidentsByHouseholdId[secondHouseholdId]);
             Assert.Null(workingSet.EducationParticipation.FindCurrent(firstResident));
+            Assert.Same(
+                expected: ResidentExternalActivityProfile.None,
+                actual: workingSet.ExternalActivitiesByResidentId[firstResident.Id]);
             Assert.Equal(
                 expected:
                 [
@@ -252,12 +256,16 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 expected: 0,
                 actual: projectionRepository.GetEnrolledByResidentIdsCallCount);
             Assert.Null(workingSet.EducationParticipation.FindCurrent(resident));
+            Assert.Same(
+                expected: ResidentExternalActivityProfile.None,
+                actual: workingSet.ExternalActivitiesByResidentId[resident.Id]);
         }
 
         [Fact]
         public async Task LoadAsync_WhenOnlyRoutinesAreRequired_UsesActiveEducationWithoutEconomics()
         {
             PersonEntity resident = CreatePerson();
+            Guid institutionAnchorId = Guid.NewGuid();
             var projectionRepository = new FakeEducationParticipationProjectionRepository();
             await projectionRepository.UpsertNewerAsync(
             [
@@ -269,7 +277,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     IsEnrolled: true,
                     ActiveStage: "higher",
                     InstitutionId: Guid.NewGuid(),
-                    InstitutionAnchorId: Guid.NewGuid(),
+                    InstitutionAnchorId: institutionAnchorId,
                     EnrolledOn: CurrentDate,
                     CompletedStage: "upper-secondary",
                     CompletedStageOn: CurrentDate.AddDays(-1),
@@ -292,6 +300,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(0, projectionRepository.GetByResidentIdsCallCount);
             Assert.Equal(1, projectionRepository.GetEnrolledByResidentIdsCallCount);
             Assert.NotNull(workingSet.EducationParticipation.FindCurrent(resident));
+            ResidentExternalActivityProfile activity =
+                workingSet.ExternalActivitiesByResidentId[resident.Id];
+            Assert.True(activity.HasStructuredActivity);
+            Assert.Equal(institutionAnchorId, activity.DestinationAnchorId);
+            Assert.Equal(
+                expected: ResidentWorkforceQualificationTier.General,
+                actual: activity.WorkforceQualification);
             Assert.Equal(
                 expected: PersonStructuredActivityLoad.Moderate,
                 actual: workingSet.RoutineProfilesByResidentId[resident.Id].StructuredActivityLoad);
