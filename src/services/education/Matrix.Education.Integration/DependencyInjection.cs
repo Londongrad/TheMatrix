@@ -12,6 +12,7 @@ namespace Matrix.Education.Integration
             configurator.AddConsumer<SimulationEducationInstitutionProvisioningConsumer,
                 SimulationEducationInstitutionProvisioningConsumerDefinition>();
             configurator.AddConsumer<SimulationDeletedConsumer, SimulationDeletedConsumerDefinition>();
+            configurator.AddConsumer<SimulationCreatedConsumer, SimulationCreatedConsumerDefinition>();
             configurator.AddConsumer<ClassicCityEducationProgressionConsumer,
                 ClassicCityEducationProgressionConsumerDefinition>();
         }

@@ -10,6 +10,7 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
 {
     public sealed class AdvanceEducationProgressionCommandHandler(
         IEducationProgressionCheckpointRepository checkpointRepository,
+        IEducationSimulationRuntimeRepository runtimeRepository,
         IEducationSimulationDeletionRepository deletionRepository,
         EducationProgressionBatchProcessorRegistry batchProcessorRegistry,
         IEducationStudentParticipationOutboxWriter participationOutboxWriter,
@@ -66,6 +67,7 @@ namespace Matrix.Education.Application.Progression.AdvanceEducationProgression
 
             IEducationProgressionBatchProcessor batchProcessor =
                 batchProcessorRegistry.Resolve(batch.RuntimeKey);
+            await runtimeRepository.EnsureAsync(batch.SimulationHostId, batch.RuntimeKey, cancellationToken);
             EducationProgressionBatchResult batchResult = await batchProcessor.ProcessAsync(
                 batch: batch,
                 cancellationToken: cancellationToken);

@@ -182,15 +182,31 @@ namespace Matrix.Education.Application.Tests.Progression.AdvanceEducationProgres
             Assert.Equal(0, processor.CallCount);
         }
 
+        [Fact]
+        public async Task Handle_RejectsRuntimeRebindingBeforeProcessingStudents()
+        {
+            var runtimeRepository = new EducationSimulationRuntimeRepositoryStub();
+            runtimeRepository.Runtimes[new SimulationHostId(HostId)] = new(
+                new SimulationScenarioKey("other"), new SimulationHostTypeKey("city"));
+            var processor = new BatchProcessorStub();
+            var handler = CreateHandler(new CheckpointRepositoryStub(), processor, new EducationUnitOfWorkStub(),
+                runtimeRepository: runtimeRepository);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(CreateCommand(1), CancellationToken.None));
+            Assert.Equal(0, processor.CallCount);
+        }
+
         private static AdvanceEducationProgressionCommandHandler CreateHandler(
             CheckpointRepositoryStub repository,
             BatchProcessorStub processor,
             EducationUnitOfWorkStub unitOfWork,
             DeletionRepositoryStub? deletionRepository = null,
-            EducationStudentParticipationOutboxWriterStub? outboxWriter = null)
+            EducationStudentParticipationOutboxWriterStub? outboxWriter = null,
+            EducationSimulationRuntimeRepositoryStub? runtimeRepository = null)
         {
             return new AdvanceEducationProgressionCommandHandler(
                 checkpointRepository: repository,
+                runtimeRepository: runtimeRepository ?? new EducationSimulationRuntimeRepositoryStub(),
                 deletionRepository: deletionRepository ?? new DeletionRepositoryStub(),
                 batchProcessorRegistry: new EducationProgressionBatchProcessorRegistry([processor]),
                 participationOutboxWriter:
