@@ -7,7 +7,7 @@ using Matrix.Education.Infrastructure.Persistence;
 namespace Matrix.Education.Infrastructure.Outbox
 {
     public sealed class EducationStudentParticipationOutboxWriter(EducationDbContext dbContext)
-        : IEducationStudentParticipationOutboxWriter
+        : IEducationStudentParticipationBatchStore
     {
         private static readonly JsonSerializerOptions JsonOptions =
             new(JsonSerializerDefaults.Web);

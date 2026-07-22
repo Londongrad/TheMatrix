@@ -1,6 +1,8 @@
 using System.Reflection;
 using Matrix.Education.Application.Progression;
 using Matrix.Education.Application.Abstractions;
+using Matrix.Education.Application.Integration;
+using Matrix.Education.Application.Scenarios.ClassicCity.Participation;
 using Matrix.Education.Application.Scenarios.ClassicCity.Progression;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +20,9 @@ namespace Matrix.Education.Application
             services.AddScoped<IEducationProgressionBatchProcessor,
                 ClassicCityEducationProgressionBatchProcessor>();
             services.AddScoped<EducationProgressionBatchProcessorRegistry>();
+            services.AddSingleton<IEducationParticipationEconomicPolicy, ClassicCityEducationEconomicPolicy>();
+            services.AddSingleton<EducationEconomicPolicyRegistry>();
+            services.AddScoped<IEducationStudentParticipationOutboxWriter, EducationStudentParticipationPublisher>();
         }
     }
 }

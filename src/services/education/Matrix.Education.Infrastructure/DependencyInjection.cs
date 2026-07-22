@@ -64,7 +64,7 @@ namespace Matrix.Education.Infrastructure
                 EducationProgressionCheckpointRepository>();
             services.AddScoped<IEducationSimulationDeletionRepository,
                 EducationSimulationDeletionRepository>();
-            services.AddScoped<IEducationStudentParticipationOutboxWriter,
+            services.AddScoped<IEducationStudentParticipationBatchStore,
                 EducationStudentParticipationOutboxWriter>();
             services.AddScoped<IEducationUnitOfWork, EducationUnitOfWork>();
             services.AddOutbox<EducationDbContext>(configuration);
