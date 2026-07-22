@@ -7,9 +7,11 @@ namespace Matrix.Population.Application.Integration
         PersonRoutineProfile Routine,
         Guid? DestinationAnchorId,
         string? CommutePurpose,
-        ResidentWorkforceQualificationTier WorkforceQualification)
+        ResidentWorkforceQualificationTier WorkforceQualification,
+        ResidentExternalEconomicProfile? Economics = null)
     {
         public PersonRoutineProfile Routine { get; } = Routine ?? throw new ArgumentNullException(nameof(Routine));
+        public ResidentExternalEconomicProfile Economics { get; } = Economics ?? ResidentExternalEconomicProfile.Neutral;
 
         public bool HasStructuredActivity => Routine.HasStructuredActivity;
 
