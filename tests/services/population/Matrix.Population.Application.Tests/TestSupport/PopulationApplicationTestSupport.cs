@@ -1577,6 +1577,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 DateTimeOffset currentSimTimeUtc,
                 IReadOnlyCollection<Person> residents,
                 IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
+                IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId,
                 CancellationToken cancellationToken)
             {
                 SyncCalls++;

@@ -1,5 +1,7 @@
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions
 {
@@ -11,6 +13,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abs
             DateTimeOffset currentSimTimeUtc,
             IReadOnlyCollection<Person> residents,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
+            IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId,
             CancellationToken cancellationToken);
     }
 }

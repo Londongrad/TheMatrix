@@ -1,4 +1,4 @@
-using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World;
 using Matrix.Population.Application.Tests.TestSupport;
@@ -20,7 +20,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
             Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
 
         [Fact]
-        public async Task SyncAsync_UsesCurrentEducationProjectionForAllResidentsInOneBatch()
+        public async Task SyncAsync_UsesProvidedExternalActivitySnapshot()
         {
             Person enrolledResident = CreatePerson(
                 personId: Guid.Parse("11111111-1111-1111-1111-111111111111"),
@@ -29,12 +29,6 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                 personId: Guid.Parse("22222222-2222-2222-2222-222222222222"),
                 householdId: enrolledResident.HouseholdId.Value,
                 employmentStatus: EmploymentStatus.Unemployed);
-            var projectionRepository = new FakeEducationParticipationProjectionRepository();
-            await projectionRepository.UpsertNewerAsync(
-                projections:
-                [
-                    CreateProjection(enrolledResident)
-                ]);
             var activeTripClient = new FakeCityPopulationActiveTripClient();
             var commuteRoutingService = new FakeCityPopulationCommuteRoutingService
             {
@@ -47,8 +41,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
             };
             var service = new CityPopulationCommuteTripSyncService(
                 activeTripClient: activeTripClient,
-                commuteRoutingService: commuteRoutingService,
-                educationParticipationProjectionRepository: projectionRepository);
+                commuteRoutingService: commuteRoutingService);
 
             await service.SyncAsync(
                 cityId: CityId,
@@ -75,21 +68,16 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                         residentialBuildingId: ResidentialBuildingId.From(
                             Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd")))
                 ],
+                externalActivitiesByResidentId: new Dictionary<PersonId, ResidentExternalActivityProfile>
+                {
+                    [enrolledResident.Id] = new ResidentExternalActivityProfile(
+                        HasStructuredActivity: true,
+                        DestinationAnchorId: InstitutionAnchorId,
+                        CommutePurpose: "EducationCommute",
+                        WorkforceQualification: ResidentWorkforceQualificationTier.General),
+                    [residentWithoutParticipation.Id] = ResidentExternalActivityProfile.None
+                },
                 cancellationToken: CancellationToken.None);
-
-            Assert.Equal(
-                expected: 1,
-                actual: projectionRepository.GetByResidentIdsCallCount);
-            Assert.Equal(
-                expected: CityId,
-                actual: projectionRepository.RequestedSimulationHostId);
-            Assert.Equal(
-                expected:
-                [
-                    enrolledResident.Id.Value,
-                    residentWithoutParticipation.Id.Value
-                ],
-                actual: projectionRepository.RequestedResidentIds);
             CityPopulationTripDispatchRequest dispatch = Assert.IsType<CityPopulationTripDispatchRequest>(
                 activeTripClient.RequestedDispatch);
             Assert.Equal(
@@ -103,23 +91,5 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                 actual: dispatch.ToId);
         }
 
-        private static EducationParticipationProjection CreateProjection(Person resident)
-        {
-            return new EducationParticipationProjection(
-                SimulationHostId: CityId,
-                ResidentId: resident.Id.Value,
-                ParticipationRevision: 3,
-                ResidentLifecycleRevision: resident.LifecycleRevision,
-                IsEnrolled: true,
-                ActiveStage: "upper-secondary",
-                InstitutionId: Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
-                InstitutionAnchorId: InstitutionAnchorId,
-                EnrolledOn: new DateOnly(2048, 1, 10),
-                CompletedStage: "lower-secondary",
-                CompletedStageOn: new DateOnly(2047, 6, 20),
-                SnapshotDate: new DateOnly(2048, 5, 3),
-                OccurredAtUtc: UtcNow,
-                UpdatedAtUtc: UtcNow);
-        }
     }
 }

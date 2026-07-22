@@ -162,6 +162,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     : [];
             bool requiresWeatherExposure = exposureSegments.Count > 0;
             IReadOnlyCollection<PersonEntity>? personsSnapshot = null;
+            IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile>? externalActivitiesSnapshot = null;
             IReadOnlyCollection<HouseholdEntity>? householdsSnapshot = null;
             IReadOnlyCollection<ClassicCityHouseholdPlacement>? placementsSnapshot = null;
             List<CityPopulationActivityWriteModel> pendingActivityEntries = [];
@@ -232,6 +233,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cancellationToken: ct);
                         List<PersonEntity> residents = workingSet.Residents;
                         personsSnapshot = residents;
+                        externalActivitiesSnapshot = workingSet.ExternalActivitiesByResidentId;
                         placementsSnapshot = workingSet.Placements;
                         Dictionary<PersonId, PersonEntity> personsById = workingSet.ResidentsById;
                         Dictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId =
@@ -651,7 +653,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 },
                 cancellationToken: cancellationToken);
 
-            if (personsSnapshot is not null && placementsSnapshot is not null)
+            if (personsSnapshot is not null &&
+                placementsSnapshot is not null &&
+                externalActivitiesSnapshot is not null)
                 try
                 {
                     await commuteTripSyncService.SyncAsync(
@@ -660,6 +664,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         currentSimTimeUtc: request.ToSimTimeUtc,
                         residents: personsSnapshot,
                         householdPlacements: placementsSnapshot,
+                        externalActivitiesByResidentId: externalActivitiesSnapshot,
                         cancellationToken: cancellationToken);
                 }
                 catch (Exception ex)
