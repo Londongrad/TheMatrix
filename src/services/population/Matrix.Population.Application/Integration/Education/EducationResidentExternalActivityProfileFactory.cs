@@ -13,6 +13,9 @@ namespace Matrix.Population.Application.Integration.Education
                 DestinationAnchorId: participation.IsEnrolled
                     ? participation.InstitutionAnchorId
                     : null,
+                CommutePurpose: participation.IsEnrolled
+                    ? "EducationCommute"
+                    : null,
                 WorkforceQualification: MapQualification(participation.CompletedStage));
         }
 

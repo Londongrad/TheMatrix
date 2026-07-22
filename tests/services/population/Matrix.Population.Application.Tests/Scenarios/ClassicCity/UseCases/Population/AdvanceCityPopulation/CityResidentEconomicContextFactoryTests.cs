@@ -79,6 +79,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             return new ResidentExternalActivityProfile(
                 HasStructuredActivity: hasStructuredActivity,
                 DestinationAnchorId: hasStructuredActivity ? Guid.NewGuid() : null,
+                CommutePurpose: hasStructuredActivity ? "TestActivityCommute" : null,
                 WorkforceQualification: qualification);
         }
     }

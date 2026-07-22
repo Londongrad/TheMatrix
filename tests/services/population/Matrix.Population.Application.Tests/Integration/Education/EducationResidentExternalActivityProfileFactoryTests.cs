@@ -20,6 +20,7 @@ namespace Matrix.Population.Application.Tests.Integration.Education
 
             Assert.True(profile.HasStructuredActivity);
             Assert.Equal(anchorId, profile.DestinationAnchorId);
+            Assert.Equal("EducationCommute", profile.CommutePurpose);
             Assert.Equal(
                 ResidentWorkforceQualificationTier.General,
                 profile.WorkforceQualification);
@@ -44,6 +45,7 @@ namespace Matrix.Population.Application.Tests.Integration.Education
 
             Assert.False(profile.HasStructuredActivity);
             Assert.Null(profile.DestinationAnchorId);
+            Assert.Null(profile.CommutePurpose);
             Assert.Equal(expected, profile.WorkforceQualification);
         }
 
