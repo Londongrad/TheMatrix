@@ -4,6 +4,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.World;
 using Matrix.Population.Application.Tests.TestSupport;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -72,7 +73,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                 externalActivitiesByResidentId: new Dictionary<PersonId, ResidentExternalActivityProfile>
                 {
                     [enrolledResident.Id] = new ResidentExternalActivityProfile(
-                        HasStructuredActivity: true,
+                        Routine: PersonRoutineProfile.Structured(
+                            activityStart: TimeSpan.FromHours(8),
+                            activityEnd: TimeSpan.FromHours(15),
+                            activityLoad: PersonStructuredActivityLoad.Moderate),
                         DestinationAnchorId: InstitutionAnchorId,
                         CommutePurpose: ExternalCommutePurpose,
                         WorkforceQualification: ResidentWorkforceQualificationTier.General),

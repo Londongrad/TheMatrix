@@ -12,18 +12,20 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
     public sealed class PersonRoutineProfileFactoryTests
     {
         [Fact]
-        public void Create_WhenResidentHasExternalActivity_ReturnsModerateSchedule()
+        public void Create_WhenResidentHasExternalActivity_ReusesProvidedSchedule()
         {
             Person resident = CreatePerson(employmentStatus: EmploymentStatus.Unemployed);
+            ResidentExternalActivityProfile activity = CreateExternalActivity();
 
             PersonRoutineProfile profile = PersonRoutineProfileFactory.Create(
                 resident,
-                CreateExternalActivity());
+                activity);
 
+            Assert.Same(activity.Routine, profile);
             Assert.True(profile.HasStructuredActivity);
-            Assert.Equal(TimeSpan.FromHours(8), profile.StructuredActivityStart);
-            Assert.Equal(TimeSpan.FromHours(15), profile.StructuredActivityEnd);
-            Assert.Equal(PersonStructuredActivityLoad.Moderate, profile.StructuredActivityLoad);
+            Assert.Equal(TimeSpan.FromHours(12), profile.StructuredActivityStart);
+            Assert.Equal(TimeSpan.FromHours(18), profile.StructuredActivityEnd);
+            Assert.Equal(PersonStructuredActivityLoad.Demanding, profile.StructuredActivityLoad);
         }
 
         [Fact]
@@ -58,7 +60,10 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         private static ResidentExternalActivityProfile CreateExternalActivity()
         {
             return new ResidentExternalActivityProfile(
-                HasStructuredActivity: true,
+                Routine: PersonRoutineProfile.Structured(
+                    activityStart: TimeSpan.FromHours(12),
+                    activityEnd: TimeSpan.FromHours(18),
+                    activityLoad: PersonStructuredActivityLoad.Demanding),
                 DestinationAnchorId: Guid.NewGuid(),
                 CommutePurpose: "TestActivityCommute",
                 WorkforceQualification: ResidentWorkforceQualificationTier.General);

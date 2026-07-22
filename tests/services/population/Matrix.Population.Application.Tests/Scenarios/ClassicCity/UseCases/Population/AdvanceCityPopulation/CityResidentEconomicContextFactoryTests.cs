@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Xunit;
 using static Matrix.Population.Application.Tests.TestSupport.PopulationApplicationTestSupport;
@@ -77,7 +78,12 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 ResidentWorkforceQualificationTier.General)
         {
             return new ResidentExternalActivityProfile(
-                HasStructuredActivity: hasStructuredActivity,
+                Routine: hasStructuredActivity
+                    ? PersonRoutineProfile.Structured(
+                        activityStart: TimeSpan.FromHours(8),
+                        activityEnd: TimeSpan.FromHours(15),
+                        activityLoad: PersonStructuredActivityLoad.Moderate)
+                    : PersonRoutineProfile.Unstructured,
                 DestinationAnchorId: hasStructuredActivity ? Guid.NewGuid() : null,
                 CommutePurpose: hasStructuredActivity ? "TestActivityCommute" : null,
                 WorkforceQualification: qualification);

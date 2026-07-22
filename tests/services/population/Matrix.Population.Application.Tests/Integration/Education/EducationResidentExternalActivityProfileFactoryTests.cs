@@ -1,5 +1,6 @@
 using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Domain.Models;
 using Xunit;
 
 namespace Matrix.Population.Application.Tests.Integration.Education
@@ -19,6 +20,9 @@ namespace Matrix.Population.Application.Tests.Integration.Education
                 EducationResidentExternalActivityProfileFactory.Create(participation);
 
             Assert.True(profile.HasStructuredActivity);
+            Assert.Equal(TimeSpan.FromHours(8), profile.Routine.StructuredActivityStart);
+            Assert.Equal(TimeSpan.FromHours(15), profile.Routine.StructuredActivityEnd);
+            Assert.Equal(PersonStructuredActivityLoad.Moderate, profile.Routine.StructuredActivityLoad);
             Assert.Equal(anchorId, profile.DestinationAnchorId);
             Assert.Equal("EducationCommute", profile.CommutePurpose);
             Assert.Equal(
