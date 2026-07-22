@@ -1,4 +1,6 @@
 using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
+using Matrix.Population.Infrastructure.Integration.Education;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Infrastructure.Persistence.Entities
@@ -31,6 +33,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
         public DateOnly SnapshotDate { get; private set; }
         public DateTimeOffset OccurredAtUtc { get; private set; }
         public DateTimeOffset UpdatedAtUtc { get; private set; }
+        public string? EconomicEffectsJson { get; private set; }
 
         public static EducationParticipationProjectionEntity Create(
             EducationParticipationProjection projection)
@@ -53,8 +56,14 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
             return true;
         }
 
-        public EducationParticipationProjection ToProjection()
+        public EducationParticipationProjection ToProjection(Dictionary<string, ResidentExternalEconomicProfile>? economicsCache = null)
         {
+            ResidentExternalEconomicProfile? economics = null;
+            if (EconomicEffectsJson is { } json && (economicsCache is null || !economicsCache.TryGetValue(json, out economics)))
+            {
+                economics = EducationEconomicEffectsMapper.Deserialize(json);
+                economicsCache?.Add(json, economics);
+            }
             return new EducationParticipationProjection(
                 SimulationHostId,
                 ResidentId.Value,
@@ -69,7 +78,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
                 CompletedStageOn,
                 SnapshotDate,
                 OccurredAtUtc,
-                UpdatedAtUtc);
+                UpdatedAtUtc,
+                economics);
         }
 
         private void Apply(EducationParticipationProjection projection)
@@ -95,6 +105,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
             SnapshotDate = projection.SnapshotDate;
             OccurredAtUtc = projection.OccurredAtUtc;
             UpdatedAtUtc = projection.UpdatedAtUtc;
+            EconomicEffectsJson = projection.Economics is null ? null : EducationEconomicEffectsMapper.Serialize(projection.Economics);
         }
     }
 }

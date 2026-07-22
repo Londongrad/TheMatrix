@@ -171,11 +171,12 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .AsNoTracking()
                .Where(x => x.SimulationHostId == cityId.Value && residentIds.Contains(x.ResidentId))
                .ToArrayAsync(cancellationToken);
+            var economicsCache = new Dictionary<string, ResidentExternalEconomicProfile>(StringComparer.Ordinal);
             var educationParticipation = new EducationParticipationProjectionIndex(
                 simulationHostId: cityId.Value,
                 projections: educationProjectionEntities.ToDictionary(
                     keySelector: x => x.ResidentId.Value,
-                    elementSelector: x => x.ToProjection()));
+                    elementSelector: x => x.ToProjection(economicsCache)));
             var routineProfilesByResidentId = new Dictionary<PersonId, PersonRoutineProfile>(persons.Length);
             var economicContextsByResidentId =
                 new Dictionary<PersonId, CityResidentEconomicContext>(persons.Length);

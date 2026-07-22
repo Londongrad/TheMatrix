@@ -1,4 +1,6 @@
 using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
@@ -55,6 +57,56 @@ namespace Matrix.Population.Infrastructure.Tests.Persistence.Repositories
                 await repository.GetByResidentIdsAsync(Guid.NewGuid(), [ResidentId]);
 
             Assert.Empty(otherHost);
+        }
+
+        [Fact]
+        public async Task EconomicEffects_SurviveReloadAndCannotBeOverwrittenByStaleLegacyMessage()
+        {
+            await using PopulationTestDatabase database = CreateDbContext();
+            var dbContext = database.DbContext;
+            await AddResidentAsync(dbContext);
+            var repository = new EducationParticipationProjectionRepository(dbContext);
+            var effects = new ResidentExternalEconomicProfile(ResidentAgeIncomeSchedule.Create((0, 3m), (21, 99m)),
+                7m, 0.1d, 0.8d, -0.1m, 0.03m, 0.07m);
+            await repository.UpsertNewerAsync([CreateProjection(2) with { Economics = effects }]);
+            await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
+            Assert.Equal(0, await repository.UpsertNewerAsync([CreateProjection(1)]));
+
+            var restored = Assert.Single(await repository.GetByResidentIdsAsync(HostId, [ResidentId])).Value.Economics;
+            Assert.NotNull(restored);
+            Assert.Equal(99m, restored.TransferIncome.Resolve(21));
+            Assert.Equal(0.8d, restored.EmploymentAvailabilityFactor);
+            Assert.Equal(7m, restored.EmploymentIncomeBonus);
+
+            await repository.UpsertNewerAsync([CreateProjection(3) with { Economics = ResidentExternalEconomicProfile.Neutral }]);
+            await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
+            restored = Assert.Single(await repository.GetByResidentIdsAsync(HostId, [ResidentId])).Value.Economics;
+            Assert.NotNull(restored);
+            Assert.Equal(0m, restored.TransferIncome.Resolve(21));
+            Assert.Equal(1d, restored.EmploymentAvailabilityFactor);
+        }
+
+        [Fact]
+        public async Task ReadBatch_ReusesEqualEconomicProfilesAcrossResidents()
+        {
+            await using PopulationTestDatabase database = CreateDbContext();
+            var dbContext = database.DbContext;
+            await AddResidentAsync(dbContext);
+            Person second = CreatePerson(personId: Guid.NewGuid());
+            dbContext.Households.Add(CreateHousehold(householdId: second.HouseholdId.Value));
+            dbContext.Persons.Add(second);
+            await dbContext.SaveChangesAsync();
+            var repository = new EducationParticipationProjectionRepository(dbContext);
+            var first = CreateProjection(1) with { Economics = ResidentExternalEconomicProfile.Neutral };
+            await repository.UpsertNewerAsync([first, first with { ResidentId = second.Id.Value }]);
+            await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
+
+            var profiles = await repository.GetByResidentIdsAsync(HostId, [ResidentId, second.Id.Value]);
+            Assert.NotNull(profiles[ResidentId].Economics);
+            Assert.Same(profiles[ResidentId].Economics, profiles[second.Id.Value].Economics);
         }
 
         [Fact]

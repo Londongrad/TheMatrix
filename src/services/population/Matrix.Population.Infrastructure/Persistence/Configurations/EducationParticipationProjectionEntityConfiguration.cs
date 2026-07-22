@@ -43,6 +43,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                .IsRequired();
             builder.Property(projection => projection.UpdatedAtUtc)
                .IsRequired();
+            builder.Property(projection => projection.EconomicEffectsJson).HasColumnType("text");
 
             builder.HasOne<Person>()
                .WithMany()

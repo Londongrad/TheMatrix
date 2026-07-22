@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Integration;
 using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Domain.ValueObjects;
 using Matrix.Population.Infrastructure.Persistence.Entities;
@@ -90,9 +91,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                .Where(projection => projection.SimulationHostId == simulationHostId
                                     && personIds.Contains(projection.ResidentId))
                .ToListAsync(cancellationToken);
+            var economicsCache = new Dictionary<string, ResidentExternalEconomicProfile>(StringComparer.Ordinal);
             return projections.ToDictionary(
                 projection => projection.ResidentId.Value,
-                projection => projection.ToProjection());
+                projection => projection.ToProjection(economicsCache));
         }
 
         public async Task<IReadOnlyDictionary<Guid, EducationParticipationProjection>>
@@ -116,9 +118,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                                     && projection.IsEnrolled
                                     && personIds.Contains(projection.ResidentId))
                .ToListAsync(cancellationToken);
+            var economicsCache = new Dictionary<string, ResidentExternalEconomicProfile>(StringComparer.Ordinal);
             return projections.ToDictionary(
                 projection => projection.ResidentId.Value,
-                projection => projection.ToProjection());
+                projection => projection.ToProjection(economicsCache));
         }
 
         public async Task DeleteBySimulationHostAsync(

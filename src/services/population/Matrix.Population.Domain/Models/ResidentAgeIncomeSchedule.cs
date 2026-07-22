@@ -7,7 +7,10 @@ namespace Matrix.Population.Domain.Models
         private ResidentAgeIncomeSchedule((int MinimumAge, decimal DailyIncome)[] bands)
         {
             _bands = bands;
+            Bands = Array.AsReadOnly(bands);
         }
+
+        public IReadOnlyList<(int MinimumAge, decimal DailyIncome)> Bands { get; }
 
         public static ResidentAgeIncomeSchedule None { get; } = new([(0, 0m)]);
 
