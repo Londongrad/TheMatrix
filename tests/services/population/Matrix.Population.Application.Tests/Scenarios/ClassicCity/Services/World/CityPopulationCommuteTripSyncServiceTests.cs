@@ -18,6 +18,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
         private static readonly Guid CityId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         private static readonly Guid InstitutionAnchorId =
             Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        private const string ExternalCommutePurpose = "ShelterTrainingCommute";
 
         [Fact]
         public async Task SyncAsync_UsesProvidedExternalActivitySnapshot()
@@ -73,7 +74,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                     [enrolledResident.Id] = new ResidentExternalActivityProfile(
                         HasStructuredActivity: true,
                         DestinationAnchorId: InstitutionAnchorId,
-                        CommutePurpose: "EducationCommute",
+                        CommutePurpose: ExternalCommutePurpose,
                         WorkforceQualification: ResidentWorkforceQualificationTier.General),
                     [residentWithoutParticipation.Id] = ResidentExternalActivityProfile.None
                 },
@@ -84,7 +85,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                 expected: enrolledResident.Id.Value,
                 actual: dispatch.TravellerEntityId);
             Assert.Equal(
-                expected: "EducationCommute",
+                expected: ExternalCommutePurpose,
                 actual: dispatch.Purpose);
             Assert.Equal(
                 expected: InstitutionAnchorId,

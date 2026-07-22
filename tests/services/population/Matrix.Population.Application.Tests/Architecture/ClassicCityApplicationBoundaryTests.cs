@@ -1,5 +1,6 @@
 using Matrix.ArchitectureTesting;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.World;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using NetArchTest.Rules;
 using Xunit;
@@ -25,6 +26,24 @@ namespace Matrix.Population.Application.Tests.Architecture
                .That()
                .ResideInNamespace(
                     "Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation")
+               .ShouldNot()
+               .HaveDependencyOn("Matrix.Population.Application.Integration.Education")
+               .GetResult();
+
+            Assert.True(
+                condition: result.IsSuccessful,
+                userMessage: string.Join(
+                    separator: Environment.NewLine,
+                    values: result.FailingTypeNames ?? []));
+        }
+
+        [Fact]
+        public void CityMobility_DoesNotDependOnEducationIntegrationDetails()
+        {
+            TestResult result = Types
+               .InAssembly(typeof(CityPopulationCommuteTripSyncService).Assembly)
+               .That()
+               .ResideInNamespace("Matrix.Population.Application.Scenarios.ClassicCity.Services.World")
                .ShouldNot()
                .HaveDependencyOn("Matrix.Population.Application.Integration.Education")
                .GetResult();
