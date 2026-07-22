@@ -1,6 +1,5 @@
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Integration;
-using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -27,9 +26,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
             ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
             ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
-            IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
-            bool includeEducationParticipation,
-            bool includeActiveEducationParticipation,
+            IResidentExternalActivityProfileReader externalActivityProfileReader,
+            ResidentExternalActivityReadScope externalActivityReadScope,
             bool includeEmploymentContext,
             bool includeEconomicContexts,
             CancellationToken cancellationToken)
@@ -45,40 +43,23 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                .ToDictionary(
                     keySelector: x => x.Key,
                     elementSelector: x => (IReadOnlyCollection<PersonEntity>)x.ToList());
-            IReadOnlyDictionary<Guid, EducationParticipationProjection> educationProjections;
-            if (residents.Count == 0 || (!includeEducationParticipation && !includeActiveEducationParticipation))
-                educationProjections = new Dictionary<Guid, EducationParticipationProjection>();
-            else
-                if (includeEducationParticipation)
-                    educationProjections = await educationParticipationProjectionRepository.GetByResidentIdsAsync(
-                        simulationHostId: cityId.Value,
-                        residentIds: residents
-                           .Select(resident => resident.Id.Value)
-                           .ToArray(),
-                        cancellationToken: cancellationToken);
-                else
-                    educationProjections =
-                        await educationParticipationProjectionRepository.GetEnrolledByResidentIdsAsync(
-                            simulationHostId: cityId.Value,
-                            residentIds: residents
-                               .Select(resident => resident.Id.Value)
-                               .ToArray(),
-                            cancellationToken: cancellationToken);
-            var educationParticipation = new EducationParticipationProjectionIndex(
-                simulationHostId: cityId.Value,
-                projections: educationProjections);
             var routineProfilesByResidentId = new Dictionary<PersonId, PersonRoutineProfile>(residents.Count);
-            var externalActivitiesByResidentId =
-                new Dictionary<PersonId, ResidentExternalActivityProfile>(residents.Count);
+            IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId =
+                await externalActivityProfileReader.ReadAsync(
+                    simulationHostId: cityId.Value,
+                    residents: residents,
+                    scope: externalActivityReadScope,
+                    cancellationToken: cancellationToken);
             var economicContextsByResidentId =
                 new Dictionary<PersonId, CityResidentEconomicContext>(
                     includeEconomicContexts ? residents.Count : 0);
             foreach (PersonEntity resident in residents)
             {
-                EducationParticipationProjection? participation = educationParticipation.FindCurrent(resident);
-                ResidentExternalActivityProfile externalActivity =
-                    EducationResidentExternalActivityProfileFactory.Create(participation);
-                externalActivitiesByResidentId[resident.Id] = externalActivity;
+                ResidentExternalActivityProfile externalActivity = externalActivitiesByResidentId.TryGetValue(
+                    key: resident.Id,
+                    value: out ResidentExternalActivityProfile? resolvedActivity)
+                    ? resolvedActivity
+                    : ResidentExternalActivityProfile.None;
                 routineProfilesByResidentId[resident.Id] = PersonRoutineProfileFactory.Create(
                     resident: resident,
                     externalActivity: externalActivity);

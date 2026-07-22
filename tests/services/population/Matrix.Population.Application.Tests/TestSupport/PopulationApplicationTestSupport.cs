@@ -60,6 +60,13 @@ namespace Matrix.Population.Application.Tests.TestSupport
                     elementSelector: EducationResidentExternalActivityProfileFactory.Create);
         }
 
+        internal static IResidentExternalActivityProfileReader CreateExternalActivityReader(
+            FakeEducationParticipationProjectionRepository? repository = null)
+        {
+            return new EducationResidentExternalActivityProfileReader(
+                repository ?? new FakeEducationParticipationProjectionRepository());
+        }
+
         internal static Person CreatePerson(
             Guid? personId = null,
             Guid? householdId = null,

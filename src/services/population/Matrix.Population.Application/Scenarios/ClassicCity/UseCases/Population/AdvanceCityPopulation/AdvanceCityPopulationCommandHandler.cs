@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Integration;
-using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -44,7 +43,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
         ICityPopulationLivingConditionsStateRepository cityPopulationLivingConditionsStateRepository,
-        IEducationParticipationProjectionRepository educationParticipationProjectionRepository,
+        IResidentExternalActivityProfileReader externalActivityProfileReader,
         ICityDistrictUtilityConditionsClient districtUtilityConditionsClient,
         ICityPopulationCommuteRoutingService commuteRoutingService,
         ICityPopulationCommuteTripSyncService commuteTripSyncService,
@@ -222,9 +221,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 householdFinancialStressStateRepository: householdFinancialStressStateRepository,
                                 employerFinancialStressStateRepository: employerFinancialStressStateRepository,
                                 cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
-                                educationParticipationProjectionRepository: educationParticipationProjectionRepository,
-                                includeEducationParticipation: requiresDateProgression,
-                                includeActiveEducationParticipation: requiresNeedsProgression,
+                                externalActivityProfileReader: externalActivityProfileReader,
+                                externalActivityReadScope: requiresDateProgression
+                                    ? ResidentExternalActivityReadScope.All
+                                    : requiresNeedsProgression
+                                        ? ResidentExternalActivityReadScope.ActiveOnly
+                                        : ResidentExternalActivityReadScope.None,
                                 includeEmploymentContext: requiresDateProgression,
                                 includeEconomicContexts: requiresDateProgression,
                                 cancellationToken: ct);

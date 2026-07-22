@@ -664,7 +664,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 householdFinancialStressStateRepository:
                 new FakeCityPopulationHouseholdFinancialStressStateRepository(),
                 cityPopulationLivingConditionsStateRepository: new FakeCityPopulationLivingConditionsStateRepository(),
-                educationParticipationProjectionRepository: new FakeEducationParticipationProjectionRepository(),
+                externalActivityProfileReader: CreateExternalActivityReader(),
                 districtUtilityConditionsClient: new FakeCityDistrictUtilityConditionsClient(),
                 commuteRoutingService: new FakeCityPopulationCommuteRoutingService(),
                 commuteTripSyncService: commuteTripSyncService ?? new FakeCityPopulationCommuteTripSyncService(),

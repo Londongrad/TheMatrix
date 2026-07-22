@@ -394,10 +394,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                                                         new FakeCityPopulationEmployerFinancialStressStateRepository(),
                 cityPopulationAnchorCatalogRepository: anchorRepository ??
                                                        new FakeCityPopulationAnchorCatalogRepository(),
-                educationParticipationProjectionRepository: educationProjectionRepository ??
-                                                            new FakeEducationParticipationProjectionRepository(),
-                includeEducationParticipation: includeEducationParticipation,
-                includeActiveEducationParticipation: includeActiveEducationParticipation,
+                externalActivityProfileReader: CreateExternalActivityReader(
+                    educationProjectionRepository ?? new FakeEducationParticipationProjectionRepository()),
+                externalActivityReadScope: includeEducationParticipation
+                    ? ResidentExternalActivityReadScope.All
+                    : includeActiveEducationParticipation
+                        ? ResidentExternalActivityReadScope.ActiveOnly
+                        : ResidentExternalActivityReadScope.None,
                 includeEmploymentContext: includeEmploymentContext,
                 includeEconomicContexts: includeEconomicContexts,
                 cancellationToken: CancellationToken.None);

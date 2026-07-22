@@ -8,6 +8,7 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Integration;
+using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Infrastructure.Consumers.Education;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Options;
@@ -66,6 +67,8 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
             services.AddScoped<IEducationParticipationProjectionRepository,
                 EducationParticipationProjectionRepository>();
+            services.AddScoped<IResidentExternalActivityProfileReader,
+                EducationResidentExternalActivityProfileReader>();
             services.AddScoped<IPopulationResidentFactsOutboxWriter, PopulationResidentFactsOutboxWriter>();
             services.AddScoped<IPopulationResidentHealthRiskOutboxWriter,
                 PopulationResidentHealthRiskOutboxWriter>();
