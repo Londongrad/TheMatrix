@@ -26,7 +26,8 @@ namespace Matrix.Population.Application.Integration.Education
                     ? "EducationCommute"
                     : null,
                 WorkforceQualification: qualification,
-                Economics: EducationResidentEconomicProfileFactory.Resolve(participation.IsEnrolled, qualification));
+                Economics: participation.Economics
+                    ?? LegacyEducationResidentEconomicProfileFactory.Resolve(participation.IsEnrolled, qualification));
         }
 
         private static ResidentWorkforceQualificationTier MapQualification(string? completedStage)

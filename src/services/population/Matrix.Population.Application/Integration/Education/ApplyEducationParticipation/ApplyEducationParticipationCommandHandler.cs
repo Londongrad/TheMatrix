@@ -76,7 +76,8 @@ namespace Matrix.Population.Application.Integration.Education.ApplyEducationPart
                     CompletedStageOn: student.CompletedStageOn,
                     SnapshotDate: request.SnapshotDate,
                     OccurredAtUtc: request.OccurredAtUtc,
-                    UpdatedAtUtc: updatedAtUtc));
+                    UpdatedAtUtc: updatedAtUtc,
+                    Economics: student.Economics));
             }
 
             int appliedStudentCount = projections.Count == 0

@@ -63,6 +63,22 @@ namespace Matrix.Population.Application.Tests.Integration.Education
         }
 
         [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Create_UsesAuthoritativeEconomicsEvenWhenTheyAreExplicitlyNeutral(bool neutral)
+        {
+            var economics = neutral ? ResidentExternalEconomicProfile.Neutral : new ResidentExternalEconomicProfile(
+                ResidentAgeIncomeSchedule.Create((0, 99m)), 7m, 0.1d, 0.5d, -0.1m, 0.05m, 0.05m);
+            var participation = CreateParticipation(true, Guid.NewGuid(), "higher") with { Economics = economics };
+
+            var activity = EducationResidentExternalActivityProfileFactory.Create(participation);
+
+            Assert.Same(economics, activity.Economics);
+            Assert.Equal(neutral ? 0m : 99m, activity.Economics.TransferIncome.Resolve(18));
+            Assert.Equal(neutral ? 1d : 0.5d, activity.Economics.EmploymentAvailabilityFactor);
+        }
+
+        [Theory]
         [InlineData(null, 0, 0d)]
         [InlineData("unrecognized", 0, 0d)]
         [InlineData("primary", 1, 0.003d)]

@@ -7,8 +7,10 @@ namespace Matrix.Population.Infrastructure.Tests.Consumers.Education
 {
     public sealed class EducationStudentParticipationCommandMapperTests
     {
-        [Fact]
-        public void Map_ParticipationBatch_PreservesEnvelopeAndStudentState()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Map_ParticipationBatch_PreservesEnvelopeAndStudentState(bool hasEconomics)
         {
             Guid messageId = Guid.NewGuid();
             Guid residentId = Guid.NewGuid();
@@ -31,7 +33,8 @@ namespace Matrix.Population.Infrastructure.Tests.Consumers.Education
                         InstitutionAnchorId: Guid.NewGuid(),
                         EnrolledOn: new DateOnly(2048, 5, 1),
                         CompletedStage: "primary",
-                        CompletedStageOn: new DateOnly(2048, 4, 30))
+                        CompletedStageOn: new DateOnly(2048, 4, 30),
+                        EconomicEffects: hasEconomics ? new([new(0, 99m)], 8m, 0.1d, 0.5d, -0.1m, 0.05m, 0.05m) : null)
                 ]);
 
             ApplyEducationParticipationCommand command =
@@ -49,6 +52,14 @@ namespace Matrix.Population.Infrastructure.Tests.Consumers.Education
             Assert.Equal(4, student.ParticipationRevision);
             Assert.Equal("lower-secondary", student.ActiveStage);
             Assert.Equal("primary", student.CompletedStage);
+            if (hasEconomics)
+            {
+                Assert.NotNull(student.Economics);
+                Assert.Equal(99m, student.Economics.TransferIncome.Resolve(18));
+                Assert.Equal(0.5d, student.Economics.EmploymentAvailabilityFactor);
+            }
+            else
+                Assert.Null(student.Economics);
         }
 
         [Fact]

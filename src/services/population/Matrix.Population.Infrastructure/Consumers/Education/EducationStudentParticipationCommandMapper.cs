@@ -1,5 +1,6 @@
 using Matrix.Education.Contracts.Events;
 using Matrix.Population.Application.Integration.Education.ApplyEducationParticipation;
+using Matrix.Population.Infrastructure.Integration.Education;
 
 namespace Matrix.Population.Infrastructure.Consumers.Education
 {
@@ -24,7 +25,8 @@ namespace Matrix.Population.Infrastructure.Consumers.Education
                     InstitutionAnchorId: student.InstitutionAnchorId,
                     EnrolledOn: student.EnrolledOn,
                     CompletedStage: student.CompletedStage,
-                    CompletedStageOn: student.CompletedStageOn))
+                    CompletedStageOn: student.CompletedStageOn,
+                    Economics: student.EconomicEffects is null ? null : EducationEconomicEffectsMapper.FromContract(student.EconomicEffects)))
                .ToArray();
 
             return new ApplyEducationParticipationCommand(

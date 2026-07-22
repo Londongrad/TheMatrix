@@ -2,7 +2,7 @@ using Matrix.Population.Domain.Models;
 
 namespace Matrix.Population.Application.Integration.Education
 {
-    internal static class EducationResidentEconomicProfileFactory
+    internal static class LegacyEducationResidentEconomicProfileFactory
     {
         private static readonly ResidentAgeIncomeSchedule StudentIncome =
             ResidentAgeIncomeSchedule.Create((0, 4m), (17, 10m));

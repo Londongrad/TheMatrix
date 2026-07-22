@@ -10,5 +10,6 @@ namespace Matrix.Population.Application.Integration.Education.ApplyEducationPart
         Guid? InstitutionAnchorId,
         DateOnly? EnrolledOn,
         string? CompletedStage,
-        DateOnly? CompletedStageOn);
+        DateOnly? CompletedStageOn,
+        ResidentExternalEconomicProfile? Economics = null);
 }

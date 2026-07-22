@@ -1,4 +1,6 @@
 using Matrix.Population.Application.Integration.Education;
+using Matrix.Population.Application.Integration;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Application.Integration.Education.ApplyEducationParticipation;
 using Matrix.Population.Application.Tests.TestSupport;
 using Matrix.Population.Domain.Entities;
@@ -13,8 +15,10 @@ namespace Matrix.Population.Application.Tests.Integration.Education
         private static readonly Guid ResidentId =
             Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        [Fact]
-        public async Task Handle_CurrentResident_StoresExternalProjection()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task Handle_CurrentResident_StoresExternalProjection(bool hasEconomics)
         {
             Person resident = PopulationApplicationTestSupport.CreatePerson(ResidentId);
             var personRepository = new PopulationApplicationTestSupport.FakePersonReadRepository();
@@ -26,7 +30,8 @@ namespace Matrix.Population.Application.Tests.Integration.Education
             StudentEducationParticipationInput student = CreateStudent() with
             {
                 ActiveStage = " Primary ",
-                CompletedStage = " PRESCHOOL "
+                CompletedStage = " PRESCHOOL ",
+                Economics = hasEconomics ? new ResidentExternalEconomicProfile(ResidentAgeIncomeSchedule.Create((0, 99m))) : null
             };
 
             ApplyEducationParticipationResult result = await handler.Handle(
@@ -43,6 +48,7 @@ namespace Matrix.Population.Application.Tests.Integration.Education
             Assert.Equal("primary", projection.ActiveStage);
             Assert.Equal("preschool", projection.CompletedStage);
             Assert.Equal(PopulationApplicationTestSupport.UtcNow, projection.UpdatedAtUtc);
+            Assert.Same(student.Economics, projection.Economics);
             Assert.Equal(1, unitOfWork.SaveChangesCalls);
         }
 
