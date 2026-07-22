@@ -17,30 +17,30 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             day: 3);
 
         [Fact]
-        public void Create_WhenResidentHasExternalActivity_ProjectsCityTransferAndSpendingPattern()
+        public void Create_WhenProviderSuppliesTerms_ProjectsThemWithoutEducationDefaults()
         {
             Person resident = CreatePerson(currentDate: CurrentDate);
 
             CityResidentEconomicContext context = CityResidentEconomicContextFactory.Create(
                 resident: resident,
-                externalActivity: CreateExternalActivity(),
+                externalActivity: CreateExternalActivity(economics: CreateEconomicTerms()),
                 currentDate: CurrentDate);
 
             Assert.Equal(
-                expected: Money.FromDecimal(10m),
+                expected: Money.FromDecimal(13m),
                 actual: context.DailyTransferIncome);
             Assert.Equal(
-                expected: Money.FromDecimal(6m),
+                expected: Money.FromDecimal(8m),
                 actual: context.EmploymentIncomeBonus);
-            Assert.Equal(0.010d, context.EmploymentOpportunityBonus);
-            Assert.Equal(0d, context.EmploymentAvailabilityFactor);
-            Assert.Equal(-0.03m, context.RetailStoreSpendShareAdjustment);
-            Assert.Equal(-0.01m, context.ServiceSpendShareAdjustment);
-            Assert.Equal(0.04m, context.MunicipalSpendShareAdjustment);
+            Assert.Equal(0.04d, context.EmploymentOpportunityBonus);
+            Assert.Equal(0.6d, context.EmploymentAvailabilityFactor);
+            Assert.Equal(-0.07m, context.RetailStoreSpendShareAdjustment);
+            Assert.Equal(0.02m, context.ServiceSpendShareAdjustment);
+            Assert.Equal(0.05m, context.MunicipalSpendShareAdjustment);
         }
 
         [Fact]
-        public void Create_WhenResidentIsNotEnrolled_ReturnsNeutralContext()
+        public void Create_WhenNoExternalProfile_ReturnsNeutralContext()
         {
             Person resident = CreatePerson(currentDate: CurrentDate);
 
@@ -53,7 +53,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         }
 
         [Fact]
-        public void Create_WhenResidentHasQualification_ProjectsEmploymentModifiersWithoutTransfer()
+        public void Create_WithoutRoutine_StillAppliesExplicitEmploymentTerms()
         {
             Person resident = CreatePerson(currentDate: CurrentDate);
 
@@ -61,14 +61,15 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 resident: resident,
                 externalActivity: CreateExternalActivity(
                     hasStructuredActivity: false,
-                    qualification: ResidentWorkforceQualificationTier.Professional),
+                    economics: new ResidentExternalEconomicProfile(
+                        ResidentAgeIncomeSchedule.None, 11m, 0.03d)),
                 currentDate: CurrentDate);
 
             Assert.Equal(Money.Zero, context.DailyTransferIncome);
             Assert.Equal(
-                expected: Money.FromDecimal(14m),
+                expected: Money.FromDecimal(11m),
                 actual: context.EmploymentIncomeBonus);
-            Assert.Equal(0.024d, context.EmploymentOpportunityBonus);
+            Assert.Equal(0.03d, context.EmploymentOpportunityBonus);
             Assert.Equal(1d, context.EmploymentAvailabilityFactor);
         }
 
@@ -76,7 +77,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
         public void Create_AfterResurrection_RejectsPreviousLifecycleQualification()
         {
             Person resident = CreatePerson();
-            ResidentExternalActivityProfile activity = CreateExternalActivity();
+            ResidentExternalActivityProfile activity = CreateExternalActivity(economics: CreateEconomicTerms());
             resident.Die(CurrentDate);
             resident.Resurrect();
 
@@ -85,10 +86,41 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                 CityResidentEconomicContextFactory.Create(resident, activity, CurrentDate));
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Create_WithoutEconomicTerms_DoesNotInferBenefitsFromActivityOrQualification(bool hasActivity)
+        {
+            Person resident = CreatePerson(currentDate: CurrentDate);
+            ResidentExternalActivityProfile activity = CreateExternalActivity(hasStructuredActivity: hasActivity);
+
+            Assert.Same(CityResidentEconomicContext.Neutral,
+                CityResidentEconomicContextFactory.Create(resident, activity, CurrentDate));
+        }
+
+        [Fact]
+        public void Create_OnBirthday_UsesNewBandFromSameProviderSnapshot()
+        {
+            Person resident = CreatePerson(currentDate: CurrentDate);
+            ResidentExternalActivityProfile activity = CreateExternalActivity(economics: CreateEconomicTerms());
+
+            var beforeBirthday = CityResidentEconomicContextFactory.Create(resident, activity, CurrentDate.AddDays(-1));
+            var onBirthday = CityResidentEconomicContextFactory.Create(resident, activity, CurrentDate);
+
+            Assert.Equal(Money.FromDecimal(2m), beforeBirthday.DailyTransferIncome);
+            Assert.Equal(Money.FromDecimal(13m), onBirthday.DailyTransferIncome);
+        }
+
+        private static ResidentExternalEconomicProfile CreateEconomicTerms()
+        {
+            return new ResidentExternalEconomicProfile(
+                ResidentAgeIncomeSchedule.Create((0, 2m), (18, 13m)),
+                8m, 0.04d, 0.6d, -0.07m, 0.02m, 0.05m);
+        }
+
         private static ResidentExternalActivityProfile CreateExternalActivity(
             bool hasStructuredActivity = true,
-            ResidentWorkforceQualificationTier qualification =
-                ResidentWorkforceQualificationTier.General)
+            ResidentExternalEconomicProfile? economics = null)
         {
             return new ResidentExternalActivityProfile(
                 ResidentLifecycleRevision: 0,
@@ -100,7 +132,8 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
                     : PersonRoutineProfile.Unstructured,
                 DestinationAnchorId: hasStructuredActivity ? Guid.NewGuid() : null,
                 CommutePurpose: hasStructuredActivity ? "TestActivityCommute" : null,
-                WorkforceQualification: qualification);
+                WorkforceQualification: ResidentWorkforceQualificationTier.General,
+                Economics: economics);
         }
     }
 }

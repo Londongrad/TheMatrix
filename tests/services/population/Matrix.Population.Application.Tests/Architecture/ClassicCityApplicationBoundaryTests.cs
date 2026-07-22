@@ -1,5 +1,6 @@
 using Matrix.ArchitectureTesting;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using NetArchTest.Rules;
@@ -53,6 +54,23 @@ namespace Matrix.Population.Application.Tests.Architecture
                 userMessage: string.Join(
                     separator: Environment.NewLine,
                     values: result.FailingTypeNames ?? []));
+        }
+
+        [Theory]
+        [InlineData("Matrix.Population.Application.Integration.Education")]
+        [InlineData("Matrix.Population.Application.Integration.ResidentWorkforceQualificationTier")]
+        [InlineData("Matrix.Population.Domain.Enums.AgeGroup")]
+        public void CityEconomicProjection_DoesNotInterpretEducationOrDemographicPolicy(string dependency)
+        {
+            TestResult result = Types
+               .InAssembly(typeof(CityResidentEconomicContextFactory).Assembly)
+               .That()
+               .HaveName(nameof(CityResidentEconomicContextFactory))
+               .ShouldNot()
+               .HaveDependencyOn(dependency)
+               .GetResult();
+
+            Assert.True(result.IsSuccessful, string.Join(Environment.NewLine, result.FailingTypeNames ?? []));
         }
     }
 }
