@@ -15,6 +15,7 @@ namespace Matrix.Population.Application.Integration.Education
             if (participation is null)
                 return ResidentExternalActivityProfile.None;
 
+            ResidentWorkforceQualificationTier qualification = MapQualification(participation.CompletedStage);
             return new ResidentExternalActivityProfile(
                 ResidentLifecycleRevision: participation.ResidentLifecycleRevision,
                 Routine: participation.IsEnrolled ? EducationRoutine : PersonRoutineProfile.Unstructured,
@@ -24,7 +25,8 @@ namespace Matrix.Population.Application.Integration.Education
                 CommutePurpose: participation.IsEnrolled
                     ? "EducationCommute"
                     : null,
-                WorkforceQualification: MapQualification(participation.CompletedStage));
+                WorkforceQualification: qualification,
+                Economics: EducationResidentEconomicProfileFactory.Resolve(participation.IsEnrolled, qualification));
         }
 
         private static ResidentWorkforceQualificationTier MapQualification(string? completedStage)

@@ -62,6 +62,61 @@ namespace Matrix.Population.Application.Tests.Integration.Education
                 EducationResidentExternalActivityProfileFactory.Create(null));
         }
 
+        [Theory]
+        [InlineData(null, 0, 0d)]
+        [InlineData("unrecognized", 0, 0d)]
+        [InlineData("primary", 1, 0.003d)]
+        [InlineData("lower-secondary", 3, 0.006d)]
+        [InlineData("upper-secondary", 6, 0.010d)]
+        [InlineData("vocational", 10, 0.018d)]
+        [InlineData("higher", 14, 0.024d)]
+        [InlineData("higher-education", 14, 0.024d)]
+        [InlineData("postgraduate", 18, 0.028d)]
+        public void Create_MapsEducationEconomicTerms(
+            string? completedStage,
+            decimal expectedIncomeBonus,
+            double expectedOpportunityBonus)
+        {
+            foreach (bool isEnrolled in new[] { false, true })
+            {
+                var participation = CreateParticipation(isEnrolled, null, completedStage);
+                ResidentExternalEconomicProfile economics =
+                    EducationResidentExternalActivityProfileFactory.Create(participation).Economics;
+
+                Assert.Equal(expectedIncomeBonus, economics.EmploymentIncomeBonus);
+                Assert.Equal(expectedOpportunityBonus, economics.EmploymentOpportunityBonus);
+                Assert.Equal(isEnrolled ? 4m : 0m, economics.TransferIncome.Resolve(16));
+                Assert.Equal(isEnrolled ? 10m : 0m, economics.TransferIncome.Resolve(17));
+                Assert.Equal(isEnrolled ? 10m : 0m, economics.TransferIncome.Resolve(66));
+                Assert.Equal(isEnrolled ? 0d : 1d, economics.EmploymentAvailabilityFactor);
+                Assert.Equal(isEnrolled ? -0.03m : 0m, economics.RetailStoreSpendShareAdjustment);
+                Assert.Equal(isEnrolled ? -0.01m : 0m, economics.ServiceSpendShareAdjustment);
+                Assert.Equal(isEnrolled ? 0.04m : 0m, economics.MunicipalSpendShareAdjustment);
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Create_ReusesEconomicTermsAcrossResidents(bool isEnrolled)
+        {
+            var first = CreateParticipation(isEnrolled, Guid.NewGuid(), "higher");
+            var second = CreateParticipation(isEnrolled, Guid.NewGuid(), "higher");
+
+            Assert.Same(
+                EducationResidentExternalActivityProfileFactory.Create(first).Economics,
+                EducationResidentExternalActivityProfileFactory.Create(second).Economics);
+        }
+
+        [Fact]
+        public void Create_WithoutEnrollmentOrQualification_UsesNeutralEconomics()
+        {
+            var participation = CreateParticipation(false, null, null);
+
+            Assert.Same(ResidentExternalEconomicProfile.Neutral,
+                EducationResidentExternalActivityProfileFactory.Create(participation).Economics);
+        }
+
         private static EducationParticipationProjection CreateParticipation(
             bool isEnrolled,
             Guid? institutionAnchorId,
