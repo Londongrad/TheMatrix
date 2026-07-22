@@ -197,7 +197,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             IReadOnlyDictionary<Guid, EducationParticipationProjection> educationParticipations =
                 resolvedPersons.Count == 0
                     ? new Dictionary<Guid, EducationParticipationProjection>()
-                    : await _educationParticipationProjectionRepository.GetByResidentIdsAsync(
+                    : await _educationParticipationProjectionRepository.GetEnrolledByResidentIdsAsync(
                         simulationHostId: cityId.Value,
                         residentIds: resolvedPersons.Select(person => person.Id.Value).ToArray(),
                         cancellationToken: cancellationToken);

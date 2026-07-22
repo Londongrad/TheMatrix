@@ -18,8 +18,10 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Services
 {
     public sealed class CityPopulationSummaryProjectionServiceTests
     {
-        [Fact]
-        public async Task UpdateAsync_CountsProjectedLearnerIndependentlyFromEmployment()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task UpdateAsync_CountsOnlyEnrolledLearnersIndependentlyFromEmployment(bool isEnrolled)
         {
             await using var database = CreateDbContext();
             PopulationDbContext dbContext = database.DbContext;
@@ -47,11 +49,11 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Services
                     ResidentId: resident.Id.Value,
                     ParticipationRevision: 1,
                     ResidentLifecycleRevision: resident.LifecycleRevision,
-                    IsEnrolled: true,
-                    ActiveStage: "higher",
-                    InstitutionId: Guid.NewGuid(),
-                    InstitutionAnchorId: institutionAnchorId,
-                    EnrolledOn: new DateOnly(2048, 5, 1),
+                    IsEnrolled: isEnrolled,
+                    ActiveStage: isEnrolled ? "higher" : null,
+                    InstitutionId: isEnrolled ? Guid.NewGuid() : null,
+                    InstitutionAnchorId: isEnrolled ? institutionAnchorId : null,
+                    EnrolledOn: isEnrolled ? new DateOnly(2048, 5, 1) : null,
                     CompletedStage: "upper-secondary",
                     CompletedStageOn: new DateOnly(2048, 4, 30),
                     SnapshotDate: new DateOnly(2048, 5, 2),
@@ -79,12 +81,20 @@ namespace Matrix.Population.Infrastructure.Tests.Scenarios.ClassicCity.Services
             CityPopulationSummaryProjection summary = await dbContext.CityPopulationSummaryProjections
                .AsNoTracking()
                .SingleAsync(projection => projection.CityId == cityId);
-            Assert.Equal(1, summary.StudentCount);
+            Assert.Equal(isEnrolled ? 1 : 0, summary.StudentCount);
             Assert.Equal(1, summary.UnemployedCount);
-            Assert.NotNull(summary.StudentAttendanceIndex);
-            Assert.Equal(
-                institutionAnchorId,
-                Assert.Single(routeResolutionClient.RequestedAnchorIds));
+            if (isEnrolled)
+            {
+                Assert.NotNull(summary.StudentAttendanceIndex);
+                Assert.Equal(
+                    institutionAnchorId,
+                    Assert.Single(routeResolutionClient.RequestedAnchorIds));
+            }
+            else
+            {
+                Assert.Null(summary.StudentAttendanceIndex);
+                Assert.Empty(routeResolutionClient.RequestedAnchorIds);
+            }
         }
 
         private sealed class NeutralRouteResolutionClient : ICityRouteResolutionClient
