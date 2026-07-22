@@ -1,4 +1,8 @@
 using System.Text.Json;
+using Matrix.Education.Application.Integration;
+using Matrix.Education.Application.Scenarios.ClassicCity.Participation;
+using Matrix.Education.Domain.Simulation;
+using Matrix.Education.Infrastructure.Persistence.Repositories;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Education.Contracts.Events;
 using Matrix.Education.Infrastructure.Outbox;
@@ -13,12 +17,17 @@ namespace Matrix.Education.Infrastructure.Tests.Outbox
         public async Task AddAsync_PersistsTypedParticipationBatch()
         {
             await using var dbContext = EducationInfrastructureTestSupport.CreateDbContext();
-            var writer = new EducationStudentParticipationOutboxWriter(dbContext);
+            var runtimeRepository = new EducationSimulationRuntimeRepository(dbContext);
+            var policy = new ClassicCityEducationEconomicPolicy();
+            var hostId = new SimulationHostId(Guid.NewGuid());
+            await runtimeRepository.EnsureAsync(hostId, policy.RuntimeKey);
+            var writer = new EducationStudentParticipationPublisher(runtimeRepository,
+                new EducationEconomicPolicyRegistry([policy]), new EducationStudentParticipationOutboxWriter(dbContext));
             DateTimeOffset occurredAtUtc =
                 new(2026, 9, 1, 8, 0, 0, TimeSpan.Zero);
             Guid residentId = Guid.NewGuid();
             var batch = new EducationStudentParticipationBatchV1(
-                SimulationHostId: Guid.NewGuid(),
+                SimulationHostId: hostId.Value,
                 SnapshotDate: new DateOnly(2026, 9, 1),
                 OccurredAtUtc: occurredAtUtc,
                 CorrelationId: "education:tick:42",
@@ -54,6 +63,10 @@ namespace Matrix.Education.Infrastructure.Tests.Outbox
             Assert.Equal(residentId, student.ResidentId);
             Assert.Equal(3, student.ParticipationRevision);
             Assert.Equal("upper-secondary", student.CompletedStage);
+            Assert.NotNull(student.EconomicEffects);
+            Assert.Equal(6m, student.EconomicEffects.EmploymentIncomeBonus);
+            Assert.Equal(0m, Assert.Single(student.EconomicEffects.TransferIncome).DailyIncome);
+            Assert.Equal(1d, student.EconomicEffects.EmploymentAvailabilityFactor);
         }
     }
 }

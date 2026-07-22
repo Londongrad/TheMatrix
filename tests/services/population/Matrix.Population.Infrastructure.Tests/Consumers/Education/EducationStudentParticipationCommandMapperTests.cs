@@ -1,4 +1,5 @@
 using Matrix.Education.Contracts.Events;
+using System.Text.Json;
 using Matrix.Population.Application.Integration.Education.ApplyEducationParticipation;
 using Matrix.Population.Infrastructure.Consumers.Education;
 using Xunit;
@@ -69,6 +70,22 @@ namespace Matrix.Population.Infrastructure.Tests.Consumers.Education
                 "population-education-participation-v1",
                 EducationStudentParticipationConsumerDefinition.EndpointNameValue);
             Assert.Equal(8, EducationStudentParticipationConsumerDefinition.ConcurrentMessageLimitValue);
+        }
+
+        [Fact]
+        public void LegacyJsonWithoutEconomicEffects_RemainsReadable()
+        {
+            var student = JsonSerializer.Deserialize<EducationStudentParticipationV1>("""
+                {"ResidentId":"11111111-1111-1111-1111-111111111111","ParticipationRevision":1,
+                "ResidentLifecycleRevision":0,"IsEnrolled":false,"ActiveStage":null,
+                "InstitutionId":null,"InstitutionAnchorId":null,"EnrolledOn":null,
+                "CompletedStage":"primary","CompletedStageOn":"2048-01-01"}
+                """)!;
+            var message = new EducationStudentParticipationBatchV1(Guid.NewGuid(), new DateOnly(2048, 5, 3),
+                DateTimeOffset.UtcNow, "legacy", 1, 1, [student]);
+            var command = EducationStudentParticipationCommandMapper.Map(message, Guid.NewGuid(), "test");
+            Assert.Null(Assert.Single(command.Students).Economics);
+            Assert.Equal("primary", command.Students[0].CompletedStage);
         }
     }
 }
