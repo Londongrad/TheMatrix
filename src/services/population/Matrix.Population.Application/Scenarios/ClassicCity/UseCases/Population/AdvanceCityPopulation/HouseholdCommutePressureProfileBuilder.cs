@@ -124,6 +124,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (externalActivitiesByResidentId.TryGetValue(
                     key: resident.Id,
                     value: out ResidentExternalActivityProfile? activity) &&
+                activity.ResidentLifecycleRevision == resident.LifecycleRevision &&
                 activity is
                 {
                     HasStructuredActivity: true,

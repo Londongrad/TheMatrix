@@ -97,7 +97,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                 ResidentExternalActivityProfile externalActivity =
                     externalActivitiesByResidentId.TryGetValue(
                         key: resident.Id,
-                        value: out ResidentExternalActivityProfile? resolvedActivity)
+                        value: out ResidentExternalActivityProfile? resolvedActivity) &&
+                    resolvedActivity.ResidentLifecycleRevision == resident.LifecycleRevision
                         ? resolvedActivity
                         : ResidentExternalActivityProfile.None;
                 if (externalActivity is not

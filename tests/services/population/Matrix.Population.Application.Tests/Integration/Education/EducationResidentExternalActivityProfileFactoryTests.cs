@@ -20,6 +20,7 @@ namespace Matrix.Population.Application.Tests.Integration.Education
                 EducationResidentExternalActivityProfileFactory.Create(participation);
 
             Assert.True(profile.HasStructuredActivity);
+            Assert.Equal(3, profile.ResidentLifecycleRevision);
             Assert.Equal(TimeSpan.FromHours(8), profile.Routine.StructuredActivityStart);
             Assert.Equal(TimeSpan.FromHours(15), profile.Routine.StructuredActivityEnd);
             Assert.Equal(PersonStructuredActivityLoad.Moderate, profile.Routine.StructuredActivityLoad);
@@ -70,7 +71,7 @@ namespace Matrix.Population.Application.Tests.Integration.Education
                 SimulationHostId: Guid.NewGuid(),
                 ResidentId: Guid.NewGuid(),
                 ParticipationRevision: 1,
-                ResidentLifecycleRevision: 0,
+                ResidentLifecycleRevision: 3,
                 IsEnrolled: isEnrolled,
                 ActiveStage: isEnrolled ? "higher" : null,
                 InstitutionId: isEnrolled ? Guid.NewGuid() : null,

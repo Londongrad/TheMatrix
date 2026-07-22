@@ -3,6 +3,7 @@ using Matrix.Population.Domain.Models;
 namespace Matrix.Population.Application.Integration
 {
     public sealed record ResidentExternalActivityProfile(
+        long ResidentLifecycleRevision,
         PersonRoutineProfile Routine,
         Guid? DestinationAnchorId,
         string? CommutePurpose,
@@ -13,6 +14,7 @@ namespace Matrix.Population.Application.Integration
         public bool HasStructuredActivity => Routine.HasStructuredActivity;
 
         public static ResidentExternalActivityProfile None { get; } = new(
+            ResidentLifecycleRevision: 0,
             Routine: PersonRoutineProfile.Unstructured,
             DestinationAnchorId: null,
             CommutePurpose: null,

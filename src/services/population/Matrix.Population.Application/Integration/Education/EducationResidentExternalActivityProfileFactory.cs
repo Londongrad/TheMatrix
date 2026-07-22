@@ -16,6 +16,7 @@ namespace Matrix.Population.Application.Integration.Education
                 return ResidentExternalActivityProfile.None;
 
             return new ResidentExternalActivityProfile(
+                ResidentLifecycleRevision: participation.ResidentLifecycleRevision,
                 Routine: participation.IsEnrolled ? EducationRoutine : PersonRoutineProfile.Unstructured,
                 DestinationAnchorId: participation.IsEnrolled
                     ? participation.InstitutionAnchorId

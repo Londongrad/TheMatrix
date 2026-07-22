@@ -292,6 +292,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             return externalActivitiesByResidentId.TryGetValue(
                        key: resident.Id,
                        value: out ResidentExternalActivityProfile? activity) &&
+                   activity.ResidentLifecycleRevision == resident.LifecycleRevision &&
                    activity is
             {
                 HasStructuredActivity: true,

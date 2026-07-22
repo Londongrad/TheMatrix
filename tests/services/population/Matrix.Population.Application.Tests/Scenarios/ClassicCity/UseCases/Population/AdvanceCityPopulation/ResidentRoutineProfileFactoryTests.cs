@@ -57,9 +57,23 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(PersonRoutineProfile.Unstructured, profile);
         }
 
+        [Fact]
+        public void Create_AfterResurrection_RejectsPreviousLifecycleActivity()
+        {
+            Person resident = CreatePerson(employmentStatus: EmploymentStatus.Unemployed);
+            ResidentExternalActivityProfile activity = CreateExternalActivity();
+            resident.Die(new DateOnly(2048, 5, 3));
+            resident.Resurrect();
+
+            Assert.Same(
+                PersonRoutineProfile.Unstructured,
+                PersonRoutineProfileFactory.Create(resident, activity));
+        }
+
         private static ResidentExternalActivityProfile CreateExternalActivity()
         {
             return new ResidentExternalActivityProfile(
+                ResidentLifecycleRevision: 0,
                 Routine: PersonRoutineProfile.Structured(
                     activityStart: TimeSpan.FromHours(12),
                     activityEnd: TimeSpan.FromHours(18),

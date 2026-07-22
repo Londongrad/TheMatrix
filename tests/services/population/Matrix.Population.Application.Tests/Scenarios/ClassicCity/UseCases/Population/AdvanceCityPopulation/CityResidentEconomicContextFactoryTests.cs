@@ -72,12 +72,26 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.UseCases.Pop
             Assert.Equal(1d, context.EmploymentAvailabilityFactor);
         }
 
+        [Fact]
+        public void Create_AfterResurrection_RejectsPreviousLifecycleQualification()
+        {
+            Person resident = CreatePerson();
+            ResidentExternalActivityProfile activity = CreateExternalActivity();
+            resident.Die(CurrentDate);
+            resident.Resurrect();
+
+            Assert.Same(
+                CityResidentEconomicContext.Neutral,
+                CityResidentEconomicContextFactory.Create(resident, activity, CurrentDate));
+        }
+
         private static ResidentExternalActivityProfile CreateExternalActivity(
             bool hasStructuredActivity = true,
             ResidentWorkforceQualificationTier qualification =
                 ResidentWorkforceQualificationTier.General)
         {
             return new ResidentExternalActivityProfile(
+                ResidentLifecycleRevision: 0,
                 Routine: hasStructuredActivity
                     ? PersonRoutineProfile.Structured(
                         activityStart: TimeSpan.FromHours(8),

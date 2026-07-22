@@ -15,6 +15,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
         {
             ArgumentNullException.ThrowIfNull(resident);
 
+            if (externalActivity?.ResidentLifecycleRevision != resident.LifecycleRevision)
+                externalActivity = null;
+
             bool hasExternalActivity = externalActivity?.HasStructuredActivity == true;
             (decimal employmentIncomeBonus, double employmentOpportunityBonus) =
                 ResolveEmploymentModifiers(

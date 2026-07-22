@@ -21,8 +21,13 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
             Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
         private const string ExternalCommutePurpose = "ShelterTrainingCommute";
 
-        [Fact]
-        public async Task SyncAsync_UsesProvidedExternalActivitySnapshot()
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task SyncAsync_UsesOnlyLivingCurrentLifecycleSnapshot(
+            bool dieAfterSnapshot,
+            bool resurrectAfterDeath)
         {
             Person enrolledResident = CreatePerson(
                 personId: Guid.Parse("11111111-1111-1111-1111-111111111111"),
@@ -44,6 +49,23 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
             var service = new CityPopulationCommuteTripSyncService(
                 activeTripClient: activeTripClient,
                 commuteRoutingService: commuteRoutingService);
+            var activities = new Dictionary<PersonId, ResidentExternalActivityProfile>
+            {
+                [enrolledResident.Id] = new ResidentExternalActivityProfile(
+                    ResidentLifecycleRevision: enrolledResident.LifecycleRevision,
+                    Routine: PersonRoutineProfile.Structured(
+                        activityStart: TimeSpan.FromHours(8),
+                        activityEnd: TimeSpan.FromHours(15),
+                        activityLoad: PersonStructuredActivityLoad.Moderate),
+                    DestinationAnchorId: InstitutionAnchorId,
+                    CommutePurpose: ExternalCommutePurpose,
+                    WorkforceQualification: ResidentWorkforceQualificationTier.General),
+                [residentWithoutParticipation.Id] = ResidentExternalActivityProfile.None
+            };
+            if (dieAfterSnapshot)
+                enrolledResident.Die(new DateOnly(2048, 5, 3));
+            if (resurrectAfterDeath)
+                enrolledResident.Resurrect();
 
             await service.SyncAsync(
                 cityId: CityId,
@@ -70,19 +92,14 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                         residentialBuildingId: ResidentialBuildingId.From(
                             Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd")))
                 ],
-                externalActivitiesByResidentId: new Dictionary<PersonId, ResidentExternalActivityProfile>
-                {
-                    [enrolledResident.Id] = new ResidentExternalActivityProfile(
-                        Routine: PersonRoutineProfile.Structured(
-                            activityStart: TimeSpan.FromHours(8),
-                            activityEnd: TimeSpan.FromHours(15),
-                            activityLoad: PersonStructuredActivityLoad.Moderate),
-                        DestinationAnchorId: InstitutionAnchorId,
-                        CommutePurpose: ExternalCommutePurpose,
-                        WorkforceQualification: ResidentWorkforceQualificationTier.General),
-                    [residentWithoutParticipation.Id] = ResidentExternalActivityProfile.None
-                },
+                externalActivitiesByResidentId: activities,
                 cancellationToken: CancellationToken.None);
+            if (dieAfterSnapshot)
+            {
+                Assert.Null(activeTripClient.RequestedDispatch);
+                return;
+            }
+
             CityPopulationTripDispatchRequest dispatch = Assert.IsType<CityPopulationTripDispatchRequest>(
                 activeTripClient.RequestedDispatch);
             Assert.Equal(
@@ -95,6 +112,5 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                 expected: InstitutionAnchorId,
                 actual: dispatch.ToId);
         }
-
     }
 }

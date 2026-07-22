@@ -20,7 +20,9 @@ namespace Matrix.Population.Application.Integration
             if (resident.Employment.Status == EmploymentStatus.Employed)
                 return EmploymentRoutine;
 
-            return externalActivity?.Routine ?? PersonRoutineProfile.Unstructured;
+            return externalActivity?.ResidentLifecycleRevision == resident.LifecycleRevision
+                ? externalActivity.Routine
+                : PersonRoutineProfile.Unstructured;
         }
     }
 }
