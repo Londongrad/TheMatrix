@@ -10,5 +10,6 @@ namespace Matrix.Education.Contracts.Events
         Guid? InstitutionAnchorId,
         DateOnly? EnrolledOn,
         string? CompletedStage,
-        DateOnly? CompletedStageOn);
+        DateOnly? CompletedStageOn,
+        EducationEconomicEffectsV1? EconomicEffects = null);
 }
