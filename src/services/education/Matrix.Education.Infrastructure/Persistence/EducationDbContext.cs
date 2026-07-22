@@ -13,6 +13,7 @@ namespace Matrix.Education.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
+        public DbSet<EducationSimulationRuntimeState> SimulationRuntimes => Set<EducationSimulationRuntimeState>();
         public DbSet<EducationInstitution> Institutions => Set<EducationInstitution>();
         public DbSet<StudentEnrollment> Enrollments => Set<StudentEnrollment>();
         public DbSet<EducationProgressionCheckpoint> ProgressionCheckpoints =>

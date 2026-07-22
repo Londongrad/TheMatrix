@@ -37,6 +37,9 @@ namespace Matrix.Education.Infrastructure.Persistence.Repositories
                 await dbContext.ProgressionCheckpoints
                    .Where(checkpoint => checkpoint.Id == simulationHostId)
                    .ExecuteDeleteAsync(cancellationToken);
+                await dbContext.SimulationRuntimes
+                   .Where(runtime => runtime.SimulationHostId == simulationHostId)
+                   .ExecuteDeleteAsync(cancellationToken);
                 return;
             }
 
@@ -48,6 +51,8 @@ namespace Matrix.Education.Infrastructure.Persistence.Repositories
                 dbContext.StudentProfiles.Where(profile => profile.SimulationHostId == simulationHostId));
             dbContext.ProgressionCheckpoints.RemoveRange(
                 dbContext.ProgressionCheckpoints.Where(checkpoint => checkpoint.Id == simulationHostId));
+            dbContext.SimulationRuntimes.RemoveRange(
+                dbContext.SimulationRuntimes.Where(runtime => runtime.SimulationHostId == simulationHostId));
         }
 
         public async Task RecordAsync(
