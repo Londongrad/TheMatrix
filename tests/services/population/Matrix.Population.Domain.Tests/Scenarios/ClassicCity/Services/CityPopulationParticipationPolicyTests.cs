@@ -91,59 +91,6 @@ namespace Matrix.Population.Domain.Tests.Scenarios.ClassicCity.Services
                 actual: profile.PayrollMultiplier);
         }
 
-        [Fact]
-        public void ResolveLearningAttendanceIndex_WhenLearnerFacesBlockedCommuteAndShortages_ReturnsReducedAttendance()
-        {
-            var policy = new CityPopulationParticipationPolicy();
-            var currentDate = new DateOnly(
-                year: 2048,
-                month: 5,
-                day: 2);
-
-            Person learner = PopulationTestData.CreateAdultPerson(
-                birthDate: new DateOnly(
-                    year: 2038,
-                    month: 5,
-                    day: 1),
-                currentDate: currentDate);
-            learner.ChangeEnergy(-45);
-            learner.ChangeStress(40);
-            learner.TryApplyVitalStateProjection(
-                sourceRevision: 0,
-                healthScore: 60,
-                happinessDelta: 0,
-                energyDelta: 0,
-                stressDelta: 0,
-                currentDate: currentDate,
-                functionalCapacityScore: 60);
-
-            decimal attendanceIndex = policy.ResolveLearningAttendanceIndex(
-                person: learner,
-                currentDate: currentDate,
-                housingStatus: HousingStatus.Homeless,
-                livingConditions: new CityPopulationLivingConditionsContext(
-                    FloodingIndex: 0.7m,
-                    RoadAccessibilityIndex: 0.5m,
-                    PowerCoverageIndex: 0.6m,
-                    UtilityContinuityIndex: 0.7m,
-                    HeatingCoverageIndex: 0.65m,
-                    WaterCoverageIndex: 0.7m,
-                    SanitationCoverageIndex: 0.8m),
-                essentials: new CityPopulationEssentialsContext(
-                    SupplyStressIndex: 1.2m,
-                    EmergencyRationingEnabled: true,
-                    FoodStockLevelIndex: 0.8m,
-                    FoodShortageRiskIndex: 0.7m,
-                    MedicineStockLevelIndex: 0.8m,
-                    MedicineShortageRiskIndex: 0.5m,
-                    EmergencyWaterStockLevelIndex: 0.8m,
-                    EmergencyWaterShortageRiskIndex: 0.5m),
-                commute: CityPopulationCommuteContext.Blocked);
-
-            Assert.Equal(
-                expected: 0.18m,
-                actual: attendanceIndex);
-        }
 
         private static CityPopulationLivingConditionsContext CreateLivingConditions()
         {

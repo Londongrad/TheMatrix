@@ -109,69 +109,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 PayrollMultiplier: payrollMultiplier);
         }
 
-        public decimal ResolveLearningAttendanceIndex(
-            Person person,
-            DateOnly currentDate,
-            HousingStatus? housingStatus,
-            CityPopulationLivingConditionsContext livingConditions,
-            CityPopulationEssentialsContext essentials,
-            CityPopulationCommuteContext? commute = null)
-        {
-            ArgumentNullException.ThrowIfNull(person);
-
-            if (!person.IsAlive)
-                return 1m;
-
-            double roadDeficit = ResolveCoverageDeficit(livingConditions.RoadAccessibilityIndex);
-            double powerDeficit = ResolveCoverageDeficit(livingConditions.PowerCoverageIndex);
-            double waterDeficit = ResolveCoverageDeficit(livingConditions.WaterCoverageIndex);
-            double heatingDeficit = ResolveCoverageDeficit(livingConditions.HeatingCoverageIndex);
-            double floodingPressure = ResolvePressure(livingConditions.FloodingIndex);
-            double foodShortage = ResolvePressure(essentials.FoodShortageRiskIndex);
-            double emergencyWaterShortage = ResolvePressure(essentials.EmergencyWaterShortageRiskIndex);
-            double rationingPressure = essentials.EmergencyRationingEnabled
-                ? 0.15d
-                : 0d;
-
-            double energyPenalty = ResolveLowValuePenalty(
-                currentValue: person.Energy.Value,
-                healthyThreshold: 35d);
-            double functionalCapacityDeficit = ResolveFunctionalCapacityDeficit(person);
-            double stressPenalty = ResolveHighValuePenalty(
-                currentValue: person.Stress.Value,
-                toleranceThreshold: 50d);
-            double housingPenalty = housingStatus == HousingStatus.Homeless
-                ? 0.12d
-                : 0d;
-            double agePenalty = person.GetAgeGroup(currentDate) == AgeGroup.Child
-                ? -0.03d
-                : 0d;
-            double commutePenalty = ResolveCommutePenalty(commute);
-            double commuteAccessPenalty = ResolveCommuteAccessPenalty(commute);
-
-            double attendance = 1d -
-                                (roadDeficit * 0.30d) -
-                                (floodingPressure * 0.20d) -
-                                (powerDeficit * 0.16d) -
-                                (waterDeficit * 0.09d) -
-                                (heatingDeficit * 0.08d) -
-                                (foodShortage * 0.10d) -
-                                (emergencyWaterShortage * 0.06d) -
-                                (rationingPressure * 0.05d) -
-                                (energyPenalty * 0.24d) -
-                                (stressPenalty * 0.18d) -
-                                (functionalCapacityDeficit * 0.45d) -
-                                (commutePenalty * 0.34d) -
-                                commuteAccessPenalty -
-                                housingPenalty -
-                                agePenalty;
-
-            return RoundIndex(
-                Math.Clamp(
-                    value: attendance,
-                    min: 0.18d,
-                    max: 1d));
-        }
 
         private static double ResolveCoverageDeficit(decimal value)
         {
