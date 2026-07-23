@@ -14,6 +14,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abs
             IReadOnlyCollection<Person> residents,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            int utcOffsetMinutes = 0);
     }
 }

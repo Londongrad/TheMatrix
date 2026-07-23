@@ -667,7 +667,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         residents: personsSnapshot,
                         householdPlacements: placementsSnapshot,
                         externalActivitiesByResidentId: externalActivitiesSnapshot,
-                        cancellationToken: cancellationToken);
+                        cancellationToken: cancellationToken,
+                        utcOffsetMinutes: environment?.UtcOffsetMinutes ?? 0);
                 }
                 catch (Exception ex)
                 {

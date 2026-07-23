@@ -4,6 +4,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstr
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -30,122 +31,83 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             IReadOnlyCollection<Person> residents,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            int utcOffsetMinutes = 0)
         {
             if (residents.Count == 0 || householdPlacements.Count == 0)
                 return;
 
-            MobilityPhaseWindow phaseWindow = ResolvePhaseWindow(currentSimTimeUtc);
-            if (!phaseWindow.HasAnyDispatch)
+            DateTimeOffset localTime = currentSimTimeUtc.ToOffset(TimeSpan.FromMinutes(utcOffsetMinutes));
+            MobilityPhaseWindow workWindow = ResolvePhaseWindow(localTime);
+            var homesByHouseholdId = householdPlacements.GroupBy(placement => placement.HouseholdId)
+                .ToDictionary(group => group.Key, group => group.Select(placement => placement.ResidentialBuildingId).FirstOrDefault());
+            var windowsByRoutine = new Dictionary<PersonRoutineProfile, MobilityPhaseWindow>();
+            var scheduledResidents = new List<(Person Resident, ResidentialBuildingId Home,
+                ResidentExternalActivityProfile Activity, MobilityPhaseWindow Window)>();
+
+            foreach (Person resident in residents)
+            {
+                if (!resident.IsAlive || !homesByHouseholdId.TryGetValue(resident.HouseholdId, out var home) || home is null)
+                    continue;
+                var activity = externalActivitiesByResidentId.TryGetValue(resident.Id, out var external)
+                    && external.ResidentLifecycleRevision == resident.LifecycleRevision
+                    ? external : ResidentExternalActivityProfile.None;
+                MobilityPhaseWindow window = default;
+                if (activity is { HasStructuredActivity: true, DestinationAnchorId: not null, CommutePurpose: { Length: > 0 } })
+                {
+                    if (!windowsByRoutine.TryGetValue(activity.Routine, out window))
+                    {
+                        window = ResolveExternalPhaseWindow(activity.Routine, localTime);
+                        windowsByRoutine.Add(activity.Routine, window);
+                    }
+                }
+                bool workDue = workWindow.HasAnyDispatch && resident.Employment.Status == EmploymentStatus.Employed
+                    && resident.Employment.Job?.WorkplaceAnchorId is not null;
+                if (workDue || window.HasAnyDispatch)
+                    scheduledResidents.Add((resident, home.Value, activity, window));
+            }
+            if (scheduledResidents.Count == 0)
                 return;
 
-            Person[] aliveResidents = residents
-               .Where(resident => resident.IsAlive)
-               .ToArray();
-            if (aliveResidents.Length == 0)
-                return;
-
-            IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId =
-                householdPlacements
-                   .GroupBy(x => x.HouseholdId)
-                   .ToDictionary(
-                        keySelector: x => x.Key,
-                        elementSelector: x => x.Select(y => y.ResidentialBuildingId)
-                           .FirstOrDefault());
-            IReadOnlyCollection<CityPopulationActiveTripSnapshot> activeTrips =
-                await activeTripClient.ListActiveByCityAsync(
-                    cityId: cityId,
-                    cancellationToken: cancellationToken);
-            var activeTripKeys = activeTrips
-               .Where(x => x.TravellerEntityId.HasValue)
-               .Select(x => BuildTripConcurrencyKey(
-                    travellerEntityId: x.TravellerEntityId!.Value,
-                    purpose: x.Purpose))
-               .ToHashSet(StringComparer.Ordinal);
-
+            var activeTrips = await activeTripClient.ListActiveByCityAsync(cityId, cancellationToken);
+            var activeTripKeys = activeTrips.Where(trip => trip.TravellerEntityId.HasValue)
+                .Select(trip => BuildTripConcurrencyKey(trip.TravellerEntityId!.Value, trip.Purpose))
+                .ToHashSet(StringComparer.Ordinal);
             List<CommuteTripCandidate> candidates = [];
 
-            foreach (Person resident in aliveResidents)
+            foreach (var (resident, home, activity, window) in scheduledResidents)
             {
-                if (!residentialBuildingByHouseholdId.TryGetValue(
-                        key: resident.HouseholdId,
-                        value: out ResidentialBuildingId? residentialBuildingId) ||
-                    !residentialBuildingId.HasValue)
+                string workTripKey = BuildTripConcurrencyKey(resident.Id.Value, WorkCommutePurpose);
+                if (!activeTripKeys.Contains(workTripKey))
+                {
+                    if (workWindow.ShouldDispatchOutboundCommutes)
+                        await TryAddEmploymentCandidateAsync(cityId, tickId, resident, home, candidates, cancellationToken);
+                    else if (workWindow.ShouldDispatchReturnCommutes)
+                        TryAddEmploymentReturnCandidate(tickId, resident, home, candidates);
+                }
+
+                if (activity is not { HasStructuredActivity: true, DestinationAnchorId: not null,
+                        CommutePurpose: { Length: > 0 } purpose })
                     continue;
-
-                string workTripKey = BuildTripConcurrencyKey(
-                    travellerEntityId: resident.Id.Value,
-                    purpose: WorkCommutePurpose);
-                if (phaseWindow.ShouldDispatchOutboundCommutes &&
-                    !activeTripKeys.Contains(workTripKey))
-                    await TryAddEmploymentCandidateAsync(
-                        cityId: cityId,
-                        tickId: tickId,
-                        resident: resident,
-                        residentialBuildingId: residentialBuildingId.Value,
-                        candidates: candidates,
-                        cancellationToken: cancellationToken);
-                else
-                    if (phaseWindow.ShouldDispatchReturnCommutes &&
-                        !activeTripKeys.Contains(workTripKey))
-                    TryAddEmploymentReturnCandidate(
-                        tickId: tickId,
-                        resident: resident,
-                        residentialBuildingId: residentialBuildingId.Value,
-                        candidates: candidates);
-
-                ResidentExternalActivityProfile externalActivity =
-                    externalActivitiesByResidentId.TryGetValue(
-                        key: resident.Id,
-                        value: out ResidentExternalActivityProfile? resolvedActivity) &&
-                    resolvedActivity.ResidentLifecycleRevision == resident.LifecycleRevision
-                        ? resolvedActivity
-                        : ResidentExternalActivityProfile.None;
-                if (externalActivity is not
-                    {
-                        HasStructuredActivity: true,
-                        DestinationAnchorId: not null,
-                        CommutePurpose: { Length: > 0 } externalActivityPurpose
-                    })
-                    continue;
-
-                string externalActivityTripKey = BuildTripConcurrencyKey(
-                    travellerEntityId: resident.Id.Value,
-                    purpose: externalActivityPurpose);
-                if (phaseWindow.ShouldDispatchOutboundCommutes &&
-                    !activeTripKeys.Contains(externalActivityTripKey))
-                    await TryAddExternalActivityCandidateAsync(
-                        cityId: cityId,
-                        tickId: tickId,
-                        resident: resident,
-                        externalActivity: externalActivity,
-                        residentialBuildingId: residentialBuildingId.Value,
-                        candidates: candidates,
-                        cancellationToken: cancellationToken);
-                else
-                    if (phaseWindow.ShouldDispatchReturnCommutes &&
-                        !activeTripKeys.Contains(externalActivityTripKey))
-                    TryAddExternalActivityReturnCandidate(
-                        tickId: tickId,
-                        resident: resident,
-                        externalActivity: externalActivity,
-                        residentialBuildingId: residentialBuildingId.Value,
-                        candidates: candidates);
+                string activityTripKey = BuildTripConcurrencyKey(resident.Id.Value, purpose);
+                if (!activeTripKeys.Contains(activityTripKey))
+                {
+                    if (window.ShouldDispatchOutboundCommutes)
+                        await TryAddExternalActivityCandidateAsync(cityId, tickId, resident, activity, home, candidates, cancellationToken);
+                    else if (window.ShouldDispatchReturnCommutes)
+                        TryAddExternalActivityReturnCandidate(tickId, resident, activity, home, candidates);
+                }
             }
 
-            foreach (CommuteTripCandidate candidate in candidates
-                        .OrderBy(x => x.Priority)
-                        .ThenBy(x => x.OrderingKey)
-                        .Take(MaxTripsPerTick))
+            foreach (CommuteTripCandidate candidate in candidates.OrderBy(item => item.Priority)
+                         .ThenBy(item => item.OrderingKey).Take(MaxTripsPerTick))
             {
-                string concurrencyKey = BuildTripConcurrencyKey(
-                    travellerEntityId: candidate.TravellerEntityId,
-                    purpose: candidate.Purpose);
+                string concurrencyKey = BuildTripConcurrencyKey(candidate.TravellerEntityId, candidate.Purpose);
                 if (activeTripKeys.Contains(concurrencyKey))
                     continue;
 
                 bool dispatched = await activeTripClient.TryDispatchAsync(
-                    request: new CityPopulationTripDispatchRequest(
+                    new CityPopulationTripDispatchRequest(
                         CityId: cityId,
                         FromKind: candidate.FromKind,
                         FromId: candidate.FromId,
@@ -156,8 +118,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         MovementCapabilityIndex: candidate.MovementCapabilityIndex,
                         TravellerEntityId: candidate.TravellerEntityId,
                         Subject: candidate.Subject),
-                    cancellationToken: cancellationToken);
-
+                    cancellationToken);
                 if (dispatched)
                     activeTripKeys.Add(concurrencyKey);
             }
@@ -379,9 +340,28 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             return $"{travellerEntityId:N}:{purpose.Trim().ToLowerInvariant()}";
         }
 
-        private static MobilityPhaseWindow ResolvePhaseWindow(DateTimeOffset currentSimTimeUtc)
+        private static MobilityPhaseWindow ResolveExternalPhaseWindow(PersonRoutineProfile routine, DateTimeOffset localTime)
         {
-            var time = TimeOnly.FromDateTime(currentSimTimeUtc.UtcDateTime);
+            bool outbound = false;
+            bool returning = false;
+            // Keep transport sampling window sizes, but anchor them to the activity schedule.
+            // Adjacent dates account for departures and returns crossing local midnight.
+            var localMidnight = new DateTimeOffset(localTime.Date, localTime.Offset);
+            for (int dayOffset = -1; dayOffset <= 1; dayOffset++)
+            {
+                var date = localMidnight.AddDays(dayOffset);
+                if (!routine.IsScheduledOn(date.DayOfWeek)) continue;
+                var start = date.Add(routine.StructuredActivityStart!.Value);
+                var end = date.Add(routine.StructuredActivityEnd!.Value);
+                outbound |= localTime >= start.AddHours(-2) && localTime < start.AddMinutes(150) && localTime < end;
+                returning |= localTime >= end && localTime < end.AddMinutes(270);
+            }
+            return new(outbound, returning);
+        }
+
+        private static MobilityPhaseWindow ResolvePhaseWindow(DateTimeOffset localTime)
+        {
+            var time = TimeOnly.FromDateTime(localTime.DateTime);
 
             bool shouldDispatchOutboundCommutes = time >=
                                                   new TimeOnly(

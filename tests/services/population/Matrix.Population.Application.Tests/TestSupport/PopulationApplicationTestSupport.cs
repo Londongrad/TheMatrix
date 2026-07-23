@@ -1533,6 +1533,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
             public Guid? RequestedTravellerEntityId { get; private set; }
             public bool TryDispatchResult { get; set; } = true;
             public CityPopulationTripDispatchRequest? RequestedDispatch { get; private set; }
+            public List<CityPopulationTripDispatchRequest> DispatchRequests { get; } = [];
 
             public Task<IReadOnlyCollection<CityPopulationActiveTripSnapshot>> ListActiveByCityAsync(
                 Guid cityId,
@@ -1563,6 +1564,7 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 CancellationToken cancellationToken)
             {
                 RequestedDispatch = request;
+                DispatchRequests.Add(request);
                 return Task.FromResult(TryDispatchResult);
             }
         }
@@ -1579,7 +1581,8 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 IReadOnlyCollection<Person> residents,
                 IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
                 IReadOnlyDictionary<PersonId, ResidentExternalActivityProfile> externalActivitiesByResidentId,
-                CancellationToken cancellationToken)
+                CancellationToken cancellationToken,
+                int utcOffsetMinutes = 0)
             {
                 SyncCalls++;
                 if (ExceptionToThrow is not null)

@@ -73,7 +73,7 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
                 currentSimTimeUtc: new DateTimeOffset(
                     year: 2048,
                     month: 5,
-                    day: 3,
+                    day: 4,
                     hour: 8,
                     minute: 0,
                     second: 0,
@@ -111,6 +111,77 @@ namespace Matrix.Population.Application.Tests.Scenarios.ClassicCity.Services.Wor
             Assert.Equal(
                 expected: InstitutionAnchorId,
                 actual: dispatch.ToId);
+        }
+
+        [Fact]
+        public async Task SyncAsync_PreservesDispatchLimitAndSkipsResidentsAlreadyTravelling()
+        {
+            Guid householdId = Guid.NewGuid();
+            var residents = Enumerable.Range(0, 64).Select(_ => CreatePerson(personId: Guid.NewGuid(),
+                householdId: householdId, employmentStatus: EmploymentStatus.Unemployed)).ToArray();
+            var home = ResidentialBuildingId.From(Guid.NewGuid());
+            var placement = ClassicCityHouseholdPlacement.CreateHoused(residents[0].HouseholdId,
+                Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.CityId.From(CityId), DistrictId.From(Guid.NewGuid()), home);
+            var routine = PersonRoutineProfile.Structured(TimeSpan.FromHours(12), TimeSpan.FromHours(16),
+                PersonStructuredActivityLoad.Moderate, PersonRoutineDays.Saturday);
+            var activities = residents.ToDictionary(resident => resident.Id, resident => new ResidentExternalActivityProfile(
+                resident.LifecycleRevision, routine, InstitutionAnchorId, ExternalCommutePurpose, ResidentWorkforceQualificationTier.None));
+            var now = new DateTimeOffset(2048, 5, 2, 12, 0, 0, TimeSpan.Zero);
+            var travelling = residents.Take(32).Select(resident => resident.Id.Value).ToHashSet();
+            var trips = new FakeCityPopulationActiveTripClient
+            {
+                ActiveTripsByCity = travelling.Select(id => new CityPopulationActiveTripSnapshot(id, "existing", ExternalCommutePurpose,
+                    "InProgress", 0.5m, now.AddMinutes(-10), now.AddMinutes(10), "home", home.Value, "activity", InstitutionAnchorId)).ToArray()
+            };
+            var routes = new FakeCityPopulationCommuteRoutingService { AnchorContext = new(true, true, 1m, 1m, 20m) };
+            await new CityPopulationCommuteTripSyncService(trips, routes).SyncAsync(CityId, 42, now,
+                residents, [placement], activities, default);
+            Assert.Equal(12, trips.DispatchRequests.Count);
+            Assert.Equal(12, trips.DispatchRequests.Select(request => request.TravellerEntityId).Distinct().Count());
+            Assert.All(trips.DispatchRequests, request => Assert.DoesNotContain(request.TravellerEntityId!.Value, travelling));
+        }
+
+        [Theory]
+        [InlineData(2, 9, 180, 600, 840, "outbound")]
+        [InlineData(2, 12, 180, 600, 840, "return")]
+        [InlineData(2, 17, 180, 600, 840, "none")]
+        [InlineData(2, 11, 0, 600, 840, "outbound")]
+        [InlineData(3, 9, 180, 600, 840, "none")]
+        [InlineData(4, 9, 180, 600, 840, "none")]
+        [InlineData(1, 22, 0, 0, 60, "outbound")]
+        [InlineData(1, 23, 180, 0, 60, "return")]
+        [InlineData(3, 1, 0, 1380, 1440, "return")]
+        public async Task SyncAsync_UsesLocalScheduleForOutboundAndReturnWindows(
+            int day, int hourUtc, int utcOffset, int startMinute, int endMinute, string expected)
+        {
+            var resident = CreatePerson(employmentStatus: EmploymentStatus.Unemployed);
+            var home = ResidentialBuildingId.From(Guid.NewGuid());
+            var placement = ClassicCityHouseholdPlacement.CreateHoused(resident.HouseholdId,
+                Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.CityId.From(CityId), DistrictId.From(Guid.NewGuid()), home);
+            var activity = new ResidentExternalActivityProfile(resident.LifecycleRevision,
+                PersonRoutineProfile.Structured(TimeSpan.FromMinutes(startMinute), TimeSpan.FromMinutes(endMinute),
+                    PersonStructuredActivityLoad.Moderate, PersonRoutineDays.Saturday),
+                InstitutionAnchorId, ExternalCommutePurpose, ResidentWorkforceQualificationTier.None);
+            var trips = new FakeCityPopulationActiveTripClient();
+            var routes = new FakeCityPopulationCommuteRoutingService
+            {
+                AnchorContext = new(true, true, 1m, 1m, 20m)
+            };
+            await new CityPopulationCommuteTripSyncService(trips, routes).SyncAsync(CityId, 42,
+                new DateTimeOffset(2048, 5, day, hourUtc, 0, 0, TimeSpan.Zero), [resident], [placement],
+                new Dictionary<PersonId, ResidentExternalActivityProfile> { [resident.Id] = activity }, default, utcOffset);
+            if (expected == "none")
+            {
+                Assert.Null(trips.RequestedCityId);
+                Assert.Null(trips.RequestedDispatch);
+            }
+            else
+            {
+                Assert.NotNull(trips.RequestedDispatch);
+                Assert.Equal(expected == "outbound" ? InstitutionAnchorId : home.Value, trips.RequestedDispatch.ToId);
+                Assert.Equal(expected == "outbound" ? home.Value : InstitutionAnchorId, trips.RequestedDispatch.FromId);
+                Assert.Equal(ExternalCommutePurpose, trips.RequestedDispatch.Purpose);
+            }
         }
     }
 }
