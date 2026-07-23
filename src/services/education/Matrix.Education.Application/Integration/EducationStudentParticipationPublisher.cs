@@ -7,9 +7,11 @@ namespace Matrix.Education.Application.Integration;
 public sealed class EducationStudentParticipationPublisher(
     IEducationSimulationRuntimeRepository runtimeRepository,
     EducationEconomicPolicyRegistry policyRegistry,
+    EducationRoutinePolicyRegistry routinePolicyRegistry,
     IEducationStudentParticipationBatchStore batchStore) : IEducationStudentParticipationOutboxWriter
 {
-    private readonly Dictionary<SimulationHostId, IEducationParticipationEconomicPolicy> _policiesByHost = [];
+    private readonly Dictionary<SimulationHostId, (IEducationParticipationEconomicPolicy Economics,
+        IEducationParticipationRoutinePolicy Routine)> _policiesByHost = [];
 
     public async Task AddAsync(EducationStudentParticipationBatchV1 batch, CancellationToken cancellationToken = default)
     {
@@ -24,13 +26,14 @@ public sealed class EducationStudentParticipationPublisher(
         {
             var runtime = await runtimeRepository.GetAsync(hostId, cancellationToken)
                 ?? throw new InvalidOperationException($"Education runtime for simulation '{hostId}' has not been registered yet.");
-            policy = policyRegistry.Resolve(runtime);
+            policy = (policyRegistry.Resolve(runtime), routinePolicyRegistry.Resolve(runtime));
             _policiesByHost.Add(hostId, policy);
         }
 
         var students = batch.Students.Select(student => student with
         {
-            EconomicEffects = policy.Resolve(student.IsEnrolled, student.CompletedStage)
+            EconomicEffects = policy.Economics.Resolve(student.IsEnrolled, student.CompletedStage),
+            DailyRoutine = policy.Routine.Resolve(student.IsEnrolled, student.ActiveStage)
         }).ToArray();
         await batchStore.AddAsync(batch with { Students = students }, cancellationToken);
     }

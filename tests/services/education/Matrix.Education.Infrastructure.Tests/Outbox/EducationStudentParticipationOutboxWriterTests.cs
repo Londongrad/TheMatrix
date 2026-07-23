@@ -22,7 +22,8 @@ namespace Matrix.Education.Infrastructure.Tests.Outbox
             var hostId = new SimulationHostId(Guid.NewGuid());
             await runtimeRepository.EnsureAsync(hostId, policy.RuntimeKey);
             var writer = new EducationStudentParticipationPublisher(runtimeRepository,
-                new EducationEconomicPolicyRegistry([policy]), new EducationStudentParticipationOutboxWriter(dbContext));
+                new EducationEconomicPolicyRegistry([policy]), new EducationRoutinePolicyRegistry([new ClassicCityEducationRoutinePolicy()]),
+                new EducationStudentParticipationOutboxWriter(dbContext));
             DateTimeOffset occurredAtUtc =
                 new(2026, 9, 1, 8, 0, 0, TimeSpan.Zero);
             Guid residentId = Guid.NewGuid();
@@ -67,6 +68,8 @@ namespace Matrix.Education.Infrastructure.Tests.Outbox
             Assert.Equal(6m, student.EconomicEffects.EmploymentIncomeBonus);
             Assert.Equal(0m, Assert.Single(student.EconomicEffects.TransferIncome).DailyIncome);
             Assert.Equal(1d, student.EconomicEffects.EmploymentAvailabilityFactor);
+            Assert.NotNull(student.DailyRoutine);
+            Assert.Null(student.DailyRoutine.StructuredActivity);
         }
     }
 }

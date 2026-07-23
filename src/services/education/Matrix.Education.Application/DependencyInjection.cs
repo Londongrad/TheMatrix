@@ -24,6 +24,8 @@ namespace Matrix.Education.Application
             services.AddScoped<EducationProgressionBatchProcessorRegistry>();
             services.AddSingleton<IEducationParticipationEconomicPolicy, ClassicCityEducationEconomicPolicy>();
             services.AddSingleton<EducationEconomicPolicyRegistry>();
+            services.AddSingleton<IEducationParticipationRoutinePolicy, ClassicCityEducationRoutinePolicy>();
+            services.AddSingleton<EducationRoutinePolicyRegistry>();
             services.AddScoped<IEducationStudentParticipationOutboxWriter, EducationStudentParticipationPublisher>();
         }
     }
