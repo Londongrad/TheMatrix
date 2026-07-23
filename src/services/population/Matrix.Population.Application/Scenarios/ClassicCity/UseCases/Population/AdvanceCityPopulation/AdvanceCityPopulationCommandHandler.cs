@@ -516,7 +516,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             currentDate: toDate,
                             persons: personsSnapshot,
                             householdPlacements: placementsSnapshot,
-                            cancellationToken: ct);
+                            cancellationToken: ct,
+                            activityObservation: CityResidentActivityObservation.ForTick(request.TickId,
+                                request.FromSimTimeUtc, request.ToSimTimeUtc, state is null));
 
                         foreach (CityPopulationActivityWriteModel activityEntry in pendingActivityEntries)
                             await cityPopulationActivityJournalService.RecordAsync(

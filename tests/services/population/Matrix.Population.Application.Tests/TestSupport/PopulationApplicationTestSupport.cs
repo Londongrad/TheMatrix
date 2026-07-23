@@ -464,7 +464,8 @@ namespace Matrix.Population.Application.Tests.TestSupport
                 IReadOnlyCollection<Person> persons,
                 IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
                 bool includeCommuteMetrics = true,
-                CancellationToken cancellationToken = default)
+                CancellationToken cancellationToken = default,
+                CityResidentActivityObservation? activityObservation = null)
             {
                 UpdateCalls.Add((cityId, currentDate, persons.Count, householdPlacements.Count, includeCommuteMetrics));
                 return Task.CompletedTask;

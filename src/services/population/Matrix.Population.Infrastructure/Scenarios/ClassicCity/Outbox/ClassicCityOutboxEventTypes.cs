@@ -2,6 +2,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox
 {
     public static class ClassicCityOutboxEventTypes
     {
+        public const string ResidentActivityConditionsBatchV1 = "population.classic-city-resident-activity-conditions-batch.v1";
         public const string CityEconomyDailySettlementV1 = "population.city-economy-daily-settlement.v1";
 
         public const string ClassicCityHouseholdAccountSyncBatchV1 =

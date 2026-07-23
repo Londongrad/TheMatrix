@@ -12,7 +12,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
             IReadOnlyCollection<Person> persons,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             bool includeCommuteMetrics = true,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            CityResidentActivityObservation? activityObservation = null);
 
         Task UpdateAsync(
             CityId cityId,

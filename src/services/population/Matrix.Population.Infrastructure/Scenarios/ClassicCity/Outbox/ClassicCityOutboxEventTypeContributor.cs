@@ -1,5 +1,6 @@
 using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Economy;
 using Matrix.Population.Infrastructure.Outbox;
+using Matrix.ScenarioContracts.ClassicCity.IntegrationEvents.Population;
 
 namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox
 {
@@ -8,6 +9,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox
         public IReadOnlyDictionary<string, Type> EventTypes { get; } =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
+                [ClassicCityOutboxEventTypes.ResidentActivityConditionsBatchV1] = typeof(ClassicCityResidentActivityConditionsBatchV1),
                 [ClassicCityOutboxEventTypes.CityEconomyDailySettlementV1] =
                     typeof(CityEconomyDailySettlementV1),
                 [ClassicCityOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1] =

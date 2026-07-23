@@ -13,6 +13,9 @@ using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Outbox;
 
 namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
 {
@@ -26,6 +29,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         ILogger<CityPopulationSummaryProjectionService> logger)
         : ICityPopulationSummaryProjectionService
     {
+        private static readonly JsonSerializerOptions ObservationJsonOptions = new(JsonSerializerDefaults.Web);
         private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
         private readonly PopulationDbContext _dbContext = dbContext;
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
@@ -57,7 +61,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Person> persons,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             bool includeCommuteMetrics = true,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            CityResidentActivityObservation? activityObservation = null)
         {
             return UpsertAsync(
                 cityId: cityId,
@@ -65,7 +70,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 persons: persons,
                 householdPlacements: householdPlacements,
                 includeCommuteMetrics: includeCommuteMetrics,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken,
+                activityObservation: activityObservation);
         }
 
         public async Task RebuildAsync(
@@ -182,7 +188,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Person> persons,
             IReadOnlyCollection<ClassicCityHouseholdPlacement>? householdPlacements,
             bool includeCommuteMetrics,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            CityResidentActivityObservation? activityObservation = null)
         {
             IReadOnlyCollection<ClassicCityHouseholdPlacement> resolvedPlacements =
                 await ResolvePlacementsAsync(
@@ -242,6 +249,16 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                         healthcarePressureSnapshot.MedicalLoadIndex,
                         healthcarePressureSnapshot.TriagePressureIndex,
                         healthcarePressureSnapshot.RecoverySupportIndex);
+
+            if (activityObservation is not null)
+            {
+                var batches = await ClassicCityActivityConditionsCollector.CollectAsync(cityId, activityObservation,
+                    _timeProvider.GetUtcNow(), resolvedPersons, educationParticipationIndex, resolvedPlacements,
+                    livingConditionsState, essentialsState, _districtImpactPolicy, _commuteRoutingService, cancellationToken);
+                foreach (var batch in batches)
+                    _dbContext.OutboxMessages.Add(OutboxMessage.Create(ClassicCityOutboxEventTypes.ResidentActivityConditionsBatchV1,
+                        batch.OccurredAtUtc.UtcDateTime, batch, ObservationJsonOptions));
+            }
 
             CityPopulationSummarySnapshotValues snapshotValues = await BuildSnapshotValuesAsync(
                 cityId: cityId,
@@ -433,48 +450,15 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                     workforceCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
                 }
 
-                foreach ((Person resident, EducationParticipationProjection participation) in studentResidents)
-                {
-                    HousingStatus? residentHousingStatus = housingByHouseholdId.TryGetValue(
-                        key: resident.HouseholdId,
-                        value: out HousingStatus resolvedHousingStatus)
-                        ? resolvedHousingStatus
-                        : null;
-                    DistrictId? districtId = districtByHouseholdId.TryGetValue(
-                        key: resident.HouseholdId,
-                        value: out DistrictId? resolvedDistrictId)
-                        ? resolvedDistrictId
-                        : null;
-                    ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
-                        key: resident.HouseholdId,
-                        value: out ResidentialBuildingId? resolvedResidentialBuildingId)
-                        ? resolvedResidentialBuildingId
-                        : null;
-                    CityPopulationLivingConditionsContext districtLivingConditions =
-                        districtImpactPolicy.ResolveLivingConditions(
-                            districtId: districtId,
-                            livingConditionsState: livingConditionsState);
-                    CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
-                        districtId: districtId,
-                        essentialsState: essentialsState);
-                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
-                        cityId: cityId.Value,
-                        residentialBuildingId: residentialBuildingId,
-                        destinationAnchorId: participation.InstitutionAnchorId is { } institutionAnchorId
-                            ? CityAnchorId.From(institutionAnchorId)
-                            : null,
-                        cancellationToken: cancellationToken);
-                    studentAttendanceSamples.Add(
-                        participationPolicy.ResolveLearningAttendanceIndex(
-                            person: resident,
-                            currentDate: currentDate,
-                            housingStatus: residentHousingStatus,
-                            livingConditions: districtLivingConditions,
-                            essentials: districtEssentials,
-                            commute: commute));
-                    studentCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
-                }
             }
+
+            foreach (var (_, participation) in studentResidents)
+                if (participation.Attendance is { } attendance
+                    && DateOnly.FromDateTime(attendance.ObservedAtSimTimeUtc.UtcDateTime) == currentDate)
+                {
+                    studentAttendanceSamples.Add(attendance.AttendanceIndex);
+                    studentCommuteAccessibilitySamples.Add(attendance.CommuteAccessibilityIndex);
+                }
 
             decimal? workforceAttendanceIndex = AverageMetric(workforceAttendanceSamples);
             decimal? workforceProductivityIndex = AverageMetric(workforceProductivitySamples);
