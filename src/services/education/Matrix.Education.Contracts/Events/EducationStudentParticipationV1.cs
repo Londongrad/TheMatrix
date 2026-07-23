@@ -11,5 +11,6 @@ namespace Matrix.Education.Contracts.Events
         DateOnly? EnrolledOn,
         string? CompletedStage,
         DateOnly? CompletedStageOn,
-        EducationEconomicEffectsV1? EconomicEffects = null);
+        EducationEconomicEffectsV1? EconomicEffects = null,
+        EducationDailyRoutineV1? DailyRoutine = null);
 }
