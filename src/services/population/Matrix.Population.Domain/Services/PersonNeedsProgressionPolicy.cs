@@ -248,15 +248,14 @@ namespace Matrix.Population.Domain.Services
             DateTimeOffset localTime)
         {
             TimeSpan timeOfDay = localTime.TimeOfDay;
-            if (timeOfDay >= SleepStart || timeOfDay < SleepEnd)
-                return PersonRoutinePhase.Sleep;
-
-            bool isWeekday = localTime.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday);
-            if (isWeekday &&
+            if (routineProfile.IsScheduledOn(localTime.DayOfWeek) &&
                 routineProfile.HasStructuredActivity &&
                 timeOfDay >= routineProfile.StructuredActivityStart!.Value &&
                 timeOfDay < routineProfile.StructuredActivityEnd!.Value)
                 return PersonRoutinePhase.StructuredActivity;
+
+            if (timeOfDay >= SleepStart || timeOfDay < SleepEnd)
+                return PersonRoutinePhase.Sleep;
 
             return PersonRoutinePhase.Leisure;
         }
@@ -265,51 +264,25 @@ namespace Matrix.Population.Domain.Services
             DateTimeOffset localTime,
             PersonRoutineProfile routineProfile)
         {
-            IEnumerable<TimeSpan> boundaries = routineProfile.HasStructuredActivity
-                ?
-                [
-                    SleepEnd,
-                    routineProfile.StructuredActivityStart!.Value,
-                    routineProfile.StructuredActivityEnd!.Value,
-                    SleepStart
-                ]
-                :
-                [
-                    SleepEnd,
-                    SleepStart
-                ];
-            foreach (TimeSpan boundary in boundaries.Distinct().Order())
+            TimeSpan cursor = localTime.TimeOfDay;
+            TimeSpan next = TimeSpan.FromDays(1);
+            if (SleepEnd > cursor && SleepEnd < next) next = SleepEnd;
+            if (SleepStart > cursor && SleepStart < next) next = SleepStart;
+            if (routineProfile.HasStructuredActivity && routineProfile.IsScheduledOn(localTime.DayOfWeek))
             {
-                DateTimeOffset candidate = CreateBoundary(
-                    localTime: localTime,
-                    boundary: boundary);
-
-                if (candidate > localTime)
-                    return candidate;
+                TimeSpan start = routineProfile.StructuredActivityStart!.Value;
+                TimeSpan end = routineProfile.StructuredActivityEnd!.Value;
+                if (start > cursor && start < next) next = start;
+                if (end > cursor && end < next) next = end;
             }
-
-            return new DateTimeOffset(
-                year: localTime.Year,
-                month: localTime.Month,
-                day: localTime.Day,
-                hour: 0,
-                minute: 0,
-                second: 0,
-                offset: localTime.Offset).AddDays(1);
+            return CreateBoundary(localTime, next);
         }
 
         private static DateTimeOffset CreateBoundary(
             DateTimeOffset localTime,
             TimeSpan boundary)
         {
-            return new DateTimeOffset(
-                year: localTime.Year,
-                month: localTime.Month,
-                day: localTime.Day,
-                hour: boundary.Hours,
-                minute: boundary.Minutes,
-                second: boundary.Seconds,
-                offset: localTime.Offset);
+            return new DateTimeOffset(localTime.Date, localTime.Offset).Add(boundary);
         }
 
         private static DateTimeOffset Min(
