@@ -1,4 +1,5 @@
 using System.Reflection;
+using Matrix.Education.Domain.Scenarios.ClassicCity.Attendance;
 using Matrix.Education.Application.Progression;
 using Matrix.Education.Application.Abstractions;
 using Matrix.Education.Application.Integration;
@@ -16,6 +17,7 @@ namespace Matrix.Education.Application
 
             services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
             services.AddSingleton<ClassicCityEducationProgressionPolicy>();
+            services.AddSingleton<ClassicCityLearningAttendancePolicy>();
             services.AddSingleton<ClassicCityEducationInstitutionSelectionPolicy>();
             services.AddScoped<IEducationProgressionBatchProcessor,
                 ClassicCityEducationProgressionBatchProcessor>();

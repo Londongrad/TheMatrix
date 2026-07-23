@@ -8,11 +8,11 @@ public sealed class ClassicCityLearningAttendancePolicy
         if (conditions.AgeYears is < 0 or > 120 || conditions.Energy is < 0 or > 100
             || conditions.Stress is < 0 or > 100 || conditions.FunctionalCapacity is < 0 or > 100)
             throw new ArgumentOutOfRangeException(nameof(conditions), "Resident facts are outside their supported ranges.");
-        foreach (decimal value in new[] { conditions.RoadAccessibility, conditions.PowerCoverage, conditions.WaterCoverage,
-                     conditions.HeatingCoverage, conditions.Flooding, conditions.FoodShortage, conditions.EmergencyWaterShortage,
-                     conditions.CommuteAccessibility })
-            if (value is < 0m or > 2m)
-                throw new ArgumentOutOfRangeException(nameof(conditions), "Condition indices must be between zero and two.");
+        if (!IsValid(conditions.RoadAccessibility) || !IsValid(conditions.PowerCoverage)
+            || !IsValid(conditions.WaterCoverage) || !IsValid(conditions.HeatingCoverage)
+            || !IsValid(conditions.Flooding) || !IsValid(conditions.FoodShortage)
+            || !IsValid(conditions.EmergencyWaterShortage) || !IsValid(conditions.CommuteAccessibility))
+            throw new ArgumentOutOfRangeException(nameof(conditions), "Condition indices must be between zero and two.");
 
         double attendance = 1d
             - Deficit(conditions.RoadAccessibility) * 0.30d
@@ -34,5 +34,6 @@ public sealed class ClassicCityLearningAttendancePolicy
     }
 
     private static double Deficit(decimal value) => Math.Clamp((double)(1m - value), 0d, 1.5d);
+    private static bool IsValid(decimal value) => value is >= 0m and <= 2m;
     private static double Pressure(decimal value) => Math.Clamp((double)value, 0d, 1.5d);
 }

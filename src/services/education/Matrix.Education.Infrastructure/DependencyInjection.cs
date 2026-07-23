@@ -56,6 +56,7 @@ namespace Matrix.Education.Infrastructure
             });
 
             services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
+            services.AddScoped<IEducationAttendanceOutboxWriter, EducationAttendanceOutboxWriter>();
             services.AddScoped<IEducationSimulationRuntimeRepository, EducationSimulationRuntimeRepository>();
             services.AddScoped<IStudentEducationStatusReader, StudentEducationStatusReader>();
             services.AddScoped<IEducationInstitutionRepository, EducationInstitutionRepository>();

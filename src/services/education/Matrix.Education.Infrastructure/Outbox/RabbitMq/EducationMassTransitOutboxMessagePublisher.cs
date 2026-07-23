@@ -19,6 +19,8 @@ namespace Matrix.Education.Infrastructure.Outbox.RabbitMq
         {
             return type switch
             {
+                EducationOutboxEventTypes.AttendanceEvaluatedBatchV1 =>
+                    PublishAsync<EducationAttendanceEvaluatedBatchV1>(payloadJson, cancellationToken),
                 EducationOutboxEventTypes.StudentParticipationBatchV1 =>
                     PublishAsync<EducationStudentParticipationBatchV1>(
                         payloadJson,
