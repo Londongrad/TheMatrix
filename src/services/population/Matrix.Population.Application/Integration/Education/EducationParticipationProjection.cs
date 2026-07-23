@@ -15,5 +15,6 @@ namespace Matrix.Population.Application.Integration.Education
         DateOnly SnapshotDate,
         DateTimeOffset OccurredAtUtc,
         DateTimeOffset UpdatedAtUtc,
-        ResidentExternalEconomicProfile? Economics = null);
+        ResidentExternalEconomicProfile? Economics = null,
+        EducationAttendanceProjection? Attendance = null);
 }

@@ -146,6 +146,42 @@ namespace Matrix.Population.Infrastructure.Tests.Persistence.Repositories
             Assert.Empty(dbContext.EducationParticipationProjections);
         }
 
+        [Fact]
+        public async Task Attendance_RoundTripsAndRejectsStaleOrInvalidatedResults()
+        {
+            await using var database = CreateDbContext();
+            var db = database.DbContext;
+            await AddResidentAsync(db);
+            var repository = new EducationParticipationProjectionRepository(db);
+            var writer = new EducationAttendanceProjectionWriter(db);
+            await repository.UpsertNewerAsync([CreateProjection(1)]);
+            await db.SaveChangesAsync();
+            var now = new DateTimeOffset(2048, 5, 3, 9, 0, 0, TimeSpan.Zero);
+            EducationAttendanceInput input = new(ResidentId, 0, 1, 0.7m, 0.8m);
+            Assert.Equal(1, await writer.ApplyAsync(HostId, 5, now, [input], default));
+            await db.SaveChangesAsync();
+            db.ChangeTracker.Clear();
+            var attendance = Assert.Single(await repository.GetByResidentIdsAsync(HostId, [ResidentId])).Value.Attendance;
+            Assert.NotNull(attendance);
+            Assert.Equal(new EducationAttendanceProjection(5, now, 0.7m, 0.8m), attendance);
+            Assert.Equal(0, await writer.ApplyAsync(HostId, 5, now, [input with { AttendanceIndex = 0.1m }], default));
+            Assert.Equal(0, await writer.ApplyAsync(HostId, 4, now, [input], default));
+            Assert.Equal(0, await writer.ApplyAsync(HostId, 6, now.AddHours(-1), [input], default));
+            Assert.Equal(0, await writer.ApplyAsync(Guid.NewGuid(), 6, now, [input], default));
+            Assert.Equal(0, await writer.ApplyAsync(HostId, 6, now, [input with { ResidentLifecycleRevision = 1 }], default));
+            await repository.UpsertNewerAsync([CreateProjection(2)]);
+            await db.SaveChangesAsync();
+            Assert.Null(Assert.Single(await repository.GetByResidentIdsAsync(HostId, [ResidentId])).Value.Attendance);
+            Assert.Equal(0, await writer.ApplyAsync(HostId, 6, now, [input], default));
+            Assert.Equal(1, await writer.ApplyAsync(HostId, 6, now, [input with { ParticipationRevision = 2 }], default));
+            await repository.UpsertNewerAsync([CreateProjection(3, false)]);
+            Assert.Equal(0, await writer.ApplyAsync(HostId, 7, now, [input with { ParticipationRevision = 3 }], default));
+            await repository.DeleteBySimulationHostAsync(HostId);
+            await db.SaveChangesAsync();
+            Assert.Equal(0, await writer.ApplyAsync(HostId, 8, now, [input], default));
+            Assert.Empty(db.EducationParticipationProjections);
+        }
+
         private static async Task AddResidentAsync(PopulationDbContext dbContext)
         {
             Person resident = CreatePerson(personId: ResidentId);

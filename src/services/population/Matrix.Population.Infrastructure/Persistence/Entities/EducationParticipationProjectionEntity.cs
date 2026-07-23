@@ -34,6 +34,27 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
         public DateTimeOffset OccurredAtUtc { get; private set; }
         public DateTimeOffset UpdatedAtUtc { get; private set; }
         public string? EconomicEffectsJson { get; private set; }
+        public long? AttendanceSourceTickId { get; private set; }
+        public DateTimeOffset? AttendanceObservedAtSimTimeUtc { get; private set; }
+        public decimal? AttendanceIndex { get; private set; }
+        public decimal? CommuteAccessibilityIndex { get; private set; }
+
+        public bool TryApplyAttendance(long sourceTickId, DateTimeOffset observedAtSimTimeUtc, EducationAttendanceInput input)
+        {
+            ArgumentNullException.ThrowIfNull(input);
+            if (sourceTickId < 0 || observedAtSimTimeUtc.Offset != TimeSpan.Zero
+                || input.AttendanceIndex is < 0m or > 1m || input.CommuteAccessibilityIndex is < 0m or > 2m)
+                throw new ArgumentException("Invalid attendance observation.");
+            if (!IsEnrolled || input.ResidentId != ResidentId.Value
+                || input.ParticipationRevision != ParticipationRevision || input.ResidentLifecycleRevision != ResidentLifecycleRevision
+                || sourceTickId <= AttendanceSourceTickId || observedAtSimTimeUtc < AttendanceObservedAtSimTimeUtc)
+                return false;
+            AttendanceSourceTickId = sourceTickId;
+            AttendanceObservedAtSimTimeUtc = observedAtSimTimeUtc;
+            AttendanceIndex = input.AttendanceIndex;
+            CommuteAccessibilityIndex = input.CommuteAccessibilityIndex;
+            return true;
+        }
 
         public static EducationParticipationProjectionEntity Create(
             EducationParticipationProjection projection)
@@ -79,7 +100,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
                 SnapshotDate,
                 OccurredAtUtc,
                 UpdatedAtUtc,
-                economics);
+                economics,
+                AttendanceIndex is { } attendance && AttendanceObservedAtSimTimeUtc is { } observedAt
+                    && AttendanceSourceTickId is { } tickId && CommuteAccessibilityIndex is { } commute
+                    ? new EducationAttendanceProjection(tickId, observedAt, attendance, commute) : null);
         }
 
         private void Apply(EducationParticipationProjection projection)
@@ -106,6 +130,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
             OccurredAtUtc = projection.OccurredAtUtc;
             UpdatedAtUtc = projection.UpdatedAtUtc;
             EconomicEffectsJson = projection.Economics is null ? null : EducationEconomicEffectsMapper.Serialize(projection.Economics);
+            AttendanceObservedAtSimTimeUtc = null;
+            AttendanceIndex = null;
+            CommuteAccessibilityIndex = null;
         }
     }
 }
