@@ -67,6 +67,7 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
             services.AddScoped<IEducationParticipationProjectionRepository,
                 EducationParticipationProjectionRepository>();
+            services.AddScoped<IEducationAttendanceProjectionWriter, EducationAttendanceProjectionWriter>();
             services.AddScoped<IResidentExternalActivityProfileReader,
                 EducationResidentExternalActivityProfileReader>();
             services.AddScoped<IPopulationResidentFactsOutboxWriter, PopulationResidentFactsOutboxWriter>();
@@ -90,6 +91,7 @@ namespace Matrix.Population.Infrastructure
                 x.AddRabbitMqEndpointHygiene();
                 x.AddConsumer<EducationStudentParticipationConsumer,
                     EducationStudentParticipationConsumerDefinition>();
+                x.AddConsumer<EducationAttendanceConsumer, EducationAttendanceConsumerDefinition>();
                 configureConsumers?.Invoke(x);
 
                 x.UsingRabbitMq((
