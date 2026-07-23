@@ -13,8 +13,10 @@ namespace Matrix.Education.Infrastructure.Tests.Outbox
 {
     public sealed class EducationStudentParticipationOutboxWriterTests
     {
-        [Fact]
-        public async Task AddAsync_PersistsTypedParticipationBatch()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AddAsync_PersistsTypedParticipationBatch(bool isEnrolled)
         {
             await using var dbContext = EducationInfrastructureTestSupport.CreateDbContext();
             var runtimeRepository = new EducationSimulationRuntimeRepository(dbContext);
@@ -40,11 +42,11 @@ namespace Matrix.Education.Infrastructure.Tests.Outbox
                         ResidentId: residentId,
                         ParticipationRevision: 3,
                         ResidentLifecycleRevision: 2,
-                        IsEnrolled: false,
-                        ActiveStage: null,
-                        InstitutionId: null,
-                        InstitutionAnchorId: null,
-                        EnrolledOn: null,
+                        IsEnrolled: isEnrolled,
+                        ActiveStage: isEnrolled ? "higher" : null,
+                        InstitutionId: isEnrolled ? Guid.NewGuid() : null,
+                        InstitutionAnchorId: isEnrolled ? Guid.NewGuid() : null,
+                        EnrolledOn: isEnrolled ? new DateOnly(2026, 9, 1) : null,
                         CompletedStage: "upper-secondary",
                         CompletedStageOn: new DateOnly(2026, 6, 30))
                 ]);
@@ -66,10 +68,13 @@ namespace Matrix.Education.Infrastructure.Tests.Outbox
             Assert.Equal("upper-secondary", student.CompletedStage);
             Assert.NotNull(student.EconomicEffects);
             Assert.Equal(6m, student.EconomicEffects.EmploymentIncomeBonus);
-            Assert.Equal(0m, Assert.Single(student.EconomicEffects.TransferIncome).DailyIncome);
-            Assert.Equal(1d, student.EconomicEffects.EmploymentAvailabilityFactor);
+            Assert.Equal(isEnrolled ? 4m : 0m, student.EconomicEffects.TransferIncome[0].DailyIncome);
+            Assert.Equal(isEnrolled ? 0d : 1d, student.EconomicEffects.EmploymentAvailabilityFactor);
             Assert.NotNull(student.DailyRoutine);
-            Assert.Null(student.DailyRoutine.StructuredActivity);
+            if (isEnrolled)
+                Assert.Equal(new EducationScheduledActivityV1(480, 900, 62, "moderate"), student.DailyRoutine.StructuredActivity);
+            else
+                Assert.Null(student.DailyRoutine.StructuredActivity);
         }
     }
 }
