@@ -133,6 +133,27 @@ namespace Matrix.Population.Application.Tests.Integration.Education
                 EducationResidentExternalActivityProfileFactory.Create(participation).Economics);
         }
 
+        [Fact]
+        public void Create_UsesSuppliedRoutineInsteadOfCityDefaults()
+        {
+            var routine = PersonRoutineProfile.Structured(TimeSpan.FromHours(11), TimeSpan.FromHours(19),
+                PersonStructuredActivityLoad.Demanding, PersonRoutineDays.Saturday | PersonRoutineDays.Sunday);
+            var participation = CreateParticipation(true, Guid.NewGuid(), "higher") with { Routine = routine };
+            var profile = EducationResidentExternalActivityProfileFactory.Create(participation);
+            Assert.Same(routine, profile.Routine);
+            Assert.Equal(participation.InstitutionAnchorId, profile.DestinationAnchorId);
+        }
+
+        [Fact]
+        public void Create_ExplicitlyUnstructuredRoutineDoesNotFallBackOrDispatchCommute()
+        {
+            var participation = CreateParticipation(true, Guid.NewGuid(), "higher") with { Routine = PersonRoutineProfile.Unstructured };
+            var profile = EducationResidentExternalActivityProfileFactory.Create(participation);
+            Assert.Same(PersonRoutineProfile.Unstructured, profile.Routine);
+            Assert.Null(profile.DestinationAnchorId);
+            Assert.Null(profile.CommutePurpose);
+        }
+
         private static EducationParticipationProjection CreateParticipation(
             bool isEnrolled,
             Guid? institutionAnchorId,
