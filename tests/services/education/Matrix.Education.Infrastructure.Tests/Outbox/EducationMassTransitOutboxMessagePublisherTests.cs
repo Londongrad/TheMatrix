@@ -22,29 +22,33 @@ namespace Matrix.Education.Infrastructure.Tests.Outbox
             Assert.Contains("not supported", exception.Message);
         }
 
-        [Fact]
-        public async Task PublishAsync_NullParticipationPayload_Throws()
+        [Theory]
+        [InlineData(EducationOutboxEventTypes.StudentParticipationBatchV1)]
+        [InlineData(EducationOutboxEventTypes.AttendanceEvaluatedBatchV1)]
+        public async Task PublishAsync_NullPayload_Throws(string eventType)
         {
             var publisher = new EducationMassTransitOutboxMessagePublisher(null!);
 
             InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 publisher.PublishAsync(
                     Guid.NewGuid(),
-                    EducationOutboxEventTypes.StudentParticipationBatchV1,
+                    eventType,
                     "null",
                     CancellationToken.None));
 
             Assert.Contains("Failed to deserialize education outbox payload", exception.Message);
         }
 
-        [Fact]
-        public async Task PublishAsync_MalformedParticipationPayload_Throws()
+        [Theory]
+        [InlineData(EducationOutboxEventTypes.StudentParticipationBatchV1)]
+        [InlineData(EducationOutboxEventTypes.AttendanceEvaluatedBatchV1)]
+        public async Task PublishAsync_MalformedPayload_Throws(string eventType)
         {
             var publisher = new EducationMassTransitOutboxMessagePublisher(null!);
 
             await Assert.ThrowsAsync<JsonException>(() => publisher.PublishAsync(
                 Guid.NewGuid(),
-                EducationOutboxEventTypes.StudentParticipationBatchV1,
+                eventType,
                 "{",
                 CancellationToken.None));
         }
