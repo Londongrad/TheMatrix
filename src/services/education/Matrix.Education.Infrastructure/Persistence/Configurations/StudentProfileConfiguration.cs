@@ -88,6 +88,11 @@ namespace Matrix.Education.Infrastructure.Persistence.Configurations
                .HasColumnName("last_synchronized_at_utc")
                .IsRequired();
 
+            builder.Property(x => x.LastAttendanceSourceTickId).HasColumnName("last_attendance_source_tick_id");
+            builder.Property(x => x.AttendanceObservedAtSimTimeUtc).HasColumnName("attendance_observed_at_sim_time_utc");
+            builder.Property(x => x.AttendanceIndex).HasColumnName("attendance_index");
+            builder.Property(x => x.CommuteAccessibilityIndex).HasColumnName("commute_accessibility_index");
+
             builder.HasIndex(x => new
                    {
                        x.SimulationHostId,

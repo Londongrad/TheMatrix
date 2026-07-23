@@ -50,6 +50,10 @@ namespace Matrix.Education.Domain.Students
         public long LastSourceRevision { get; private set; }
         public long LastLifecycleRevision { get; private set; }
         public long ParticipationRevision { get; private set; }
+        public long? LastAttendanceSourceTickId { get; private set; }
+        public DateTimeOffset? AttendanceObservedAtSimTimeUtc { get; private set; }
+        public decimal? AttendanceIndex { get; private set; }
+        public decimal? CommuteAccessibilityIndex { get; private set; }
         public DateTimeOffset LastSynchronizedAtUtc { get; private set; }
 
         public static StudentProfile Register(
@@ -99,11 +103,14 @@ namespace Matrix.Education.Domain.Students
             {
                 BirthDate = birthDate;
                 IsActive = isActive;
+                if (!isActive)
+                    ClearAttendance();
                 LastSourceRevision = normalizedSourceRevision;
             }
 
             if (lifecycleChanged)
             {
+                ClearAttendance();
                 IsAlive = isAlive;
                 LastLifecycleRevision = normalizedLifecycleRevision;
             }
@@ -121,6 +128,7 @@ namespace Matrix.Education.Domain.Students
                 return false;
 
             IsActive = false;
+            ClearAttendance();
 
             return true;
         }
@@ -155,8 +163,35 @@ namespace Matrix.Education.Domain.Students
 
         public long RecordParticipationChange()
         {
+            ClearAttendance();
             ParticipationRevision = checked(ParticipationRevision + 1);
             return ParticipationRevision;
+        }
+
+        public bool TryRecordAttendance(long sourceTickId, long participationRevision, long lifecycleRevision,
+            DateTimeOffset observedAtSimTimeUtc, decimal attendanceIndex, decimal commuteAccessibilityIndex)
+        {
+            EnsureRevision(sourceTickId);
+            EnsureUtc(observedAtSimTimeUtc);
+            if (attendanceIndex is < 0m or > 1m || commuteAccessibilityIndex is < 0m or > 2m)
+                throw new ArgumentOutOfRangeException(nameof(attendanceIndex));
+            if (!IsAlive || !IsActive || participationRevision != ParticipationRevision
+                || lifecycleRevision != LastLifecycleRevision || sourceTickId <= LastAttendanceSourceTickId
+                || observedAtSimTimeUtc < AttendanceObservedAtSimTimeUtc)
+                return false;
+
+            LastAttendanceSourceTickId = sourceTickId;
+            AttendanceObservedAtSimTimeUtc = observedAtSimTimeUtc;
+            AttendanceIndex = attendanceIndex;
+            CommuteAccessibilityIndex = commuteAccessibilityIndex;
+            return true;
+        }
+
+        private void ClearAttendance()
+        {
+            AttendanceObservedAtSimTimeUtc = null;
+            AttendanceIndex = null;
+            CommuteAccessibilityIndex = null;
         }
 
         private bool TryAcceptSourceRevision(
