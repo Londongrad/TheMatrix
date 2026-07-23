@@ -31,7 +31,9 @@ namespace Matrix.Population.Application.Tests.Integration.Education
             {
                 ActiveStage = " Primary ",
                 CompletedStage = " PRESCHOOL ",
-                Economics = hasEconomics ? new ResidentExternalEconomicProfile(ResidentAgeIncomeSchedule.Create((0, 99m))) : null
+                Economics = hasEconomics ? new ResidentExternalEconomicProfile(ResidentAgeIncomeSchedule.Create((0, 99m))) : null,
+                Routine = PersonRoutineProfile.Structured(TimeSpan.FromHours(10), TimeSpan.FromHours(17),
+                    PersonStructuredActivityLoad.Demanding, PersonRoutineDays.Saturday)
             };
 
             ApplyEducationParticipationResult result = await handler.Handle(
@@ -49,6 +51,7 @@ namespace Matrix.Population.Application.Tests.Integration.Education
             Assert.Equal("preschool", projection.CompletedStage);
             Assert.Equal(PopulationApplicationTestSupport.UtcNow, projection.UpdatedAtUtc);
             Assert.Same(student.Economics, projection.Economics);
+            Assert.Same(student.Routine, projection.Routine);
             Assert.Equal(1, unitOfWork.SaveChangesCalls);
         }
 

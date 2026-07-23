@@ -182,6 +182,40 @@ namespace Matrix.Population.Infrastructure.Tests.Persistence.Repositories
             Assert.Empty(db.EducationParticipationProjections);
         }
 
+        [Fact]
+        public async Task Routines_SurviveReloadShareEqualValuesAndIgnoreStaleUpdates()
+        {
+            await using var database = CreateDbContext();
+            var db = database.DbContext;
+            await AddResidentAsync(db);
+            var second = CreatePerson(personId: Guid.NewGuid());
+            db.Households.Add(CreateHousehold(householdId: second.HouseholdId.Value));
+            db.Persons.Add(second);
+            await db.SaveChangesAsync();
+            var repository = new EducationParticipationProjectionRepository(db);
+            var routine = PersonRoutineProfile.Structured(TimeSpan.FromHours(10), TimeSpan.FromHours(18),
+                PersonStructuredActivityLoad.Demanding, PersonRoutineDays.Saturday);
+            var projection = CreateProjection(2) with { Routine = routine };
+            await repository.UpsertNewerAsync([projection, projection with { ResidentId = second.Id.Value }]);
+            await db.SaveChangesAsync();
+            db.ChangeTracker.Clear();
+            Assert.Equal(0, await repository.UpsertNewerAsync([CreateProjection(1)]));
+            var restored = await repository.GetByResidentIdsAsync(HostId, [ResidentId, second.Id.Value]);
+            Assert.Equal(routine, restored[ResidentId].Routine);
+            Assert.Same(restored[ResidentId].Routine, restored[second.Id.Value].Routine);
+            var active = await repository.GetEnrolledByResidentIdsAsync(HostId, [ResidentId, second.Id.Value]);
+            Assert.Same(active[ResidentId].Routine, active[second.Id.Value].Routine);
+            Assert.Empty(await repository.GetByResidentIdsAsync(Guid.NewGuid(), [ResidentId]));
+
+            await repository.UpsertNewerAsync([CreateProjection(3) with { Routine = PersonRoutineProfile.Unstructured }]);
+            await db.SaveChangesAsync();
+            db.ChangeTracker.Clear();
+            Assert.Same(PersonRoutineProfile.Unstructured, (await repository.GetByResidentIdsAsync(HostId, [ResidentId]))[ResidentId].Routine);
+            await repository.UpsertNewerAsync([CreateProjection(4, false) with { Routine = PersonRoutineProfile.Unstructured }]);
+            await db.SaveChangesAsync();
+            Assert.Empty(await repository.GetEnrolledByResidentIdsAsync(HostId, [ResidentId]));
+        }
+
         private static async Task AddResidentAsync(PopulationDbContext dbContext)
         {
             Person resident = CreatePerson(personId: ResidentId);

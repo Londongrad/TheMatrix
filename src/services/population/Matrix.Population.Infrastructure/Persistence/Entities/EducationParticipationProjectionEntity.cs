@@ -2,6 +2,7 @@ using Matrix.Population.Application.Integration.Education;
 using Matrix.Population.Application.Integration;
 using Matrix.Population.Infrastructure.Integration.Education;
 using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Domain.Models;
 
 namespace Matrix.Population.Infrastructure.Persistence.Entities
 {
@@ -34,6 +35,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
         public DateTimeOffset OccurredAtUtc { get; private set; }
         public DateTimeOffset UpdatedAtUtc { get; private set; }
         public string? EconomicEffectsJson { get; private set; }
+        public string? RoutineJson { get; private set; }
         public long? AttendanceSourceTickId { get; private set; }
         public DateTimeOffset? AttendanceObservedAtSimTimeUtc { get; private set; }
         public decimal? AttendanceIndex { get; private set; }
@@ -77,13 +79,20 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
             return true;
         }
 
-        public EducationParticipationProjection ToProjection(Dictionary<string, ResidentExternalEconomicProfile>? economicsCache = null)
+        public EducationParticipationProjection ToProjection(Dictionary<string, ResidentExternalEconomicProfile>? economicsCache = null,
+            Dictionary<string, PersonRoutineProfile>? routineCache = null)
         {
             ResidentExternalEconomicProfile? economics = null;
             if (EconomicEffectsJson is { } json && (economicsCache is null || !economicsCache.TryGetValue(json, out economics)))
             {
                 economics = EducationEconomicEffectsMapper.Deserialize(json);
                 economicsCache?.Add(json, economics);
+            }
+            PersonRoutineProfile? routine = null;
+            if (RoutineJson is { } routineJson && (routineCache is null || !routineCache.TryGetValue(routineJson, out routine)))
+            {
+                routine = EducationRoutineMapper.Deserialize(routineJson);
+                routineCache?.Add(routineJson, routine);
             }
             return new EducationParticipationProjection(
                 SimulationHostId,
@@ -103,7 +112,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
                 economics,
                 AttendanceIndex is { } attendance && AttendanceObservedAtSimTimeUtc is { } observedAt
                     && AttendanceSourceTickId is { } tickId && CommuteAccessibilityIndex is { } commute
-                    ? new EducationAttendanceProjection(tickId, observedAt, attendance, commute) : null);
+                    ? new EducationAttendanceProjection(tickId, observedAt, attendance, commute) : null,
+                routine);
         }
 
         private void Apply(EducationParticipationProjection projection)
@@ -116,6 +126,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
             if (projection.OccurredAtUtc.Offset != TimeSpan.Zero
                 || projection.UpdatedAtUtc.Offset != TimeSpan.Zero)
                 throw new ArgumentException("Education participation timestamps must be UTC.");
+            if (!projection.IsEnrolled && projection.Routine is { HasStructuredActivity: true })
+                throw new ArgumentException("An unenrolled resident cannot have an education activity.");
 
             ParticipationRevision = projection.ParticipationRevision;
             ResidentLifecycleRevision = projection.ResidentLifecycleRevision;
@@ -130,6 +142,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Entities
             OccurredAtUtc = projection.OccurredAtUtc;
             UpdatedAtUtc = projection.UpdatedAtUtc;
             EconomicEffectsJson = projection.Economics is null ? null : EducationEconomicEffectsMapper.Serialize(projection.Economics);
+            RoutineJson = projection.Routine is null ? null : EducationRoutineMapper.Serialize(projection.Routine);
             AttendanceObservedAtSimTimeUtc = null;
             AttendanceIndex = null;
             CommuteAccessibilityIndex = null;

@@ -1,3 +1,5 @@
+using Matrix.Population.Domain.Models;
+
 namespace Matrix.Population.Application.Integration.Education
 {
     public sealed record EducationParticipationProjection(
@@ -16,5 +18,6 @@ namespace Matrix.Population.Application.Integration.Education
         DateTimeOffset OccurredAtUtc,
         DateTimeOffset UpdatedAtUtc,
         ResidentExternalEconomicProfile? Economics = null,
-        EducationAttendanceProjection? Attendance = null);
+        EducationAttendanceProjection? Attendance = null,
+        PersonRoutineProfile? Routine = null);
 }

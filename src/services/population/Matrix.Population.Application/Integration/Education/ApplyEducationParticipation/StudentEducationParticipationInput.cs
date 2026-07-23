@@ -1,3 +1,5 @@
+using Matrix.Population.Domain.Models;
+
 namespace Matrix.Population.Application.Integration.Education.ApplyEducationParticipation
 {
     public sealed record StudentEducationParticipationInput(
@@ -11,5 +13,6 @@ namespace Matrix.Population.Application.Integration.Education.ApplyEducationPart
         DateOnly? EnrolledOn,
         string? CompletedStage,
         DateOnly? CompletedStageOn,
-        ResidentExternalEconomicProfile? Economics = null);
+        ResidentExternalEconomicProfile? Economics = null,
+        PersonRoutineProfile? Routine = null);
 }

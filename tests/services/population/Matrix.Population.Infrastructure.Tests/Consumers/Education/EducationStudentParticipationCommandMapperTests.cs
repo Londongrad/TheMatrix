@@ -85,7 +85,25 @@ namespace Matrix.Population.Infrastructure.Tests.Consumers.Education
                 DateTimeOffset.UtcNow, "legacy", 1, 1, [student]);
             var command = EducationStudentParticipationCommandMapper.Map(message, Guid.NewGuid(), "test");
             Assert.Null(Assert.Single(command.Students).Economics);
+            Assert.Null(command.Students[0].Routine);
             Assert.Equal("primary", command.Students[0].CompletedStage);
+        }
+
+        [Fact]
+        public void Map_PreservesAndSharesEqualRoutinesWithinBatch()
+        {
+            var first = new EducationStudentParticipationV1(Guid.NewGuid(), 1, 0, true, "higher",
+                Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2048, 1, 1), null, null,
+                DailyRoutine: new(new(600, 1020, 65, "demanding")));
+            var message = new EducationStudentParticipationBatchV1(Guid.NewGuid(), new DateOnly(2048, 5, 3),
+                DateTimeOffset.UtcNow, "routine", 1, 1,
+                [first, first with { ResidentId = Guid.NewGuid(), DailyRoutine = new(new(600, 1020, 65, "demanding")) }]);
+            var command = EducationStudentParticipationCommandMapper.Map(message, Guid.NewGuid(), "test");
+            Assert.NotNull(command.Students[0].Routine);
+            Assert.Same(command.Students[0].Routine, command.Students[1].Routine);
+            Assert.Equal(TimeSpan.FromHours(10), command.Students[0].Routine!.StructuredActivityStart);
+            Assert.Throws<ArgumentException>(() => EducationStudentParticipationCommandMapper.Map(message with
+                { Students = [first, first with { DailyRoutine = new(new(600, 590, 65, "moderate")) }] }, Guid.NewGuid(), "test"));
         }
     }
 }

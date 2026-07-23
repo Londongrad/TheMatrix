@@ -44,6 +44,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
             builder.Property(projection => projection.UpdatedAtUtc)
                .IsRequired();
             builder.Property(projection => projection.EconomicEffectsJson).HasColumnType("text");
+            builder.Property(projection => projection.RoutineJson).HasColumnType("text");
             builder.Property(projection => projection.AttendanceSourceTickId).IsConcurrencyToken();
             builder.Property(projection => projection.AttendanceIndex).HasPrecision(9, 4);
             builder.Property(projection => projection.CommuteAccessibilityIndex).HasPrecision(9, 4);

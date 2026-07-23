@@ -77,7 +77,8 @@ namespace Matrix.Population.Application.Integration.Education.ApplyEducationPart
                     SnapshotDate: request.SnapshotDate,
                     OccurredAtUtc: request.OccurredAtUtc,
                     UpdatedAtUtc: updatedAtUtc,
-                    Economics: student.Economics));
+                    Economics: student.Economics,
+                    Routine: student.Routine));
             }
 
             int appliedStudentCount = projections.Count == 0
@@ -161,6 +162,8 @@ namespace Matrix.Population.Application.Integration.Education.ApplyEducationPart
                                     || student.InstitutionAnchorId.HasValue
                                     || student.EnrolledOn.HasValue;
             bool hasCompletedStage = !string.IsNullOrWhiteSpace(student.CompletedStage);
+            if (!student.IsEnrolled && student.Routine is { HasStructuredActivity: true })
+                throw new ArgumentException("An unenrolled resident cannot have an education activity.", nameof(request));
             if (student.IsEnrolled != hasCompleteEnrollment
                 || (!student.IsEnrolled && hasAnyEnrollment)
                 || hasCompletedStage != student.CompletedStageOn.HasValue
